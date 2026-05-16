@@ -280,7 +280,22 @@ as its own stage with the upstream OGC OAS path block as the starting
 point — copy from `api/upstream/`, flip the extension off, point at
 a real handler.
 
-### Stage 13+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+### Stage 13 — semstreams pin bump to v1.0.0-beta.75 + retire two `X-CS-*` deferral headers
+
+Small infrastructure cleanup stage. semstreams v1.0.0-beta.74 + v1.0.0-beta.75
+landed two changes that retire two of the three honest-deferral headers
+cs-api was carrying:
+
+1. **`feat(graph-index-spatial): SpatialResult carries Lat/Lon/Alt`** (semstreams 6def801) — `GET /areas` now emits real Point geometry built from `SpatialResult.Lat/Lon/Alt`; `X-CS-Geometry-Available: false` header retired.
+2. **`feat(vocabulary/csapi): add OGC Connected Systems v1.0 Datastream package`** (semstreams b3f705e) — `DatastreamTypeIRI` now aliases `csapi.Datastream` (spec-rooted) instead of our locally-minted HTTPS IRI; `X-CS-Datastream-Subset: true` header retired; `docs/upstream-asks/semstreams-datastream-vocabulary.md` renamed to `RESOLVED-…`.
+
+`go.mod` bumped, `conformance/.ets-pin` `SEMSTREAMS_COMMIT` bumped to match. `gateway/cs-api/openapi.yaml` schemas updated to reflect real Point geometry + drop the retired headers from response shapes.
+
+**Outcome:** `total=137 passed=20 failed=0 skipped=117`. Identical to Stage 12 — no regressions, no new PASSes. The headline numbers didn't move because the lone systemfeatures MAY-priority test (`systemItemHasGeometryOrValidTime`) still blocks the sensorml + geojson cascade groups; that test asserts geometry OR validTime on `/systems/{id}` and the framework's sensorml emitter still doesn't preserve the `position` field through the triple round-trip. That's the Stage 14 target — either a new upstream ask for sensorml position-preservation, or a sister-side workaround.
+
+The third deferral header — `X-CS-Reconstructed-Lossy: true` on `GET /systems/{id}` — stays in place; it's a property of our triple-round-trip reconstruction and won't retire until the framework's triple emitter preserves more fields (or we switch to a different storage strategy).
+
+### Stage 14+ — sensorml position chokepoint + iterative resource implementation (open-ended)
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)

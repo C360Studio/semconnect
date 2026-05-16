@@ -21,15 +21,18 @@ const (
 	subjectSpatialPolygon = "graph.spatial.query.polygon"
 )
 
-// spatialResult mirrors graph-index-spatial's SpatialResult wire shape. The
-// framework only returns ID + Type ("entity"); coordinates remain in the
-// spatial index and are NOT echoed in the response. v0.1 emits Features with
-// geometry=null (RFC 7946 §3.2 explicitly permits this); recovering precise
-// coordinates per matching entity requires a follow-up upstream change to
-// SpatialResult (file an issue if a downstream consumer needs them).
+// spatialResult mirrors graph-index-spatial's SpatialResult wire shape. As
+// of framework v1.0.0-beta.75 the response carries Lat/Lon/Alt echoed from
+// the index (`feat(graph-index-spatial): SpatialResult carries Lat/Lon/Alt`
+// — semstreams commit 6def801), retiring the Stage 5 `X-CS-Geometry-Available:
+// false` deferral. Alt is omitempty server-side; we surface 3D positions
+// when present and 2D otherwise.
 type spatialResult struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	ID   string  `json:"id"`
+	Type string  `json:"type"`
+	Lat  float64 `json:"lat"`
+	Lon  float64 `json:"lon"`
+	Alt  float64 `json:"alt,omitempty"`
 }
 
 // boundsQuery is the request envelope the framework's bounds handler expects.
@@ -54,9 +57,10 @@ type polygonQuery struct {
 // entities. CS API §6.5 (and OGC API Features §7.13). The query is shaped by
 // either ?bbox or ?polygon (exactly one). Optional ?limit caps the result.
 //
-// Response: GeoJSON FeatureCollection. Each Feature has the entity's ID and
-// geometry=null (RFC 7946 §3.2). Clients drill via GET /systems/{id} for the
-// entity's precise location until upstream extends SpatialResult.
+// Response: GeoJSON FeatureCollection. Each Feature carries the entity's
+// ID and a Point geometry built from SpatialResult's Lat/Lon/Alt fields
+// (framework v1.0.0-beta.75 closed the coordinates gap; pre-Stage 13
+// emitted geometry=null + X-CS-Geometry-Available: false).
 //
 // Errors:
 //   - 400 if neither bbox nor polygon, or both, or malformed parse
@@ -124,7 +128,8 @@ func (c *Component) handleAreas(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.Header().Set("Content-Type", string(MediaGeoJSON))
 	}
-	w.Header().Set("X-CS-Geometry-Available", "false") // see file doc — Stage 5 limitation
+	// X-CS-Geometry-Available header retired at Stage 13 — SpatialResult
+	// now carries coordinates and we emit real Point geometry.
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
@@ -135,15 +140,30 @@ func (c *Component) handleAreas(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// buildFeatureCollection emits one Feature per spatial result with
-// geometry=null. The Feature.id carries the entity ID; Properties carries
-// the spatial-result type tag ("entity") and a self link clients can follow.
+// buildFeatureCollection emits one Feature per spatial result with a
+// Point geometry built from SpatialResult.Lon/Lat/Alt. Stage 13 closed
+// the geometry=null deferral after framework v1.0.0-beta.75 started
+// echoing coordinates on SpatialResult. Properties carry the entity
+// type tag and a self link clients can follow.
 func buildFeatureCollection(results []spatialResult) geojson.FeatureCollection {
 	features := make([]geojson.Feature, 0, len(results))
 	for _, r := range results {
 		idBytes, _ := json.Marshal(r.ID)
+		var pos geojson.Position
+		// `Alt != 0` collapses "no altitude surveyed" and "altitude
+		// exactly 0m (mean sea level on the geoid)" into 2D position
+		// — a known false-equivalence for tide gauges / equator-level
+		// platforms. The framework emits `omitempty` on Alt server-side
+		// so the Go zero-value is the only signal available; teasing
+		// the two apart needs an upstream `*float64` or sibling-bool
+		// change (file when a real consumer hits this).
+		if r.Alt != 0 {
+			pos = geojson.NewPositionAlt(r.Lon, r.Lat, r.Alt)
+		} else {
+			pos = geojson.NewPosition(r.Lon, r.Lat)
+		}
 		features = append(features, geojson.Feature{
-			Geometry: nil, // RFC 7946 §3.2: null geometry permitted
+			Geometry: geojson.Point{Coordinates: pos},
 			RawID:    idBytes,
 			Properties: map[string]any{
 				"type": r.Type,

@@ -48,7 +48,6 @@ func (c *Component) handleDatastreams(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", string(MediaJSON))
-	w.Header().Set("X-CS-Datastream-Subset", "true") // see datastream.go file doc
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
@@ -90,7 +89,6 @@ func (c *Component) handleDatastream(w http.ResponseWriter, r *http.Request) {
 	d := datastreamFromState(state)
 
 	w.Header().Set("Content-Type", string(MediaJSON))
-	w.Header().Set("X-CS-Datastream-Subset", "true")
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return

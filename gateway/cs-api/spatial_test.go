@@ -12,12 +12,21 @@ import (
 )
 
 // boundsReply produces the bare JSON-array wire shape the framework returns
-// from graph.spatial.query.bounds.
+// from graph.spatial.query.bounds. Stage 13: each result carries Lat/Lon
+// (Alt omitted — the framework's omitempty drops zeros) since v1.0.0-beta.75
+// added coordinate echo to SpatialResult.
 func boundsReply(t *testing.T, ids ...string) []byte {
 	t.Helper()
 	results := make([]spatialResult, 0, len(ids))
-	for _, id := range ids {
-		results = append(results, spatialResult{ID: id, Type: "entity"})
+	for i, id := range ids {
+		// Synthesize per-id coordinates so the test can assert each Feature's
+		// geometry matches its source row, not just "non-null".
+		results = append(results, spatialResult{
+			ID:   id,
+			Type: "entity",
+			Lat:  37.0 + float64(i)*0.5,
+			Lon:  -122.0 + float64(i)*0.5,
+		})
 	}
 	b, err := json.Marshal(results)
 	if err != nil {
@@ -49,8 +58,12 @@ func TestHandleAreas_BBoxGoldenPath(t *testing.T) {
 	if ct := rr.Header().Get("Content-Type"); ct != string(MediaGeoJSON) {
 		t.Errorf("Content-Type: got %q want %q (GeoJSON is the FamilySpatial default)", ct, MediaGeoJSON)
 	}
-	if avail := rr.Header().Get("X-CS-Geometry-Available"); avail != "false" {
-		t.Errorf("X-CS-Geometry-Available: got %q want false (framework SpatialResult has no coords)", avail)
+	// Stage 13 — X-CS-Geometry-Available retired; framework v1.0.0-beta.75
+	// echoes coordinates on SpatialResult and we emit real Point geometry.
+	// Negative-assertion pins the deprecation so a future regression that
+	// re-adds the header fails locally.
+	if avail := rr.Header().Get("X-CS-Geometry-Available"); avail != "" {
+		t.Errorf("X-CS-Geometry-Available should be unset post-Stage-13; got %q", avail)
 	}
 
 	fc, err := geojson.UnmarshalFeatureCollection(rr.Body.Bytes())
@@ -60,9 +73,22 @@ func TestHandleAreas_BBoxGoldenPath(t *testing.T) {
 	if len(fc.Features) != 2 {
 		t.Errorf("features: got %d want 2", len(fc.Features))
 	}
+	// Features carry real Point geometry derived from boundsReply's Lat/Lon.
 	for i, f := range fc.Features {
-		if f.Geometry != nil {
-			t.Errorf("feature[%d].Geometry: got %+v want nil", i, f.Geometry)
+		if f.Geometry == nil {
+			t.Errorf("feature[%d].Geometry: got nil want Point", i)
+			continue
+		}
+		pt, ok := f.Geometry.(geojson.Point)
+		if !ok {
+			t.Errorf("feature[%d].Geometry: got %T want geojson.Point", i, f.Geometry)
+			continue
+		}
+		wantLon := -122.0 + float64(i)*0.5
+		wantLat := 37.0 + float64(i)*0.5
+		if len(pt.Coordinates) < 2 || pt.Coordinates[0] != wantLon || pt.Coordinates[1] != wantLat {
+			t.Errorf("feature[%d].Geometry.Coordinates: got %v want [%v %v]",
+				i, pt.Coordinates, wantLon, wantLat)
 		}
 	}
 

@@ -41,22 +41,57 @@ type Config struct {
 	// MaxListLimit caps client-supplied ?limit= so a single request cannot
 	// trigger an unbounded predicate scan.
 	MaxListLimit int `json:"max_list_limit"`
+
+	// PublishTimeout caps observation publishes (POST endpoints).
+	// Kept separate from QueryTimeout so a slow JetStream ack does not
+	// block independently-budgeted reads.
+	PublishTimeout time.Duration `json:"publish_timeout"`
+
+	// ObservationsStream is the JetStream stream name that captures
+	// observation publishes. The cs-api gateway EnsureStream's it at
+	// Start() so the first POST does not race the stream's creation.
+	ObservationsStream string `json:"observations_stream"`
+
+	// ObservationsSubjectPrefix shapes the per-observation publish subject.
+	// A POST /datastreams/{id}/observations becomes
+	// "<prefix>.<datastream_id>". Trailing dot is added automatically.
+	ObservationsSubjectPrefix string `json:"observations_subject_prefix"`
+
+	// ObservationsMaxAge bounds how long observation messages live in the
+	// stream. 30 days is the v0.1 default — auditors get a window,
+	// consumers that lag can replay. Tune per deployment.
+	ObservationsMaxAge time.Duration `json:"observations_max_age"`
+
+	// ObservationsMaxBytes is a soft cap on the stream's on-disk size. 0
+	// means unlimited (today's behavior). Set in production so a runaway
+	// client cannot fill the disk to the JetStream account limit.
+	ObservationsMaxBytes int64 `json:"observations_max_bytes"`
+
+	// ObservationsReplicas controls JetStream replica count. 1 is fine for
+	// single-node dev/test; production HA uses 3.
+	ObservationsReplicas int `json:"observations_replicas"`
 }
 
 // DefaultConfig returns a fully-populated Config. Stage 2 binaries call this
 // and then overlay parsed JSON.
 func DefaultConfig() Config {
 	return Config{
-		BindAddress:       ":8080",
-		StandaloneServer:  false,
-		QueryTimeout:      5 * time.Second,
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       30 * time.Second,
-		WriteTimeout:      60 * time.Second,
-		IdleTimeout:       120 * time.Second,
-		MaxRequestBytes:   1 << 20, // 1 MiB
-		DefaultListLimit:  100,
-		MaxListLimit:      1000,
+		BindAddress:               ":8080",
+		StandaloneServer:          false,
+		QueryTimeout:              5 * time.Second,
+		ReadHeaderTimeout:         5 * time.Second,
+		ReadTimeout:               30 * time.Second,
+		WriteTimeout:              60 * time.Second,
+		IdleTimeout:               120 * time.Second,
+		MaxRequestBytes:           1 << 20, // 1 MiB
+		DefaultListLimit:          100,
+		MaxListLimit:              1000,
+		PublishTimeout:            5 * time.Second,
+		ObservationsStream:        "CS_API_OBSERVATIONS",
+		ObservationsSubjectPrefix: "cs-api.observations",
+		ObservationsMaxAge:        30 * 24 * time.Hour,
+		ObservationsMaxBytes:      0, // unlimited; set in prod
+		ObservationsReplicas:      1,
 	}
 }
 
@@ -92,6 +127,23 @@ func (c *Config) ApplyDefaults() {
 	if c.MaxListLimit == 0 {
 		c.MaxListLimit = d.MaxListLimit
 	}
+	if c.PublishTimeout == 0 {
+		c.PublishTimeout = d.PublishTimeout
+	}
+	if c.ObservationsStream == "" {
+		c.ObservationsStream = d.ObservationsStream
+	}
+	if c.ObservationsSubjectPrefix == "" {
+		c.ObservationsSubjectPrefix = d.ObservationsSubjectPrefix
+	}
+	if c.ObservationsMaxAge == 0 {
+		c.ObservationsMaxAge = d.ObservationsMaxAge
+	}
+	if c.ObservationsReplicas == 0 {
+		c.ObservationsReplicas = d.ObservationsReplicas
+	}
+	// ObservationsMaxBytes: 0 is a meaningful value (unlimited); do not
+	// overwrite with the default.
 }
 
 // Validate rejects nonsensical combinations. Called after ApplyDefaults.
@@ -113,6 +165,27 @@ func (c *Config) Validate() error {
 	}
 	if c.StandaloneServer && c.BindAddress == "" {
 		return errors.New("bind_address required when standalone_server is true")
+	}
+	if c.PublishTimeout < 100*time.Millisecond {
+		return errors.New("publish_timeout below 100ms floor")
+	}
+	if c.PublishTimeout > 30*time.Second {
+		return errors.New("publish_timeout above 30s ceiling")
+	}
+	if c.ObservationsStream == "" {
+		return errors.New("observations_stream required")
+	}
+	if c.ObservationsSubjectPrefix == "" {
+		return errors.New("observations_subject_prefix required")
+	}
+	if c.ObservationsMaxAge < time.Minute {
+		return errors.New("observations_max_age must be ≥ 1 minute")
+	}
+	if c.ObservationsMaxBytes < 0 {
+		return errors.New("observations_max_bytes must be ≥ 0")
+	}
+	if c.ObservationsReplicas < 1 || c.ObservationsReplicas > 5 {
+		return errors.New("observations_replicas must be between 1 and 5")
 	}
 	return nil
 }

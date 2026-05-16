@@ -9,16 +9,22 @@ import (
 // actually implements at this stage. Team Engine reads /conformance to decide
 // what to assert, so claiming a class we cannot serialise here would fail
 // conformance — claim only what works. The full ADR-S001 §1 v0.1 set lands
-// over Stages 3–5 as each encoder is wired:
+// over Stages 3–7 as each encoder / endpoint is wired:
 //
 //   - Stage 2:                core + json
 //   - Stage 3:                + oms (consume on POST /datastreams/{id}/observations)
 //   - Stage 4:                + sensorml + json-ld
-//   - Stage 5 (this stage):   + geojson (GET /areas)
+//   - Stage 5:                + geojson (GET /areas)
+//   - Stage 7 (this stage):   + OGC API Common Part 1 Core (URI prepended
+//     below) — the CS API Core conformance class implicitly inherits from
+//     Common Core, but the Botts ETS asserts the Common Core URI is named
+//     explicitly in the declaration. Stage 7 also lands GET / and the
+//     ?f= negotiation override that Common Core requires.
 //
-// With Stage 5 merged, the running /conformance declaration aligns with
-// ADR-S001 §1's full v0.1 claim. Stage 6 wires the OGC Team Engine
-// conformance harness in CI to validate each claim.
+// Stage 6 wires the OGC Team Engine conformance harness in CI; Stage 7
+// closes the first-run gaps it surfaced. The Common Core URI is FIRST in
+// the list to make the inheritance chain readable to humans grepping the
+// /conformance response.
 //
 // Note on sensorml at Stage 4: GET /systems/{id} produces SensorML via a
 // lossy triple→sensorml reverse mapping (see gateway/cs-api/sensorml.go for
@@ -30,7 +36,17 @@ import (
 // geometry=null because the framework's SpatialResult only carries entity
 // IDs, not their indexed points. RFC 7946 §3.2 permits null geometry, but
 // clients needing coordinates must drill via GET /systems/{id}.
+//
+// Note on Common Core at Stage 7: the OAS30 conformance class
+// (.../ogcapi-common-1/1.0/conf/oas30) is intentionally NOT declared.
+// semconnect does not ship an OpenAPI definition at v0.1, so claiming
+// oas30 would be a lie. The Botts ETS's apiDefinitionResourceReturnsContent
+// test may exercise the link regardless because the scaffold runs all
+// tests, not the declared set — that mismatch is a Team Engine concern,
+// not a CS API one. See ADR-S001 §1.
 var stageConformanceClasses = []string{
+	"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
+	"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
@@ -46,7 +62,7 @@ type conformanceDeclaration struct {
 // handleConformance serves GET /conformance. CS API §7.4. Method enforced
 // by the ServeMux pattern.
 func (c *Component) handleConformance(w http.ResponseWriter, r *http.Request) {
-	if _, ok := Negotiate(r.Header.Get("Accept"), FamilyService); !ok {
+	if _, ok := NegotiateRequest(r, FamilyService); !ok {
 		WriteNotAcceptable(w, FamilyService)
 		return
 	}

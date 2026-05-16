@@ -39,6 +39,11 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	// uniformly is cleaner than the per-handler r.Method check Stage 2
 	// inherited. ServeMux routes by specificity, so /systems and
 	// /systems/{id} don't conflict.
+	//
+	// landingPath uses the `{$}` end-of-path anchor: GET / would otherwise
+	// match every unrouted prefix and shadow 404s for typos like /sytems.
+	// `GET /{$}` matches only the bare root.
+	landingPath := join("{$}")
 	systemsPath := join("systems")
 	systemItemPath := join("systems/{id}")
 	conformancePath := join("conformance")
@@ -46,6 +51,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	observationsPath := join("datastreams/{datastreamID}/observations")
 	areasPath := join("areas")
 
+	mux.Handle("GET "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
+	mux.Handle("HEAD "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
 	mux.Handle("GET "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
 	mux.Handle("HEAD "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
 	mux.Handle("GET "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
@@ -59,6 +66,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
 
 	c.logger.Debug("HTTP handlers registered",
+		"landing", landingPath,
 		"systems", systemsPath,
 		"system_item", systemItemPath,
 		"conformance", conformancePath,

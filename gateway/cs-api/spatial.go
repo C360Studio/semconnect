@@ -64,7 +64,7 @@ type polygonQuery struct {
 //   - 406 if Accept names a type FamilySpatial does not support
 func (c *Component) handleAreas(w http.ResponseWriter, r *http.Request) {
 	// Method enforced by the ServeMux pattern.
-	media, ok := Negotiate(r.Header.Get("Accept"), FamilySpatial)
+	media, ok := NegotiateRequest(r, FamilySpatial)
 	if !ok {
 		WriteNotAcceptable(w, FamilySpatial)
 		return

@@ -751,11 +751,14 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 	if err := json.Unmarshal(body, &decl); err != nil {
 		t.Fatalf("decode: %v; body=%s", err, body)
 	}
-	// Stage 5 closed the gap — all v0.1 classes are wired. The strong
-	// invariant: count(declared) == count(stageConformanceClasses).
-	// A future stage that adds a class to ADR-S001's roadmap without
-	// wiring it would fail this check loudly.
+	// Stage 7 added the OGC API Common Part 1 Core + JSON URIs (CS API
+	// Core inherits from Common Core; the Botts ETS asserts the inheritance
+	// is named explicitly). The strong invariant remains:
+	// count(declared) == count(stageConformanceClasses) — a future stage
+	// that adds a class to ADR-S001's roadmap without wiring it fails loudly.
 	wantClaimed := []string{
+		"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
+		"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",

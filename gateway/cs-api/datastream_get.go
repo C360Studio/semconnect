@@ -32,13 +32,13 @@ func (c *Component) handleDatastreams(w http.ResponseWriter, r *http.Request) {
 		NumberMatched:  len(entities),
 		NumberReturned: len(entities),
 		Truncated:      len(entities) == limit, // see systems.go systemCollection.NumberMatched comment
-		Datastreams:    make([]datastreamRef, 0, len(entities)),
+		Items:          make([]datastreamRef, 0, len(entities)),
 		Links: []link{
 			{Href: "/datastreams", Rel: "self", Type: string(MediaJSON)},
 		},
 	}
 	for _, id := range entities {
-		coll.Datastreams = append(coll.Datastreams, datastreamRef{
+		coll.Items = append(coll.Items, datastreamRef{
 			ID:   id,
 			Type: "Datastream",
 			Links: []link{

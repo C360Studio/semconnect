@@ -62,12 +62,14 @@ type datastreamRef struct {
 }
 
 type datastreamCollection struct {
-	Type           string          `json:"type"` // "DatastreamCollection"
-	NumberMatched  int             `json:"numberMatched"`
-	NumberReturned int             `json:"numberReturned"`
-	Truncated      bool            `json:"truncated,omitempty"`
-	Datastreams    []datastreamRef `json:"datastreams"`
-	Links          []link          `json:"links"`
+	Type           string `json:"type"` // "DatastreamCollection"
+	NumberMatched  int    `json:"numberMatched"`
+	NumberReturned int    `json:"numberReturned"`
+	Truncated      bool   `json:"truncated,omitempty"`
+	// `items` (not `datastreams`) per CS API §10 / OGC API Common §7.14.
+	// Mirrors systemCollection.Items — see Stage 10 note there.
+	Items []datastreamRef `json:"items"`
+	Links []link          `json:"links"`
 }
 
 // datastreamFromState collapses an EntityState into the v0.1 Datastream

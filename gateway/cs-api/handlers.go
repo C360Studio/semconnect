@@ -48,6 +48,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	systemItemPath := join("systems/{id}")
 	conformancePath := join("conformance")
 	healthPath := join("health")
+	datastreamsPath := join("datastreams")
+	datastreamItemPath := join("datastreams/{id}")
 	observationsPath := join("datastreams/{datastreamID}/observations")
 	areasPath := join("areas")
 
@@ -61,6 +63,12 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+conformancePath, c.middleware(http.HandlerFunc(c.handleConformance)))
 	mux.Handle("GET "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
 	mux.Handle("HEAD "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
+	mux.Handle("POST "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystemPost)))
+	mux.Handle("GET "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreams)))
+	mux.Handle("HEAD "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreams)))
+	mux.Handle("POST "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreamPost)))
+	mux.Handle("GET "+datastreamItemPath, c.middleware(http.HandlerFunc(c.handleDatastream)))
+	mux.Handle("HEAD "+datastreamItemPath, c.middleware(http.HandlerFunc(c.handleDatastream)))
 	mux.Handle("POST "+observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsPost)))
 	mux.Handle("GET "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
 	mux.Handle("HEAD "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
@@ -71,6 +79,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"system_item", systemItemPath,
 		"conformance", conformancePath,
 		"health", healthPath,
+		"datastreams", datastreamsPath,
+		"datastream_item", datastreamItemPath,
 		"observations", observationsPath,
 		"areas", areasPath)
 }

@@ -29,6 +29,13 @@ import (
 // drop down to js.PublishMsg with our own *nats.Msg).
 type natsRequester interface {
 	Request(ctx context.Context, subject string, data []byte, timeout time.Duration) ([]byte, error)
+	// RequestWithHeaders is used by Stage 8 mutation handlers (POST /systems,
+	// POST /datastreams) so audit headers from X-Forwarded-* propagate onto
+	// the NATS request envelope. graph-ingest does not consume the headers
+	// today, but a trace tool sniffing the request subject does — and the
+	// symmetry with observations.go's audited publish path matters for
+	// operator runbooks.
+	RequestWithHeaders(ctx context.Context, subject string, data []byte, headers map[string]string, timeout time.Duration) (*nats.Msg, error)
 	Status() natsclient.ConnectionStatus
 	JetStream() (jetstream.JetStream, error)
 	EnsureStream(ctx context.Context, cfg jetstream.StreamConfig) (jetstream.Stream, error)

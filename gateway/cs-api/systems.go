@@ -57,13 +57,24 @@ type systemCollection struct {
 	Links []link      `json:"links"`
 }
 
-// NATS subjects + the dotted predicate name the framework's payload registry
-// registers `rdf:type` under (vocabulary/README.md example). Object value is
-// the full SSN System IRI.
+// NATS subjects + the predicate-name constant the predicate index keys
+// system / datastream entities under.
+//
+// CRITICAL: predicateClassType must match the predicate name actually
+// written to triples — not the more obvious `"rdf.type"`. The framework's
+// sensorml emitter (parser/sensorml/graphable.go) writes the type triple
+// as `(entityID, "sensorml.process.type", <class IRI>)`, exposed as the
+// `sensorml.PredType` constant. cs-api-server's POST /systems and POST
+// /datastreams paths use that same constant when constructing their own
+// type triples (gateway/cs-api/datastream.go datastreamToTriples). The
+// predicate index keys those triples by the same name; querying with
+// `"rdf.type"` returns zero entities — surfaced as Stage 12 conformance
+// failure `systemsCollectionHasItemsArray` when the upstream-ETS core
+// cascade unblocked. Stage 12 fixed.
 const (
 	subjectPredicateQuery = "graph.index.query.predicate"
 	subjectEntityQuery    = "graph.query.entity"
-	predicateRDFType      = "rdf.type"
+	predicateClassType    = sensorml.PredType
 )
 
 // system is the JSON shape returned by GET /systems/{id}. CS API §7.2's
@@ -98,6 +109,14 @@ func systemFromState(state graph.EntityState) system {
 		Type: "System",
 		Links: []link{
 			{Href: "/systems/" + state.ID, Rel: "self", Type: string(MediaJSON)},
+			// CS API §7 /req/system/canonical-url asserts a `rel=canonical`
+			// link. We emit it pointing at the same URL as `self` —
+			// canonical is the spec-mandated authoritative form (RFC 6596),
+			// distinct from `self` (this representation). For us they
+			// resolve to the same JSON URL since we don't host alternates
+			// elsewhere. Stage 12 adds; surfaced by
+			// `systemsCollectionLinksDiscipline` ETS assertion.
+			{Href: "/systems/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
 			{Href: "/systems/" + state.ID, Rel: "alternate", Type: string(MediaSensorML)},
 			{Href: "/systems/" + state.ID, Rel: "alternate", Type: string(MediaJSONLD)},
 		},
@@ -433,7 +452,7 @@ func (c *Component) listEntitiesByType(ctx context.Context, typeIRI string, limi
 		Value     *string `json:"value,omitempty"`
 		Limit     int     `json:"limit,omitempty"`
 	}{
-		Predicate: predicateRDFType,
+		Predicate: predicateClassType,
 		Value:     &reqValue,
 		Limit:     limit,
 	})

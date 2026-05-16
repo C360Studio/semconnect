@@ -235,6 +235,33 @@ EOF
     if [[ "$ds_code" != "201" ]]; then
         die "POST /datastreams failed: $ds_code (see $SEED_LOG)"
     fi
+
+    # Stage 12 — wait for the predicate index to reflect the seed before
+    # invoking the suite. POST writes to ENTITY_STATES synchronously;
+    # graph-index KV-watches ENTITY_STATES and updates PREDICATE_INDEX
+    # asynchronously (eventually-consistent). The suite's
+    # `systemsCollectionHasItemsArray` test reads /systems and asserts
+    # non-empty — without this wait it races the KV-watch and FAILs even
+    # though /systems/{id} (direct entity query) already works.
+    log "  waiting for predicate index to reflect seed (eventual consistency)"
+    local poll_attempt
+    for poll_attempt in $(seq 1 30); do
+        local count
+        count="$(docker run --rm \
+            --network "${COMPOSE_PROJECT}_default" \
+            curlimages/curl:8.10.1 \
+            -sS "${cs_api_url}/systems" 2>/dev/null \
+            | python3 -c "import sys,json; print(json.loads(sys.stdin.read()).get('numberReturned', 0))" 2>/dev/null || echo 0)"
+        if [[ "$count" -gt 0 ]]; then
+            log "  predicate index ready after ${poll_attempt} attempt(s); /systems numberReturned=$count"
+            break
+        fi
+        if [[ "$poll_attempt" -eq 30 ]]; then
+            die "predicate index never reflected seed after 30 attempts (~30s); see $SEED_LOG"
+        fi
+        sleep 1
+    done
+
     log "  seed complete (log: $SEED_LOG)"
 }
 

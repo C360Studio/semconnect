@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/c360studio/semstreams/natsclient"
@@ -67,17 +68,47 @@ func TestHandleLanding_GoldenPath(t *testing.T) {
 	if !ok || len(dataLinks) == 0 {
 		t.Fatalf("missing data link (rel=data); rels=%v", keys(rels))
 	}
-	// Both system + spatial collections must be reachable from the
-	// landing page. The Common-Core-aware Botts ETS may not enumerate
-	// them today, but a CS-API-aware client (Sensor Hub, OSH) will.
-	hrefs := map[string]bool{}
+	// Hrefs are absolute (Stage 12). httptest's default request Host is
+	// "example.com" without port, so the expected prefix is
+	// http://example.com — we suffix-match to stay robust to that
+	// (production absolute-URL composition tested in
+	// TestAbsoluteBase_*).
+	hrefSet := map[string]bool{}
 	for _, l := range dataLinks {
-		hrefs[l.Href] = true
+		hrefSet[l.Href] = true
 	}
-	for _, want := range []string{"/systems", "/areas"} {
-		if !hrefs[want] {
-			t.Errorf("data link missing for %s; got %v", want, hrefs)
+	hasSuffix := func(suffix string) bool {
+		for h := range hrefSet {
+			if strings.HasSuffix(h, suffix) {
+				return true
+			}
 		}
+		return false
+	}
+	// Stage 12 added /datastreams to the data link set.
+	for _, want := range []string{"/systems", "/datastreams", "/areas"} {
+		if !hasSuffix(want) {
+			t.Errorf("data link missing for %s; got %v", want, hrefSet)
+		}
+	}
+
+	// Stage 12 — service-desc link is the unblock for the upstream-ETS
+	// landingPageHasApiDefinitionLink + apiDefinitionResourceReturnsContent
+	// assertions. Required when oas30 is declared in /conformance per
+	// OGC API Common Part 1 §7.4.1 Table 4. Pin the exact shape so a
+	// regression here fails locally before the conformance gate.
+	svcDesc, ok := rels["service-desc"]
+	if !ok || len(svcDesc) == 0 {
+		t.Fatalf("missing service-desc link (Stage 12 oas30); rels=%v", keys(rels))
+	}
+	if !strings.HasSuffix(svcDesc[0].Href, "/api") {
+		t.Errorf("service-desc href: got %q want suffix /api", svcDesc[0].Href)
+	}
+	if !strings.HasPrefix(svcDesc[0].Href, "http://") && !strings.HasPrefix(svcDesc[0].Href, "https://") {
+		t.Errorf("service-desc href not absolute: got %q (Stage 12 portability requirement)", svcDesc[0].Href)
+	}
+	if svcDesc[0].Type != string(MediaOAS3JSON) {
+		t.Errorf("service-desc type: got %q want %q", svcDesc[0].Type, MediaOAS3JSON)
 	}
 }
 

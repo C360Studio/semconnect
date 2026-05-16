@@ -72,6 +72,9 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("POST "+observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsPost)))
 	mux.Handle("GET "+observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsGet)))
 	mux.Handle("HEAD "+observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsGet)))
+	apiPath := join("api")
+	mux.Handle("GET "+apiPath, c.middleware(http.HandlerFunc(c.handleAPI)))
+	mux.Handle("HEAD "+apiPath, c.middleware(http.HandlerFunc(c.handleAPI)))
 	mux.Handle("GET "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
 	mux.Handle("HEAD "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
 

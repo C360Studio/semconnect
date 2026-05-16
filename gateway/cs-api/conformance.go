@@ -15,11 +15,16 @@ import (
 //   - Stage 3:                + oms (consume on POST /datastreams/{id}/observations)
 //   - Stage 4:                + sensorml + json-ld
 //   - Stage 5:                + geojson (GET /areas)
-//   - Stage 7 (this stage):   + OGC API Common Part 1 Core (URI prepended
+//   - Stage 7:                + OGC API Common Part 1 Core (URI prepended
 //     below) — the CS API Core conformance class implicitly inherits from
 //     Common Core, but the Botts ETS asserts the Common Core URI is named
 //     explicitly in the declaration. Stage 7 also lands GET / and the
 //     ?f= negotiation override that Common Core requires.
+//   - Stage 12 (this stage): + oas30 — cs-api now ships an OpenAPI 3.0
+//     service definition at GET /api (see gateway/cs-api/api.go and
+//     gateway/cs-api/openapi.yaml). The landing page gains a service-desc
+//     link pointing at /api, satisfying OGC API Common Part 1 §7.4.1
+//     Table 4 ("REQUIRED if oas30 or html is declared").
 //
 // Stage 6 wires the OGC Team Engine conformance harness in CI; Stage 7
 // closes the first-run gaps it surfaced. The Common Core URI is FIRST in
@@ -37,16 +42,18 @@ import (
 // IDs, not their indexed points. RFC 7946 §3.2 permits null geometry, but
 // clients needing coordinates must drill via GET /systems/{id}.
 //
-// Note on Common Core at Stage 7: the OAS30 conformance class
-// (.../ogcapi-common-1/1.0/conf/oas30) is intentionally NOT declared.
-// semconnect does not ship an OpenAPI definition at v0.1, so claiming
-// oas30 would be a lie. The Botts ETS's apiDefinitionResourceReturnsContent
-// test may exercise the link regardless because the scaffold runs all
-// tests, not the declared set — that mismatch is a Team Engine concern,
-// not a CS API one. See ADR-S001 §1.
+// Note on Common Core at Stage 7 → Stage 12 update: the OAS30 conformance
+// class (.../ogcapi-common-1/1.0/conf/oas30) was originally NOT declared
+// because we did not ship an OpenAPI definition. Stage 12 ships one
+// (gateway/cs-api/openapi.yaml served at GET /api), so the claim is now
+// honest. This also unblocks the upstream-ETS
+// landingPageHasApiDefinitionLink / apiDefinitionResourceReturnsContent
+// assertions — see docs/upstream-asks/botts-ets-api-definition-unconditional.md
+// (issue #1 at Botts-Innovative-Research/ets-ogcapi-connectedsystems10).
 var stageConformanceClasses = []string{
 	"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
 	"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
+	"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",

@@ -154,8 +154,8 @@ func TestHandleSystems_GoldenPath(t *testing.T) {
 	if err := json.Unmarshal(fake.gotBody, &body); err != nil {
 		t.Fatalf("decode captured body: %v", err)
 	}
-	if body.Predicate != predicateRDFType {
-		t.Errorf("predicate: got %q want %q", body.Predicate, predicateRDFType)
+	if body.Predicate != predicateClassType {
+		t.Errorf("predicate: got %q want %q", body.Predicate, predicateClassType)
 	}
 	if body.Value == nil || *body.Value != sosa.SSNSystem {
 		t.Errorf("value: got %v want %q", body.Value, sosa.SSNSystem)
@@ -776,6 +776,8 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 	wantClaimed := []string{
 		"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
 		"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
+		// Stage 12 — oas30 claim is honest once /api ships the OAS3 doc.
+		"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",

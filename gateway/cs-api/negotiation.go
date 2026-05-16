@@ -16,6 +16,11 @@ const (
 	MediaGeoJSON  MediaType = "application/geo+json"
 	MediaSensorML MediaType = "application/sensorml+json"
 	MediaOMS      MediaType = "application/om+json"
+	// OAS3 content types per OpenAPI Initiative registration (2021).
+	// Used by /api (Stage 12) — Swagger UI / Redoc / openapi-generator
+	// all prefer the +json form; the YAML form is the raw embedded body.
+	MediaOAS3JSON MediaType = "application/vnd.oai.openapi+json;version=3.0"
+	MediaOAS3YAML MediaType = "application/vnd.oai.openapi;version=3.0"
 )
 
 // ResourceFamily groups endpoints that share the same negotiable encoding set.
@@ -33,7 +38,8 @@ const (
 	FamilyDatastreamCollection                       // GET /datastreams
 	FamilyObservationCollection                      // GET /datastreams/{id}/observations (Stage 11)
 	FamilySpatial
-	FamilyService // /, /conformance (and /api when oas30 lands)
+	FamilyService // /, /conformance
+	FamilyAPI     // GET /api (Stage 12) — OAS3 service definition
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -83,6 +89,12 @@ func (fam ResourceFamily) supported() []MediaType {
 		return []MediaType{MediaGeoJSON, MediaJSON}
 	case FamilyService:
 		return []MediaType{MediaJSON, MediaJSONLD}
+	case FamilyAPI:
+		// OAS3 JSON is the default — most OpenAPI tooling (Swagger UI,
+		// Redoc, openapi-generator, kin-openapi) prefers it. MediaJSON
+		// included as an alias so curl-without-Accept users get JSON
+		// instead of 406. YAML is the alternate.
+		return []MediaType{MediaOAS3JSON, MediaJSON, MediaOAS3YAML}
 	default:
 		return []MediaType{MediaJSON}
 	}
@@ -99,6 +111,13 @@ var shortMediaNames = map[string]MediaType{
 	"sensorml": MediaSensorML,
 	"om":       MediaOMS,
 	"jsonld":   MediaJSONLD,
+	// Stage 12: OAS3 short names for `/api?f=...`. `openapi` resolves to
+	// the JSON form (matches the default); `yaml` resolves to the raw
+	// embedded body. The OAS3 +json media type doesn't have an obvious
+	// short name in the OpenAPI Initiative's docs, so we mint `openapi`
+	// rather than coining something unusual.
+	"openapi": MediaOAS3JSON,
+	"yaml":    MediaOAS3YAML,
 }
 
 // NegotiateRequest is Negotiate's request-aware sibling. Per Common Part 1
@@ -223,6 +242,17 @@ type acceptPart struct {
 }
 
 func (p acceptPart) matches(media string) bool {
+	// Strip MIME parameters from the supported side — e.g. the OAS3
+	// types `application/vnd.oai.openapi+json;version=3.0` carry an
+	// informational `version=3.0` parameter that's part of the
+	// canonical advertisement (Content-Type) but must not be load-
+	// bearing for negotiation matching. Both sides drop parameters
+	// before subtype comparison: the Accept side via parseAccept's
+	// `;`-split that pulls only fields[0] into mediaSeg, and the
+	// supported side here.
+	if i := strings.IndexByte(media, ';'); i >= 0 {
+		media = strings.TrimSpace(media[:i])
+	}
 	slash := strings.IndexByte(media, '/')
 	if slash < 0 {
 		return false

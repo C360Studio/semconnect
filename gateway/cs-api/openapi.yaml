@@ -1,0 +1,1001 @@
+openapi: 3.0.3
+info:
+  title: semconnect — OGC API Connected Systems (CS API) v0.1
+  version: 0.1.0
+  description: |-
+    OAS3 contract for the cs-api gateway shipped by
+    [semconnect](https://github.com/C360Studio/semconnect).
+
+    cs-api exposes a subset of [OGC API Connected Systems](https://docs.ogc.org/DRAFTS/23-001r0.html)
+    over the [semstreams](https://github.com/C360Studio/semstreams)
+    framework primitives. v0.1 ships the endpoints listed below as
+    "implemented". Endpoints carrying `x-not-implemented-at-v01: true`
+    are documented here for spec-completeness and roadmap visibility but
+    return `501 Not Implemented` today.
+
+    **Honest deferral signals.** Several endpoints return data that is
+    intentionally lossy or shape-truncated relative to the upstream
+    spec. cs-api signals these via response headers:
+
+    - `X-CS-Reconstructed-Lossy: true` on `GET /systems/{id}` — the
+      SensorML / JSON-LD reconstruction from triples drops
+      inputs/outputs/parameters/keywords/connections/identifier
+      metadata that the framework's triple emitter does not preserve.
+      Clients drilling into nested System children get skeleton refs.
+    - `X-CS-Geometry-Available: false` on `GET /areas` — the framework's
+      `SpatialResult` only returns entity IDs; Features carry
+      `geometry: null` until the upstream primitive carries
+      coordinates. Clients drill via `GET /systems/{id}` for
+      precise geometry.
+    - `X-CS-Datastream-Subset: true` on `GET /datastreams` — the
+      Datastream JSON shape is a subset of CS API §10 pending
+      framework datastream-vocabulary primitives.
+    - `X-CS-Items-Count: <N>` on `GET /datastreams/{id}/observations`
+      with `Accept: application/om+json` — count of items in the bare
+      OMS array response (the JSON wrapper already carries
+      `numberReturned`).
+
+    **Auth posture.** Anonymous-by-default at v0.1. Optional
+    `X-Forwarded-User` / `X-Forwarded-Email` headers from a trusted
+    reverse proxy are recorded on the audit trail but NOT
+    authorization-checked. No verification at this maturity level.
+
+    **Source.** Hand-authored to reflect cs-api's actual behavior.
+    Adapted from the upstream OGC OAS3 source at
+    `opengeospatial/ogcapi-connected-systems@3fd86c7` — see
+    `api/upstream/NOTICE-OF-MODIFICATIONS.md` for license + attribution.
+  contact:
+    name: c360 / semconnect
+    url: https://github.com/C360Studio/semconnect
+  license:
+    name: Adapted from OGC OAS (OGC License)
+    url: https://github.com/C360Studio/semconnect/blob/main/api/upstream/LICENSE-OGC.txt
+
+servers:
+  - url: /
+    description: |-
+      Same-origin. cs-api-server binds whatever address its config
+      specifies (default `:8080`); the OAS is served at `/api`.
+      Operators behind reverse proxies should override Server URL
+      out-of-band rather than hard-coding it here.
+
+tags:
+  - name: Capabilities
+    description: Landing page, conformance declaration, OAS definition, health.
+  - name: Systems
+    description: |-
+      `System` resources — sensors, platforms, processing nodes
+      (anything that can produce data or receive commands). CS API §7.
+  - name: Datastreams
+    description: |-
+      `Datastream` resources — observation channels emitted by a
+      System. CS API §10.
+  - name: Observations
+    description: |-
+      `Observation` resources — individual measurements on a
+      Datastream. CS API Part 2 §11.
+  - name: Areas
+    description: |-
+      Spatial filter — returns Systems whose location intersects a
+      bbox or polygon. cs-api-specific endpoint shaped on OGC GeoJSON
+      conformance class.
+  - name: NotImplementedAtV01
+    description: |-
+      Vendored from the upstream OGC OAS for roadmap visibility;
+      returns `501 Not Implemented` at v0.1. Each carries
+      `x-not-implemented-at-v01: true` and a pointer to the source
+      under `api/upstream/`. Implementation tracked per stage.
+
+security:
+  - {}  # anonymous-by-default at v0.1 — middleware-body swap turns this on
+
+paths:
+  # ============================================================
+  # Capabilities (Common Part 1 Core + JSON + OAS30)
+  # ============================================================
+  /:
+    get:
+      operationId: getLandingPage
+      summary: Landing page
+      description: |-
+        Returns the entry-point document listing links to the
+        conformance declaration, the OpenAPI service definition,
+        and the top-level resource collections.
+      tags: [Capabilities]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Landing page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LandingPage"
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+    head:
+      operationId: headLandingPage
+      summary: Landing page (HEAD).
+      tags: [Capabilities]
+      responses:
+        "200":
+          description: OK (no body).
+
+  /api:
+    get:
+      operationId: getApi
+      summary: OpenAPI 3.0 service definition.
+      description: |-
+        This document. Returned as JSON by default; `?f=yaml` or
+        `Accept: application/vnd.oai.openapi;version=3.0` returns
+        YAML. Backing file is `api/openapi.yaml` in the repo.
+      tags: [Capabilities]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: OAS3 service definition.
+          content:
+            application/vnd.oai.openapi+json;version=3.0:
+              schema:
+                type: object
+                description: Self-reference — the OpenAPI 3.0 schema.
+            application/json:
+              schema:
+                type: object
+                description: |-
+                  Same JSON serialization as `application/vnd.oai.openapi+json`.
+                  Honored so curl-without-Accept (the default `Accept: */*`)
+                  lands on JSON instead of 406.
+            application/vnd.oai.openapi;version=3.0:
+              schema:
+                type: string
+                description: Raw YAML body.
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+    head:
+      operationId: headApi
+      summary: OAS definition (HEAD).
+      tags: [Capabilities]
+      responses:
+        "200": {description: OK (no body)}
+
+  /conformance:
+    get:
+      operationId: getConformance
+      summary: Conformance declaration.
+      description: |-
+        Lists the conformance classes the server claims. v0.1 claims:
+
+        - OGC Common Part 1 Core, JSON, OAS30
+        - CS API Part 1 Core, JSON, GeoJSON, SensorML, JSON-LD
+        - CS API Part 2 OMS encoding (observations)
+
+        Full claim set authoritative in `gateway/cs-api/conformance.go`.
+      tags: [Capabilities]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Conformance declaration.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConformanceDeclaration"
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+    head:
+      operationId: headConformance
+      tags: [Capabilities]
+      responses:
+        "200": {description: OK (no body)}
+
+  /health:
+    get:
+      operationId: getHealth
+      summary: Operator health probe.
+      description: |-
+        Returns `200 {"status":"ok"}` when the gateway can reach NATS,
+        `503` otherwise. Intended for liveness/readiness probes; not
+        part of the OGC CS API standard surface.
+      tags: [Capabilities]
+      responses:
+        "200":
+          description: Healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: {type: string, enum: [ok]}
+        "503":
+          description: Degraded (NATS unreachable or errs threshold tripped).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    head:
+      operationId: headHealth
+      tags: [Capabilities]
+      responses:
+        "200": {description: OK (no body)}
+        "503": {description: Degraded}
+
+  # ============================================================
+  # Systems (CS API §7)
+  # ============================================================
+  /systems:
+    get:
+      operationId: getSystems
+      summary: List systems.
+      description: |-
+        Returns a `SystemCollection` of `System` entities. JSON-only at
+        v0.1 (no SensorML `SystemCollection` wrapper exists; SensorML
+        is per-item via `GET /systems/{id}`).
+      tags: [Systems]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: SystemCollection.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemCollection"
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSystems
+      tags: [Systems]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createSystem
+      summary: Create a system from a SensorML JSON document.
+      description: |-
+        Accepts `application/sensorml+json`. The server mints a
+        6-part SemStreams entity ID from the SensorML `uniqueId`
+        (UUID fallback) and returns 201 with a `Location` header.
+      tags: [Systems]
+      requestBody:
+        required: true
+        content:
+          application/sensorml+json:
+            schema:
+              type: object
+              description: |-
+                SensorML PhysicalSystem / PhysicalComponent /
+                SimpleProcess / AggregateProcess JSON. Full schema
+                in `api/upstream/part1/schemas/sensorml/`.
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+              description: Path to the newly-created system resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, type]
+                properties:
+                  status: {type: string, enum: [created]}
+                  id:    {type: string, description: 6-part SemStreams entity ID.}
+                  type:  {type: string, enum: [System]}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+
+  /systems/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getSystem
+      summary: Fetch a system by ID.
+      description: |-
+        Returns the System resource in one of three encodings:
+
+        - `application/json` — CS API §7.2 JSON subset (lossy, see header).
+        - `application/sensorml+json` — SensorML reconstruction from
+          triples (lossy).
+        - `application/ld+json` — JSON-LD via the framework's RDF
+          serializer.
+
+        All three honestly signal lossy reconstruction via
+        `X-CS-Reconstructed-Lossy: true`.
+      tags: [Systems]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: System resource.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/System"}
+            application/sensorml+json:
+              schema:
+                type: object
+                description: |-
+                  Reconstructed SensorML PhysicalSystem / Sensor /
+                  Procedure. Fields dropped by the triple-emitter
+                  (inputs/outputs/parameters/keywords/connections) are
+                  absent — see `X-CS-Reconstructed-Lossy` header.
+            application/ld+json:
+              schema:
+                type: object
+                description: JSON-LD with SOSA / SSN / SKOS context.
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSystem
+      tags: [Systems]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
+  # ============================================================
+  # Datastreams (CS API §10)
+  # ============================================================
+  /datastreams:
+    get:
+      operationId: getDatastreams
+      summary: List datastreams.
+      description: |-
+        Returns a `DatastreamCollection`. JSON-only at v0.1 with a
+        documented subset (see `X-CS-Datastream-Subset` header) —
+        full CS API §10 shape pending framework datastream-vocabulary
+        primitives.
+      tags: [Datastreams]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: DatastreamCollection.
+          headers:
+            X-CS-Datastream-Subset:
+              $ref: "#/components/headers/CsDatastreamSubset"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/DatastreamCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headDatastreams
+      tags: [Datastreams]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createDatastream
+      summary: Create a datastream referencing a system + observed property.
+      description: |-
+        Accepts CS API §10 Datastream JSON. Validates the `system`
+        reference (6-part SemStreams shape strict) and
+        `observedProperty` (non-empty IRI). Honors a client-supplied
+        6-part `id` verbatim — otherwise mints from
+        `cfg.DatastreamIDPrefix`.
+      tags: [Datastreams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DatastreamCreate"}
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, type]
+                properties:
+                  status: {type: string, enum: [created]}
+                  id:    {type: string}
+                  type:  {type: string, enum: [Datastream]}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+
+  /datastreams/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getDatastream
+      summary: Fetch a datastream by ID.
+      tags: [Datastreams]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Datastream resource.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Datastream"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headDatastream
+      tags: [Datastreams]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
+  /datastreams/{datastreamID}/observations:
+    parameters:
+      - in: path
+        name: datastreamID
+        required: true
+        schema: {type: string}
+        description: 6-part SemStreams datastream ID.
+    get:
+      operationId: getObservations
+      summary: List observations on a datastream.
+      description: |-
+        Returns observations in stream-sequence order via a one-shot
+        JetStream OrderedConsumer filtered on
+        `cs-api.observations.{datastreamID}`. Paging via opaque
+        `?after=<stream-seq>` cursor; `next` link minted on the wrapper
+        when the page fills.
+
+        Two output shapes by content negotiation:
+
+        - `application/json` — CS API §11.3 `ObservationCollection`
+          wrapper (`items[]`, `numberReturned`, `truncated`, `links`).
+        - `application/om+json` — bare JSON array of OMS observation
+          payloads. Symmetric with the POST shape; OMS-native clients
+          consume directly. Count is signalled via `X-CS-Items-Count`.
+      tags: [Observations]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+        - in: query
+          name: after
+          required: false
+          schema: {type: integer, format: int64, minimum: 1}
+          description: |-
+            Opaque cursor — a JetStream stream sequence number. Returns
+            observations strictly after this sequence (JetStream's
+            inclusive `OptStartSeq` is bumped by 1 server-side).
+      responses:
+        "200":
+          description: ObservationCollection (JSON) or bare OMS array.
+          headers:
+            X-CS-Items-Count:
+              description: |-
+                Count of items in the bare OMS array shape — set on
+                `Accept: application/om+json` responses only. The JSON
+                wrapper carries the same count in `numberReturned`.
+              schema: {type: integer, minimum: 0}
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ObservationCollection"}
+            application/om+json:
+              schema:
+                type: array
+                items: {$ref: "#/components/schemas/Observation"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headObservations
+      tags: [Observations]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createObservation
+      summary: Publish an OMS observation.
+      description: |-
+        Accepts `application/om+json` — a single OMS Observation
+        document. Wraps in a `message.BaseMessage` envelope and
+        publishes to JetStream subject
+        `cs-api.observations.{datastreamID}` with audit + W3C trace
+        headers. Server mints `id` if absent.
+      tags: [Observations]
+      requestBody:
+        required: true
+        content:
+          application/om+json:
+            schema: {$ref: "#/components/schemas/Observation"}
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+              description: Path to the new observation (id is server-minted if absent).
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+
+  # ============================================================
+  # Spatial (cs-api shape on OGC GeoJSON conformance class)
+  # ============================================================
+  /areas:
+    get:
+      operationId: getAreas
+      summary: Spatial filter for systems.
+      description: |-
+        Filter systems by spatial extent. Exactly one of `bbox` or
+        `polygon` is required. Returns a GeoJSON `FeatureCollection`.
+
+        Features carry `geometry: null` because the framework's
+        `SpatialResult` returns entity IDs only — `X-CS-Geometry-Available:
+        false` signals this honest lossiness. Clients drill via
+        `GET /systems/{id}` for precise coordinates.
+      tags: [Areas]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - in: query
+          name: bbox
+          required: false
+          schema:
+            type: string
+            pattern: '^-?[\d.]+,-?[\d.]+,-?[\d.]+,-?[\d.]+$'
+          description: |-
+            CSV `minLon,minLat,maxLon,maxLat` per OGC bbox convention.
+            Exclusive with `polygon`.
+        - in: query
+          name: polygon
+          required: false
+          schema: {type: string}
+          description: |-
+            GeoJSON Polygon JSON literal. Exclusive with `bbox`.
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: GeoJSON FeatureCollection.
+          headers:
+            X-CS-Geometry-Available:
+              $ref: "#/components/headers/CsGeometryAvailable"
+          content:
+            application/geo+json:
+              schema: {$ref: "#/components/schemas/FeatureCollection"}
+            application/json:
+              schema: {$ref: "#/components/schemas/FeatureCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headAreas
+      tags: [Areas]
+      responses:
+        "200": {description: OK (no body)}
+
+  # ============================================================
+  # Deferred to follow-up stages — vendored from upstream OGC OAS
+  # for roadmap visibility. 501 today.
+  # ============================================================
+  /collections:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part1/paths/collections.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List OGC API Collections (not implemented at v0.1).
+      description: |-
+        Stub. Full shape at `x-cs-upstream-source`. Implementation
+        deferred — cs-api's canonical resource collections at
+        `/systems`, `/datastreams`, `/areas` are the primary discovery
+        surface today.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+  /procedures:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part1/paths/procedures.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List Procedures (not implemented at v0.1).
+      description: Stub. See `x-cs-upstream-source`.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+  /samplingFeatures:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part1/paths/samplingFeatures.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List Sampling Features (not implemented at v0.1).
+      description: Stub. See `x-cs-upstream-source`.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+  /properties:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part1/paths/properties.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List Properties (not implemented at v0.1).
+      description: Stub. See `x-cs-upstream-source`.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+  /deployments:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part1/paths/deployments.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List Deployments (not implemented at v0.1).
+      description: Stub. See `x-cs-upstream-source`.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+  /controlstreams:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part2/paths/controlStreams.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List Control Streams (not implemented at v0.1).
+      description: |-
+        Part 2 — actuator command channels. Stub today; lands when
+        cs-api gains the actuator-write side.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+  /commands:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part2/paths/commands.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List Commands (not implemented at v0.1).
+      description: Stub. See `x-cs-upstream-source`.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+  /systemEvents:
+    x-not-implemented-at-v01: true
+    x-cs-upstream-source: api/upstream/part2/paths/systemEvents.yaml
+    get:
+      tags: [NotImplementedAtV01]
+      summary: List System Events (not implemented at v0.1).
+      description: Stub. See `x-cs-upstream-source`.
+      responses:
+        "501": {$ref: "#/components/responses/NotImplemented"}
+
+components:
+
+  # --- Reusable parameters ---
+  parameters:
+    F:
+      in: query
+      name: f
+      required: false
+      schema:
+        type: string
+        enum: [json, geojson, sensorml, om, jsonld, yaml]
+      description: |-
+        OGC API Common Part 1 §7 short-name override for `Accept`.
+        Maps to the same media types per-resource — see each path's
+        `responses.content` for what's negotiable. `?f=` that doesn't
+        map to the resource's supported set 406s rather than silently
+        falling through to `Accept`.
+
+    Limit:
+      in: query
+      name: limit
+      required: false
+      schema: {type: integer, minimum: 1}
+      description: |-
+        Page size. Defaulted and ceiling-capped per
+        `cs-api.config.DefaultListLimit` / `MaxListLimit`. Out-of-range
+        values 400.
+
+    EntityID:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_.:-]+$'
+      description: |-
+        6-part SemStreams entity ID. NATS-token-safe characters only.
+
+  # --- Reusable response shapes ---
+  responses:
+    BadRequest:
+      description: Validation failure on a client-supplied value.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    NotFound:
+      description: Entity not present (or present but wrong kind for this URL).
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    NotAcceptable:
+      description: |-
+        No element of the family's negotiable set matches Accept (or
+        `?f=` short-name). Body lists what the family supports.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error, supported]
+            properties:
+              error: {type: string, enum: ["not acceptable"]}
+              supported:
+                type: array
+                items: {type: string}
+    PayloadTooLarge:
+      description: |-
+        Request body exceeded the `MaxRequestBytes` middleware cap.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    UnsupportedMediaType:
+      description: Content-Type not on the endpoint's accept set.
+      headers:
+        Accept-Post:
+          schema: {type: string}
+          description: Media types this endpoint accepts.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    ServiceUnavailable:
+      description: |-
+        Transient backend error — NATS unreachable, JetStream
+        responder absent, request/reply timeout.
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    NotImplemented:
+      description: |-
+        Endpoint is documented for spec-completeness but returns
+        `501 Not Implemented` at v0.1. Path carries
+        `x-not-implemented-at-v01: true` and an `x-cs-upstream-source`
+        pointer.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error: {type: string, enum: ["not implemented at v0.1"]}
+              upstream_source: {type: string, format: uri-reference}
+
+  # --- Reusable response headers ---
+  headers:
+    CsReconstructedLossy:
+      description: |-
+        `true` when the response body is reconstructed from triples and
+        omits fields the framework's triple emitter does not preserve
+        (inputs/outputs/parameters/keywords/connections/identifier
+        metadata).
+      schema: {type: boolean, enum: [true]}
+    CsGeometryAvailable:
+      description: |-
+        `false` when GeoJSON Features in the response carry `geometry:
+        null` because the framework's `SpatialResult` returns entity
+        IDs only. Clients drill via `GET /systems/{id}` for coordinates.
+      schema: {type: boolean, enum: [false]}
+    CsDatastreamSubset:
+      description: |-
+        `true` when the Datastream JSON is a documented subset of
+        CS API §10 (pending framework datastream-vocabulary
+        primitives).
+      schema: {type: boolean, enum: [true]}
+
+  # --- Schemas ---
+  schemas:
+
+    LandingPage:
+      type: object
+      required: [links]
+      properties:
+        title:
+          type: string
+          description: Server title — operator-configured.
+        description:
+          type: string
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    ConformanceDeclaration:
+      type: object
+      required: [conformsTo]
+      properties:
+        conformsTo:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: |-
+            URIs of the conformance classes this server claims to
+            implement.
+
+    Link:
+      type: object
+      required: [href, rel]
+      properties:
+        href:  {type: string, format: uri-reference}
+        rel:   {type: string}
+        type:  {type: string}
+        title: {type: string}
+
+    SystemCollection:
+      type: object
+      required: [type, numberMatched, numberReturned, items, links]
+      properties:
+        type:           {type: string, enum: [SystemCollection]}
+        numberMatched:  {type: integer, minimum: 0}
+        numberReturned: {type: integer, minimum: 0}
+        truncated:      {type: boolean}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/SystemRef"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        Per CS API §7.13 / OGC API Common §7.14: array field is
+        `items` (not `systems`). Stage 10 closed the spec gap.
+
+    SystemRef:
+      type: object
+      required: [id, type]
+      properties:
+        id:    {type: string}
+        type:  {type: string, enum: [System]}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    System:
+      type: object
+      required: [id, type, links]
+      properties:
+        id:            {type: string}
+        type:          {type: string, enum: [System]}
+        label:         {type: string}
+        description:   {type: string}
+        definition:    {type: string, format: uri}
+        hosts:
+          type: array
+          items: {type: string}
+        hostedBy:      {type: string}
+        usedProcedure: {type: string}
+        attachedTo:    {type: string}
+        identifiers:   {type: array, items: {}}
+        capabilities:  {type: array, items: {}}
+        properties:    {type: array, items: {}}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        v0.1 JSON subset reconstructed from triples. Lossy fields
+        documented via `X-CS-Reconstructed-Lossy: true`.
+
+    DatastreamCollection:
+      type: object
+      required: [type, numberMatched, numberReturned, items, links]
+      properties:
+        type:           {type: string, enum: [DatastreamCollection]}
+        numberMatched:  {type: integer, minimum: 0}
+        numberReturned: {type: integer, minimum: 0}
+        truncated:      {type: boolean}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/DatastreamRef"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    DatastreamRef:
+      type: object
+      required: [id, type]
+      properties:
+        id:    {type: string}
+        type:  {type: string, enum: [Datastream]}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    Datastream:
+      type: object
+      required: [id, type]
+      properties:
+        id:               {type: string}
+        type:             {type: string, enum: [Datastream]}
+        name:             {type: string}
+        description:      {type: string}
+        system:           {type: string, description: 6-part SemStreams system ID.}
+        observedProperty: {type: string, format: uri}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    DatastreamCreate:
+      type: object
+      required: [name, system, observedProperty]
+      properties:
+        id:               {type: string, description: Optional client-supplied 6-part ID; minted otherwise.}
+        name:             {type: string}
+        description:      {type: string}
+        system:           {type: string, description: 6-part SemStreams system ID (strict).}
+        observedProperty: {type: string, format: uri}
+
+    ObservationCollection:
+      type: object
+      required: [type, numberMatched, numberReturned, items, links]
+      properties:
+        type:           {type: string, enum: [ObservationCollection]}
+        numberMatched:  {type: integer, minimum: 0}
+        numberReturned: {type: integer, minimum: 0}
+        truncated:      {type: boolean}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/Observation"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        `truncated` is a v0.1 heuristic — see
+        `gateway/cs-api/observations_get.go` `observationCollection`
+        doc comment for failure modes. Follow-up replaces with
+        `consumer.Info().NumPending`.
+
+    Observation:
+      type: object
+      required: [procedure, observedProperty, resultTime]
+      properties:
+        id:               {type: string}
+        procedure:        {type: string, format: uri}
+        observedProperty: {type: string, format: uri}
+        featureOfInterest: {type: string}
+        phenomenonTime:   {type: string, format: date-time}
+        resultTime:       {type: string, format: date-time}
+        result:
+          description: |-
+            OMS result — scalar, object, or any JSON. v0.1 does not
+            constrain — typed results (Quantity / Category /
+            TimeSeries) are a framework deferral; tracked in
+            `docs/upstream-asks/`.
+
+    FeatureCollection:
+      type: object
+      required: [type, features]
+      description: |-
+        RFC 7946 GeoJSON FeatureCollection. v0.1 emits features with
+        `geometry: null` — see `X-CS-Geometry-Available: false`.
+      properties:
+        type: {type: string, enum: [FeatureCollection]}
+        features:
+          type: array
+          items:
+            type: object
+            required: [type, geometry, properties]
+            properties:
+              type: {type: string, enum: [Feature]}
+              id:   {type: string}
+              geometry:
+                nullable: true
+                type: object
+                description: "Null at v0.1 — see `X-CS-Geometry-Available` response header."
+              properties:
+                type: object
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: |-
+            Human-readable. 5xx error bodies do not echo internal
+            detail — the full error is logged server-side with a
+            generated request ID for correlation.

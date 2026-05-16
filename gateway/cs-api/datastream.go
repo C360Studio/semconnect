@@ -81,6 +81,11 @@ func datastreamFromState(state graph.EntityState) Datastream {
 		Type: "Datastream",
 		Links: []link{
 			{Href: "/datastreams/" + state.ID, Rel: "self", Type: string(MediaJSON)},
+			// Parity with systemFromState — CS API §10 follows the same
+			// canonical-link discipline as §7. Surfacing this early keeps
+			// /datastreams/{id} from regressing the same way /systems/{id}
+			// did at Stage 12 (see systems.go for the spec ref).
+			{Href: "/datastreams/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
 		},
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {

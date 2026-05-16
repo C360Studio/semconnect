@@ -219,7 +219,68 @@ change. (Filed as a candidate upstream relaxation when other gateways
 hit the same wall — but a `nats`-type no-op satisfies validation
 today, so not blocking.)
 
-### Stage 10+ — Botts ETS pin bumps (open-ended)
+### Stage 12 — OAS3 service definition + `oas30` conformance class
+
+PR #12 (landing on top of Stages 9+10+11). The cascade-unblocker that
+took us from "infrastructure verified, two upstream-ETS bugs blocking
+real CS API tests" to "every assertion against our claimed conformance
+set passes."
+
+**What lands:**
+
+1. **Vendored OGC OAS3 source** at `api/upstream/` from
+   [`opengeospatial/ogcapi-connected-systems`](https://github.com/opengeospatial/ogcapi-connected-systems)
+   at pinned commit. License-compliant (OGC permissive license, see
+   `api/upstream/LICENSE-OGC.txt` + `NOTICE-OF-MODIFICATIONS.md`).
+   The vendored copy is not served — it's the source-of-truth we adapt
+   from.
+2. **Hand-authored `gateway/cs-api/openapi.yaml`** — single-file OAS3
+   served at `GET /api` (and HEAD). v0.1 paths inline with honest
+   shapes (`X-CS-*` response headers as spec contract elements,
+   `items` field per CS API §7.13); roadmap paths from OGC vendored
+   inline with `x-not-implemented-at-v01: true` extension and an
+   `x-cs-upstream-source` pointer back into `api/upstream/`.
+3. **`/api` handler** — `application/vnd.oai.openapi+json;version=3.0`
+   default (boot-time YAML→JSON conversion via `gopkg.in/yaml.v3` +
+   `encoding/json` indent), `application/vnd.oai.openapi;version=3.0`
+   alt returns raw YAML. `?f=yaml`/`?f=openapi` short names.
+4. **Landing page** — `rel=service-desc` link pointing at `/api`,
+   `rel=systems`/`rel=datastreams` resource-specific links.
+   Hrefs ABSOLUTE (was relative) via `absoluteBase(r)` helper —
+   REST-Assured-shaped clients (the Botts ETS) don't auto-resolve
+   relative URIs.
+5. **`/conformance`** — claims `.../conf/oas30` honestly.
+6. **Predicate-index lookup fix** — `predicateRDFType` constant in
+   `systems.go` was misnamed AND wrong-valued: pointed at
+   `"rdf.type"` but sensorml emits triples under
+   `"sensorml.process.type"`. Renamed to `predicateClassType =
+   sensorml.PredType`. Hidden bug since Stage 2 because we never had
+   data in the graph during a probe; Stage 12 cascade-unblock
+   surfaced it.
+7. **`rel=canonical` link** on `/systems/{id}` and `/datastreams/{id}`
+   per CS API §7 `/req/system/canonical-url`.
+8. **`negotiation.go` MIME-parameter stripping** — accept-match was
+   treating `application/vnd.oai.openapi;version=3.0`'s `version`
+   parameter as part of the subtype. Now strips parameters from the
+   supported side before matching.
+9. **`conformance/run.sh` poll-until-visible** after seed — POST
+   writes to ENTITY_STATES synchronously but graph-index updates
+   PREDICATE_INDEX via async KV-watch. Poll `/systems` until
+   `numberReturned > 0` before invoking the suite.
+
+**Outcome:** `total=137 passed=20 failed=0 skipped=117`. From
+Stage 11's `passed=13 failed=2`. The 117 SKIPs are tests gated on
+conformance classes / resources we haven't claimed at v0.1 (Part 2
+write side, Update, Advanced Filtering, subsystems / samplingFeatures
+/ procedures / sub-resource item GETs).
+
+**What's NOT in scope (deferred to follow-up stages):** every path
+marked `x-not-implemented-at-v01: true` in `openapi.yaml`. Each lands
+as its own stage with the upstream OGC OAS path block as the starting
+point — copy from `api/upstream/`, flip the extension off, point at
+a real handler.
+
+### Stage 13+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)
@@ -227,6 +288,14 @@ surfaces new assertion failures; triage is per-bump work. Track the
 TestNG delta in the bump PR description so the reviewer sees what
 conformance picture moved. ADR-S001 §4 documents the pin policy;
 `conformance/README.md` documents the procedure.
+
+In parallel, each `x-not-implemented-at-v01: true` path in
+`gateway/cs-api/openapi.yaml` is its own future stage — Procedures,
+Sampling Features, Properties, Deployments, Collections (OGC API
+Common Part 2), and the Part 2 write side (Control Streams, Commands,
+System Events). Implementation pattern is established by Stages 8/11:
+inline schema + handler + tests; mark the OAS extension off; verify
+conformance delta.
 
 ## What lives where (recap)
 

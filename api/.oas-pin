@@ -1,0 +1,9 @@
+# Vendored OGC OAS3 source pin.
+#
+# api/upstream/ is a snapshot of the upstream OAS3 source from
+# opengeospatial/ogcapi-connected-systems at this commit. See
+# api/upstream/README.md for bump procedure.
+
+OAS_GIT_URL=https://github.com/opengeospatial/ogcapi-connected-systems.git
+OAS_COMMIT=3fd86c73e744b7e2faaf7f1c17366bfb9ff4cd6f
+OAS_COMMIT_DATE=2026-04-20

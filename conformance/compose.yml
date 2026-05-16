@@ -11,14 +11,20 @@ name: semconnect-conformance
 services:
   nats:
     image: nats:2.10-alpine
+    # Stage 9 — config file (not CLI flags) is required to set JetStream
+    # max_file_store / max_memory_store. nats-server 2.10's CLI exposes
+    # only -js / -sd / -m. Auto-sizing on a Docker-for-Mac VM under
+    # image-cache pressure can compute a limit too small for the
+    # framework's baseline streams, surfacing as
+    # `nats: API error: code=500 err_code=10047 description=insufficient
+    # storage resources available` at stream-create time. Pinning 10GB
+    # gives ample headroom without competing with the host.
     command:
-      - "-js"
-      - "-sd"
-      - "/data"
-      - "-m"
-      - "8222"
+      - "-c"
+      - "/etc/nats/nats.conf"
     volumes:
       - nats-data:/data
+      - ./nats.conf:/etc/nats/nats.conf:ro
     healthcheck:
       # nats:2.10-alpine includes busybox wget; -m 8222 enables the
       # /healthz monitoring endpoint.
@@ -34,6 +40,52 @@ services:
       - "${NATS_HOST_PORT:-4222}:4222"
       - "${NATS_MON_HOST_PORT:-8222}:8222"
 
+  # Stage 9 — slim graph-only semstreams instance. Responds to the
+  # NATS subjects cs-api-server publishes to: graph.mutation.triple.*
+  # (writes), graph.index.query.predicate (collection reads),
+  # graph.query.entity (single-entity reads), graph.spatial.query.*
+  # (GET /areas). Without this service every cs-api-server read or
+  # write 503s with nats.ErrNoResponders.
+  #
+  # Built from the framework's own production Dockerfile against the
+  # pin in .ets-pin (SEMSTREAMS_GIT_URL + SEMSTREAMS_COMMIT). run.sh
+  # clones the framework into ./.vendor/semstreams/ before bringing
+  # the stack up — running `docker compose up` directly will fail
+  # because that directory won't exist (intentional).
+  semstreams-backend:
+    build:
+      context: ./.vendor/semstreams
+      dockerfile: docker/Dockerfile
+      target: production
+      cache_from:
+        - type=gha,scope=semstreams-backend
+      cache_to:
+        - type=gha,mode=max,scope=semstreams-backend
+    depends_on:
+      nats:
+        condition: service_healthy
+    command:
+      - "-config"
+      - "/etc/semstreams/config.json"
+      - "-debug-port"
+      - "0"
+    volumes:
+      - ./compose.semstreams.config.json:/etc/semstreams/config.json:ro
+    healthcheck:
+      # `/health` is served by service-manager, on the port set in
+      # compose.semstreams.config.json (8090). The framework's
+      # `-health-port` flag is declared but never wired in
+      # v1.0.0-beta.73 (cmd/semstreams/flags.go vs main.go — flag
+      # parsed, value unused), so /health does NOT bind on it.
+      # Don't be misled by the help text.
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 30s
+    expose:
+      - "8090"
+
   cs-api-server:
     build:
       context: ..
@@ -48,6 +100,11 @@ services:
         - type=gha,mode=max,scope=cs-api-server
     depends_on:
       nats:
+        condition: service_healthy
+      # Wait for semstreams-backend to be healthy — otherwise the first
+      # cs-api-server request that hits graph.* races the backend's
+      # subscribe and 503s. The backend healthcheck below gates this.
+      semstreams-backend:
         condition: service_healthy
     # cs-api-server reads --config but defaults are sane: NATS at
     # nats://localhost:4222, bind :8080. Override NATS_URL via env-injected

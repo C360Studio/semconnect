@@ -47,6 +47,81 @@ type streamPublisher interface {
 	PublishMsg(ctx context.Context, msg *nats.Msg, opts ...jetstream.PublishOpt) (*jetstream.PubAck, error)
 }
 
+// streamReader is the domain-shaped surface GET observations needs (Stage 11).
+// FetchSubject pulls up to `limit` messages from the underlying JetStream
+// stream filtered to `subject`, optionally starting after `startSeq` (0 =
+// from the beginning). Returns (msgData, sequence) pairs and the highest
+// sequence seen — the gateway uses that as the next-link cursor.
+//
+// The domain-shaped interface (vs exposing raw jetstream.Stream) keeps the
+// test seam tight: fakes implement one method, not the full Stream surface.
+// The production implementation in jetstreamObservationReader wraps
+// OrderedConsumer + FetchNoWait.
+type streamReader interface {
+	FetchSubject(ctx context.Context, subject string, limit int, startSeq uint64) ([]observationMsg, error)
+}
+
+// observationMsg is the minimal per-message tuple FetchSubject returns.
+// Data is the raw BaseMessage envelope bytes (the handler unwraps); Sequence
+// is the JetStream stream sequence so the gateway can mint a next-link cursor.
+type observationMsg struct {
+	Data     []byte
+	Sequence uint64
+}
+
+// jetstreamObservationReader is the production streamReader: thin wrapper
+// over a jetstream.Stream that issues a one-shot ordered consumer per call.
+// FetchNoWait returns immediately on an empty filter — important on freshly
+// seeded datastreams.
+type jetstreamObservationReader struct {
+	stream jetstream.Stream
+}
+
+func (r *jetstreamObservationReader) FetchSubject(
+	ctx context.Context,
+	subject string,
+	limit int,
+	startSeq uint64,
+) ([]observationMsg, error) {
+	cfg := jetstream.OrderedConsumerConfig{
+		FilterSubjects: []string{subject},
+		ReplayPolicy:   jetstream.ReplayInstantPolicy,
+	}
+	if startSeq > 0 {
+		cfg.DeliverPolicy = jetstream.DeliverByStartSequencePolicy
+		// JetStream's by-start-seq is INCLUSIVE — bump by 1 to honor the
+		// CS API "strictly after" cursor semantic. Overflow guarded.
+		if startSeq < ^uint64(0) {
+			cfg.OptStartSeq = startSeq + 1
+		} else {
+			cfg.OptStartSeq = startSeq
+		}
+	} else {
+		cfg.DeliverPolicy = jetstream.DeliverAllPolicy
+	}
+
+	cons, err := r.stream.OrderedConsumer(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	batch, err := cons.FetchNoWait(limit)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]observationMsg, 0, limit)
+	for msg := range batch.Messages() {
+		var seq uint64
+		if meta, mErr := msg.Metadata(); mErr == nil {
+			seq = meta.Sequence.Stream
+		}
+		out = append(out, observationMsg{Data: msg.Data(), Sequence: seq})
+	}
+	if berr := batch.Error(); berr != nil {
+		return out, berr
+	}
+	return out, nil
+}
+
 // Component is the cs-api gateway. It implements:
 //   - component.Discoverable      (framework discovery)
 //   - component.LifecycleComponent (Initialize / Start / Stop)
@@ -71,6 +146,13 @@ type Component struct {
 	// self-documenting and survives a future Stop() that drains by
 	// nilling the publisher.
 	publisher atomic.Pointer[streamPublisher]
+
+	// reader is the JetStream Stream handle used by GET observations
+	// (Stage 11). Captured from EnsureStream's return at Start() instead
+	// of re-resolving via JetStream().Stream(name) per request — saves
+	// a round-trip and proves the stream exists before any reader
+	// arrives. Same lifecycle as publisher.
+	reader atomic.Pointer[streamReader]
 
 	errs         atomic.Int64
 	requests     atomic.Int64
@@ -242,7 +324,7 @@ func (c *Component) Start(ctx context.Context) error {
 	// does not race the stream's creation, and a configuration that
 	// cannot reach JetStream surfaces here instead of inside a 503'd
 	// handler.
-	if _, err := c.nats.EnsureStream(ctx, jetstream.StreamConfig{
+	stream, err := c.nats.EnsureStream(ctx, jetstream.StreamConfig{
 		Name:        c.cfg.ObservationsStream,
 		Subjects:    []string{c.cfg.ObservationsSubjectPrefix + ".>"},
 		Description: "cs-api observations published via POST /datastreams/{id}/observations",
@@ -251,7 +333,8 @@ func (c *Component) Start(ctx context.Context) error {
 		MaxAge:      c.cfg.ObservationsMaxAge,
 		MaxBytes:    c.cfg.ObservationsMaxBytes, // 0 = unlimited
 		Replicas:    c.cfg.ObservationsReplicas,
-	}); err != nil {
+	})
+	if err != nil {
 		c.mu.Unlock()
 		return fmt.Errorf("cs-api: Start: ensure stream %s: %w", c.cfg.ObservationsStream, err)
 	}
@@ -260,13 +343,16 @@ func (c *Component) Start(ctx context.Context) error {
 		c.mu.Unlock()
 		return fmt.Errorf("cs-api: Start: jetstream handle: %w", err)
 	}
-	// EnsureStream + the publisher handle are intentionally not torn down
-	// when a later Start() step fails. EnsureStream is idempotent on its
-	// JetStream side, and leaving the publisher pre-set means a retry of
-	// Start() does no extra round-trips. Operators inspecting via Health()
-	// will see "stopped" until Start() runs cleanly to completion.
+	// EnsureStream + the publisher/reader handles are intentionally not
+	// torn down when a later Start() step fails. EnsureStream is
+	// idempotent on its JetStream side, and leaving the handles pre-set
+	// means a retry of Start() does no extra round-trips. Operators
+	// inspecting via Health() will see "stopped" until Start() runs
+	// cleanly to completion.
 	var pub streamPublisher = js
 	c.publisher.Store(&pub)
+	var rd streamReader = &jetstreamObservationReader{stream: stream}
+	c.reader.Store(&rd)
 
 	if c.cfg.StandaloneServer {
 		// Bind synchronously so a port conflict / permission error

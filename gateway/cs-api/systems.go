@@ -408,15 +408,22 @@ func classifyEntityQueryError(respBytes []byte) error {
 	}
 }
 
-// listSystemEntities issues a NATS request to the predicate index for every
-// entity whose rdf:type is ssn:System. Returns IDs only; full entity hydration
-// lands when Stage 4 ships single-system GET.
+// listSystemEntities issues a predicate query for every ssn:System entity
+// and returns the matching IDs. Thin wrapper around listEntitiesByType
+// (Stage 8 generalized the predicate-query path to also serve /datastreams).
+func (c *Component) listSystemEntities(ctx context.Context, limit int) ([]string, error) {
+	return c.listEntitiesByType(ctx, sosa.SSNSystem, limit, "listSystemEntities")
+}
+
+// listEntitiesByType is the shared predicate-query helper: rdf:type = typeIRI,
+// limit, returns entity IDs. Used by GET /systems and GET /datastreams.
 //
 // Errors are classified at this boundary so writeBackendError downstream can
 // map cleanly to HTTP status. natsclient returns raw nats sentinels (it does
 // NOT wrap into pkg/errs), so we wrap the transient ones explicitly here.
-func (c *Component) listSystemEntities(ctx context.Context, limit int) ([]string, error) {
-	reqValue := sosa.SSNSystem
+// opName names the calling endpoint so log lines stay distinguishable.
+func (c *Component) listEntitiesByType(ctx context.Context, typeIRI string, limit int, opName string) ([]string, error) {
+	reqValue := typeIRI
 	reqBody, err := json.Marshal(struct {
 		Predicate string  `json:"predicate"`
 		Value     *string `json:"value,omitempty"`
@@ -427,7 +434,7 @@ func (c *Component) listSystemEntities(ctx context.Context, limit int) ([]string
 		Limit:     limit,
 	})
 	if err != nil {
-		return nil, errs.Wrap(err, "cs-api", "listSystemEntities", "marshal predicate query")
+		return nil, errs.Wrap(err, "cs-api", opName, "marshal predicate query")
 	}
 
 	respBytes, err := c.nats.Request(ctx, subjectPredicateQuery, reqBody, c.cfg.QueryTimeout)
@@ -437,22 +444,22 @@ func (c *Component) listSystemEntities(ctx context.Context, limit int) ([]string
 			errors.Is(err, nats.ErrTimeout),
 			errors.Is(err, context.DeadlineExceeded),
 			errors.Is(err, nats.ErrConnectionClosed):
-			return nil, errs.WrapTransient(err, "cs-api", "listSystemEntities", "graph backend unavailable")
+			return nil, errs.WrapTransient(err, "cs-api", opName, "graph backend unavailable")
 		case errors.Is(err, context.Canceled):
 			// Caller went away. Surface as transient so /health does not
 			// blame us, but the client will not see this response anyway.
-			return nil, errs.WrapTransient(err, "cs-api", "listSystemEntities", "request cancelled")
+			return nil, errs.WrapTransient(err, "cs-api", opName, "request cancelled")
 		default:
-			return nil, errs.Wrap(err, "cs-api", "listSystemEntities", "predicate query")
+			return nil, errs.Wrap(err, "cs-api", opName, "predicate query")
 		}
 	}
 
 	var resp graph.QueryResponse[graph.PredicateData]
 	if err := json.Unmarshal(respBytes, &resp); err != nil {
-		return nil, errs.Wrap(err, "cs-api", "listSystemEntities", "decode predicate response")
+		return nil, errs.Wrap(err, "cs-api", opName, "decode predicate response")
 	}
 	if resp.Error != "" {
-		return nil, errs.WrapTransient(errors.New(resp.Error), "cs-api", "listSystemEntities", "predicate query")
+		return nil, errs.WrapTransient(errors.New(resp.Error), "cs-api", opName, "predicate query")
 	}
 	return resp.Data.Entities, nil
 }

@@ -27,8 +27,10 @@ const (
 type ResourceFamily int
 
 const (
-	FamilySystemItem       ResourceFamily = iota // GET /systems/{id}
-	FamilySystemCollection                       // GET /systems
+	FamilySystemItem           ResourceFamily = iota // GET /systems/{id}
+	FamilySystemCollection                           // GET /systems
+	FamilyDatastreamItem                             // GET /datastreams/{id}
+	FamilyDatastreamCollection                       // GET /datastreams
 	FamilyObservation
 	FamilySpatial
 	FamilyService // /, /conformance (and /api when oas30 lands)
@@ -55,6 +57,16 @@ func (fam ResourceFamily) supported() []MediaType {
 	case FamilySystemCollection:
 		// No SensorML SystemCollection type; collection JSON-LD is a
 		// Stage 5+ concern (vocabulary/export is per-entity today).
+		return []MediaType{MediaJSON}
+	case FamilyDatastreamItem, FamilyDatastreamCollection:
+		// Datastream is JSON-only at v0.1. The framework lacks
+		// datastream vocabulary primitives (see
+		// docs/upstream-asks/semstreams-datastream-vocabulary.md), so
+		// JSON-LD would emit broken Linked Data; SWE Common 3.0 (the
+		// natural datastream encoding) is in the framework's Scope-cut.
+		// Distinct from FamilyObservation so adding a future datastream
+		// encoding (CoverageJSON, JSON-LD) doesn't drag the
+		// observation negotiation set with it.
 		return []MediaType{MediaJSON}
 	case FamilyObservation:
 		return []MediaType{MediaJSON}

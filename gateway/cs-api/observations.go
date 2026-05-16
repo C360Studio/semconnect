@@ -169,12 +169,10 @@ func (c *Component) publishObservation(ctx context.Context, subject string, obs 
 }
 
 // validateEntityID enforces the NATS-token-safe shape that SemStreams 6-part
-// entity IDs follow. Reused for both datastream IDs and system IDs (both
-// are SemStreams entity IDs at the wire level). Empty IDs are rejected;
-// IDs containing NATS subject reserved characters (`*`, `>`, ` `) or empty
-// tokens between dots (`acme..ops`, `.foo`, `foo.`) would break filter
-// patterns and are rejected so a typo cannot poison the stream's wildcard
-// semantics.
+// entity IDs follow. Used on path segments (datastreamID, system id) where
+// the gateway has already routed the path and just needs to confirm the
+// segment is NATS-subject-safe. NOT a full 6-part shape check — that is
+// validateEntityIDStrict.
 //
 // Error messages refer to "id" generically; call sites prepend their own
 // context ("invalid system id: ...", "invalid datastream id: ...").
@@ -191,6 +189,30 @@ func validateEntityID(id string) error {
 	for _, tok := range strings.Split(id, ".") {
 		if tok == "" {
 			return errors.New("id has empty token (leading/trailing/consecutive dots not allowed)")
+		}
+	}
+	return nil
+}
+
+// validateEntityIDStrict enforces the full 6-part SemStreams shape that
+// graph-ingest's entityIDRegex requires. Use for entity REFERENCES inside
+// request bodies (e.g. POST /datastreams system field) so a junk
+// reference is rejected at the gateway boundary instead of producing a
+// 500 from the graph backend's decode of the resulting batch.
+//
+// Mirrors graph-ingest's regex shape: exactly 6 dotted tokens, each
+// alphanumeric-start + [a-zA-Z0-9_-]*.
+func validateEntityIDStrict(id string) error {
+	if err := validateEntityID(id); err != nil {
+		return err
+	}
+	tokens := strings.Split(id, ".")
+	if len(tokens) != 6 {
+		return fmt.Errorf("must be 6 dotted tokens (got %d)", len(tokens))
+	}
+	for i, tok := range tokens {
+		if !entityIDTokenRegex.MatchString(tok) {
+			return fmt.Errorf("token[%d]=%q not alphanumeric-start", i, tok)
 		}
 	}
 	return nil

@@ -29,6 +29,7 @@ type fakeRequester struct {
 	gotSubject string
 	gotBody    []byte
 	gotTimeout time.Duration
+	gotHeaders map[string]string
 	reply      []byte
 	replyErr   error
 	status     natsclient.ConnectionStatus
@@ -42,6 +43,22 @@ func (f *fakeRequester) Request(_ context.Context, subj string, data []byte, to 
 		return nil, f.replyErr
 	}
 	return f.reply, nil
+}
+
+func (f *fakeRequester) RequestWithHeaders(_ context.Context, subj string, data []byte, headers map[string]string, to time.Duration) (*nats.Msg, error) {
+	f.gotSubject = subj
+	f.gotBody = append([]byte(nil), data...)
+	f.gotTimeout = to
+	if headers != nil {
+		f.gotHeaders = make(map[string]string, len(headers))
+		for k, v := range headers {
+			f.gotHeaders[k] = v
+		}
+	}
+	if f.replyErr != nil {
+		return nil, f.replyErr
+	}
+	return &nats.Msg{Data: f.reply}, nil
 }
 
 func (f *fakeRequester) Status() natsclient.ConnectionStatus {
@@ -235,27 +252,27 @@ func TestHandleSystems_LimitValidation(t *testing.T) {
 }
 
 func TestHandleSystems_MethodNotAllowedViaMux(t *testing.T) {
-	// Stage 4 migrated /systems to "GET /systems" + "HEAD /systems" mux
-	// patterns. Non-matching methods now 405 at the mux, not in the
-	// handler — so the test must drive through the mux, not the handler.
+	// Stage 4 migrated /systems to method+path mux patterns; Stage 8 added
+	// POST /systems. The mux 405s any method outside {GET, HEAD, POST} and
+	// advertises the allowed set in the Allow header.
 	fake := &fakeRequester{status: natsclient.StatusConnected}
 	c := newTestComponent(t, fake)
 	mux := http.NewServeMux()
 	c.RegisterHTTPHandlers("", mux)
 
-	req := httptest.NewRequest(http.MethodPost, "/systems", strings.NewReader("{}"))
+	req := httptest.NewRequest(http.MethodDelete, "/systems", nil)
 	rr := httptest.NewRecorder()
 	mux.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusMethodNotAllowed {
 		t.Errorf("status: got %d want 405", rr.Code)
 	}
-	// net/http ServeMux populates Allow with the methods registered for
-	// the path. Order is non-deterministic across the set, so check
-	// membership rather than exact form.
+	// Order is non-deterministic across the set; check membership.
 	allow := rr.Header().Get("Allow")
-	if !strings.Contains(allow, "GET") || !strings.Contains(allow, "HEAD") {
-		t.Errorf("Allow header missing GET/HEAD: %q", allow)
+	for _, want := range []string{"GET", "HEAD", "POST"} {
+		if !strings.Contains(allow, want) {
+			t.Errorf("Allow header missing %s: %q", want, allow)
+		}
 	}
 }
 

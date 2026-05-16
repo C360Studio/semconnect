@@ -2,8 +2,18 @@ package csapi
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
+	"strings"
 	"time"
 )
+
+// entityIDTokenRegex mirrors the per-token half of graph-ingest's
+// entityIDRegex: alphanumeric start, alphanumeric / hyphen / underscore
+// thereafter. The full 6-part regex is in the framework
+// (processor/graph-ingest/component.go) but it is unexported, so we
+// duplicate the per-token rule here for prefix validation.
+var entityIDTokenRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)
 
 // Config tunes the cs-api gateway component. Defaults satisfy a development
 // deployment; production deployments override via the JSON config file.
@@ -70,6 +80,26 @@ type Config struct {
 	// ObservationsReplicas controls JetStream replica count. 1 is fine for
 	// single-node dev/test; production HA uses 3.
 	ObservationsReplicas int `json:"observations_replicas"`
+
+	// SystemIDPrefix is the 5-part SemStreams entity ID prefix the gateway
+	// uses when minting IDs for POST /systems. The 6th token is derived
+	// from the SensorML uniqueId (or a UUID if uniqueId is absent).
+	//
+	// SemStreams entity IDs are exactly 6 dotted tokens
+	// (org.platform.domain.system.type.instance per graph-ingest's
+	// entityIDRegex). Validate() enforces that the prefix is exactly 5
+	// tokens of valid characters; bad prefixes are a deployment-time
+	// configuration error, not a runtime one.
+	//
+	// Default `c360.semconnect.systems.csapi.system` — operators set this
+	// per deployment so cross-tenant entity IDs don't collide.
+	SystemIDPrefix string `json:"system_id_prefix"`
+
+	// DatastreamIDPrefix is the analogous 5-part prefix for POST /datastreams.
+	// Defaults to `c360.semconnect.systems.csapi.datastream` so the 5th
+	// token cleanly separates systems from datastreams under the same
+	// deployment.
+	DatastreamIDPrefix string `json:"datastream_id_prefix"`
 }
 
 // DefaultConfig returns a fully-populated Config. Stage 2 binaries call this
@@ -92,6 +122,8 @@ func DefaultConfig() Config {
 		ObservationsMaxAge:        30 * 24 * time.Hour,
 		ObservationsMaxBytes:      0, // unlimited; set in prod
 		ObservationsReplicas:      1,
+		SystemIDPrefix:            "c360.semconnect.systems.csapi.system",
+		DatastreamIDPrefix:        "c360.semconnect.systems.csapi.datastream",
 	}
 }
 
@@ -142,6 +174,12 @@ func (c *Config) ApplyDefaults() {
 	if c.ObservationsReplicas == 0 {
 		c.ObservationsReplicas = d.ObservationsReplicas
 	}
+	if c.SystemIDPrefix == "" {
+		c.SystemIDPrefix = d.SystemIDPrefix
+	}
+	if c.DatastreamIDPrefix == "" {
+		c.DatastreamIDPrefix = d.DatastreamIDPrefix
+	}
 	// ObservationsMaxBytes: 0 is a meaningful value (unlimited); do not
 	// overwrite with the default.
 }
@@ -186,6 +224,33 @@ func (c *Config) Validate() error {
 	}
 	if c.ObservationsReplicas < 1 || c.ObservationsReplicas > 5 {
 		return errors.New("observations_replicas must be between 1 and 5")
+	}
+	if err := validateEntityIDPrefix(c.SystemIDPrefix, "system_id_prefix"); err != nil {
+		return err
+	}
+	if err := validateEntityIDPrefix(c.DatastreamIDPrefix, "datastream_id_prefix"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// validateEntityIDPrefix enforces that prefix is exactly 5 dotted tokens of
+// SemStreams-valid characters ([a-zA-Z0-9][a-zA-Z0-9_-]*). The 6th token
+// is appended at mint time per resource. Mismatched part count is the
+// most common operator config error (4 parts, 6 parts) — fail loud at
+// Validate() rather than producing invalid entity IDs at request time.
+func validateEntityIDPrefix(prefix, fieldName string) error {
+	if prefix == "" {
+		return errors.New(fieldName + " required")
+	}
+	tokens := strings.Split(prefix, ".")
+	if len(tokens) != 5 {
+		return errors.New(fieldName + " must be exactly 5 dotted tokens (org.platform.domain.system.type)")
+	}
+	for i, tok := range tokens {
+		if !entityIDTokenRegex.MatchString(tok) {
+			return fmt.Errorf("%s token[%d]=%q not a valid SemStreams entity ID token", fieldName, i, tok)
+		}
 	}
 	return nil
 }

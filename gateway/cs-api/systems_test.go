@@ -137,8 +137,8 @@ func TestHandleSystems_GoldenPath(t *testing.T) {
 	if coll.NumberMatched != 2 || coll.NumberReturned != 2 {
 		t.Errorf("counts: matched=%d returned=%d want 2/2", coll.NumberMatched, coll.NumberReturned)
 	}
-	if len(coll.Systems) != 2 || coll.Systems[0].ID != "acme.ops.robotics.gcs.drone.001" {
-		t.Errorf("Systems: %+v", coll.Systems)
+	if len(coll.Items) != 2 || coll.Items[0].ID != "acme.ops.robotics.gcs.drone.001" {
+		t.Errorf("Items: %+v", coll.Items)
 	}
 
 	// Wire shape: subject + predicate + value must be exact, otherwise

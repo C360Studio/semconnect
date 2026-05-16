@@ -68,8 +68,8 @@ func TestHandleDatastreams_GoldenPath(t *testing.T) {
 	if coll.NumberReturned != len(ids) {
 		t.Errorf("numberReturned: got %d want %d", coll.NumberReturned, len(ids))
 	}
-	if len(coll.Datastreams) != len(ids) {
-		t.Errorf("datastreams: got %d want %d", len(coll.Datastreams), len(ids))
+	if len(coll.Items) != len(ids) {
+		t.Errorf("items: got %d want %d", len(coll.Items), len(ids))
 	}
 }
 

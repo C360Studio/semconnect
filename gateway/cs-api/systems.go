@@ -49,8 +49,12 @@ type systemCollection struct {
 	NumberMatched  int         `json:"numberMatched"`
 	NumberReturned int         `json:"numberReturned"`
 	Truncated      bool        `json:"truncated,omitempty"`
-	Systems        []systemRef `json:"systems"`
-	Links          []link      `json:"links"`
+	// `items` (not `systems`) per CS API §7.13 / OGC API Common §7.14 items
+	// resource. Stage 10 rename — the Botts ETS GeoJSON fixture loader
+	// explicitly looks for the `items` array name and falls back to nothing
+	// when missing ("/systems response has no CS API 'items' array").
+	Items []systemRef `json:"items"`
+	Links []link      `json:"links"`
 }
 
 // NATS subjects + the dotted predicate name the framework's payload registry
@@ -166,13 +170,13 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 		NumberMatched:  len(entities),
 		NumberReturned: len(entities),
 		Truncated:      len(entities) == limit, // see NumberMatched doc comment
-		Systems:        make([]systemRef, 0, len(entities)),
+		Items:          make([]systemRef, 0, len(entities)),
 		Links: []link{
 			{Href: "/systems", Rel: "self", Type: string(MediaJSON)},
 		},
 	}
 	for _, id := range entities {
-		coll.Systems = append(coll.Systems, systemRef{
+		coll.Items = append(coll.Items, systemRef{
 			ID:   id,
 			Type: "System",
 			Links: []link{

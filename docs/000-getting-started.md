@@ -135,12 +135,26 @@ content-negotiation wrappers; no new primitives needed.
 
 ### Stage 6 — Conformance harness
 
-Wire the [OGC Team Engine](https://github.com/opengeospatial/teamengine)
-conformance suite into CI. Decision per ADR-S001 stage 0:
-vendor the runner or fetch at CI time. The fixtures the suite
-exercises will surface deferred-feature requests faster than
-hand-authored tests; treat the first conformance run as a
-calibration step, not a pass/fail gate.
+**Wired** — see `conformance/README.md` for full details.
+
+`conformance/run.sh` brings up NATS + `cs-api-server` + OGC Team Engine
+(with the [Botts CS API ETS](https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10)
+baked in via Docker git-URL build) on a shared compose network, invokes
+the suite via Team Engine's REST API, and archives the TestNG XML
+report. The ETS is pinned by commit SHA in `conformance/.ets-pin` per
+ADR-S001 §4. `.github/workflows/conformance.yml` runs the same harness
+on push to `main` and on PRs labelled `conformance`.
+
+**Calibration reality at v0.1**: the pinned Botts ETS is `0.1-SNAPSHOT`
+— scaffold only, real CS API conformance test classes deferred to
+follow-up sprints upstream. A green TestNG report today validates
+**harness wiring**, not spec coverage. When upstream lands real tests
+(or the OGC org publishes an official ETS image), re-running
+`conformance/run.sh` lights up the conformance picture without further
+plumbing. The two known sister-side deferrals (`X-CS-Reconstructed-Lossy`
+on `GET /systems/{id}`; `X-CS-Geometry-Available: false` on `GET /areas`)
+will surface as Team Engine assertion failures once tests for those
+resources land — track upstream on `semstreams` per ADR-S001 §9.
 
 ## What lives where (recap)
 

@@ -1,0 +1,88 @@
+# Stage 6 conformance harness — runs the OGC Team Engine CS API ETS against
+# a locally-built cs-api-server inside docker compose, and archives the
+# TestNG XML report as a workflow artifact.
+#
+# Triggers (intentionally narrow, since cold ETS build is ~6-8 min):
+#   - push to main
+#   - workflow_dispatch
+#   - PRs labelled `conformance`
+#
+# Not a required PR check at this stage — the pinned ETS is 0.1-SNAPSHOT
+# (scaffold only), so failures here today reflect ETS maturity, not
+# semconnect conformance. ADR-S001 §4 documents the calibration reality.
+
+name: conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    # Gate PR runs on the `conformance` label so most PRs don't pay the
+    # 6-8 minute cold-build cost. Push-to-main and workflow_dispatch always run.
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.labels.*.name, 'conformance'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # buildx's `type=gha` cache backend is wired via `cache_from` /
+        # `cache_to` directives on each service build in
+        # conformance/compose.yml. No separate actions/cache step is
+        # needed (and prior versions of this workflow had a /tmp-based
+        # actions/cache that was a no-op because compose build never
+        # consumed it).
+
+      - name: Run conformance harness
+        run: ./conformance/run.sh
+        env:
+          # GHA runner has docker + python3 + curl out of the box; no extra
+          # setup needed. Override the cold-build healthcheck deadline to
+          # 25 min to leave headroom under the job's 30-min limit while
+          # still failing fast on a wedged container.
+          CONFORMANCE_HEALTH_TIMEOUT_S: "1500"
+          CONFORMANCE_RUN_TIMEOUT_S: "600"
+          DOCKER_BUILDKIT: "1"
+          COMPOSE_DOCKER_CLI_BUILD: "1"
+
+      - name: Summarise TestNG report
+        if: always()
+        run: |
+          set -eo pipefail
+          summary="conformance/output/summary.txt"
+          if [[ -f "$summary" ]]; then
+              {
+                  echo "## Conformance harness summary"
+                  echo
+                  echo '```'
+                  cat "$summary"
+                  echo '```'
+              } >>"$GITHUB_STEP_SUMMARY"
+          else
+              echo "::warning::conformance/output/summary.txt missing — harness never produced one"
+          fi
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: conformance-output
+          path: conformance/output/
+          if-no-files-found: warn
+          retention-days: 14

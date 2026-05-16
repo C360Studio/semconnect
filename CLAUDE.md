@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository status
 
-**Stages 2 + 3 + 4 + 5 of the bootstrap playbook are landed.** What works:
+**Stages 2 + 3 + 4 + 5 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
@@ -22,6 +22,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - JetStream: `cs-api.observations.>` stream is EnsureStream'd at component Start() with 30-day file retention. A failure to provision the stream surfaces as a `Start()` error, not a 503-orphan.
 - Error classification: `errEntityNotFound` sentinel → 404; `pkg/errs.IsInvalid / IsTransient` → 400 / 503; raw `nats.ErrNoResponders` / `nats.ErrTimeout` / `context.DeadlineExceeded` / `nats.ErrConnectionClosed` wrapped to Transient at the boundary on both Request and PublishMsg paths. Unclassified → 500 with a generic body (full error logged).
 - **`classifyEntityQueryError`** wraps the framework's unstructured request-reply error format (raw `"error: <msg>"` byte prefix from `natsclient.SubscribeForRequests`) into pkg/errs classes + the 404 sentinel. Upstream issue filed with `C360Studio/semstreams`; when structured errors ship (NATS headers + classified JSON body), this function becomes a no-op.
+- **Stage 6 conformance harness** (`conformance/run.sh` + `.github/workflows/conformance.yml`) boots NATS + cs-api-server + OGC Team Engine with the [Botts CS API ETS](https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10) via docker compose, hits TE's REST API, and archives a TestNG XML report. The ETS is pinned by commit SHA in `conformance/.ets-pin`; bumping is intentional. **Calibration reality**: the pinned ETS is `0.1-SNAPSHOT` (scaffold only) — a zero-failure run today validates harness wiring, not spec conformance. When real CS API tests land, re-running surfaces the actual conformance picture. The harness runs on push to `main`, on `workflow_dispatch`, and on PRs labelled `conformance` — **not a PR-blocking gate** at this stage.
+- **`Dockerfile`** (repo root) — multi-stage build of cs-api-server into a distroless/static-debian12 image. Used by the conformance harness and eventual operator deploys.
 
 **Read order** for orientation:
 
@@ -97,7 +99,7 @@ go test -run TestHandleSystems ./gateway/cs-api    # single test
 go vet ./...
 ```
 
-No `Taskfile` or `Makefile` yet — intentional until Stage 6 wires the conformance harness.
+No `Taskfile` or `Makefile`. The conformance harness is invoked directly via `conformance/run.sh`.
 
 Running the binary needs a NATS server reachable at `nats://localhost:4222` (configurable via `--config`):
 
@@ -107,6 +109,18 @@ Running the binary needs a NATS server reachable at `nats://localhost:4222` (con
 ```
 
 A config-less run binds `:8080` and connects to local NATS. With nothing on either, it fails fast with a clear NATS-connect error — by design.
+
+Conformance harness (Stage 6):
+
+```bash
+./conformance/run.sh                # full run; cold ~6-8 min (ETS Maven build), warm ~1-2 min
+./conformance/run.sh --teardown-only
+
+# Override host ports if 4222 / 8081 / 8222 are busy locally:
+TE_HOST_PORT=8181 NATS_HOST_PORT=14222 NATS_MON_HOST_PORT=18222 ./conformance/run.sh
+```
+
+Outputs land in `conformance/output/` (gitignored). `conformance/README.md` documents the calibration delta and the bump procedure for the pin file `conformance/.ets-pin`.
 
 ## Discipline notes (inherited from semstreams)
 

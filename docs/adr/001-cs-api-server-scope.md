@@ -103,11 +103,20 @@ refinement if Team Engine flags it.
 
 **Vendor a thin CI runner**, not the Team Engine binary.
 
-- `conformance/` holds: a CI script that pulls the latest OGC Team Engine container on each run, a `fixtures/` directory of CS-API-specific inputs (minimal `System` doc, a 10-row `Observation` feed, a small polygon area), and a `run.sh` that boots `cs-api-server` + a local NATS + the Team Engine container against it.
-- We do **not** vendor `teamengine` source or its WAR; CI fetches a tagged container.
-- Pinned Team Engine version lives in `conformance/.teamengine-version`. Bump explicitly.
+- `conformance/` holds: a CI script that boots the harness on each run, a `fixtures/` directory of CS-API-specific inputs (minimal `System` doc, a small `Observation` feed, a small polygon area), and a `run.sh` that boots NATS + `cs-api-server` + the Team Engine container against it.
+- We do **not** vendor `teamengine` source, its WAR, or the ETS source. The harness consumes them via Docker.
+- Pinned versions live in `conformance/.ets-pin`. Bump explicitly.
 
-**Rationale**: Vendoring Team Engine source drags ~80 MB of Java into the repo for no gain — the OGC project ships container images. Pinning the image keeps CI reproducible; bumping the pin is an intentional change because it can surface new failures.
+**Image story (Stage 6 reality, as of 2026-05-16)**:
+
+- The upstream `ogccite/teamengine-production:latest` image (Docker Hub) does **not** include a CS API ETS — it ships only the production-track CITE suites and was last pushed ~2 years ago. We do not consume it directly.
+- The CS API ETS — `ogcapi-connectedsystems10` — is being developed at [`Botts-Innovative-Research/ets-ogcapi-connectedsystems10`](https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10) and is **not yet published as a tagged Docker image on any registry**. The repo ships a multi-stage `Dockerfile` that builds the ETS into TeamEngine 5.6.1.
+- We therefore pin **by Botts ETS commit SHA**, and let Docker build the image from `https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10.git#<sha>` on first run. Cold build is ~5–6 minutes; warm cache is ~30–90 s. The pin file (`conformance/.ets-pin`) carries the SHA + the TeamEngine version it bundles, both as informational metadata.
+- When the OGC org adopts the ETS into `opengeospatial/ets-ogcapi-connectedsystems10` and publishes a tagged image to GHCR or Docker Hub, swap the pin file to reference the registry image. Until then, build-from-source is the only reproducible path.
+
+**Calibration reality at v0.1**: the Botts ETS is `0.1-SNAPSHOT` and its own README states *"Sprint 1 lands the green build scaffold only; real conformance tests follow."* The harness will therefore validate **suite registration + a near-empty TestNG run**, not the 14 declared Part 1 conformance classes. This is the calibration step the playbook anticipated — Stage 6 wires the harness now so that when Botts (or its OGC successor) lands real CS API test classes, re-running `conformance/run.sh` lights up the actual conformance picture without further plumbing work.
+
+**Rationale**: Vendoring TeamEngine or ETS source drags megabytes of Java into the repo for no gain — Docker's git-URL build syntax lets us pin reproducibly without check-in. Pinning by commit SHA keeps CI deterministic; bumping the pin is an intentional change because it can surface new failures (or, at this stage, new tests).
 
 ### 5. CS API Part 3 (pub/sub binding) stance
 
@@ -172,7 +181,16 @@ This applies symmetrically to SensorML (`Mode`, `Algorithm`, `Configuration`, `D
 
 **Code-side: closed.** Stages 1–5 of the bootstrap playbook are merged. All v0.1 endpoint surface (`GET /systems`, `GET /systems/{id}`, `POST /datastreams/{id}/observations`, `GET /areas`, `GET /conformance`, `GET /health`) is wired against a local semstreams NATS, and the runtime `/conformance` declaration matches §1's full v0.1 class list (core + json + oms + sensorml + json-ld + geojson).
 
-**Validation-side: pending Stage 6.** This ADR closes formally when the OGC Team Engine conformance harness reports green against each declared class. Documented limitations (`X-CS-Reconstructed-Lossy` on SensorML reconstruction; `X-CS-Geometry-Available: false` on `/areas` Features) may surface as Team Engine assertion failures; address per the deferred-features list above as they arise.
+**Harness-side: wired at Stage 6.** `conformance/run.sh` + `.github/workflows/conformance.yml` boot NATS + `cs-api-server` + Team Engine (with the Botts CS API ETS cloned and built at a pinned commit SHA) and exercise the suite via Team Engine's REST API, archiving the TestNG XML as a CI artifact. The harness is exercised on every push to `main` and on PRs labelled `conformance`; it is **not** a PR-blocking gate at this stage (see calibration reality below).
+
+**Validation-side: open.** This ADR closes formally when the OGC Team Engine conformance harness reports green against each declared class. At Stage 6 landing, the gating reality is:
+
+1. The Botts ETS pinned at `d9caf33f` declares **137 tests** — more than the "scaffold only" framing of its README suggested. First-run signal: **5 passed / 8 failed / 124 skipped**. The skips are real (test classes declared but not yet implemented upstream); the failures are not all upstream issues.
+2. The 8 failures triage as:
+   - **3 OGC API Common Part 1 gaps in `cs-api`**: missing `GET /` landing page (3 assertions); missing `?f=json` content-negotiation query parameter (2 assertions); `/conformance` missing the `ogcapi-common-1/1.0/conf/core` declaration that CS API Core inherits (1 assertion). These are v0.1 finish work — ADR-S001 §1 lists CS API Core as wired but the Common inheritance was implicit. Track as a v0.1 follow-up alongside Stage 6.
+   - **2 missing-fixture failures**: `fetchSensorMlInputs` + `fetchGeoJsonInputs` both 503 because no graph data is seeded into the IUT before the suite runs. Address by adding a fixture-seeding step to `conformance/run.sh` once the ETS lands tests that actually depend on seeded data (today's failures happen during the ETS's `@BeforeSuite` data-fetch).
+3. The two known sister-side deferrals (`X-CS-Reconstructed-Lossy` on SensorML reconstruction; `X-CS-Geometry-Available: false` on `/areas` Features) did not surface as failures in the first run — the ETS test classes that would exercise those code paths are in the 124 skipped count. Track as upstream `semstreams` asks per §9 when they do surface.
+4. Closure flips from "open" to "closed" when (a) the v0.1 follow-up items in (2) are addressed, (b) real CS API conformance test classes for §§4–5 resources land in the pinned ETS, and (c) the harness reports green against the v0.1 declared class set.
 
 ## References
 
@@ -181,4 +199,6 @@ This applies symmetrically to SensorML (`Mode`, `Algorithm`, `Configuration`, `D
 - [CS API Part 1 (23-001)](https://docs.ogc.org/DRAFTS/23-001r0.html)
 - [CS API Part 2 (23-002)](https://docs.ogc.org/DRAFTS/23-002r0.html)
 - [OGC Team Engine](https://github.com/opengeospatial/teamengine)
+- [Botts CS API ETS — `ets-ogcapi-connectedsystems10`](https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10)
 - `docs/000-getting-started.md` — bootstrap playbook
+- `conformance/README.md` — how to run the harness locally + bump the ETS pin

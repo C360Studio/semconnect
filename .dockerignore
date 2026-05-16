@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+.vscode
+.DS_Store
+# The conformance harness is not consumed by the cs-api-server image —
+# excluding it shaves megabytes off the build context (fixtures + run
+# artifacts + ETS pin metadata are all noise for the binary build).
+conformance
+docs
+README.md
+CLAUDE.md
+*.md
+LICENSE

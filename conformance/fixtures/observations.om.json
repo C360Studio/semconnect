@@ -1,0 +1,37 @@
+[
+  {
+    "type": "Observation",
+    "datastream@id": "urn:semconnect:conformance:datastream:weather-station-01:temp",
+    "phenomenonTime": "2026-05-16T00:00:00Z",
+    "resultTime": "2026-05-16T00:00:00Z",
+    "result": 12.1
+  },
+  {
+    "type": "Observation",
+    "datastream@id": "urn:semconnect:conformance:datastream:weather-station-01:temp",
+    "phenomenonTime": "2026-05-16T00:05:00Z",
+    "resultTime": "2026-05-16T00:05:00Z",
+    "result": 12.3
+  },
+  {
+    "type": "Observation",
+    "datastream@id": "urn:semconnect:conformance:datastream:weather-station-01:temp",
+    "phenomenonTime": "2026-05-16T00:10:00Z",
+    "resultTime": "2026-05-16T00:10:00Z",
+    "result": 12.6
+  },
+  {
+    "type": "Observation",
+    "datastream@id": "urn:semconnect:conformance:datastream:weather-station-01:temp",
+    "phenomenonTime": "2026-05-16T00:15:00Z",
+    "resultTime": "2026-05-16T00:15:00Z",
+    "result": 12.8
+  },
+  {
+    "type": "Observation",
+    "datastream@id": "urn:semconnect:conformance:datastream:weather-station-01:temp",
+    "phenomenonTime": "2026-05-16T00:20:00Z",
+    "resultTime": "2026-05-16T00:20:00Z",
+    "result": 13.0
+  }
+]

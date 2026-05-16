@@ -156,6 +156,78 @@ on `GET /systems/{id}`; `X-CS-Geometry-Available: false` on `GET /areas`)
 will surface as Team Engine assertion failures once tests for those
 resources land — track upstream on `semstreams` per ADR-S001 §9.
 
+### Stage 9 — Conformance backend + fixture seed
+
+Stage 6 brought up `nats` + `cs-api-server` + `teamengine` on a shared
+compose network. That stack has no responder for the NATS subjects
+`cs-api-server` publishes to: `graph.index.query.predicate`,
+`graph.query.entity`, `graph.spatial.query.bounds/.polygon`,
+`graph.mutation.triple.add_batch`. Every read endpoint returns 503,
+which the Botts ETS surfaces as `fetchSensorMlInputs` /
+`fetchGeoJsonInputs` `@BeforeClass` assertion failures (expected 200,
+got 503) — and SKIPs 122 dependent tests via TestNG group dependencies.
+
+The Stage 7 outcome (`passed=13 failed=2 skipped=122`) bottoms out
+here. Until a graph backend responds, the harness is conclusively
+infrastructure-only.
+
+**What lands:**
+
+1. **A fourth compose service: `semstreams-backend`.** Builds from the
+   framework's own multi-stage `docker/Dockerfile` against a pinned
+   commit SHA in `conformance/.ets-pin` (new vars
+   `SEMSTREAMS_GIT_URL` + `SEMSTREAMS_COMMIT`). `run.sh`'s
+   `ensure_ets_vendor` gains a sibling `ensure_semstreams_vendor` and
+   clones into `.vendor/semstreams/`.
+2. **`conformance/compose.semstreams.config.json`** — slim graph-only
+   config. Five processors: `graph-ingest`, `graph-index`,
+   `graph-index-spatial`, `graph-index-temporal`, `graph-query`. The
+   non-graph noise (`udp`, `iot_sensor`, `document_processor`,
+   `objectstore`, `rule`, `graph-gateway`, file inputs/outputs,
+   `message-logger`, metrics forwarders) is stripped. `service-manager`
+   re-ports to 8090 to avoid cs-api-server's 8080.
+3. **Pre-suite seed step in `run.sh`.** After readiness gates and
+   before invoking TestNG: `curl -XPOST /systems` with
+   `fixtures/system.sml.json`, `curl -XPOST /datastreams` with a
+   matching datastream body. Existing fixtures, write endpoints wired
+   in Stage 8.
+4. **Capture per-container logs alongside `teamengine`.** Reworked
+   `on_exit` trap: success path captures `teamengine` +
+   `cs-api-server` + `semstreams-backend`; failure path additionally
+   captures `nats` and runs *before* `teardown_silent` (refactored
+   `die()` to no longer tear down inline, so trap-captured logs
+   survive). Triaging a 503 or healthcheck timeout now grep-able
+   from `$OUTPUT_DIR/*-container-*.log`, not "stack already gone."
+
+**Feasibility probe (2026-05-16, framework `v1.0.0-beta.73`):** booted
+the slim config against a running NATS, all five required handler
+subjects registered (`graph.mutation.triple.{add,add_batch,remove}`,
+`graph.index.query.predicate` and siblings, `graph.spatial.query.{bounds,polygon}`,
+`graph.query.entity` and siblings). With the slim backend running and
+the existing conformance cs-api-server pointed at the same NATS,
+`GET /systems` returned `HTTP 200 SystemCollection[empty]` and
+`GET /areas?bbox=...` returned `HTTP 200 FeatureCollection[empty]` —
+both 503s eliminated at the source.
+
+**Required-port caveat:** `graph-ingest.Config.Validate()` requires
+`len(Ports.Inputs) >= 1`. CS-API write flow uses
+`graph.mutation.triple.add_batch` request/reply (auto-wired by
+`setupMutationHandlers`, not a port), so we don't need an actual feed.
+Declare a benign `{"name": "unused_in", "subject": "_semconnect.unused.ingest", "type": "nats"}`
+input — the framework subscribes, nothing publishes, no behavior
+change. (Filed as a candidate upstream relaxation when other gateways
+hit the same wall — but a `nats`-type no-op satisfies validation
+today, so not blocking.)
+
+### Stage 10+ — Botts ETS pin bumps (open-ended)
+
+The sponsor has confirmed Botts CS API ETS as the conformance target
+through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)
+surfaces new assertion failures; triage is per-bump work. Track the
+TestNG delta in the bump PR description so the reviewer sees what
+conformance picture moved. ADR-S001 §4 documents the pin policy;
+`conformance/README.md` documents the procedure.
+
 ## What lives where (recap)
 
 ```
@@ -166,7 +238,7 @@ semconnect/
 │   ├── observations.go          # Stage 3
 │   ├── spatial.go               # Stage 5
 │   └── conformance.go           # conformance-class declaration
-├── conformance/                 # Stage 6
+├── conformance/                 # Stage 6 (harness) + Stage 9 (backend + seed)
 ├── examples/                    # drone fleet etc. — late, after Stage 4
 ├── docs/
 │   ├── 000-getting-started.md   # this file

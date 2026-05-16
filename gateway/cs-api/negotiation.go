@@ -31,7 +31,7 @@ const (
 	FamilySystemCollection                           // GET /systems
 	FamilyDatastreamItem                             // GET /datastreams/{id}
 	FamilyDatastreamCollection                       // GET /datastreams
-	FamilyObservation
+	FamilyObservationCollection                      // GET /datastreams/{id}/observations (Stage 11)
 	FamilySpatial
 	FamilyService // /, /conformance (and /api when oas30 lands)
 )
@@ -64,12 +64,16 @@ func (fam ResourceFamily) supported() []MediaType {
 		// docs/upstream-asks/semstreams-datastream-vocabulary.md), so
 		// JSON-LD would emit broken Linked Data; SWE Common 3.0 (the
 		// natural datastream encoding) is in the framework's Scope-cut.
-		// Distinct from FamilyObservation so adding a future datastream
-		// encoding (CoverageJSON, JSON-LD) doesn't drag the
+		// Distinct from FamilyObservationCollection so adding a future
+		// datastream encoding (CoverageJSON, JSON-LD) doesn't drag the
 		// observation negotiation set with it.
 		return []MediaType{MediaJSON}
-	case FamilyObservation:
-		return []MediaType{MediaJSON}
+	case FamilyObservationCollection:
+		// JSON returns the CS API §11.3 ObservationCollection wrapper
+		// (numberMatched / items / links); OMS returns a bare array of
+		// observation payloads for OMS-native clients. POST takes the
+		// same OMS shape, so the round-trip is symmetric. Stage 11.
+		return []MediaType{MediaJSON, MediaOMS}
 	case FamilySpatial:
 		// GeoJSON is the natural default for /areas — RFC 7946
 		// FeatureCollection is the wire shape; clients asking for

@@ -344,17 +344,18 @@ func TestHandleObservationsPost_PublisherErrorClassification(t *testing.T) {
 	}
 }
 
-func TestHandleObservationsPost_GETReturns405(t *testing.T) {
-	// The mux registration is "POST /…/observations" — non-POST should not
-	// match the pattern at all. Standard mux returns 405 for the matched
-	// path when only the method differs.
+func TestHandleObservationsPost_DELETEReturns405(t *testing.T) {
+	// Stage 11 wired GET + HEAD on this path, so the original "GET → 405"
+	// invariant no longer holds. DELETE remains unwired and still 405s —
+	// keeps the discipline that the mux enforces method-not-allowed for
+	// any HTTP verb we don't claim, instead of falling through to 404.
 	fake := &fakeRequester{status: natsclient.StatusConnected}
 	pub := &fakePublisher{}
 	c := wireObservationsComponent(t, fake, pub)
 
 	mux := http.NewServeMux()
 	c.RegisterHTTPHandlers("", mux)
-	req := httptest.NewRequest(http.MethodGet, "/datastreams/ds.001/observations", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/datastreams/ds.001/observations", nil)
 	rr := httptest.NewRecorder()
 	mux.ServeHTTP(rr, req)
 	if rr.Code != http.StatusMethodNotAllowed {

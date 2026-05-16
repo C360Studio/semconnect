@@ -40,9 +40,9 @@ import (
 )
 
 const (
-	defaultNATSURL    = "nats://localhost:4222"
-	shutdownDeadline  = 10 * time.Second
-	natsConnDeadline  = 10 * time.Second
+	defaultNATSURL   = "nats://localhost:4222"
+	shutdownDeadline = 10 * time.Second
+	natsConnDeadline = 10 * time.Second
 )
 
 // serverConfig is the on-disk shape. It embeds csapi.Config plus the bits the

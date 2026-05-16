@@ -35,19 +35,31 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		return p
 	}
 
-	mux.Handle(join("systems"), c.middleware(http.HandlerFunc(c.handleSystems)))
-	mux.Handle(join("conformance"), c.middleware(http.HandlerFunc(c.handleConformance)))
-	mux.Handle(join("health"), c.middleware(http.HandlerFunc(c.handleHealth)))
+	// Go 1.22+ ServeMux supports method-and-path patterns; using them
+	// uniformly is cleaner than the per-handler r.Method check Stage 2
+	// inherited. ServeMux routes by specificity, so /systems and
+	// /systems/{id} don't conflict.
+	systemsPath := join("systems")
+	systemItemPath := join("systems/{id}")
+	conformancePath := join("conformance")
+	healthPath := join("health")
+	observationsPath := join("datastreams/{datastreamID}/observations")
 
-	// Go 1.22+ pattern syntax: "POST /…/{datastreamID}/…" both filters method
-	// and binds the path parameter (r.PathValue("datastreamID")).
-	observationsPath := "POST " + join("datastreams/{datastreamID}/observations")
-	mux.Handle(observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsPost)))
+	mux.Handle("GET "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
+	mux.Handle("HEAD "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
+	mux.Handle("GET "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
+	mux.Handle("HEAD "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
+	mux.Handle("GET "+conformancePath, c.middleware(http.HandlerFunc(c.handleConformance)))
+	mux.Handle("HEAD "+conformancePath, c.middleware(http.HandlerFunc(c.handleConformance)))
+	mux.Handle("GET "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
+	mux.Handle("HEAD "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
+	mux.Handle("POST "+observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsPost)))
 
 	c.logger.Debug("HTTP handlers registered",
-		"systems", join("systems"),
-		"conformance", join("conformance"),
-		"health", join("health"),
+		"systems", systemsPath,
+		"system_item", systemItemPath,
+		"conformance", conformancePath,
+		"health", healthPath,
 		"observations", observationsPath)
 }
 

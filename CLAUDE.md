@@ -4,21 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository status
 
-**Stages 2 + 3 of the bootstrap playbook are landed.** What works:
+**Stages 2 + 3 + 4 of the bootstrap playbook are landed.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
 - Endpoints:
-  - `GET /systems` — lists `ssn:System` entities via NATS `graph.index.query.predicate`
-  - `POST /datastreams/{datastreamID}/observations` — accepts `application/om+json`, wraps in `message.BaseMessage`, publishes to JetStream subject `cs-api.observations.{datastreamID}` with audit headers
-  - `GET /conformance` — declares wired classes (core + json + oms at Stage 3)
-  - `GET /health`
-  - `HEAD` supported on all read endpoints.
+  - `GET /systems` — lists `ssn:System` entities via NATS `graph.index.query.predicate`. JSON only (collection has no SensorML wrapper).
+  - `GET /systems/{id}` — fetches an entity via `graph.query.entity`, renders as `application/json` (CS API §7.2 subset), `application/sensorml+json` (via triple→sensorml reverse mapping in `gateway/cs-api/sensorml.go`), or `application/ld+json` (via `vocabulary/export.Serialize(JSONLD)`). Lossy reconstruction is signalled via `X-CS-Reconstructed-Lossy: true`.
+  - `POST /datastreams/{datastreamID}/observations` — accepts `application/om+json`, wraps in `message.BaseMessage`, publishes to JetStream subject `cs-api.observations.{datastreamID}` with audit + W3C trace headers.
+  - `GET /conformance` — declares wired classes (core + json + oms + sensorml + json-ld at Stage 4; geojson lands at Stage 5).
+  - `GET /health`.
+  - All read endpoints accept `HEAD`. Routes use Go 1.22+ method+path patterns (`GET /systems` / `HEAD /systems`); 405 is enforced by the mux.
 - Auth seam: `IdentityMiddleware` populates `Identity` in every request context. Anonymous-by-default; `X-Forwarded-User` / `X-Forwarded-Email` from a trusted reverse proxy flow onto every publish as `X-CS-Forwarded-*` NATS headers for audit. No verification at v0.1.
-- Content negotiation via `Accept`; only `application/json` is wired at Stage 3 (other media types 406 honestly — SensorML / GeoJSON / JSON-LD land per stage; see ADR-S001 §1 schedule).
-- Body-size limit middleware (`MaxRequestBytes`) enforces `413` on the POST.
+- Content negotiation via `Accept`; per-family supported sets in `negotiation.go`. JSON for everything; SensorML + JSON-LD for `GET /systems/{id}` only at Stage 4; collection `GET /systems` honestly 406s on non-JSON Accept (no SensorML "SystemCollection" type).
+- Body-size limit middleware (`MaxRequestBytes`) enforces `413` on POSTs.
 - JetStream: `cs-api.observations.>` stream is EnsureStream'd at component Start() with 30-day file retention. A failure to provision the stream surfaces as a `Start()` error, not a 503-orphan.
-- Error classification: `pkg/errs.IsInvalid / IsTransient` → 400 / 503; raw `nats.ErrNoResponders` / `nats.ErrTimeout` / `context.DeadlineExceeded` / `nats.ErrConnectionClosed` wrapped to Transient at the boundary on both Request and PublishMsg paths. Unclassified → 500 with a generic body (full error logged).
+- Error classification: `errEntityNotFound` sentinel → 404; `pkg/errs.IsInvalid / IsTransient` → 400 / 503; raw `nats.ErrNoResponders` / `nats.ErrTimeout` / `context.DeadlineExceeded` / `nats.ErrConnectionClosed` wrapped to Transient at the boundary on both Request and PublishMsg paths. Unclassified → 500 with a generic body (full error logged).
+- **`classifyEntityQueryError`** wraps the framework's unstructured request-reply error format (raw `"error: <msg>"` byte prefix from `natsclient.SubscribeForRequests`) into pkg/errs classes + the 404 sentinel. Upstream issue filed with `C360Studio/semstreams`; when structured errors ship (NATS headers + classified JSON body), this function becomes a no-op.
 
 **Read order** for orientation:
 
@@ -60,14 +62,14 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 
 | Endpoint | Framework primitive |
 |---|---|
-| `GET /systems` | `graph-query` over `ssn:System` entities → JSON / JSON-LD via `vocabulary/export` |
-| `GET /systems/{id}` | `graph-query` full entity → reconstruct `sensorml.PhysicalSystem` from triples (sister-repo reverse mapping) |
-| `POST /systems` | `parser/sensorml` decode → `graph-ingest` publish |
-| `GET /datastreams/{id}/observations` | KV watch on entity-keyed subject → `message/oms` marshal |
+| `GET /systems` | `graph.index.query.predicate` (rdf:type = ssn:System) → JSON SystemCollection. 406 for non-JSON Accept. |
+| `GET /systems/{id}` | `graph.query.entity` → `EntityState` → `reconstructProcessFromTriples` (JSON / SensorML) or `export.Serialize(JSONLD)`. Lossy fields documented via `X-CS-Reconstructed-Lossy: true`. |
+| `POST /systems` | `parser/sensorml` decode → `graph-ingest` publish *(not yet wired)* |
+| `GET /datastreams/{id}/observations` | KV watch on entity-keyed subject → `message/oms` marshal *(not yet wired)* |
 | `POST /datastreams/{id}/observations` | `message/oms` decode → `message.NewBaseMessage` → `js.PublishMsg` on `cs-api.observations.{id}` with `X-CS-*` audit headers + W3C trace context (raw `js.PublishMsg`, not `natsclient.PublishToStream`, so we can attach headers — trace is re-injected via `natsclient.InjectTrace` to match framework convention) |
-| `GET /areas?bbox=` / `?polygon=` | `graph.spatial.query.bounds` / `.polygon` |
+| `GET /areas?bbox=` / `?polygon=` | `graph.spatial.query.bounds` / `.polygon` *(not yet wired)* |
 
-The triple → SensorML reverse mapping (`GET /systems/{id}`) is gateway domain code and the one place real reconstruction logic lives in this repo. Plan a `gateway/cs-api/sensorml.go` with `FromEntityState(state graph.EntityState) (sensorml.Process, error)`.
+The triple → SensorML reverse mapping (`gateway/cs-api/sensorml.go`) is intentionally lossy: inputs/outputs/parameters, keywords, connections, and identifier metadata beyond `Value` are dropped because `sensorml.Asset.Triples()` doesn't emit them. The reconstruction emits skeleton refs for hosted children (`{id: "child-id", type: "PhysicalComponent"}`) rather than recursively hydrating them — clients drill via `GET /systems/{childID}`.
 
 ## Bootstrap order (do not skip stages)
 

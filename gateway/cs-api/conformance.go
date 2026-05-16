@@ -12,31 +12,30 @@ import (
 // over Stages 3–5 as each encoder is wired:
 //
 //   - Stage 2:                core + json
-//   - Stage 3 (this stage):   + oms (consume on POST /datastreams/{id}/observations)
-//   - Stage 4 (single system): + sensorml + json-ld
-//   - Stage 5 (spatial):       + geojson
+//   - Stage 3:                + oms (consume on POST /datastreams/{id}/observations)
+//   - Stage 4 (this stage):   + sensorml + json-ld
+//   - Stage 5 (spatial):      + geojson
 //
-// Note on oms at Stage 3: this stage wires *consume* only (decode incoming
-// application/om+json). Producing OMS on a GET /datastreams/{id}/observations
-// is a Stage-4 follow-up. Team Engine's OMS class exercises both sides; the
-// claim widens when the GET handler ships.
+// Note on sensorml at Stage 4: GET /systems/{id} produces SensorML via a
+// lossy triple→sensorml reverse mapping (see gateway/cs-api/sensorml.go for
+// what is preserved). Team Engine's sensorml class exercises round-trip;
+// some assertions will need the lossy-by-design fields documented in the
+// response (X-CS-Reconstructed-Lossy header) to pass.
 var stageConformanceClasses = []string{
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 }
 
 type conformanceDeclaration struct {
 	ConformsTo []string `json:"conformsTo"`
 }
 
-// handleConformance serves GET /conformance. CS API §7.4.
+// handleConformance serves GET /conformance. CS API §7.4. Method enforced
+// by the ServeMux pattern.
 func (c *Component) handleConformance(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet && r.Method != http.MethodHead {
-		w.Header().Set("Allow", "GET, HEAD")
-		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
 	if _, ok := Negotiate(r.Header.Get("Accept"), FamilyService); !ok {
 		WriteNotAcceptable(w, FamilyService)
 		return

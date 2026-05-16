@@ -9,15 +9,15 @@ import (
 
 func TestIdentityMiddleware_AlwaysPopulatesContext(t *testing.T) {
 	tests := []struct {
-		name           string
-		fwdUser        string
-		fwdEmail       string
-		wantUser       string
-		wantEmail      string
-		wantVerified   bool
-		wantSubject    string
-		wantAuditHdr   string // a header key that must appear in AuditHeaders()
-		dontWantAudit  string // a header key that must NOT appear
+		name          string
+		fwdUser       string
+		fwdEmail      string
+		wantUser      string
+		wantEmail     string
+		wantVerified  bool
+		wantSubject   string
+		wantAuditHdr  string // a header key that must appear in AuditHeaders()
+		dontWantAudit string // a header key that must NOT appear
 	}{
 		{
 			name:          "no proxy headers → anonymous, no audit headers leak",

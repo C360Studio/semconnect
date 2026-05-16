@@ -49,8 +49,8 @@ const (
 //   - 503 if JetStream is unavailable
 func (c *Component) handleObservationsPost(w http.ResponseWriter, r *http.Request) {
 	datastreamID := r.PathValue("datastreamID")
-	if err := validateDatastreamID(datastreamID); err != nil {
-		writeJSONError(w, http.StatusBadRequest, err.Error())
+	if err := validateEntityID(datastreamID); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid datastream id: "+err.Error())
 		return
 	}
 
@@ -168,24 +168,29 @@ func (c *Component) publishObservation(ctx context.Context, subject string, obs 
 	return nil
 }
 
-// validateDatastreamID enforces the NATS-token-safe shape. Empty IDs are
-// rejected; IDs containing NATS subject reserved characters (`*`, `>`, ` `)
-// or empty tokens between dots (`acme..ops`, `.foo`, `foo.`) would break
-// filter patterns and are rejected so a typo cannot poison the stream's
-// wildcard semantics.
-func validateDatastreamID(id string) error {
+// validateEntityID enforces the NATS-token-safe shape that SemStreams 6-part
+// entity IDs follow. Reused for both datastream IDs and system IDs (both
+// are SemStreams entity IDs at the wire level). Empty IDs are rejected;
+// IDs containing NATS subject reserved characters (`*`, `>`, ` `) or empty
+// tokens between dots (`acme..ops`, `.foo`, `foo.`) would break filter
+// patterns and are rejected so a typo cannot poison the stream's wildcard
+// semantics.
+//
+// Error messages refer to "id" generically; call sites prepend their own
+// context ("invalid system id: ...", "invalid datastream id: ...").
+func validateEntityID(id string) error {
 	if id == "" {
-		return errors.New("datastream id required")
+		return errors.New("id required")
 	}
 	if strings.ContainsAny(id, " \t\r\n*>") {
-		return errors.New("datastream id contains reserved characters")
+		return errors.New("id contains reserved characters")
 	}
 	if len(id) > 256 {
-		return errors.New("datastream id exceeds 256 bytes")
+		return errors.New("id exceeds 256 bytes")
 	}
 	for _, tok := range strings.Split(id, ".") {
 		if tok == "" {
-			return errors.New("datastream id has empty token (leading/trailing/consecutive dots not allowed)")
+			return errors.New("id has empty token (leading/trailing/consecutive dots not allowed)")
 		}
 	}
 	return nil

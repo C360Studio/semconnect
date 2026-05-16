@@ -3,8 +3,10 @@ package csapi
 import "testing"
 
 func TestNegotiate(t *testing.T) {
-	// Stage 2 wires only the JSON encoder. Once Stages 3–5 land their
-	// encoders the supported set widens — these tests grow with it.
+	// Per-stage wiring lives in negotiation.go supported() — these tests
+	// grow as encoders ship per stage. Stage 4: FamilySystemItem includes
+	// JSON / SensorML / JSON-LD; FamilySystemCollection is JSON-only;
+	// FamilyObservation / FamilySpatial still JSON-only until Stages 3.5 / 5.
 	tests := []struct {
 		name   string
 		accept string
@@ -12,19 +14,23 @@ func TestNegotiate(t *testing.T) {
 		want   MediaType
 		wantOK bool
 	}{
-		{"empty Accept on systems → JSON default", "", FamilySystem, MediaJSON, true},
+		{"empty Accept on system item → JSON default", "", FamilySystemItem, MediaJSON, true},
+		{"empty Accept on system collection → JSON default", "", FamilySystemCollection, MediaJSON, true},
 		{"empty Accept on spatial → JSON default (GeoJSON deferred to Stage 5)", "", FamilySpatial, MediaJSON, true},
-		{"explicit JSON on systems", "application/json", FamilySystem, MediaJSON, true},
-		{"wildcard subtype resolves to family default", "application/*", FamilySystem, MediaJSON, true},
+		{"explicit JSON on system item", "application/json", FamilySystemItem, MediaJSON, true},
+		{"wildcard subtype resolves to family default", "application/*", FamilySystemItem, MediaJSON, true},
 		{"global wildcard resolves to family default", "*/*", FamilyObservation, MediaJSON, true},
-		{"SensorML not wired yet → 406", "application/sensorml+json", FamilySystem, "", false},
-		{"OMS not wired yet → 406", "application/om+json", FamilyObservation, "", false},
+		{"SensorML wired at Stage 4 (item)", "application/sensorml+json", FamilySystemItem, MediaSensorML, true},
+		{"SensorML NOT wired on collection — 406", "application/sensorml+json", FamilySystemCollection, "", false},
+		{"JSON-LD wired at Stage 4 for system items", "application/ld+json", FamilySystemItem, MediaJSONLD, true},
+		{"JSON-LD NOT wired on collection — 406", "application/ld+json", FamilySystemCollection, "", false},
+		{"JSON-LD wired at Stage 4 for /conformance", "application/ld+json", FamilyService, MediaJSONLD, true},
+		{"OMS not wired on FamilyObservation responses yet → 406", "application/om+json", FamilyObservation, "", false},
 		{"GeoJSON not wired yet → 406", "application/geo+json", FamilySpatial, "", false},
-		{"JSON-LD not wired yet → 406", "application/ld+json", FamilySystem, "", false},
-		{"unsupported only → 406", "application/xml, text/html", FamilySystem, "", false},
+		{"unsupported only → 406", "application/xml, text/html", FamilySystemItem, "", false},
 		{"XML out of scope even when listed first", "application/xml", FamilyObservation, "", false},
-		{"comma-separated with whitespace picks JSON", " application/json , application/xml ", FamilySystem, MediaJSON, true},
-		{"q-weighted preference: JSON wins when only it is supported", "application/xml;q=0.9, application/json;q=0.5", FamilySystem, MediaJSON, true},
+		{"comma-separated with whitespace picks JSON", " application/json , application/xml ", FamilySystemItem, MediaJSON, true},
+		{"q-weighted preference: SensorML over JSON when client weights it higher", "application/json;q=0.5, application/sensorml+json;q=0.9", FamilySystemItem, MediaSensorML, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

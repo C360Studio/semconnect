@@ -124,8 +124,8 @@ func (c *Component) InputPorts() []component.Port {
 func (c *Component) OutputPorts() []component.Port {
 	defs := []component.PortDefinition{
 		{Name: "predicate-query", Type: "nats-request", Subject: "graph.index.query.predicate", Description: "list entities by rdf:type"},
+		{Name: "entity-query", Type: "nats-request", Subject: "graph.query.entity", Description: "fetch entity state by ID for GET /systems/{id}"},
 		{Name: "observations", Type: "jetstream", Subject: c.cfg.ObservationsSubjectPrefix + ".>", StreamName: c.cfg.ObservationsStream, Description: "OMS observations from POST /datastreams/{id}/observations"},
-		// graph.query.entity port re-added at Stage 4 (single-system GET).
 	}
 	out := make([]component.Port, len(defs))
 	for i, d := range defs {

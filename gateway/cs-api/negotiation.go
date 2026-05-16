@@ -11,18 +11,24 @@ import (
 type MediaType string
 
 const (
-	MediaJSON      MediaType = "application/json"
-	MediaJSONLD    MediaType = "application/ld+json"
-	MediaGeoJSON   MediaType = "application/geo+json"
-	MediaSensorML  MediaType = "application/sensorml+json"
-	MediaOMS       MediaType = "application/om+json"
+	MediaJSON     MediaType = "application/json"
+	MediaJSONLD   MediaType = "application/ld+json"
+	MediaGeoJSON  MediaType = "application/geo+json"
+	MediaSensorML MediaType = "application/sensorml+json"
+	MediaOMS      MediaType = "application/om+json"
 )
 
 // ResourceFamily groups endpoints that share the same negotiable encoding set.
+// Collection and item endpoints of the same kind do NOT share a family if
+// their supported sets differ (e.g. there is no SensorML SystemCollection
+// type, so the collection endpoint narrows). Adding a family is preferable
+// to inline-narrowing in handlers because the 406 body advertises the
+// correct supported set automatically.
 type ResourceFamily int
 
 const (
-	FamilySystem ResourceFamily = iota
+	FamilySystemItem       ResourceFamily = iota // GET /systems/{id}
+	FamilySystemCollection                       // GET /systems
 	FamilyObservation
 	FamilySpatial
 	FamilyService // /, /api, /conformance
@@ -31,22 +37,31 @@ const (
 // supported returns the negotiable encodings for fam, in preference order.
 // The first entry is the default when the client did not constrain Accept.
 //
-// Stage 2 only ships the JSON encoder. ADR-S001 §1 claims SensorML / GeoJSON /
-// OMS / JSON-LD conformance classes at the v0.1 *release* — those rows expand
-// as their encoders land per stage (Stage 3 OMS for observations, Stage 4
-// SensorML for /systems/{id}, Stage 5 GeoJSON for /areas, JSON-LD any time
-// after vocabulary/export is wired). Until then, Negotiate honestly 406s on
-// types we cannot serialise rather than promising bytes we can't produce.
+// Per-stage wiring:
+//
+//   - Stage 2:                FamilySystem = JSON
+//   - Stage 3 (observations): + OMS on the consume side (POST), no
+//     production-side encoder change (this table shapes responses)
+//   - Stage 4 (this stage):   FamilySystem += SensorML + JSON-LD —
+//     both encoders wired by GET /systems/{id}
+//   - Stage 5 (spatial):      FamilySpatial += GeoJSON
+//
+// Until then, Negotiate honestly 406s on types we cannot serialise rather
+// than promising bytes we can't produce.
 func (fam ResourceFamily) supported() []MediaType {
 	switch fam {
-	case FamilySystem:
+	case FamilySystemItem:
+		return []MediaType{MediaJSON, MediaSensorML, MediaJSONLD}
+	case FamilySystemCollection:
+		// No SensorML SystemCollection type; collection JSON-LD is a
+		// Stage 5+ concern (vocabulary/export is per-entity today).
 		return []MediaType{MediaJSON}
 	case FamilyObservation:
 		return []MediaType{MediaJSON}
 	case FamilySpatial:
 		return []MediaType{MediaJSON}
 	case FamilyService:
-		return []MediaType{MediaJSON}
+		return []MediaType{MediaJSON, MediaJSONLD}
 	default:
 		return []MediaType{MediaJSON}
 	}
@@ -113,11 +128,26 @@ func SupportedMedia(fam ResourceFamily) []string {
 	return out
 }
 
-// WriteNotAcceptable writes a 406 with the supported encoding list.
+// WriteNotAcceptable writes a 406 with the family's supported encoding list.
 func WriteNotAcceptable(w http.ResponseWriter, fam ResourceFamily) {
+	writeNotAcceptableList(w, SupportedMedia(fam))
+}
+
+// WriteNotAcceptableWith writes a 406 with an explicit supported list, used
+// when the resource cannot satisfy its family's full claim (e.g. a System
+// item missing rdf:type cannot be SensorML- or JSON-LD-rendered even though
+// FamilySystemItem promises both).
+func WriteNotAcceptableWith(w http.ResponseWriter, supported []MediaType) {
+	out := make([]string, len(supported))
+	for i, m := range supported {
+		out[i] = string(m)
+	}
+	writeNotAcceptableList(w, out)
+}
+
+func writeNotAcceptableList(w http.ResponseWriter, supported []string) {
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusNotAcceptable)
-	supported := SupportedMedia(fam)
 	body := `{"error":"not acceptable","supported":["` +
 		strings.Join(supported, `","`) + `"]}`
 	_, _ = w.Write([]byte(body))

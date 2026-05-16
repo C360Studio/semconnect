@@ -1,15 +1,20 @@
 package csapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/message"
+	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
+	"github.com/c360studio/semstreams/vocabulary/export"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 	"github.com/nats-io/nats.go"
 )
@@ -53,8 +58,77 @@ type systemCollection struct {
 // the full SSN System IRI.
 const (
 	subjectPredicateQuery = "graph.index.query.predicate"
+	subjectEntityQuery    = "graph.query.entity"
 	predicateRDFType      = "rdf.type"
 )
+
+// system is the JSON shape returned by GET /systems/{id}. CS API §7.2's
+// System resource has many more fields; v0.1 surfaces what the reverse
+// mapping can populate without recursing into child entities. Lossy fields
+// (inputs/outputs, keywords, connections, identifier metadata) are
+// documented in gateway/cs-api/sensorml.go. Lossy-reconstruction signalling
+// lives on the X-CS-Reconstructed-Lossy response header — single source so
+// header and body cannot drift.
+type system struct {
+	ID            string   `json:"id"`
+	Type          string   `json:"type"` // "System"
+	Label         string   `json:"label,omitempty"`
+	Description   string   `json:"description,omitempty"`
+	Definition    string   `json:"definition,omitempty"`
+	Hosts         []string `json:"hosts,omitempty"`
+	HostedBy      string   `json:"hostedBy,omitempty"`
+	UsedProcedure string   `json:"usedProcedure,omitempty"`
+	AttachedTo    string   `json:"attachedTo,omitempty"`
+	Identifiers   []any    `json:"identifiers,omitempty"`
+	Capabilities  []any    `json:"capabilities,omitempty"`
+	Properties    []any    `json:"properties,omitempty"`
+	Links         []link   `json:"links"`
+}
+
+// systemFromState collapses an EntityState into the v0.1 JSON shape. Mirrors
+// what reconstructProcessFromTriples does, but for the JSON media type
+// rather than the SensorML one — both read the same predicate set.
+func systemFromState(state graph.EntityState) system {
+	s := system{
+		ID:   state.ID,
+		Type: "System",
+		Links: []link{
+			{Href: "/systems/" + state.ID, Rel: "self", Type: string(MediaJSON)},
+			{Href: "/systems/" + state.ID, Rel: "alternate", Type: string(MediaSensorML)},
+			{Href: "/systems/" + state.ID, Rel: "alternate", Type: string(MediaJSONLD)},
+		},
+	}
+	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {
+		s.Label = v
+	}
+	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
+		s.Description = v
+	}
+	if v, ok := firstStringObject(state.Triples, sensorml.PredDefinition); ok {
+		s.Definition = v
+	}
+	if v, ok := firstStringObject(state.Triples, sensorml.PredUsedProcedure); ok {
+		s.UsedProcedure = v
+	}
+	if v, ok := firstStringObject(state.Triples, sensorml.PredAttachedTo); ok {
+		s.AttachedTo = v
+	}
+	if v, ok := firstStringObject(state.Triples, sensorml.PredIsHostedBy); ok {
+		s.HostedBy = v
+	}
+	s.Hosts = allStringObjects(state.Triples, sensorml.PredHosts)
+	for _, t := range state.Triples {
+		switch t.Predicate {
+		case sensorml.PredIdentifierValue:
+			s.Identifiers = append(s.Identifiers, t.Object)
+		case sensorml.PredCapabilityValue:
+			s.Capabilities = append(s.Capabilities, t.Object)
+		case sensorml.PredCharacteristicValue:
+			s.Properties = append(s.Properties, t.Object)
+		}
+	}
+	return s
+}
 
 // handleSystems serves GET /systems. CS API §7.13.
 //
@@ -65,14 +139,13 @@ const (
 //  3. NATS request to graph.index.query.predicate filtering rdf:type = ssn:System.
 //  4. Shape into CS API SystemCollection JSON.
 func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet && r.Method != http.MethodHead {
-		w.Header().Set("Allow", "GET, HEAD")
-		writeJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
-
-	if _, ok := Negotiate(r.Header.Get("Accept"), FamilySystem); !ok {
-		WriteNotAcceptable(w, FamilySystem)
+	// Method is enforced by the ServeMux pattern ("GET /systems",
+	// "HEAD /systems"); non-matching methods 405 before reaching here.
+	// FamilySystemCollection's supported() is JSON-only, so a SensorML or
+	// JSON-LD Accept honestly 406s with an advertised set that matches
+	// what we can actually emit (no SystemCollection wrapper exists).
+	if _, ok := Negotiate(r.Header.Get("Accept"), FamilySystemCollection); !ok {
+		WriteNotAcceptable(w, FamilySystemCollection)
 		return
 	}
 
@@ -116,6 +189,222 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 	if encErr := json.NewEncoder(w).Encode(coll); encErr != nil {
 		c.errs.Add(1)
 		c.logger.Error("encode systems response", "err", encErr)
+	}
+}
+
+// handleSystem serves GET /systems/{id}. CS API §7.2 (System resource).
+//
+// Flow:
+//  1. Path-validate the entity ID (non-empty, NATS-token-safe — same rules
+//     as datastream IDs since SemStreams 6-part IDs are NATS-shape).
+//  2. Negotiate Accept across JSON / SensorML+JSON / JSON-LD.
+//  3. NATS request to graph.query.entity to fetch the EntityState.
+//  4. Detect "not found" via classifyEntityQueryError (until upstream
+//     ships structured request-reply errors — issue filed with
+//     C360Studio/semstreams).
+//  5. Encode per the chosen media type:
+//     - JSON:           shape from systemFromState (CS API §7.2 subset)
+//     - SensorML+JSON:  reconstructProcessFromTriples → json.Marshal
+//     - JSON-LD:        export.Serialize(triples, export.JSONLD)
+func (c *Component) handleSystem(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if err := validateEntityID(id); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid system id: "+err.Error())
+		return
+	}
+
+	media, ok := Negotiate(r.Header.Get("Accept"), FamilySystemItem)
+	if !ok {
+		WriteNotAcceptable(w, FamilySystemItem)
+		return
+	}
+
+	state, err := c.fetchEntity(r.Context(), id)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+
+	// Consistent gate across all three media types: if the entity is not
+	// a representable System kind, every encoder 404s — JSON path no
+	// longer emits a degraded body, JSON-LD no longer elides @context
+	// silently, SensorML no longer 406s while the other two succeed.
+	if !isSystemKind(state.Triples) {
+		c.logger.Info("entity not a system kind", "id", id)
+		writeJSONError(w, http.StatusNotFound, "no system: "+id)
+		return
+	}
+
+	// All three media types share the same Content-Type-setting header
+	// dance; only the body encoding differs.
+	switch media {
+	case MediaJSON:
+		c.writeSystemJSON(w, r, state)
+	case MediaSensorML:
+		c.writeSystemSensorML(w, r, state)
+	case MediaJSONLD:
+		c.writeSystemJSONLD(w, r, state)
+	default:
+		// Negotiate returned a media we didn't wire — defensive 406.
+		WriteNotAcceptable(w, FamilySystemItem)
+	}
+}
+
+// isSystemKind reports whether the entity's rdf:type maps to one of the
+// SOSA/SSN classes /systems/{id} serves: ssn:System (PhysicalSystem),
+// sosa:Sensor (PhysicalComponent in CS API parlance — Sensors are Systems),
+// or sosa:Procedure (SimpleProcess / AggregateProcess). An entity of any
+// other rdf:type (Observation, FeatureOfInterest, Deployment, …) is not a
+// System and the URL space owes a 404.
+func isSystemKind(triples []message.Triple) bool {
+	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	if !ok {
+		return false
+	}
+	switch typeIRI {
+	case sosa.SSNSystem, sosa.Sensor, sosa.Procedure:
+		return true
+	}
+	return false
+}
+
+// writeSystemJSON emits the v0.1 CS API §7.2 JSON shape (subset of full
+// System resource — populated from triples).
+func (c *Component) writeSystemJSON(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
+	sys := systemFromState(state)
+	w.Header().Set("Content-Type", string(MediaJSON))
+	w.Header().Set("X-CS-Reconstructed-Lossy", "true") // see sensorml.go file doc
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if err := json.NewEncoder(w).Encode(sys); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("encode system JSON response", "id", state.ID, "err", err)
+	}
+}
+
+// writeSystemSensorML emits application/sensorml+json via the reverse
+// mapping in sensorml.go. The entity has already passed the isSystemKind
+// gate in handleSystem, so any reconstruction failure here is a server-
+// side data-integrity issue (a malformed triple set the gate didn't catch),
+// not a client problem — 500.
+func (c *Component) writeSystemSensorML(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
+	proc, err := systemReconstructionFromState(state)
+	if err != nil {
+		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeSystemSensorML", "reverse mapping"))
+		return
+	}
+	body, err := json.Marshal(proc)
+	if err != nil {
+		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeSystemSensorML", "marshal sensorml"))
+		return
+	}
+	w.Header().Set("Content-Type", string(MediaSensorML))
+	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if _, err := w.Write(body); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("write SensorML response", "id", state.ID, "err", err)
+	}
+}
+
+// writeSystemJSONLD emits application/ld+json via the framework's RDF
+// emitter. Triples already compact to sosa:/ssn:/skos: prefixes thanks to
+// vocabulary.Register calls in sensorml.predicates.init() and friends.
+func (c *Component) writeSystemJSONLD(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
+	var buf bytes.Buffer
+	if err := export.Serialize(&buf, state.Triples, export.JSONLD); err != nil {
+		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeSystemJSONLD", "serialize jsonld"))
+		return
+	}
+	w.Header().Set("Content-Type", string(MediaJSONLD))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if _, err := buf.WriteTo(w); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("write JSON-LD response", "id", state.ID, "err", err)
+	}
+}
+
+// fetchEntity issues the graph.query.entity request and parses the response.
+// Classifies "not found" as Invalid (→ 404) so writeBackendError handles it
+// uniformly with other input-side failures. Other NATS sentinels follow the
+// Stage-2/3 pattern: ErrNoResponders / timeouts → Transient → 503.
+func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntityState, error) {
+	reqBody, err := json.Marshal(struct {
+		ID string `json:"id"`
+	}{ID: id})
+	if err != nil {
+		return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "marshal entity query")
+	}
+
+	respBytes, err := c.nats.Request(ctx, subjectEntityQuery, reqBody, c.cfg.QueryTimeout)
+	if err != nil {
+		switch {
+		case errors.Is(err, nats.ErrNoResponders),
+			errors.Is(err, nats.ErrTimeout),
+			errors.Is(err, context.DeadlineExceeded),
+			errors.Is(err, nats.ErrConnectionClosed):
+			return graph.EntityState{}, errs.WrapTransient(err, "cs-api", "fetchEntity", "graph backend unavailable")
+		default:
+			return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "entity query")
+		}
+	}
+
+	// Detect framework error-reply prefix (see classifyEntityQueryError).
+	if classified := classifyEntityQueryError(respBytes); classified != nil {
+		return graph.EntityState{}, classified
+	}
+
+	var state graph.EntityState
+	if err := json.Unmarshal(respBytes, &state); err != nil {
+		return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "decode entity state")
+	}
+	return state, nil
+}
+
+// errEntityNotFound is the sentinel writeBackendError translates to 404.
+// pkg/errs has no NotFound class today (Invalid / Transient / Fatal only);
+// rather than overload Invalid → 400 to also mean "missing entity → 404",
+// we keep a local sentinel here and have writeBackendError detect it. When
+// upstream ships structured request-reply errors (see classifyEntityQueryError
+// TODO) this can fold back into a framework class.
+var errEntityNotFound = errors.New("cs-api: entity not found")
+
+// classifyEntityQueryError parses the framework's unstructured error-reply
+// format into a pkg/errs-classified error. Upstream issue filed with
+// C360Studio/semstreams to ship structured NATS-header error responses; when
+// that lands, this function becomes a no-op and the call site swaps to
+// reading the X-Status header.
+//
+// Today natsclient/request.go replies with literal bytes `"error: " +
+// err.Error()` on handler failure. graph-ingest produces these error tails:
+//
+//   - "error: not found: <id>"            → 404 (errEntityNotFound sentinel)
+//   - "error: invalid request: ..."       → 400 (Invalid)
+//   - "error: internal error: ..."        → 500 (unclassified)
+//
+// Returns nil when respBytes is a successful payload (no leading "error: ").
+func classifyEntityQueryError(respBytes []byte) error {
+	const prefix = "error: "
+	if !bytes.HasPrefix(respBytes, []byte(prefix)) {
+		return nil
+	}
+	tail := string(respBytes[len(prefix):])
+	switch {
+	case strings.HasPrefix(tail, "not found:"):
+		return fmt.Errorf("%w: %s", errEntityNotFound, tail)
+	case strings.HasPrefix(tail, "invalid request:"):
+		return errs.WrapInvalid(errors.New(tail), "cs-api", "fetchEntity", "bad query")
+	default:
+		// Includes "internal error: ..." and any unknown tail.
+		return errs.Wrap(errors.New(tail), "cs-api", "fetchEntity", "backend error")
 	}
 }
 
@@ -201,6 +490,9 @@ func (c *Component) writeBackendError(w http.ResponseWriter, err error) {
 	status := http.StatusInternalServerError
 	body := "internal server error"
 	switch {
+	case errors.Is(err, errEntityNotFound):
+		status = http.StatusNotFound
+		body = err.Error() // safe to echo: the message is just "not found: <id>"
 	case errs.IsInvalid(err):
 		status = http.StatusBadRequest
 		body = err.Error() // safe to echo: caller-supplied input was malformed

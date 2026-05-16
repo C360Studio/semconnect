@@ -1,0 +1,18 @@
+{
+  "type": "PhysicalSystem",
+  "id": "urn:semconnect:conformance:system:weather-station-01",
+  "definition": "http://www.w3.org/ns/ssn/System",
+  "label": "Conformance weather station",
+  "description": "Minimal PhysicalSystem fixture used by the Stage 6 conformance harness. The Botts CS API ETS will POST this to the IUT once SensorML write paths land in the suite.",
+  "identifiers": [
+    {
+      "definition": "http://sensorml.com/ont/swe/property/SerialNumber",
+      "label": "Serial Number",
+      "value": "WS-CONF-0001"
+    }
+  ],
+  "position": {
+    "type": "Point",
+    "coordinates": [-122.4194, 37.7749, 10.0]
+  }
+}

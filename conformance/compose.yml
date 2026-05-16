@@ -1,0 +1,109 @@
+# Stage 6 conformance harness — bootstraps NATS + cs-api-server + the
+# Botts CS API ETS (TeamEngine 5.6.1) on a shared docker network.
+#
+# Run via `conformance/run.sh` (which loads .ets-pin, clones the pinned
+# Botts ETS into ./.vendor/ets, then invokes this compose file). Running
+# `docker compose -f conformance/compose.yml up` directly will fail
+# because `./.vendor/ets` won't exist — that is intentional.
+
+name: semconnect-conformance
+
+services:
+  nats:
+    image: nats:2.10-alpine
+    command:
+      - "-js"
+      - "-sd"
+      - "/data"
+      - "-m"
+      - "8222"
+    volumes:
+      - nats-data:/data
+    healthcheck:
+      # nats:2.10-alpine includes busybox wget; -m 8222 enables the
+      # /healthz monitoring endpoint.
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8222/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    # NATS host ports exposed for human debug only — the harness reaches
+    # NATS via the compose network. Override the host-side ports via env
+    # when 4222/8222 are busy on the dev machine.
+    ports:
+      - "${NATS_HOST_PORT:-4222}:4222"
+      - "${NATS_MON_HOST_PORT:-8222}:8222"
+
+  cs-api-server:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      # GHA's cache backend (type=gha) is plumbed through buildx when this
+      # compose is invoked under GHA. Locally these directives are inert
+      # because no GHA token is present; buildx falls back to the daemon
+      # cache. See .github/workflows/conformance.yml.
+      cache_from:
+        - type=gha,scope=cs-api-server
+      cache_to:
+        - type=gha,mode=max,scope=cs-api-server
+    depends_on:
+      nats:
+        condition: service_healthy
+    # cs-api-server reads --config but defaults are sane: NATS at
+    # nats://localhost:4222, bind :8080. Override NATS_URL via env-injected
+    # config or accept that cs-api-server's defaults assume localhost; on
+    # docker we must pass --config pointing at a file. We mount one.
+    command:
+      - "-config"
+      - "/etc/cs-api-server/config.json"
+    volumes:
+      # Bind-mounted config: host-side file is world-readable (644 default);
+      # distroless `nonroot` (uid 65532) reads via virtiofs / host-bind
+      # ownership translation. If you bring this up on a hardened Linux
+      # host with umask 077, chmod 644 the config before `compose up`.
+      - ./compose.cs-api.config.json:/etc/cs-api-server/config.json:ro
+    healthcheck:
+      # distroless/static has no shell. cs-api-server exposes /health on the
+      # configured bind address; we probe via docker's HEALTHCHECK from
+      # outside via depends_on instead. Set a no-op healthcheck to avoid the
+      # CMD-SHELL requirement; readiness gates run.sh side via curl.
+      disable: true
+    # No host port mapping — the harness reaches cs-api-server only from
+    # inside the compose network via service name. Avoiding the host
+    # bind keeps the harness portable to dev machines that already run
+    # a server on :8080. Override at the user's discretion.
+    expose:
+      - "8080"
+
+  teamengine:
+    # build.context is overridden by run.sh to the git URL pin from .ets-pin
+    # via a generated compose.override.yml. Until run.sh stages that file,
+    # this placeholder path will fail — that is intentional: do not run
+    # compose directly.
+    build:
+      context: ./.vendor/ets
+      cache_from:
+        - type=gha,scope=ets-teamengine
+      cache_to:
+        - type=gha,mode=max,scope=ets-teamengine
+    # depends_on uses service_started rather than service_healthy because
+    # cs-api-server's healthcheck is `disable: true` (distroless has no
+    # shell). run.sh's step 4 closes the gap with an IUT-reach probe
+    # before invoking the suite. start_period: 90s on the teamengine
+    # healthcheck below absorbs the slop.
+    depends_on:
+      cs-api-server:
+        condition: service_started
+    # Host port mapping is what run.sh / the human curl-to. Override via
+    # TE_HOST_PORT when 8081 is busy locally.
+    ports:
+      - "${TE_HOST_PORT:-8081}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:8080/teamengine/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 90s
+
+volumes:
+  nats-data:

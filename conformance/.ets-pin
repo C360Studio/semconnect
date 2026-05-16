@@ -1,0 +1,26 @@
+# Stage 6 conformance harness — pinned upstream versions.
+#
+# Edit this file to bump. ADR-S001 §4 documents the policy:
+# pin by commit SHA, never `latest`, never a branch.
+#
+# When the OGC org adopts the ETS into `opengeospatial/ets-ogcapi-connectedsystems10`
+# and publishes a registry image, replace ETS_GIT_URL + ETS_COMMIT with
+# ETS_IMAGE (e.g. `ETS_IMAGE=ghcr.io/opengeospatial/ets-ogcapi-connectedsystems10:1.0`)
+# and update `conformance/run.sh` to docker pull instead of docker build.
+
+# The Botts CS API ETS — built into TeamEngine 5.6.1 by its own multi-stage
+# Dockerfile. As of 2026-05-16, no tagged release exists; the latest commit
+# on `main` is the only available pin.
+ETS_GIT_URL=https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10.git
+ETS_COMMIT=d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4
+ETS_COMMIT_DATE=2026-05-13
+ETS_VERSION=0.1-SNAPSHOT
+ETS_CODE=ogcapi-connectedsystems10
+
+# TeamEngine version bundled by the ETS Dockerfile above. Informational —
+# bumping this here does nothing unless the Botts repo is also bumped.
+TEAMENGINE_VERSION=5.6.1
+
+# TeamEngine REST defaults (Tomcat manager + ETS suite invocation).
+TE_USER=ogctest
+TE_PASS=ogctest

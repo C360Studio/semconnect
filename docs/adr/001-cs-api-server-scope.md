@@ -33,12 +33,23 @@ fails conformance. The per-stage wiring schedule:
 | Stage | Endpoint added | Classes that move from claimed-roadmap to wired |
 |---|---|---|
 | 2 | `GET /systems`, `/conformance`, `/health` | core, json |
-| 3 | `POST /datastreams/{id}/observations` | + oms |
+| 3 | `POST /datastreams/{id}/observations` | + oms (consume) |
 | 4 | `GET /systems/{id}` | + sensorml, + json-ld |
 | 5 | `GET /areas` | + geojson |
 
-The full v0.1 set is wired by the close of Stage 5 — at that point this
-ADR's claim and `/conformance`'s declaration align.
+Stages 2 + 3 + 4 are merged. The full v0.1 set is wired by the close of
+Stage 5 — at that point this ADR's claim and `/conformance`'s declaration
+align.
+
+**Stage 4 reconstruction is lossy by design.** Triples emitted via
+`sensorml.Asset.Triples()` drop SensorML fields that the SOSA/SSN vocabulary
+does not carry (inputs/outputs/parameters, keywords, connections,
+identifier metadata beyond Value). `GET /systems/{id}` documents this via
+the `X-CS-Reconstructed-Lossy: true` response header so Team Engine
+assertions can account for it. Lossless round-trip requires fetching the
+original SensorML JSON from `EntityState.StorageRef` (deferred to a
+follow-up tag — graph-ingest's storage seam exists but is not wired
+through cs-api yet).
 
 **Deferred to v0.2+**:
 

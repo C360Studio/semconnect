@@ -240,9 +240,9 @@ func TestHandleObservationsPost_BodyValidation(t *testing.T) {
 }
 
 func TestHandleObservationsPost_DatastreamIDValidation(t *testing.T) {
-	// Whitespace-bearing IDs are rejected at the validateDatastreamID
-	// helper (covered by TestValidateDatastreamID) — they cannot reach
-	// the handler via HTTP because the request line parser fails first.
+	// Whitespace-bearing IDs are rejected at the validateEntityID helper
+	// (covered by TestValidateEntityID) — they cannot reach the handler
+	// via HTTP because the request line parser fails first.
 	tests := []struct {
 		name         string
 		datastreamID string
@@ -267,7 +267,7 @@ func TestHandleObservationsPost_DatastreamIDValidation(t *testing.T) {
 	}
 }
 
-func TestValidateDatastreamID(t *testing.T) {
+func TestValidateEntityID(t *testing.T) {
 	tests := []struct {
 		name    string
 		id      string
@@ -288,9 +288,9 @@ func TestValidateDatastreamID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateDatastreamID(tt.id)
+			err := validateEntityID(tt.id)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("validateDatastreamID(%q): got err=%v want err=%v", tt.id, err, tt.wantErr)
+				t.Errorf("validateEntityID(%q): got err=%v want err=%v", tt.id, err, tt.wantErr)
 			}
 		})
 	}

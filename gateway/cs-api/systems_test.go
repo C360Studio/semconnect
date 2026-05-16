@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
+	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 	"github.com/nats-io/nats.go"
@@ -166,19 +168,34 @@ func TestHandleSystems_NotAcceptable(t *testing.T) {
 	}
 }
 
-func TestHandleSystems_SensorMLDeferredReturns406(t *testing.T) {
-	// ADR-S001 claims SensorML conformance, but the encoder is not wired
-	// at Stage 2. Until it is, 406 is the honest answer.
-	fake := &fakeRequester{status: natsclient.StatusConnected}
-	c := newTestComponent(t, fake)
+func TestHandleSystems_CollectionNarrowsToJSON(t *testing.T) {
+	// FamilySystem.supported() includes SensorML + JSON-LD at Stage 4
+	// because the *item* endpoint (GET /systems/{id}) supports them. The
+	// collection handler narrows that set: there is no SensorML
+	// "SystemCollection" type and a collection-wide JSON-LD aggregation
+	// is post-v0.1. A SensorML Accept on the collection therefore 406s
+	// honestly rather than silently degrading to JSON.
+	tests := []struct {
+		name   string
+		accept string
+	}{
+		{"SensorML on collection → 406", "application/sensorml+json"},
+		{"JSON-LD on collection → 406", "application/ld+json"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fake := &fakeRequester{status: natsclient.StatusConnected}
+			c := newTestComponent(t, fake)
 
-	req := httptest.NewRequest(http.MethodGet, "/systems", nil)
-	req.Header.Set("Accept", "application/sensorml+json")
-	rr := httptest.NewRecorder()
-	c.handleSystems(rr, req)
+			req := httptest.NewRequest(http.MethodGet, "/systems", nil)
+			req.Header.Set("Accept", tt.accept)
+			rr := httptest.NewRecorder()
+			c.handleSystems(rr, req)
 
-	if rr.Code != http.StatusNotAcceptable {
-		t.Fatalf("status: got %d want 406 (got body=%s)", rr.Code, rr.Body.String())
+			if rr.Code != http.StatusNotAcceptable {
+				t.Fatalf("status: got %d want 406 (body=%s)", rr.Code, rr.Body.String())
+			}
+		})
 	}
 }
 
@@ -217,17 +234,28 @@ func TestHandleSystems_LimitValidation(t *testing.T) {
 	}
 }
 
-func TestHandleSystems_MethodNotAllowed(t *testing.T) {
+func TestHandleSystems_MethodNotAllowedViaMux(t *testing.T) {
+	// Stage 4 migrated /systems to "GET /systems" + "HEAD /systems" mux
+	// patterns. Non-matching methods now 405 at the mux, not in the
+	// handler — so the test must drive through the mux, not the handler.
 	fake := &fakeRequester{status: natsclient.StatusConnected}
 	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
 	req := httptest.NewRequest(http.MethodPost, "/systems", strings.NewReader("{}"))
 	rr := httptest.NewRecorder()
-	c.handleSystems(rr, req)
+	mux.ServeHTTP(rr, req)
+
 	if rr.Code != http.StatusMethodNotAllowed {
 		t.Errorf("status: got %d want 405", rr.Code)
 	}
-	if got := rr.Header().Get("Allow"); got != "GET, HEAD" {
-		t.Errorf("Allow header missing or wrong: %q", got)
+	// net/http ServeMux populates Allow with the methods registered for
+	// the path. Order is non-deterministic across the set, so check
+	// membership rather than exact form.
+	allow := rr.Header().Get("Allow")
+	if !strings.Contains(allow, "GET") || !strings.Contains(allow, "HEAD") {
+		t.Errorf("Allow header missing GET/HEAD: %q", allow)
 	}
 }
 
@@ -339,6 +367,373 @@ func TestHandleSystems_BackendErrorClassification(t *testing.T) {
 	}
 }
 
+// -----------------------------------------------------------------------------
+// Stage 4: GET /systems/{id}
+// -----------------------------------------------------------------------------
+
+// encodeEntityState marshals an EntityState as graph-ingest would put on the
+// wire. The Stage-4 fetchEntity expects raw EntityState JSON (no envelope).
+func encodeEntityState(t *testing.T, state graph.EntityState) []byte {
+	t.Helper()
+	b, err := json.Marshal(state)
+	if err != nil {
+		t.Fatalf("encodeEntityState: %v", err)
+	}
+	return b
+}
+
+func droneState() graph.EntityState {
+	return graph.EntityState{
+		ID: "acme.ops.robotics.gcs.drone.001",
+		Triples: []message.Triple{
+			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredLabel, Object: "ACME Drone 001"},
+			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredDescription, Object: "Hex rotor"},
+			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredHosts, Object: "acme.ops.robotics.gcs.drone.001.camera"},
+		},
+	}
+}
+
+func TestHandleSystem_JSON(t *testing.T) {
+	fake := &fakeRequester{
+		reply:  encodeEntityState(t, droneState()),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems/acme.ops.robotics.gcs.drone.001", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaJSON) {
+		t.Errorf("Content-Type: got %q want %q", ct, MediaJSON)
+	}
+	if lossy := rr.Header().Get("X-CS-Reconstructed-Lossy"); lossy != "true" {
+		t.Errorf("X-CS-Reconstructed-Lossy: got %q want true", lossy)
+	}
+
+	var sys system
+	if err := json.Unmarshal(rr.Body.Bytes(), &sys); err != nil {
+		t.Fatalf("decode: %v; body=%s", err, rr.Body.String())
+	}
+	if sys.ID != "acme.ops.robotics.gcs.drone.001" {
+		t.Errorf("ID: got %q", sys.ID)
+	}
+	if sys.Type != "System" {
+		t.Errorf("Type: got %q", sys.Type)
+	}
+	if sys.Label != "ACME Drone 001" {
+		t.Errorf("Label: got %q", sys.Label)
+	}
+	if len(sys.Hosts) != 1 || sys.Hosts[0] != "acme.ops.robotics.gcs.drone.001.camera" {
+		t.Errorf("Hosts: got %+v", sys.Hosts)
+	}
+
+	// fetchEntity must have hit graph.query.entity with the right ID.
+	if fake.gotSubject != subjectEntityQuery {
+		t.Errorf("subject: got %q want %q", fake.gotSubject, subjectEntityQuery)
+	}
+	var body struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(fake.gotBody, &body); err != nil {
+		t.Fatalf("decode captured body: %v", err)
+	}
+	if body.ID != "acme.ops.robotics.gcs.drone.001" {
+		t.Errorf("query ID: got %q", body.ID)
+	}
+}
+
+func TestHandleSystem_SensorML(t *testing.T) {
+	fake := &fakeRequester{
+		reply:  encodeEntityState(t, droneState()),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems/acme.ops.robotics.gcs.drone.001", nil)
+	req.Header.Set("Accept", string(MediaSensorML))
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSensorML) {
+		t.Errorf("Content-Type: got %q want %q", ct, MediaSensorML)
+	}
+	// Round-trip back through the framework parser to confirm the body is
+	// valid SensorML JSON.
+	proc, err := sensorml.UnmarshalProcess(rr.Body.Bytes())
+	if err != nil {
+		t.Fatalf("framework parse: %v; body=%s", err, rr.Body.String())
+	}
+	if proc.Type() != sensorml.TypePhysicalSystem {
+		t.Errorf("type: got %q want %q", proc.Type(), sensorml.TypePhysicalSystem)
+	}
+}
+
+func TestHandleSystem_JSONLD(t *testing.T) {
+	fake := &fakeRequester{
+		reply:  encodeEntityState(t, droneState()),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems/acme.ops.robotics.gcs.drone.001", nil)
+	req.Header.Set("Accept", string(MediaJSONLD))
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaJSONLD) {
+		t.Errorf("Content-Type: got %q want %q", ct, MediaJSONLD)
+	}
+	// JSON-LD bodies are JSON-shaped; confirm it decodes.
+	var generic map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &generic); err != nil {
+		t.Fatalf("decode JSON-LD body: %v; body=%s", err, rr.Body.String())
+	}
+	if _, ok := generic["@context"]; !ok {
+		t.Errorf("JSON-LD missing @context: %v", generic)
+	}
+}
+
+func TestHandleSystem_NotFound(t *testing.T) {
+	// Framework's request-reply error format is `"error: not found: <id>"`
+	// (see classifyEntityQueryError TODO upstream). Detect → 404.
+	fake := &fakeRequester{
+		reply:  []byte("error: not found: acme.ops.robotics.gcs.drone.999"),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems/acme.ops.robotics.gcs.drone.999", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("status: got %d want 404; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestHandleSystem_BadID(t *testing.T) {
+	fake := &fakeRequester{status: natsclient.StatusConnected}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	// Empty-token ID — same rule as datastream IDs.
+	req := httptest.NewRequest(http.MethodGet, "/systems/.bad.id.", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+	if fake.gotSubject != "" {
+		t.Errorf("backend should not be called on 400; got subject %q", fake.gotSubject)
+	}
+}
+
+func TestHandleSystem_HEAD(t *testing.T) {
+	fake := &fakeRequester{
+		reply:  encodeEntityState(t, droneState()),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodHead, "/systems/acme.ops.robotics.gcs.drone.001", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200", rr.Code)
+	}
+	if rr.Body.Len() != 0 {
+		t.Errorf("HEAD body should be empty; got %d bytes", rr.Body.Len())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaJSON) {
+		t.Errorf("Content-Type: got %q", ct)
+	}
+}
+
+func TestHandleSystem_NonSystemEntity404sConsistentlyAcrossMedia(t *testing.T) {
+	// An entity that exists at /systems/{id} but is not a System kind
+	// (no rdf:type triple, or rdf:type is e.g. an Observation) 404s
+	// uniformly across JSON / SensorML / JSON-LD. Pre-Stage 4 had a
+	// divergent response per media (406 SensorML / degraded JSON / empty
+	// JSON-LD); review M-3 made it consistent.
+	stateMissingType := graph.EntityState{
+		ID: "acme.x",
+		Triples: []message.Triple{
+			{Subject: "acme.x", Predicate: sensorml.PredLabel, Object: "Mystery"},
+		},
+	}
+	stateWrongKind := graph.EntityState{
+		ID: "acme.y",
+		Triples: []message.Triple{
+			{Subject: "acme.y", Predicate: sensorml.PredType, Object: "http://example.org/types/Observation"},
+		},
+	}
+
+	for _, state := range []graph.EntityState{stateMissingType, stateWrongKind} {
+		for _, mt := range []MediaType{MediaJSON, MediaSensorML, MediaJSONLD} {
+			t.Run(state.ID+"/"+string(mt), func(t *testing.T) {
+				fake := &fakeRequester{
+					reply:  encodeEntityState(t, state),
+					status: natsclient.StatusConnected,
+				}
+				c := newTestComponent(t, fake)
+				mux := http.NewServeMux()
+				c.RegisterHTTPHandlers("", mux)
+
+				req := httptest.NewRequest(http.MethodGet, "/systems/"+state.ID, nil)
+				req.Header.Set("Accept", string(mt))
+				rr := httptest.NewRecorder()
+				mux.ServeHTTP(rr, req)
+
+				if rr.Code != http.StatusNotFound {
+					t.Errorf("status: got %d want 404; body=%s", rr.Code, rr.Body.String())
+				}
+			})
+		}
+	}
+}
+
+func TestHandleSystem_MinimalValidEntity_AllMedia(t *testing.T) {
+	// rdf:type triple only — the smallest possible System. All three
+	// media types must produce well-formed output (no nil-deref, no
+	// empty-bodies, no 500). This is what Team Engine's conformance
+	// suite is most likely to throw first.
+	state := graph.EntityState{
+		ID: "acme.minimal.001",
+		Triples: []message.Triple{
+			{Subject: "acme.minimal.001", Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+		},
+	}
+
+	for _, mt := range []MediaType{MediaJSON, MediaSensorML, MediaJSONLD} {
+		t.Run(string(mt), func(t *testing.T) {
+			fake := &fakeRequester{
+				reply:  encodeEntityState(t, state),
+				status: natsclient.StatusConnected,
+			}
+			c := newTestComponent(t, fake)
+			mux := http.NewServeMux()
+			c.RegisterHTTPHandlers("", mux)
+
+			req := httptest.NewRequest(http.MethodGet, "/systems/acme.minimal.001", nil)
+			req.Header.Set("Accept", string(mt))
+			rr := httptest.NewRecorder()
+			mux.ServeHTTP(rr, req)
+
+			if rr.Code != http.StatusOK {
+				t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+			}
+			if rr.Body.Len() == 0 {
+				t.Errorf("body empty for %s — minimal entity should still encode", mt)
+			}
+		})
+	}
+}
+
+func TestHandleSystem_BackendTransientErrorClassifiedAs503(t *testing.T) {
+	fake := &fakeRequester{
+		replyErr: nats.ErrNoResponders,
+		status:   natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems/acme.ops.robotics.gcs.drone.001", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Errorf("status: got %d want 503; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestClassifyEntityQueryError(t *testing.T) {
+	// Direct unit cover for the framework-error-prefix workaround. When
+	// upstream ships structured errors this function becomes a no-op;
+	// these cases pin the current taxonomy.
+	tests := []struct {
+		name    string
+		body    []byte
+		wantNil bool
+		probe   func(error) bool // optional further check
+	}{
+		{
+			name:    "success body returns nil",
+			body:    []byte(`{"id":"x","triples":[]}`),
+			wantNil: true,
+		},
+		{
+			name: "not found wraps errEntityNotFound sentinel",
+			body: []byte("error: not found: acme.ops.robotics.gcs.drone.999"),
+			probe: func(err error) bool {
+				return errors.Is(err, errEntityNotFound)
+			},
+		},
+		{
+			name: "invalid request wraps as Invalid",
+			body: []byte("error: invalid request: empty id"),
+			probe: func(err error) bool {
+				return errs.IsInvalid(err)
+			},
+		},
+		{
+			name: "internal error is unclassified",
+			body: []byte("error: internal error: kv get failed"),
+			probe: func(err error) bool {
+				return !errs.IsInvalid(err) && !errs.IsTransient(err) && !errors.Is(err, errEntityNotFound)
+			},
+		},
+		{
+			name: "unknown tail also unclassified",
+			body: []byte("error: something unexpected"),
+			probe: func(err error) bool {
+				return !errs.IsInvalid(err) && !errs.IsTransient(err)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := classifyEntityQueryError(tt.body)
+			if tt.wantNil {
+				if got != nil {
+					t.Errorf("expected nil; got %v", got)
+				}
+				return
+			}
+			if got == nil {
+				t.Fatalf("expected non-nil error")
+			}
+			if tt.probe != nil && !tt.probe(got) {
+				t.Errorf("probe failed: err=%v", got)
+			}
+		})
+	}
+}
+
 func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 	// Stage 2 has core + json wired. Stages 3–5 add sensorml / oms / geojson
 	// / json-ld as their encoders land — this test grows with them.
@@ -360,11 +755,11 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 	}
 	wantDeferred := []string{
-		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
-		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 	}
 	contains := func(s []string, want string) bool {
 		for _, v := range s {

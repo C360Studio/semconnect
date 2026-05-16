@@ -10,12 +10,19 @@ The `landingPageHasApiDefinitionLink` and `apiDefinitionResourceReturnsContent` 
 
 This mirrors the pattern the suite already uses for `commonConformanceDeclaresCommonCore`, which checks `/conformance` first and then conditionally asserts.
 
-## File / line refs
+## File / line refs (at ETS pin `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`)
 
-- `src/main/java/.../landingpage/LandingPageTests.java` — `landingPageHasApiDefinitionLink` (assertion runs regardless of declared classes)
-- `src/main/java/.../apidefinition/ApiDefinitionTests.java` — `apiDefinitionResourceReturnsContent` (cascades from above)
+- `src/main/java/org/opengis/cite/ogcapiconnectedsystems10/conformance/core/LandingPageTests.java:172-183` — `landingPageHasApiDefinitionLink`; asserts unconditionally that `links[]` contains `rel=service-desc` or `rel=service-doc`. Constant `REQ_API_DEFINITION_SUCCESS = "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/landing-page/api-definition-success"` defined at line 72.
+- `src/main/java/org/opengis/cite/ogcapiconnectedsystems10/conformance/core/ResourceShapeTests.java:95-129` — `apiDefinitionResourceReturnsContent`; same unconditional shape, but the requirement constant is `REQ_OAS30_OAS_IMPL = "http://www.opengis.net/spec/ogcapi-common-1/1.0/req/oas30/oas-impl"` (line 56). The test self-identifies as an OAS30 verification yet runs against every IUT — strongest signal the conformance gate is missing.
 
-(Apologies — line numbers depend on the post-scaffold version; the assertion bodies should be findable by the test names above.)
+## Existing helper to reuse
+
+`src/main/java/org/opengis/cite/ogcapiconnectedsystems10/conformance/EncodingMediatypeWrite.java:61-65` already exposes a public static `declaresConformance(Map<String, Object> conformanceBody, String conformanceClass)` helper that parses `conformsTo[]` and returns whether `conformanceClass` is present. The proposed gate below uses it as-is — no new infrastructure needed.
+
+Similar conditional-gate patterns already used by the suite:
+
+- `EncodingMediatypeWrite.java:55` — `if (!declaresConformance(conformanceBody, conformanceClass))` → `SkipException`
+- `UpdateTests.java:86-89`, `AdvancedFilteringTests.java:109-112` — fetch `/conformance`, check declaration, skip if absent.
 
 ## Observable impact
 
@@ -53,22 +60,34 @@ OGC API Common Part 1 §7.4.1 Table 4 (link relations on the landing page):
 
 ## Proposed change
 
-Gate the `landingPageHasApiDefinitionLink` assertion on a precondition check:
+Gate both assertions on `declaresConformance(...)` using the existing helper. Either both `oas30` and `html` URIs trigger the assertion (matches the spec's "REQUIRED if oas30 OR html") or skip.
+
+In `LandingPageTests.java` (around line 175):
 
 ```java
-@Test(dependsOnMethods = "landingPageReturnsJson")
+private static final String CONF_OAS30 =
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30";
+private static final String CONF_HTML =
+    "http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html";
+
+@Test(description = "OGC-19-072 " + REQ_API_DEFINITION_SUCCESS
+        + ": landing page links contain rel=service-desc OR rel=service-doc "
+        + "(REQ-ETS-CORE-002, SCENARIO-ETS-CORE-API-DEF-FALLBACK-001)",
+        dependsOnMethods = "landingPageHasLinks", groups = "core")
 public void landingPageHasApiDefinitionLink() {
-    if (!conformanceDeclaresAny(OAS30_URI, HTML_URI)) {
+    Map<String, Object> conformanceBody = fetchConformanceBody(); // already a helper or inline
+    if (!EncodingMediatypeWrite.declaresConformance(conformanceBody, CONF_OAS30)
+            && !EncodingMediatypeWrite.declaresConformance(conformanceBody, CONF_HTML)) {
         throw new SkipException(
             "Landing page api-definition link is conditional on oas30 or html "
             + "conformance per Common Part 1 §7.4.1 Table 4; server declares "
             + "neither, so this assertion is skipped per spec.");
     }
-    // existing assertion body
+    // existing assertion body unchanged
 }
 ```
 
-`apiDefinitionResourceReturnsContent` should chain off the same precondition (TestNG `@Test(dependsOnMethods = "landingPageHasApiDefinitionLink")` already handles the skip propagation).
+`apiDefinitionResourceReturnsContent` in `ResourceShapeTests.java` needs the same guard at the top of its body (or `@Test(dependsOnMethods = "landingPageHasApiDefinitionLink")` if the class structure allows — TestNG propagates `SkipException` through `dependsOnMethods`).
 
 ## Backward-compat note
 

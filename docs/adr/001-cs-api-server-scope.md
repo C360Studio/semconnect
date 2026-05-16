@@ -36,10 +36,21 @@ fails conformance. The per-stage wiring schedule:
 | 3 | `POST /datastreams/{id}/observations` | + oms (consume) |
 | 4 | `GET /systems/{id}` | + sensorml, + json-ld |
 | 5 | `GET /areas` | + geojson |
+| 7 | `GET /` landing, `?f=` negotiation override | + ogcapi-common-1 core, + ogcapi-common-1 json |
 
-Stages 2 + 3 + 4 + 5 are merged. The runtime `/conformance` declaration
-now aligns with this ADR's v0.1 claim; Stage 6 wires the OGC Team Engine
-conformance harness in CI to validate each claim.
+Stages 2 + 3 + 4 + 5 + 7 are merged. The runtime `/conformance` declaration
+now aligns with this ADR's v0.1 claim plus the Common Part 1 inheritance
+chain CS API Core implies. Stage 6 wires the OGC Team Engine conformance
+harness in CI to validate each claim; Stage 7 (this stage) closes the
+6 of 8 first-run Common-Core gaps the harness surfaced.
+
+**The `oas30` Common Part 1 conformance class is intentionally NOT
+declared.** v0.1 does not ship an OpenAPI definition resource, so the
+landing page omits `service-desc` / `service-doc` links. Per Common
+Part 1 §7.4.1 Table 4, those links are conditional on `oas30` / `html`
+conformance. The Botts ETS enforces them unconditionally (filed
+upstream — see `docs/upstream-asks/`); two failures remain attributable
+to that bug, not to a real conformance gap.
 
 **Stage 4 reconstruction is lossy by design.** Triples emitted via
 `sensorml.Asset.Triples()` drop SensorML fields that the SOSA/SSN vocabulary
@@ -183,14 +194,16 @@ This applies symmetrically to SensorML (`Mode`, `Algorithm`, `Configuration`, `D
 
 **Harness-side: wired at Stage 6.** `conformance/run.sh` + `.github/workflows/conformance.yml` boot NATS + `cs-api-server` + Team Engine (with the Botts CS API ETS cloned and built at a pinned commit SHA) and exercise the suite via Team Engine's REST API, archiving the TestNG XML as a CI artifact. The harness is exercised on every push to `main` and on PRs labelled `conformance`; it is **not** a PR-blocking gate at this stage (see calibration reality below).
 
-**Validation-side: open.** This ADR closes formally when the OGC Team Engine conformance harness reports green against each declared class. At Stage 6 landing, the gating reality is:
+**Validation-side: open (with v0.1 Common-Core finish work landed at Stage 7).** This ADR closes formally when the OGC Team Engine conformance harness reports green against each declared class. The gating reality after Stage 7:
 
-1. The Botts ETS pinned at `d9caf33f` declares **137 tests** — more than the "scaffold only" framing of its README suggested. First-run signal: **5 passed / 8 failed / 124 skipped**. The skips are real (test classes declared but not yet implemented upstream); the failures are not all upstream issues.
-2. The 8 failures triage as:
-   - **3 OGC API Common Part 1 gaps in `cs-api`**: missing `GET /` landing page (3 assertions); missing `?f=json` content-negotiation query parameter (2 assertions); `/conformance` missing the `ogcapi-common-1/1.0/conf/core` declaration that CS API Core inherits (1 assertion). These are v0.1 finish work — ADR-S001 §1 lists CS API Core as wired but the Common inheritance was implicit. Track as a v0.1 follow-up alongside Stage 6.
-   - **2 missing-fixture failures**: `fetchSensorMlInputs` + `fetchGeoJsonInputs` both 503 because no graph data is seeded into the IUT before the suite runs. Address by adding a fixture-seeding step to `conformance/run.sh` once the ETS lands tests that actually depend on seeded data (today's failures happen during the ETS's `@BeforeSuite` data-fetch).
-3. The two known sister-side deferrals (`X-CS-Reconstructed-Lossy` on SensorML reconstruction; `X-CS-Geometry-Available: false` on `/areas` Features) did not surface as failures in the first run — the ETS test classes that would exercise those code paths are in the 124 skipped count. Track as upstream `semstreams` asks per §9 when they do surface.
-4. Closure flips from "open" to "closed" when (a) the v0.1 follow-up items in (2) are addressed, (b) real CS API conformance test classes for §§4–5 resources land in the pinned ETS, and (c) the harness reports green against the v0.1 declared class set.
+1. The Botts ETS pinned at `d9caf33f` declares **137 tests**. Run signal evolution:
+   - **Stage 6 first run** (2026-05-16): 5 passed / 8 failed / 124 skipped.
+   - **Stage 7 post-fix** (2026-05-16): **13 passed / 4 failed / 122 skipped**.
+2. The 4 remaining failures triage as:
+   - **2 upstream-ETS bugs** (filed against Botts in `docs/upstream-asks/botts-ets-api-definition-unconditional.md`): `landingPageHasApiDefinitionLink` + `apiDefinitionResourceReturnsContent` enforce `service-desc`/`service-doc` unconditionally, but Common Part 1 §7.4.1 Table 4 conditions both on `oas30` / `html` conformance — neither of which we claim. The ETS should skip these tests when those classes are absent from `/conformance`, matching the pattern it already uses for `commonConformanceDeclaresCommonCore`.
+   - **2 fixture-seeding 503s** (`fetchSensorMlInputs` + `fetchGeoJsonInputs`): the ETS's `@BeforeSuite` data-fetch hits an empty graph. Blocked on `POST /systems` not yet being wired in `semconnect`; address by adding a fixture-seeding step to `conformance/run.sh` once the `POST /systems` route lands.
+3. The two known sister-side deferrals (`X-CS-Reconstructed-Lossy` on SensorML reconstruction; `X-CS-Geometry-Available: false` on `/areas` Features) did not surface as failures in any run — the ETS test classes that would exercise those code paths are in the 122 skipped count. Track as upstream `semstreams` asks per §9 when they do surface.
+4. Closure flips from "open" to "closed" when (a) the Botts ETS lands the OAS30-conditional skip (2 failures → green), (b) `POST /systems` lands and the harness gains a fixture-seeding step (2 failures → green), (c) real CS API conformance test classes for §§4–5 resources land in the pinned ETS, and (d) the harness reports green against the v0.1 declared class set.
 
 ## References
 

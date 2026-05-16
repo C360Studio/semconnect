@@ -144,7 +144,7 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 	// FamilySystemCollection's supported() is JSON-only, so a SensorML or
 	// JSON-LD Accept honestly 406s with an advertised set that matches
 	// what we can actually emit (no SystemCollection wrapper exists).
-	if _, ok := Negotiate(r.Header.Get("Accept"), FamilySystemCollection); !ok {
+	if _, ok := NegotiateRequest(r, FamilySystemCollection); !ok {
 		WriteNotAcceptable(w, FamilySystemCollection)
 		return
 	}
@@ -213,7 +213,7 @@ func (c *Component) handleSystem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	media, ok := Negotiate(r.Header.Get("Accept"), FamilySystemItem)
+	media, ok := NegotiateRequest(r, FamilySystemItem)
 	if !ok {
 		WriteNotAcceptable(w, FamilySystemItem)
 		return

@@ -31,7 +31,7 @@ const (
 	FamilySystemCollection                       // GET /systems
 	FamilyObservation
 	FamilySpatial
-	FamilyService // /, /api, /conformance
+	FamilyService // /, /conformance (and /api when oas30 lands)
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -72,16 +72,59 @@ func (fam ResourceFamily) supported() []MediaType {
 	}
 }
 
+// shortMediaNames maps the OGC API Common Part 1 §7 "?f=" short-name vocabulary
+// to media types this gateway can produce. Common Part 1 defines `json` (and
+// `html`, which we do not ship); the CS-API-specific encodings get the obvious
+// 1:1 names so a client doesn't need to know Accept syntax to pick GeoJSON or
+// SensorML. Keep this list aligned with the MediaXxx constants above.
+var shortMediaNames = map[string]MediaType{
+	"json":     MediaJSON,
+	"geojson":  MediaGeoJSON,
+	"sensorml": MediaSensorML,
+	"om":       MediaOMS,
+	"jsonld":   MediaJSONLD,
+}
+
+// NegotiateRequest is Negotiate's request-aware sibling. Per Common Part 1
+// Conformance class "JSON" (req/json/content), the `?f=<short>` query parameter
+// overrides Accept when present. Precedence is intentional: an explicit `?f=`
+// short-name that does not map to fam's supported set 406s rather than falling
+// through to Accept, because the override is a deliberate client signal.
+//
+// `?f=` absent, empty, or whitespace-only → fall back to Negotiate(Accept, fam).
+// There is no `?f=` value that forces the family default independent of
+// Accept — use `?f=<short>` explicitly if that's the intent.
+//
+// Unknown short names (not in shortMediaNames) 406, with the family's
+// supported list advertised in the 406 body just like any other negotiation
+// failure — clients sending `?f=html` against a JSON-only server need to see
+// that html is not on offer.
+func NegotiateRequest(r *http.Request, fam ResourceFamily) (MediaType, bool) {
+	if short := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("f"))); short != "" {
+		media, known := shortMediaNames[short]
+		if !known {
+			return "", false
+		}
+		for _, m := range fam.supported() {
+			if m == media {
+				return m, true
+			}
+		}
+		return "", false
+	}
+	return Negotiate(r.Header.Get("Accept"), fam)
+}
+
 // Negotiate picks the response MediaType for an Accept header against fam's
 // supported set. Returns (chosen, true) on success, ("", false) on 406 — the
 // caller writes the 406 response (with the supported set in its body) so this
 // function stays pure.
 //
-// Rules:
-//   - Empty / missing Accept → fam's default (first supported entry).
-//   - Wildcards (`*/*`, `application/*`) resolve to the highest-q supported.
-//   - Exact matches win over wildcards at the same q.
-//   - Ties at equal q break in fam's supported-list order.
+// HTTP handlers MUST use NegotiateRequest, not Negotiate — Negotiate alone
+// skips the Common Part 1 `?f=` override and silently regresses the
+// conformance class. Negotiate stays exported for the negotiation_test.go
+// table (string-in / MediaType-out is trivial to drive in tables) and for
+// any future non-HTTP negotiation caller.
 func Negotiate(accept string, fam ResourceFamily) (MediaType, bool) {
 	supported := fam.supported()
 	accept = strings.TrimSpace(accept)

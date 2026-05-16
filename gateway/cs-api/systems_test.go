@@ -751,15 +751,21 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 	if err := json.Unmarshal(body, &decl); err != nil {
 		t.Fatalf("decode: %v; body=%s", err, body)
 	}
+	// Stage 5 closed the gap — all v0.1 classes are wired. The strong
+	// invariant: count(declared) == count(stageConformanceClasses).
+	// A future stage that adds a class to ADR-S001's roadmap without
+	// wiring it would fail this check loudly.
 	wantClaimed := []string{
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
-	}
-	wantDeferred := []string{
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
+	}
+	if len(decl.ConformsTo) != len(stageConformanceClasses) {
+		t.Errorf("ConformsTo count: got %d want %d (declared classes drift from stageConformanceClasses)",
+			len(decl.ConformsTo), len(stageConformanceClasses))
 	}
 	contains := func(s []string, want string) bool {
 		for _, v := range s {
@@ -772,11 +778,6 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 	for _, want := range wantClaimed {
 		if !contains(decl.ConformsTo, want) {
 			t.Errorf("conformance class missing: %s (got %v)", want, decl.ConformsTo)
-		}
-	}
-	for _, want := range wantDeferred {
-		if contains(decl.ConformsTo, want) {
-			t.Errorf("conformance class %s claimed before encoder is wired", want)
 		}
 	}
 }

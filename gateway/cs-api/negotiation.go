@@ -59,7 +59,12 @@ func (fam ResourceFamily) supported() []MediaType {
 	case FamilyObservation:
 		return []MediaType{MediaJSON}
 	case FamilySpatial:
-		return []MediaType{MediaJSON}
+		// GeoJSON is the natural default for /areas — RFC 7946
+		// FeatureCollection is the wire shape; clients asking for
+		// plain JSON get the same bytes (FeatureCollection.MarshalJSON
+		// is conformant either way) but with the application/json
+		// Content-Type advertised.
+		return []MediaType{MediaGeoJSON, MediaJSON}
 	case FamilyService:
 		return []MediaType{MediaJSON, MediaJSONLD}
 	default:

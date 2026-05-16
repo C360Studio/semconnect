@@ -44,6 +44,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	conformancePath := join("conformance")
 	healthPath := join("health")
 	observationsPath := join("datastreams/{datastreamID}/observations")
+	areasPath := join("areas")
 
 	mux.Handle("GET "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
 	mux.Handle("HEAD "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
@@ -54,13 +55,16 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("GET "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
 	mux.Handle("HEAD "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
 	mux.Handle("POST "+observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsPost)))
+	mux.Handle("GET "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
+	mux.Handle("HEAD "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
 
 	c.logger.Debug("HTTP handlers registered",
 		"systems", systemsPath,
 		"system_item", systemItemPath,
 		"conformance", conformancePath,
 		"health", healthPath,
-		"observations", observationsPath)
+		"observations", observationsPath,
+		"areas", areasPath)
 }
 
 // middleware composes the per-request chain. Order matters:

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository status
 
-**Stages 2 + 3 + 4 of the bootstrap playbook are landed.** What works:
+**Stages 2 + 3 + 4 + 5 of the bootstrap playbook are landed.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
@@ -12,7 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `GET /systems` — lists `ssn:System` entities via NATS `graph.index.query.predicate`. JSON only (collection has no SensorML wrapper).
   - `GET /systems/{id}` — fetches an entity via `graph.query.entity`, renders as `application/json` (CS API §7.2 subset), `application/sensorml+json` (via triple→sensorml reverse mapping in `gateway/cs-api/sensorml.go`), or `application/ld+json` (via `vocabulary/export.Serialize(JSONLD)`). Lossy reconstruction is signalled via `X-CS-Reconstructed-Lossy: true`.
   - `POST /datastreams/{datastreamID}/observations` — accepts `application/om+json`, wraps in `message.BaseMessage`, publishes to JetStream subject `cs-api.observations.{datastreamID}` with audit + W3C trace headers.
-  - `GET /conformance` — declares wired classes (core + json + oms + sensorml + json-ld at Stage 4; geojson lands at Stage 5).
+  - `GET /areas` — spatial filtering via `?bbox=minLon,minLat,maxLon,maxLat` or `?polygon=<GeoJSON Polygon>` (exactly one required). Optional `?limit`. Returns a GeoJSON `FeatureCollection`; Features carry `geometry: null` because the framework's `SpatialResult` only returns entity IDs (`X-CS-Geometry-Available: false` signals this). Clients drill via `GET /systems/{id}` for precise coordinates.
+  - `GET /conformance` — declares all v0.1 classes wired (core + json + oms + sensorml + json-ld + geojson). Stage 5 closes the gap between the ADR-S001 v0.1 claim and the runtime declaration.
   - `GET /health`.
   - All read endpoints accept `HEAD`. Routes use Go 1.22+ method+path patterns (`GET /systems` / `HEAD /systems`); 405 is enforced by the mux.
 - Auth seam: `IdentityMiddleware` populates `Identity` in every request context. Anonymous-by-default; `X-Forwarded-User` / `X-Forwarded-Email` from a trusted reverse proxy flow onto every publish as `X-CS-Forwarded-*` NATS headers for audit. No verification at v0.1.
@@ -67,7 +68,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `POST /systems` | `parser/sensorml` decode → `graph-ingest` publish *(not yet wired)* |
 | `GET /datastreams/{id}/observations` | KV watch on entity-keyed subject → `message/oms` marshal *(not yet wired)* |
 | `POST /datastreams/{id}/observations` | `message/oms` decode → `message.NewBaseMessage` → `js.PublishMsg` on `cs-api.observations.{id}` with `X-CS-*` audit headers + W3C trace context (raw `js.PublishMsg`, not `natsclient.PublishToStream`, so we can attach headers — trace is re-injected via `natsclient.InjectTrace` to match framework convention) |
-| `GET /areas?bbox=` / `?polygon=` | `graph.spatial.query.bounds` / `.polygon` *(not yet wired)* |
+| `GET /areas?bbox=` / `?polygon=` | `graph.spatial.query.bounds` / `.polygon` → bare `[]SpatialResult` → `geojson.FeatureCollection` with `geometry: null` Features (`X-CS-Geometry-Available: false` signals the framework gap — `SpatialResult` lacks coordinates) |
 
 The triple → SensorML reverse mapping (`gateway/cs-api/sensorml.go`) is intentionally lossy: inputs/outputs/parameters, keywords, connections, and identifier metadata beyond `Value` are dropped because `sensorml.Asset.Triples()` doesn't emit them. The reconstruction emits skeleton refs for hosted children (`{id: "child-id", type: "PhysicalComponent"}`) rather than recursively hydrating them — clients drill via `GET /systems/{childID}`.
 

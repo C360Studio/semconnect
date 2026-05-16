@@ -37,9 +37,9 @@ fails conformance. The per-stage wiring schedule:
 | 4 | `GET /systems/{id}` | + sensorml, + json-ld |
 | 5 | `GET /areas` | + geojson |
 
-Stages 2 + 3 + 4 are merged. The full v0.1 set is wired by the close of
-Stage 5 — at that point this ADR's claim and `/conformance`'s declaration
-align.
+Stages 2 + 3 + 4 + 5 are merged. The runtime `/conformance` declaration
+now aligns with this ADR's v0.1 claim; Stage 6 wires the OGC Team Engine
+conformance harness in CI to validate each claim.
 
 **Stage 4 reconstruction is lossy by design.** Triples emitted via
 `sensorml.Asset.Triples()` drop SensorML fields that the SOSA/SSN vocabulary
@@ -50,6 +50,14 @@ assertions can account for it. Lossless round-trip requires fetching the
 original SensorML JSON from `EntityState.StorageRef` (deferred to a
 follow-up tag — graph-ingest's storage seam exists but is not wired
 through cs-api yet).
+
+**Stage 5 GeoJSON Features carry `geometry: null`** because the framework's
+`SpatialResult` only returns entity IDs, not their indexed points. RFC 7946
+§3.2 permits null geometry, but a client that wants precise coordinates
+must drill via `GET /systems/{id}`. The `X-CS-Geometry-Available: false`
+response header signals this. A follow-up upstream change to extend
+`SpatialResult` with lat/lon/alt would close this gap; track as a Stage 6+
+refinement if Team Engine flags it.
 
 **Deferred to v0.2+**:
 
@@ -162,7 +170,9 @@ This applies symmetrically to SensorML (`Mode`, `Algorithm`, `Configuration`, `D
 
 **Closes**
 
-This ADR closes once Stages 1–3 of the bootstrap playbook are merged — `GET /systems` and `POST /datastreams/{id}/observations` end-to-end against a local semstreams NATS, with at least the JSON conformance class running green under Team Engine.
+**Code-side: closed.** Stages 1–5 of the bootstrap playbook are merged. All v0.1 endpoint surface (`GET /systems`, `GET /systems/{id}`, `POST /datastreams/{id}/observations`, `GET /areas`, `GET /conformance`, `GET /health`) is wired against a local semstreams NATS, and the runtime `/conformance` declaration matches §1's full v0.1 class list (core + json + oms + sensorml + json-ld + geojson).
+
+**Validation-side: pending Stage 6.** This ADR closes formally when the OGC Team Engine conformance harness reports green against each declared class. Documented limitations (`X-CS-Reconstructed-Lossy` on SensorML reconstruction; `X-CS-Geometry-Available: false` on `/areas` Features) may surface as Team Engine assertion failures; address per the deferred-features list above as they arise.
 
 ## References
 

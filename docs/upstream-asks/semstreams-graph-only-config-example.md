@@ -2,7 +2,7 @@
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 9 conformance backend integration (2026-05-16), framework pin `v1.0.0-beta.73`.
-**Status:** ready to file (copy-paste).
+**Status:** **Filed at [C360Studio/semstreams#99](https://github.com/C360Studio/semstreams/issues/99) (OPEN, as of 2026-05-16; still OPEN at v1.0.0-beta.75 — no `configs/graph-backend.json` in the repo).** semconnect's `conformance/compose.semstreams.config.json` (~110 lines) is the working slim graph-only config future consumers can copy from. `graph-ingest`'s `len(Ports.Inputs) >= 1` validation requires the dummy `_semconnect.unused.ingest` `nats`-type port workaround.
 
 ## Summary
 

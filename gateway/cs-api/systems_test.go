@@ -16,10 +16,13 @@ import (
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
 )
 
 // fakeRequester implements natsRequester deterministically. The captured
-// request is exposed so tests can assert on the wire shape.
+// request is exposed so tests can assert on the wire shape. JetStream-side
+// methods exist to satisfy the interface; tests that exercise the publish
+// path inject a *fakePublisher onto c.publisher directly.
 type fakeRequester struct {
 	gotSubject string
 	gotBody    []byte
@@ -41,6 +44,16 @@ func (f *fakeRequester) Request(_ context.Context, subj string, data []byte, to 
 
 func (f *fakeRequester) Status() natsclient.ConnectionStatus {
 	return f.status
+}
+
+// JetStream / EnsureStream satisfy the natsRequester interface but are not
+// exercised by the unit tests — Stage 3 tests inject a *fakePublisher onto
+// c.publisher directly rather than driving the full Start() path.
+func (f *fakeRequester) JetStream() (jetstream.JetStream, error) {
+	return nil, errors.New("fakeRequester: JetStream not implemented (use fakePublisher directly)")
+}
+func (f *fakeRequester) EnsureStream(_ context.Context, _ jetstream.StreamConfig) (jetstream.Stream, error) {
+	return nil, errors.New("fakeRequester: EnsureStream not implemented")
 }
 
 // newTestComponent assembles a Component wired to the fake. Helper isolates
@@ -346,10 +359,10 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 	wantClaimed := []string{
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
 	}
 	wantDeferred := []string{
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
-		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 	}

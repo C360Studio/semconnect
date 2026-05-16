@@ -11,13 +11,19 @@ import (
 // conformance — claim only what works. The full ADR-S001 §1 v0.1 set lands
 // over Stages 3–5 as each encoder is wired:
 //
-//   - Stage 2 (this stage):  core + json
-//   - Stage 3 (observations): + oms
+//   - Stage 2:                core + json
+//   - Stage 3 (this stage):   + oms (consume on POST /datastreams/{id}/observations)
 //   - Stage 4 (single system): + sensorml + json-ld
 //   - Stage 5 (spatial):       + geojson
+//
+// Note on oms at Stage 3: this stage wires *consume* only (decode incoming
+// application/om+json). Producing OMS on a GET /datastreams/{id}/observations
+// is a Stage-4 follow-up. Team Engine's OMS class exercises both sides; the
+// claim widens when the GET handler ships.
 var stageConformanceClasses = []string{
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
 }
 
 type conformanceDeclaration struct {

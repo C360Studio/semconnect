@@ -78,6 +78,8 @@ ADR's claim and `/conformance`'s declaration align.
 
 **Rationale**: Every CS API operator at v0.1 will be standing up either a private deployment (no auth needed) or a public deployment behind a proxy that already handles identity for their org. Building in-process JWT validation before either pattern surfaces is YAGNI. The pass-through hooks keep audit trails honest from day one without committing to a verification strategy.
 
+**Delivery semantics**: Observation publishes are **at-least-once**. `js.PublishMsg` can time out waiting for the JetStream ack after the server-side commit succeeded; the gateway treats `nats.ErrTimeout` as transient and returns 503, leaving retry policy to the client. A retried POST will write the observation again under a new envelope ID. Downstream consumers (graph-ingest etc.) must therefore be idempotent on observation ingest — the framework's `payloadregistry` round-trip discipline supports this because BaseMessages carry deterministic content-addressable IDs. Promoting to exactly-once is a Stage 6+ decision tied to deduplication in graph-ingest.
+
 ### 4. Conformance-test ownership
 
 **Vendor a thin CI runner**, not the Team Engine binary.

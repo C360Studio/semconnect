@@ -4,15 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository status
 
-**Stage 2 of the bootstrap playbook is landed.** What works:
+**Stages 2 + 3 of the bootstrap playbook are landed.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
-- Endpoints: `GET /systems` (lists `ssn:System` entities via NATS `graph.index.query.predicate`), `GET /conformance`, `GET /health`. `HEAD` is supported on the read endpoints.
-- Auth seam: `IdentityMiddleware` populates `Identity` in every request context. Anonymous-by-default; `X-Forwarded-User` / `X-Forwarded-Email` from a trusted reverse proxy are captured for audit only.
-- Content negotiation via `Accept`; only `application/json` is wired at Stage 2 (other media types 406 honestly — SensorML / GeoJSON / OMS / JSON-LD land per stage; see ADR-S001 §1 schedule).
-- Body-size limit middleware (`MaxRequestBytes`) — seam ready for Stage 3 POST endpoints.
-- Error classification: `pkg/errs.IsInvalid / IsTransient` → 400 / 503; raw `nats.ErrNoResponders` / `nats.ErrTimeout` / `context.DeadlineExceeded` wrapped to Transient at the boundary. Unclassified → 500 with a generic body (full error logged).
+- Endpoints:
+  - `GET /systems` — lists `ssn:System` entities via NATS `graph.index.query.predicate`
+  - `POST /datastreams/{datastreamID}/observations` — accepts `application/om+json`, wraps in `message.BaseMessage`, publishes to JetStream subject `cs-api.observations.{datastreamID}` with audit headers
+  - `GET /conformance` — declares wired classes (core + json + oms at Stage 3)
+  - `GET /health`
+  - `HEAD` supported on all read endpoints.
+- Auth seam: `IdentityMiddleware` populates `Identity` in every request context. Anonymous-by-default; `X-Forwarded-User` / `X-Forwarded-Email` from a trusted reverse proxy flow onto every publish as `X-CS-Forwarded-*` NATS headers for audit. No verification at v0.1.
+- Content negotiation via `Accept`; only `application/json` is wired at Stage 3 (other media types 406 honestly — SensorML / GeoJSON / JSON-LD land per stage; see ADR-S001 §1 schedule).
+- Body-size limit middleware (`MaxRequestBytes`) enforces `413` on the POST.
+- JetStream: `cs-api.observations.>` stream is EnsureStream'd at component Start() with 30-day file retention. A failure to provision the stream surfaces as a `Start()` error, not a 503-orphan.
+- Error classification: `pkg/errs.IsInvalid / IsTransient` → 400 / 503; raw `nats.ErrNoResponders` / `nats.ErrTimeout` / `context.DeadlineExceeded` / `nats.ErrConnectionClosed` wrapped to Transient at the boundary on both Request and PublishMsg paths. Unclassified → 500 with a generic body (full error logged).
 
 **Read order** for orientation:
 
@@ -58,7 +64,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `GET /systems/{id}` | `graph-query` full entity → reconstruct `sensorml.PhysicalSystem` from triples (sister-repo reverse mapping) |
 | `POST /systems` | `parser/sensorml` decode → `graph-ingest` publish |
 | `GET /datastreams/{id}/observations` | KV watch on entity-keyed subject → `message/oms` marshal |
-| `POST /datastreams/{id}/observations` | `message/oms` decode → `message.NewBaseMessage` → `natsclient.PublishToStream("cs-api.observations.{id}", wire)` |
+| `POST /datastreams/{id}/observations` | `message/oms` decode → `message.NewBaseMessage` → `js.PublishMsg` on `cs-api.observations.{id}` with `X-CS-*` audit headers + W3C trace context (raw `js.PublishMsg`, not `natsclient.PublishToStream`, so we can attach headers — trace is re-injected via `natsclient.InjectTrace` to match framework convention) |
 | `GET /areas?bbox=` / `?polygon=` | `graph.spatial.query.bounds` / `.polygon` |
 
 The triple → SensorML reverse mapping (`GET /systems/{id}`) is gateway domain code and the one place real reconstruction logic lives in this repo. Plan a `gateway/cs-api/sensorml.go` with `FromEntityState(state graph.EntityState) (sensorml.Process, error)`.

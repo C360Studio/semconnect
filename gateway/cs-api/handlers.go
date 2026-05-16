@@ -39,10 +39,16 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle(join("conformance"), c.middleware(http.HandlerFunc(c.handleConformance)))
 	mux.Handle(join("health"), c.middleware(http.HandlerFunc(c.handleHealth)))
 
+	// Go 1.22+ pattern syntax: "POST /…/{datastreamID}/…" both filters method
+	// and binds the path parameter (r.PathValue("datastreamID")).
+	observationsPath := "POST " + join("datastreams/{datastreamID}/observations")
+	mux.Handle(observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsPost)))
+
 	c.logger.Debug("HTTP handlers registered",
 		"systems", join("systems"),
 		"conformance", join("conformance"),
-		"health", join("health"))
+		"health", join("health"),
+		"observations", observationsPath)
 }
 
 // middleware composes the per-request chain. Order matters:

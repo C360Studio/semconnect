@@ -14,6 +14,8 @@ import (
 	"github.com/c360studio/semstreams/component"
 	"github.com/c360studio/semstreams/gateway"
 	"github.com/c360studio/semstreams/natsclient"
+	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
 )
 
 // natsRequester abstracts the slice of *natsclient.Client the cs-api gateway
@@ -21,12 +23,21 @@ import (
 // *natsclient.Client satisfies this interface — see the framework's
 // natsclient/client.go.
 //
-// Stage 3 (observation POST) will add RequestWithHeaders here when the first
-// mutation endpoint needs to ship audit headers on the publish. Holding it
-// off until then keeps v0.1's test mocks honest.
+// Stage 3 adds the publish + JetStream pair: gateways need a way to
+// EnsureStream at startup and publish observations with audit headers
+// (natsclient.PublishToStream does not expose a headers parameter, so we
+// drop down to js.PublishMsg with our own *nats.Msg).
 type natsRequester interface {
 	Request(ctx context.Context, subject string, data []byte, timeout time.Duration) ([]byte, error)
 	Status() natsclient.ConnectionStatus
+	JetStream() (jetstream.JetStream, error)
+	EnsureStream(ctx context.Context, cfg jetstream.StreamConfig) (jetstream.Stream, error)
+}
+
+// streamPublisher is the narrow surface observations.go needs. *jetstream.JetStream
+// from natsclient.Client.JetStream() satisfies it. Tests substitute a fake.
+type streamPublisher interface {
+	PublishMsg(ctx context.Context, msg *nats.Msg, opts ...jetstream.PublishOpt) (*jetstream.PubAck, error)
 }
 
 // Component is the cs-api gateway. It implements:
@@ -46,6 +57,13 @@ type Component struct {
 	httpServer   *http.Server
 	httpMux      *http.ServeMux
 	httpListener net.Listener
+
+	// publisher is the JetStream handle used by mutation endpoints
+	// (observations POST). Set once during Start() after EnsureStream
+	// and never reassigned. atomic.Pointer makes the read-only contract
+	// self-documenting and survives a future Stop() that drains by
+	// nilling the publisher.
+	publisher atomic.Pointer[streamPublisher]
 
 	errs         atomic.Int64
 	requests     atomic.Int64
@@ -106,6 +124,7 @@ func (c *Component) InputPorts() []component.Port {
 func (c *Component) OutputPorts() []component.Port {
 	defs := []component.PortDefinition{
 		{Name: "predicate-query", Type: "nats-request", Subject: "graph.index.query.predicate", Description: "list entities by rdf:type"},
+		{Name: "observations", Type: "jetstream", Subject: c.cfg.ObservationsSubjectPrefix + ".>", StreamName: c.cfg.ObservationsStream, Description: "OMS observations from POST /datastreams/{id}/observations"},
 		// graph.query.entity port re-added at Stage 4 (single-system GET).
 	}
 	out := make([]component.Port, len(defs))
@@ -208,6 +227,37 @@ func (c *Component) Start(ctx context.Context) error {
 		c.mu.Unlock()
 		return nil
 	}
+
+	// Ensure the observations JetStream stream exists + capture a publish
+	// handle. Doing this synchronously in Start() means the first POST
+	// does not race the stream's creation, and a configuration that
+	// cannot reach JetStream surfaces here instead of inside a 503'd
+	// handler.
+	if _, err := c.nats.EnsureStream(ctx, jetstream.StreamConfig{
+		Name:        c.cfg.ObservationsStream,
+		Subjects:    []string{c.cfg.ObservationsSubjectPrefix + ".>"},
+		Description: "cs-api observations published via POST /datastreams/{id}/observations",
+		Retention:   jetstream.LimitsPolicy, // facts, not work-queue — multi-consumer
+		Storage:     jetstream.FileStorage,
+		MaxAge:      c.cfg.ObservationsMaxAge,
+		MaxBytes:    c.cfg.ObservationsMaxBytes, // 0 = unlimited
+		Replicas:    c.cfg.ObservationsReplicas,
+	}); err != nil {
+		c.mu.Unlock()
+		return fmt.Errorf("cs-api: Start: ensure stream %s: %w", c.cfg.ObservationsStream, err)
+	}
+	js, err := c.nats.JetStream()
+	if err != nil {
+		c.mu.Unlock()
+		return fmt.Errorf("cs-api: Start: jetstream handle: %w", err)
+	}
+	// EnsureStream + the publisher handle are intentionally not torn down
+	// when a later Start() step fails. EnsureStream is idempotent on its
+	// JetStream side, and leaving the publisher pre-set means a retry of
+	// Start() does no extra round-trips. Operators inspecting via Health()
+	// will see "stopped" until Start() runs cleanly to completion.
+	var pub streamPublisher = js
+	c.publisher.Store(&pub)
 
 	if c.cfg.StandaloneServer {
 		// Bind synchronously so a port conflict / permission error

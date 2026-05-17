@@ -418,6 +418,56 @@ paths:
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    patch:
+      operationId: patchSystem
+      summary: Partial-update a system (CS API conf/update).
+      description: |-
+        Partial-update semantics: each field present in the body
+        replaces the corresponding triple on the entity; fields
+        absent in the body are left alone. Body shape is the same
+        SystemFeature schema PUT accepts (JSON or geo+json), but
+        only `type: "Feature"` is enforced (when present) — all
+        properties fields are optional, and the path `{id}` is
+        authoritative.
+
+        If the body specifies `properties.uid`, it MUST match the
+        existing entity's preserved uid (Stage 18 sister-side
+        triple). Mismatch yields 400 *before* any destructive
+        operation.
+
+        **No JSON Merge Patch null-as-delete** (RFC 7396) at v0.1:
+        a `null` body field is treated as a no-op rather than a
+        remove. The ETS does not exercise null-removes; the
+        conservative stance avoids surprising existing clients.
+
+        404 if the entity does not exist (no upsert; PUT is the
+        upsert path).
+      tags: [Systems]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+          application/geo+json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+      responses:
+        "204":
+          description: System patched.
+          headers:
+            X-CS-Attempted-ID:
+              schema: {type: string}
+            X-CS-Partial-Delete:
+              schema: {type: string, enum: ["true"]}
+              description: |-
+                Present (with value `true`) on a 5xx if the
+                destructive half of merge succeeded but the
+                add-batch failed — the entity is in a partial
+                state and the client should retry the PATCH.
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
     delete:
       operationId: deleteSystem
       summary: Delete a system (CS API §7.6 create-replace-delete).
@@ -438,9 +488,8 @@ paths:
       summary: Advertise allowed methods on /systems/{id}.
       description: |-
         Returns 204 with an `Allow` header listing the methods the
-        item endpoint supports. PATCH is intentionally absent —
-        cs-api does not implement PATCH at v0.1 (no `conf/update`
-        claim either).
+        item endpoint supports. Stage 19 added PATCH (CS API
+        `conf/update`).
       tags: [Systems]
       responses:
         "204":
@@ -448,7 +497,7 @@ paths:
           headers:
             Allow:
               schema: {type: string}
-              description: '`GET, HEAD, PUT, DELETE, OPTIONS`'
+              description: '`GET, HEAD, PUT, PATCH, DELETE, OPTIONS`'
 
   # ============================================================
   # Datastreams (CS API §10)

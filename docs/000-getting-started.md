@@ -456,9 +456,55 @@ on conformance classes / resources we haven't claimed at v0.1
 (Part 2 write side, `conf/update` (PATCH), Advanced Filtering, and
 all sub-resource item GETs).
 
-### Stage 19+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+### Stage 19 — CS API `conf/update`: PATCH /systems/{id}
 
-Subsequent stages: implement `/procedures`, `/samplingFeatures`,
+Closes the `conf/update` conformance class with PATCH partial-update
+semantics on /systems. The ETS's `UpdateTests` scenario POSTs a
+Feature, PATCHes only `properties.name`, GETs back, asserts the new
+name is present and the other fields are unchanged.
+
+Implementation:
+
+- New `handleSystemPatch` in `systems_patch.go`. Body shape is the
+  same `SystemFeature` POST/PUT accept, with permissive validation:
+  `type: "Feature"` enforced only when present; all
+  `properties.*` fields optional; the path `{id}` is authoritative.
+- `mergePatchSystemTriples` reads the existing triple set and walks
+  it, replacing the triple under each predicate the body addresses
+  (`name` → `PredLabel`, `description` → `PredDescription`,
+  `geometry` → `PredSystemPosition`). Fields the body doesn't
+  address survive untouched. Fields the body addresses but the
+  entity didn't have are appended fresh.
+- Body-uid-vs-existing-uid safety gate runs *before* any
+  destructive operation (same shape as PUT).
+- 404 on missing entity — PATCH is strict, NOT upsert (PUT remains
+  the upsert path).
+- Re-uses Stage 16's `deleteAllEntityTriples` + `ingestTriples`
+  two-step replace, so the same partial-erasure window applies
+  (surfaced via `X-CS-Partial-Delete: true` on the add-batch
+  failure path).
+- `handleSystemOptions` Allow header gains `PATCH`.
+- `conformance.go` claims
+  `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/update`,
+  scoped to /systems at v0.1 (/datastreams PATCH is a follow-up,
+  same partial-claim precedent as Stage 16 used for CRD).
+
+**No JSON Merge Patch null-as-delete** (RFC 7396) at v0.1 — a
+`null` body field is treated as a no-op rather than a remove. The
+ETS doesn't exercise it; the conservative stance avoids surprising
+existing clients.
+
+**Expected outcome:** the ETS's `update` group (currently SKIPped)
+runs. Probe projection: ~4 newly passing tests from the
+`updateSystemPatchLifecycleOptIn` + readiness + dependency-cascade
+assertions; `passed=44 / failed=0 / skipped=93` from current
+40/0/97. The conformance-declaration test will need its expected
+list updated to include `conf/update`.
+
+### Stage 20+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+
+Subsequent stages: PATCH parity on `/datastreams` for full
+`conf/update` scope, implement `/procedures`, `/samplingFeatures`,
 `/properties`, `/deployments`, the Part 2 write side (Control
 Streams, Commands, System Events), and a per-datastream observation
 JetStream Consumer cleanup on DELETE. Each is its own staged ticket.

@@ -46,6 +46,7 @@ type crdFakeRequester struct {
 	removeCalls      []graph.RemoveTripleRequest
 	removeHeaders    map[string]string
 	batchCount       int
+	batchBody        []byte
 	headers          map[string]string
 }
 
@@ -68,6 +69,7 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 	switch subj {
 	case SubjectTripleAddBatch:
 		f.batchCount++
+		f.batchBody = append([]byte(nil), data...)
 		if headers != nil {
 			f.headers = make(map[string]string, len(headers))
 			for k, v := range headers {
@@ -451,7 +453,7 @@ func TestHandleSystemOptions_ViaMux(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
-	want := "GET, HEAD, PUT, DELETE, OPTIONS"
+	want := "GET, HEAD, PUT, PATCH, DELETE, OPTIONS"
 	if got := rr.Header().Get("Allow"); got != want {
 		t.Errorf("Allow: got %q want %q", got, want)
 	}
@@ -514,12 +516,13 @@ func TestHandleSystemOptions(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
-	want := "GET, HEAD, PUT, DELETE, OPTIONS"
+	want := "GET, HEAD, PUT, PATCH, DELETE, OPTIONS"
 	if got := rr.Header().Get("Allow"); got != want {
 		t.Errorf("Allow: got %q want %q", got, want)
 	}
-	if strings.Contains(rr.Header().Get("Allow"), "PATCH") {
-		t.Errorf("Allow must NOT advertise PATCH at v0.1; got %q", rr.Header().Get("Allow"))
+	// Stage 19 added PATCH for conf/update. PATCH is now required.
+	if !strings.Contains(rr.Header().Get("Allow"), "PATCH") {
+		t.Errorf("Allow MUST advertise PATCH at Stage 19+ for conf/update; got %q", rr.Header().Get("Allow"))
 	}
 }
 

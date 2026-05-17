@@ -256,20 +256,19 @@ func (c *Component) handleSystemsOptions(w http.ResponseWriter, _ *http.Request)
 }
 
 // handleSystemOptions serves OPTIONS /systems/{id} — advertises GET,
-// HEAD, PUT, DELETE, OPTIONS so the ETS create-replace-delete +
-// update preconditions confirm readiness without exercising the
+// HEAD, PUT, PATCH, DELETE, OPTIONS so the ETS create-replace-delete
+// + update preconditions confirm readiness without exercising the
 // verbs.
 //
-// PATCH is intentionally NOT advertised — cs-api doesn't implement
-// PATCH at v0.1 (the update conformance class needs it; deferred).
-// If we ever ship PATCH, this string is the one place to update.
+// Stage 19 added PATCH (CS API `conf/update`). If we ever drop PATCH,
+// this string is the one place to update.
 func (c *Component) handleSystemOptions(w http.ResponseWriter, r *http.Request) {
 	pathID := r.PathValue("id")
 	if err := validateEntityID(pathID); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid system id: "+err.Error())
 		return
 	}
-	w.Header().Set("Allow", "GET, HEAD, PUT, DELETE, OPTIONS")
+	w.Header().Set("Allow", "GET, HEAD, PUT, PATCH, DELETE, OPTIONS")
 	w.WriteHeader(http.StatusNoContent)
 }
 

@@ -67,15 +67,29 @@ var stageConformanceClasses = []string{
 	// honest across all of /systems and /datastreams.
 	//
 	// Per-resource media types:
-	//   /systems POST: sml+json | sensorml+json | json | geo+json
-	//   /systems PUT:  json | geo+json (no SensorML on PUT — lossy
-	//                  reverse-mapping would surprise clients)
+	//   /systems POST:  sml+json | sensorml+json | json | geo+json
+	//   /systems PUT:   json | geo+json (no SensorML on PUT — lossy
+	//                   reverse-mapping would surprise clients)
+	//   /systems PATCH: json | geo+json (Stage 19, see conf/update below)
 	//   /datastreams POST/PUT: json only (no SensorML wrapper)
-	//
-	// PATCH is intentionally NOT claimed (no `conf/update` either) —
-	// that lands at a future stage when PATCH semantics + a merge
-	// model are designed.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/create-replace-delete",
+	// Stage 19 — CS API conf/update: PATCH /systems/{id} with
+	// partial-update semantics on a Feature body (only present
+	// fields replaced; absent fields preserved).
+	//
+	// **Spec scope**: the CS API conf/update class targets Systems,
+	// Deployments, Procedures, Sampling Features, and Derived
+	// Properties — explicitly NOT Datastreams. At v0.1 cs-api
+	// implements only /systems among those resource types, so the
+	// claim is fully honest with no partial-claim disclaimer.
+	// /procedures / /samplingFeatures / /properties / /deployments
+	// are separate Stage 20+ work; they'll need PATCH at their
+	// landing time, but their absence today is a resource-type gap,
+	// not an update-class gap.
+	//
+	// RFC 7396 null-as-delete is NOT implemented (treated as
+	// no-op) — the ETS doesn't exercise it.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/update",
 }
 
 type conformanceDeclaration struct {

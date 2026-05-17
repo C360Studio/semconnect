@@ -76,8 +76,13 @@ func (fam ResourceFamily) supported() []MediaType {
 		return []MediaType{MediaJSON, MediaSensorML, MediaSensorMLLegacy, MediaJSONLD}
 	case FamilySystemCollection:
 		// No SensorML SystemCollection type; collection JSON-LD is a
-		// Stage 5+ concern (vocabulary/export is per-entity today).
-		return []MediaType{MediaJSON}
+		// follow-up (vocabulary/export is per-entity today). Stage 15
+		// added MediaGeoJSON — `/systems` with Accept application/geo+json
+		// returns an RFC 7946 FeatureCollection where each Feature
+		// carries the system's cs-api.system.position (Stage 14) as
+		// geometry. Required by the Botts ETS `geoJsonMediaTypeRead`
+		// assertion.
+		return []MediaType{MediaJSON, MediaGeoJSON}
 	case FamilyDatastreamItem, FamilyDatastreamCollection:
 		// Datastream is JSON-only at v0.1. The framework lacks
 		// datastream vocabulary primitives (see

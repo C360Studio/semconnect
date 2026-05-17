@@ -313,7 +313,13 @@ The 9 newly-passing tests: `systemItemHasGeometryOrValidTime` (the chokepoint) +
 
 ### Stage 15 — GeoJSON FeatureCollection on `/systems` collection
 
-The lone remaining failure after Stage 14. The Botts ETS `geoJsonMediaTypeRead` requires `GET /systems` with `Accept: application/geo+json` to return a FeatureCollection — currently 406s (collection family is JSON-only). Implementation: extend `FamilySystemCollection.supported()` to include `MediaGeoJSON`, wrap each system as a Feature with `geometry` from `cs-api.system.position` triple and `properties` carrying the rest. Pattern is established by `/areas` (Stage 13 closed its geometry deferral). Probably ~2 hours of work + tests + probe.
+Closes the lone Stage 14 failure (`geoJsonMediaTypeRead`). `FamilySystemCollection.supported()` extended with `MediaGeoJSON`; new `writeSystemsGeoJSON` branch in `handleSystems` fetches each entity's state (N+1 per-item entity-query) to recover the `cs-api.system.position` triple (Stage 14), builds a Feature with that as `geometry` and the System's reconstructed fields as `properties`, returns an RFC 7946 FeatureCollection.
+
+Per-entity failure mode: transient backend errors on the FIRST entity → 503 (subsequent entities would fail identically); transient errors after the first → log + degrade to null-geometry Feature (one bad row doesn't poison the page). Malformed position triples in storage → log + null geometry.
+
+N+1 is documented inline. Two future-optimization paths (in `handleSystems` doc comment): (a) extend graph-index to return entity properties alongside IDs; (b) add a batched entity-query subject to the framework. v0.1 list sizes don't motivate the optimization.
+
+**Outcome:** `total=137 passed=32 failed=0 skipped=105`. From Stage 14 (29/1/107): +3 newly passing (`geoJsonMediaTypeRead`, `systemFeatureHasGeoJsonShapeAndProperties`, `systemsCollectionIsGeoJsonFeatureCollection`), -1 failure, -2 SKIPs.
 
 ### Stage 16+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
 

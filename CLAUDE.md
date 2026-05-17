@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository status
 
-**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
+**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
 - Endpoints:
   - `GET /` — OGC API Common Part 1 §7.2 landing page (Stage 7). JSON with `self`, `conformance`, and two `data` links (`/systems`, `/areas`). Uses Go 1.22 `GET /{$}` end-of-path anchor so it doesn't shadow sibling routes. No `service-desc` / `service-doc` link — v0.1 does not ship an OpenAPI definition, so the `oas30` conformance class is intentionally not claimed (see `docs/upstream-asks/botts-ets-api-definition-unconditional.md` for the upstream-ETS-side note).
-  - `GET /systems` — lists `ssn:System` entities via NATS `graph.index.query.predicate`. JSON only (collection has no SensorML wrapper).
+  - `GET /systems` — lists `ssn:System` entities via NATS `graph.index.query.predicate`. Default `application/json` returns CS API SystemCollection wrapper; Stage 15 added `application/geo+json` content negotiation that returns an RFC 7946 FeatureCollection with per-system geometry recovered from the `cs-api.system.position` triple (N+1: entity-query per item, per-entity failures degrade to null-geometry Features). Still no SensorML "SystemCollection" wrapper — that 406s honestly.
   - `POST /systems` (Stage 8; Stage 14 added position preservation) — accepts `application/sml+json` (CS API spec form, Stage 14) or `application/sensorml+json` (legacy long form). Decodes via `sensorml.UnmarshalProcess`, mints a 6-part SemStreams entity ID (`cfg.SystemIDPrefix` + sanitized SensorML uniqueId, UUID fallback), builds triples via `sensorml.NewAsset(...).Triples()`, **then (Stage 14) peeks the raw body for `position` and appends a `cs-api.system.position` triple to preserve geometry — sister-side workaround for the framework's missing SensorML position-preservation (see `docs/upstream-asks/semstreams-sensorml-position-preservation.md`).** Publishes synchronously via NATS request/reply on `graph.mutation.triple.add_batch`, returns 201 Created with Location. Request/reply (not JetStream fire-and-forget) because the framework's `CreateEntityRequest` is defined but not wired — see `docs/upstream-asks/semstreams-entity-create-handlers-unwired.md`.
   - `GET /systems/{id}` — fetches an entity via `graph.query.entity`, renders as `application/json` (CS API §7.2 subset; Stage 14 adds `geometry` field from the `cs-api.system.position` triple), `application/sml+json` or `application/sensorml+json` (via triple→sensorml reverse mapping in `gateway/cs-api/sensorml.go`), or `application/ld+json` (via `vocabulary/export.Serialize(JSONLD)`). Lossy reconstruction is signalled via `X-CS-Reconstructed-Lossy: true`. Both SensorML media types are honored on Accept (Stage 14: `sml+json` is the CS API spec form; long form kept as backward-compat alias).
   - `GET /datastreams` (Stage 8) — predicate-query for `rdf:type = DatastreamTypeIRI` (Stage 13: `csapi.Datastream` from `vocabulary/csapi` since semstreams v1.0.0-beta.75; pre-Stage-13 was a locally-minted HTTPS IRI). JSON DatastreamCollection. `X-CS-Datastream-Subset: true` header retired at Stage 13.
@@ -75,7 +75,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 
 | Endpoint | Framework primitive |
 |---|---|
-| `GET /systems` | `graph.index.query.predicate` (rdf:type = ssn:System) → JSON SystemCollection. 406 for non-JSON Accept. |
+| `GET /systems` | `graph.index.query.predicate` (rdf:type = ssn:System) → JSON SystemCollection (default) OR `geojson.FeatureCollection` with per-system geometry (Stage 15, on Accept `application/geo+json`; N+1 entity-query per item). |
 | `GET /systems/{id}` | `graph.query.entity` → `EntityState` → `reconstructProcessFromTriples` (JSON / SensorML) or `export.Serialize(JSONLD)`. Lossy fields documented via `X-CS-Reconstructed-Lossy: true`. |
 | `POST /systems` | `parser/sensorml.UnmarshalProcess` → `sensorml.NewAsset(id, process).Triples()` → `graph.mutation.triple.add_batch` request/reply via `ingestTriples`. 201 Created + Location. |
 | `GET /datastreams` | `graph.index.query.predicate` (rdf:type = `csapi.Datastream` since Stage 13) → JSON DatastreamCollection. |

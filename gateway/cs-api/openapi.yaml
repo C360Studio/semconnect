@@ -219,20 +219,33 @@ paths:
       operationId: getSystems
       summary: List systems.
       description: |-
-        Returns a `SystemCollection` of `System` entities. JSON-only at
-        v0.1 (no SensorML `SystemCollection` wrapper exists; SensorML
-        is per-item via `GET /systems/{id}`).
+        Returns a `SystemCollection` of `System` entities (default,
+        `application/json`) or an RFC 7946 `FeatureCollection` with
+        per-system geometry recovered from the `cs-api.system.position`
+        triple (`application/geo+json`, Stage 15).
+
+        No SensorML `SystemCollection` wrapper exists; SensorML is
+        per-item via `GET /systems/{id}`.
+
+        The GeoJSON path is N+1 (entity-query per item) — at v0.1 list
+        sizes this is acceptable; future framework optimization either
+        extends the predicate index to carry entity properties OR adds
+        a batched entity-query subject.
       tags: [Systems]
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: SystemCollection.
+          description: |-
+            SystemCollection (JSON) or FeatureCollection (GeoJSON).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SystemCollection"
+            application/geo+json:
+              schema:
+                $ref: "#/components/schemas/FeatureCollection"
         "400": {$ref: "#/components/responses/BadRequest"}
         "406": {$ref: "#/components/responses/NotAcceptable"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}

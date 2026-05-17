@@ -23,6 +23,7 @@ func TestNegotiate(t *testing.T) {
 		{"empty Accept on spatial → GeoJSON default (Stage 5)", "", FamilySpatial, MediaGeoJSON, true},
 		{"explicit JSON on spatial → JSON", "application/json", FamilySpatial, MediaJSON, true},
 		{"GeoJSON wired at Stage 5", "application/geo+json", FamilySpatial, MediaGeoJSON, true},
+		{"GeoJSON wired on FamilySystemCollection at Stage 15", "application/geo+json", FamilySystemCollection, MediaGeoJSON, true},
 		{"explicit JSON on system item", "application/json", FamilySystemItem, MediaJSON, true},
 		{"wildcard subtype resolves to family default", "application/*", FamilySystemItem, MediaJSON, true},
 		{"global wildcard resolves to family default", "*/*", FamilyObservationCollection, MediaJSON, true},

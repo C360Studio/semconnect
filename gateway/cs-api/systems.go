@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/graph/geo/geojson"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
@@ -170,18 +171,25 @@ func systemFromState(state graph.EntityState) system {
 // handleSystems serves GET /systems. CS API §7.13.
 //
 // Flow:
-//  1. Negotiate Accept (Stage 2 wires JSON only — 406 for everything else;
-//     SensorML / JSON-LD encoders land at Stage 4 and widen the supported set).
+//  1. Negotiate Accept across JSON (default — SystemCollection wrapper)
+//     and GeoJSON (FeatureCollection wrapper, Stage 15).
 //  2. Parse ?limit= against the configured ceiling.
 //  3. NATS request to graph.index.query.predicate filtering rdf:type = ssn:System.
-//  4. Shape into CS API SystemCollection JSON.
+//  4. Shape into CS API SystemCollection JSON OR GeoJSON FeatureCollection.
+//
+// The GeoJSON path is N+1 by design: predicate-query gives us entity IDs,
+// then we fetch each entity's state via graph.query.entity to recover the
+// cs-api.system.position triple (Stage 14). At v0.1 list sizes this is
+// acceptable; a future optimization either (a) extends graph-index to
+// return entity properties alongside IDs, or (b) adds a batched
+// entity-query subject. Per-entity failures degrade to null-geometry
+// Features rather than failing the whole request — one missing position
+// shouldn't poison the page.
 func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 	// Method is enforced by the ServeMux pattern ("GET /systems",
 	// "HEAD /systems"); non-matching methods 405 before reaching here.
-	// FamilySystemCollection's supported() is JSON-only, so a SensorML or
-	// JSON-LD Accept honestly 406s with an advertised set that matches
-	// what we can actually emit (no SystemCollection wrapper exists).
-	if _, ok := NegotiateRequest(r, FamilySystemCollection); !ok {
+	media, ok := NegotiateRequest(r, FamilySystemCollection)
+	if !ok {
 		WriteNotAcceptable(w, FamilySystemCollection)
 		return
 	}
@@ -195,6 +203,11 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 	entities, err := c.listSystemEntities(r.Context(), limit)
 	if err != nil {
 		c.writeBackendError(w, err)
+		return
+	}
+
+	if media == MediaGeoJSON {
+		c.writeSystemsGeoJSON(w, r, entities, limit)
 		return
 	}
 
@@ -226,6 +239,79 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 	if encErr := json.NewEncoder(w).Encode(coll); encErr != nil {
 		c.errs.Add(1)
 		c.logger.Error("encode systems response", "err", encErr)
+	}
+}
+
+// writeSystemsGeoJSON emits the GeoJSON FeatureCollection form of
+// /systems. Stage 15. Per-entity entity-query for the
+// cs-api.system.position triple is N+1 — see handleSystems doc comment
+// for the deferred optimization paths. Per-entity backend failures
+// log a warn and degrade to a Feature with null geometry; transport-
+// layer failures (NATS unreachable) on the *first* entity surface as
+// 503 because all subsequent entities will fail identically.
+func (c *Component) writeSystemsGeoJSON(w http.ResponseWriter, r *http.Request, entities []string, limit int) {
+	features := make([]geojson.Feature, 0, len(entities))
+	var firstTransientErr error
+	for _, id := range entities {
+		idBytes, _ := json.Marshal(id)
+		feature := geojson.Feature{
+			RawID: idBytes,
+			Properties: map[string]any{
+				"id":   id,
+				"type": "System",
+			},
+		}
+		state, ferr := c.fetchEntity(r.Context(), id)
+		if ferr != nil {
+			// Transient on the first entity → blame the backend and
+			// fail loudly. Transient on a later entity → log and
+			// degrade (the page is partial but not broken).
+			if errs.IsTransient(ferr) && firstTransientErr == nil && len(features) == 0 {
+				firstTransientErr = ferr
+				break
+			}
+			c.logger.Warn("fetch entity for FeatureCollection failed; degrading to null geometry",
+				"entity", id, "err", ferr)
+			features = append(features, feature)
+			continue
+		}
+		sys := systemFromState(state)
+		// Carry the system's reconstructed JSON fields as Feature
+		// properties. Skip the `links` field — Features have their
+		// own ID slot (RawID) and OGC GeoJSON consumers don't expect
+		// nested CS-API link arrays inside Feature.properties.
+		feature.Properties["label"] = sys.Label
+		feature.Properties["description"] = sys.Description
+		feature.Properties["definition"] = sys.Definition
+		// Pluck the position triple (if present) as the Feature's
+		// geometry. Re-uses the Stage 14 sister-side workaround.
+		if posBytes, ok := firstStringObject(state.Triples, PredSystemPosition); ok {
+			if geom, gerr := geojson.UnmarshalGeometry([]byte(posBytes)); gerr == nil {
+				feature.Geometry = geom
+			} else {
+				// Malformed position triple in storage — log and
+				// emit Feature with null geometry. Don't poison the
+				// whole page for one bad row.
+				c.logger.Warn("malformed position triple; emitting null geometry",
+					"entity", id, "err", gerr)
+			}
+		}
+		features = append(features, feature)
+	}
+	if firstTransientErr != nil {
+		c.writeBackendError(w, firstTransientErr)
+		return
+	}
+	fc := geojson.FeatureCollection{Features: features}
+
+	w.Header().Set("Content-Type", string(MediaGeoJSON))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if encErr := json.NewEncoder(w).Encode(fc); encErr != nil {
+		c.errs.Add(1)
+		c.logger.Error("encode systems FeatureCollection response", "err", encErr)
 	}
 }
 

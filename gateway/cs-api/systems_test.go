@@ -784,6 +784,9 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
+		// Stage 16 — create-replace-delete claim is honest once PUT/DELETE
+		// + JSON POST + OPTIONS land.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/create-replace-delete",
 	}
 	if len(decl.ConformsTo) != len(stageConformanceClasses) {
 		t.Errorf("ConformsTo count: got %d want %d (declared classes drift from stageConformanceClasses)",

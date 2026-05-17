@@ -256,11 +256,19 @@ paths:
         "200": {description: OK (no body)}
     post:
       operationId: createSystem
-      summary: Create a system from a SensorML JSON document.
+      summary: Create a system (CS API §7.6 create-replace-delete).
       description: |-
-        Accepts `application/sensorml+json`. The server mints a
-        6-part SemStreams entity ID from the SensorML `uniqueId`
-        (UUID fallback) and returns 201 with a `Location` header.
+        Accepts three request media types, selected by `Content-Type`:
+
+        - `application/sensorml+json` (preferred) — full SensorML
+          Process; entity ID minted from `uniqueId` (UUID fallback).
+        - `application/sml+json` — alias for the above per
+          CS API §7.6 media type registration.
+        - `application/json` or `application/geo+json` — GeoJSON
+          Feature shape (`SystemFeature` schema); entity ID minted
+          from `properties.uid` (UUID fallback).
+
+        Returns 201 with a `Location` header.
       tags: [Systems]
       requestBody:
         required: true
@@ -272,6 +280,14 @@ paths:
                 SensorML PhysicalSystem / PhysicalComponent /
                 SimpleProcess / AggregateProcess JSON. Full schema
                 in `api/upstream/part1/schemas/sensorml/`.
+          application/sml+json:
+            schema:
+              type: object
+              description: Alias for `application/sensorml+json`.
+          application/json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+          application/geo+json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
       responses:
         "201":
           description: Created.
@@ -292,6 +308,20 @@ paths:
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsSystems
+      summary: Advertise allowed methods on /systems.
+      description: |-
+        Returns 204 with an `Allow` header. Lets the ETS confirm
+        write-side readiness without exercising POST.
+      tags: [Systems]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, POST, OPTIONS`'
 
   /systems/{id}:
     parameters:
@@ -344,6 +374,81 @@ paths:
       responses:
         "200": {description: OK (no body)}
         "404": {description: Not Found}
+    put:
+      operationId: replaceSystem
+      summary: Replace a system (CS API §7.6 create-replace-delete).
+      description: |-
+        Replace-or-upsert semantics: existing triples for the entity
+        are removed, then the request body's triples are written. If
+        the entity does not exist, the body's triples are written
+        fresh (CS API §7.6 standard PUT-as-upsert).
+
+        The body's `properties.uid` must mint to the same entity ID
+        as the path `{id}` — mismatch yields 400 *before* any
+        destructive operation.
+
+        Body media type is `application/json` or
+        `application/geo+json` (GeoJSON Feature shape). SensorML is
+        intentionally not accepted on PUT — the lossy triple
+        round-trip would mismatch the read-back shape and surprise
+        clients.
+      tags: [Systems]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+          application/geo+json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+      responses:
+        "204":
+          description: System replaced or upserted.
+          headers:
+            X-CS-Attempted-ID:
+              schema: {type: string}
+              description: Echoes the entity ID — present on every response so clients can correlate.
+            X-CS-Partial-Delete:
+              schema: {type: string, enum: ["true"]}
+              description: |-
+                Present (with value `true`) on a 5xx if the destructive
+                half of replace succeeded but the add-batch failed —
+                the entity is in a partial/erased state and the client
+                must retry the PUT to recover.
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    delete:
+      operationId: deleteSystem
+      summary: Delete a system (CS API §7.6 create-replace-delete).
+      description: |-
+        Idempotent: a delete against a non-existent ID still returns
+        204. Removes every triple associated with the entity. A
+        successful 204 means every per-predicate remove succeeded;
+        a 5xx with `X-CS-Partial-Delete: true` means the loop failed
+        mid-fan-out and the entity is in an intermediate state — the
+        client should retry until 204.
+      tags: [Systems]
+      responses:
+        "204": {description: System deleted (or never existed).}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsSystem
+      summary: Advertise allowed methods on /systems/{id}.
+      description: |-
+        Returns 204 with an `Allow` header listing the methods the
+        item endpoint supports. PATCH is intentionally absent —
+        cs-api does not implement PATCH at v0.1 (no `conf/update`
+        claim either).
+      tags: [Systems]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, PUT, DELETE, OPTIONS`'
 
   # ============================================================
   # Datastreams (CS API §10)
@@ -882,6 +987,26 @@ components:
         documented via `X-CS-Reconstructed-Lossy: true`. Stage 14
         adds `geometry` via sister-side position-preservation
         workaround.
+
+    SystemFeature:
+      type: object
+      required: [type, properties]
+      properties:
+        type:     {type: string, enum: [Feature]}
+        id:       {type: string, description: Optional client-supplied 6-part SemStreams ID. When absent, the server mints from `properties.uid`.}
+        geometry: {type: object, nullable: true, description: GeoJSON geometry — stored on the entity for /areas spatial recovery.}
+        properties:
+          type: object
+          required: [uid]
+          properties:
+            uid:         {type: string, description: SensorML uniqueId — feeds the 6-part entity ID mint.}
+            name:        {type: string}
+            description: {type: string}
+      description: |-
+        Stage 16 — CS API §7.6 GeoJSON Feature body for POST and PUT
+        on /systems. Distinct from the read-side `System` resource:
+        write-side accepts the spec's Feature shape; read-side
+        returns the §7.2 JSON subset.
 
     DatastreamCollection:
       type: object

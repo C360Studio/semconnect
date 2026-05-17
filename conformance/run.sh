@@ -374,9 +374,18 @@ if ! echo "$suites_xml" | grep -q "<etscode>${ETS_CODE}</etscode>"; then
 fi
 
 log "step 7/7 — invoking suite ${ETS_CODE} against ${IUT_URL} (timeout ${RUN_TIMEOUT_S}s)"
+# Stage 16 — opt into the ETS mutation lifecycle tests
+# (createreplacedelete + update groups). The harness's stack is
+# ephemeral per run (compose down -v at start), so
+# `mutation-iut-policy=dedicated-mutable-iut` is honest: the IUT IS
+# dedicated and mutable. Without these flags the CRD lifecycle tests
+# SKIP via `ensureMutationEnabledOrSkip` and the conformance picture
+# misses the real evidence of POST/PUT/DELETE round-trip.
 http_code="$(curl -s -u "${TE_USER}:${TE_PASS}" -G \
                 "${TE_BASE}/rest/suites/${ETS_CODE}/run" \
                 --data-urlencode "iut=${IUT_URL}" \
+                --data-urlencode "mutation-tests-enabled=true" \
+                --data-urlencode "mutation-iut-policy=dedicated-mutable-iut" \
                 -H 'Accept: application/xml' \
                 -o "$REPORT_XML" \
                 -w '%{http_code}' \

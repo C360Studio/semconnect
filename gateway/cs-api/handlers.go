@@ -68,6 +68,9 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	// OPTIONS on both collection + item advertising the Allow header.
 	mux.Handle("PUT "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystemPut)))
 	mux.Handle("DELETE "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystemDelete)))
+	// Stage 19 — CS API conf/update: PATCH partial-update semantics
+	// on the item resource.
+	mux.Handle("PATCH "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystemPatch)))
 	mux.Handle("OPTIONS "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystemsOptions)))
 	mux.Handle("OPTIONS "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystemOptions)))
 	mux.Handle("GET "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreams)))

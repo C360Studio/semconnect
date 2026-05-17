@@ -362,9 +362,14 @@ real evidence of POST/PUT/DELETE round-trip.
 `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/create-replace-delete`.
 `update` (PATCH) is intentionally NOT claimed at v0.1.
 
-**Expected outcome:** the harness picks up the CRD group; we expect at
-least the ETS's `createReplaceDeleteResource` cluster to flip from
-SKIPPED to PASSED (~7 tests across the POST/PUT/DELETE cluster).
+**Outcome:** `total=137 passed=38 failed=2 skipped=97`. From Stage 15
+(32/0/105): +6 newly passing tests (the CRD lifecycle group), -8
+SKIPs, +2 failures — both are read-back uid-preservation gaps the
+mutation opt-in surfaced (Stage 18 target). NOTE: this number
+materialized only after PR #19 (`chore/conformance-compose-wait-fix`,
+2026-05-17) fixed a GHA `docker compose up --wait` regression that
+was making every main-branch probe FATAL since 2026-05-16. Pre-fix
+the harness couldn't even start the stack.
 
 ### Stage 17 — CS API §10.6 create-replace-delete on `/datastreams`
 
@@ -392,10 +397,14 @@ The `conformance.go` claim comment is updated to note both resource
 types now serve the full CRD verb set — no more partial-claim
 disclaimer.
 
-**Expected outcome:** the harness's CRD lifecycle group now exercises
-both /systems and /datastreams. Conformance probe should show the
-remaining `createReplaceDeleteResource` cluster targeting datastream
-mutations flip from SKIPPED to PASSED.
+**Outcome:** `total=137 passed=38 failed=2 skipped=97` (unchanged
+from Stage 16's headline numbers). Stage 17's contribution was
+making the `create-replace-delete` claim *honest* across both
+resource types — the ETS's CRD lifecycle tests already passed when
+exercised against /systems alone at Stage 16, so the additional
+/datastreams verbs didn't surface new tests. The 2 failures
+(read-back uid preservation) carried over and are Stage 18's
+target.
 
 ### Stage 18 — uid preservation on read-back
 
@@ -439,13 +448,63 @@ upstream lands the emission natively, the workaround triple +
 write/read code on this side retires the same way Stage 13 retired
 the `X-CS-Geometry-Available` header.
 
-**Expected outcome:** 2 remaining failures flip to PASS. Probe
-projection: `passed=40 / failed=0 / skipped=97` from current
-`passed=38 / failed=2 / skipped=97`.
+**Outcome:** `total=137 passed=40 failed=0 skipped=97` (confirmed
+post-merge 2026-05-17). Both uid-preservation failures flipped
+PASS. **Zero failures against the claimed conformance set** — every
+assertion the harness can run now passes. The 97 SKIPs are gated
+on conformance classes / resources we haven't claimed at v0.1
+(Part 2 write side, `conf/update` (PATCH), Advanced Filtering, and
+all sub-resource item GETs).
 
-### Stage 19+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+### Stage 19 — CS API `conf/update`: PATCH /systems/{id}
 
-Subsequent stages: implement `/procedures`, `/samplingFeatures`,
+Closes the `conf/update` conformance class with PATCH partial-update
+semantics on /systems. The ETS's `UpdateTests` scenario POSTs a
+Feature, PATCHes only `properties.name`, GETs back, asserts the new
+name is present and the other fields are unchanged.
+
+Implementation:
+
+- New `handleSystemPatch` in `systems_patch.go`. Body shape is the
+  same `SystemFeature` POST/PUT accept, with permissive validation:
+  `type: "Feature"` enforced only when present; all
+  `properties.*` fields optional; the path `{id}` is authoritative.
+- `mergePatchSystemTriples` reads the existing triple set and walks
+  it, replacing the triple under each predicate the body addresses
+  (`name` → `PredLabel`, `description` → `PredDescription`,
+  `geometry` → `PredSystemPosition`). Fields the body doesn't
+  address survive untouched. Fields the body addresses but the
+  entity didn't have are appended fresh.
+- Body-uid-vs-existing-uid safety gate runs *before* any
+  destructive operation (same shape as PUT).
+- 404 on missing entity — PATCH is strict, NOT upsert (PUT remains
+  the upsert path).
+- Re-uses Stage 16's `deleteAllEntityTriples` + `ingestTriples`
+  two-step replace, so the same partial-erasure window applies
+  (surfaced via `X-CS-Partial-Delete: true` on the add-batch
+  failure path).
+- `handleSystemOptions` Allow header gains `PATCH`.
+- `conformance.go` claims
+  `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/update`,
+  scoped to /systems at v0.1 (/datastreams PATCH is a follow-up,
+  same partial-claim precedent as Stage 16 used for CRD).
+
+**No JSON Merge Patch null-as-delete** (RFC 7396) at v0.1 — a
+`null` body field is treated as a no-op rather than a remove. The
+ETS doesn't exercise it; the conservative stance avoids surprising
+existing clients.
+
+**Expected outcome:** the ETS's `update` group (currently SKIPped)
+runs. Probe projection: ~4 newly passing tests from the
+`updateSystemPatchLifecycleOptIn` + readiness + dependency-cascade
+assertions; `passed=44 / failed=0 / skipped=93` from current
+40/0/97. The conformance-declaration test will need its expected
+list updated to include `conf/update`.
+
+### Stage 20+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+
+Subsequent stages: PATCH parity on `/datastreams` for full
+`conf/update` scope, implement `/procedures`, `/samplingFeatures`,
 `/properties`, `/deployments`, the Part 2 write side (Control
 Streams, Commands, System Events), and a per-datastream observation
 JetStream Consumer cleanup on DELETE. Each is its own staged ticket.

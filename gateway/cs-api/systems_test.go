@@ -787,6 +787,8 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		// Stage 16 — create-replace-delete claim is honest once PUT/DELETE
 		// + JSON POST + OPTIONS land.
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/create-replace-delete",
+		// Stage 19 — conf/update: PATCH /systems/{id} partial-update.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/update",
 	}
 	if len(decl.ConformsTo) != len(stageConformanceClasses) {
 		t.Errorf("ConformsTo count: got %d want %d (declared classes drift from stageConformanceClasses)",

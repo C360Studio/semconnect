@@ -341,8 +341,35 @@ if ! compose build >"$BUILD_LOG" 2>&1; then
 fi
 
 log "step 3/7 — docker compose up -d (waits for all healthchecks)"
-compose up -d --wait --wait-timeout "$HEALTH_TIMEOUT_S" \
-    || die "compose up failed or service healthchecks timed out at ${HEALTH_TIMEOUT_S}s"
+# `--wait` was dropped 2026-05-17 because GHA runners updated docker
+# compose to a version that exits non-zero for `--wait` when ANY
+# service has `healthcheck: disable: true` — cs-api-server's
+# distroless/static image cannot run a shell-based healthcheck and
+# has `disable: true` by design. Without `--wait` we get the dep-chain
+# wait via `depends_on: condition: service_healthy` (nats →
+# semstreams-backend → cs-api-server starts, then teamengine), and
+# we close the cs-api-server readiness gap with an explicit
+# compose-network curl poll below.
+compose up -d || die "compose up failed"
+
+log "  waiting for cs-api-server /health on compose network (budget ${HEALTH_TIMEOUT_S}s)"
+cs_api_ready=0
+for i in $(seq 1 "$HEALTH_TIMEOUT_S"); do
+    cs_health="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -o /dev/null -w '%{http_code}' \
+        "http://cs-api-server:8080/health" 2>/dev/null || true)"
+    if [[ "$cs_health" == "200" ]]; then
+        cs_api_ready=1
+        log "  cs-api-server reachable after ${i}s"
+        break
+    fi
+    sleep 1
+done
+if [[ "$cs_api_ready" != "1" ]]; then
+    die "cs-api-server /health did not return 200 within ${HEALTH_TIMEOUT_S}s"
+fi
 
 # 4. Sanity-poke the IUT — prove cs-api-server is up before we burn a
 #    suite-run timeout on a networking failure. We probe from the host

@@ -14,8 +14,15 @@ const (
 	MediaJSON     MediaType = "application/json"
 	MediaJSONLD   MediaType = "application/ld+json"
 	MediaGeoJSON  MediaType = "application/geo+json"
-	MediaSensorML MediaType = "application/sensorml+json"
-	MediaOMS      MediaType = "application/om+json"
+	// SensorML 2.0 JSON encoding. Per CS API §11.7 the canonical media
+	// type is `application/sml+json`; `application/sensorml+json` was a
+	// pre-Stage-14 longer-name choice. We now serve the spec form;
+	// MediaSensorMLLegacy is the long-name alias the supported() table
+	// still advertises for backward compat with anything that learned
+	// the long form from older /api docs or returned 406 bodies.
+	MediaSensorML       MediaType = "application/sml+json"
+	MediaSensorMLLegacy MediaType = "application/sensorml+json"
+	MediaOMS            MediaType = "application/om+json"
 	// OAS3 content types per OpenAPI Initiative registration (2021).
 	// Used by /api (Stage 12) — Swagger UI / Redoc / openapi-generator
 	// all prefer the +json form; the YAML form is the raw embedded body.
@@ -59,7 +66,14 @@ const (
 func (fam ResourceFamily) supported() []MediaType {
 	switch fam {
 	case FamilySystemItem:
-		return []MediaType{MediaJSON, MediaSensorML, MediaJSONLD}
+		// MediaSensorML (spec form `application/sml+json`) is ordered
+		// before MediaSensorMLLegacy (`application/sensorml+json`) so
+		// Negotiate's stable-sort tiebreaker picks the spec form when
+		// a client sends both in the same Accept header (e.g.
+		// `Accept: application/sml+json, application/sensorml+json`).
+		// Long-form-only clients still get a 200 — they just match
+		// the legacy entry second.
+		return []MediaType{MediaJSON, MediaSensorML, MediaSensorMLLegacy, MediaJSONLD}
 	case FamilySystemCollection:
 		// No SensorML SystemCollection type; collection JSON-LD is a
 		// Stage 5+ concern (vocabulary/export is per-entity today).

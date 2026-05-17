@@ -165,8 +165,11 @@ func TestHandleSystemPost_ContentTypeWrong(t *testing.T) {
 	if rr.Code != http.StatusUnsupportedMediaType {
 		t.Errorf("status: got %d want 415", rr.Code)
 	}
-	if got := rr.Header().Get("Accept-Post"); got != string(MediaSensorML) {
-		t.Errorf("Accept-Post: got %q want %q", got, MediaSensorML)
+	// Stage 14 — Accept-Post advertises both the spec form and the
+	// legacy long form (see negotiation.go MediaSensorML doc).
+	wantAcceptPost := string(MediaSensorML) + ", " + string(MediaSensorMLLegacy)
+	if got := rr.Header().Get("Accept-Post"); got != wantAcceptPost {
+		t.Errorf("Accept-Post: got %q want %q", got, wantAcceptPost)
 	}
 	if fake.gotSubject != "" {
 		t.Errorf("publish should not have been called; got subject=%q", fake.gotSubject)

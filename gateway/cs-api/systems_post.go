@@ -1,6 +1,7 @@
 package csapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -27,6 +28,51 @@ import (
 // (lowercased name).
 const SubjectTripleAddBatch = "graph.mutation.triple.add_batch"
 
+// PredSystemPosition is the predicate name cs-api uses to store the
+// SensorML `position` field as a triple — a sister-side workaround for
+// the framework's missing position-preservation. Stage 14. Three-part
+// dotted form matches framework convention. The Object value is the
+// raw GeoJSON-shaped JSON bytes (as a string) from the SensorML input.
+//
+// Retires when the upstream ask
+// (docs/upstream-asks/semstreams-sensorml-position-preservation.md)
+// lands and Asset.Triples() emits a `sensorml.process.position` triple
+// (or similar) natively. The two predicate names can coexist during
+// migration; readers should look for both until cutover.
+const PredSystemPosition = "cs-api.system.position"
+
+// jsonNull is the byte-equality target for detecting a literal JSON
+// null in extractPositionTriple. Declared above the function so a
+// top-down reader sees it before its first reference.
+var jsonNull = []byte("null")
+
+// extractPositionTriple peeks the raw POST body for a top-level
+// `position` field and returns it as a sister-side workaround triple.
+// We unmarshal into a struct with `Position json.RawMessage` (not
+// full JSON-to-map) so the bytes preserve client-side number precision
+// and field ordering — critical for GeoJSON consumers that compare
+// coordinates strictly. Returns ok=false when the field is absent,
+// empty, or the literal JSON null.
+func extractPositionTriple(entityID string, body []byte) (message.Triple, bool) {
+	var probe struct {
+		Position json.RawMessage `json:"position,omitempty"`
+	}
+	if err := json.Unmarshal(body, &probe); err != nil || len(probe.Position) == 0 {
+		return message.Triple{}, false
+	}
+	// JSON literal `null` decodes to a 4-byte RawMessage `[]byte("null")`.
+	// Skip it — there's no geometry to store and downstream consumers
+	// shouldn't have to special-case the string "null".
+	if bytes.Equal(probe.Position, jsonNull) {
+		return message.Triple{}, false
+	}
+	return message.Triple{
+		Subject:   entityID,
+		Predicate: PredSystemPosition,
+		Object:    string(probe.Position),
+	}, true
+}
+
 // handleSystemPost serves POST /systems — CS API §7.6.
 //
 // Why request-reply on `graph.mutation.triple.add_batch` and not the
@@ -38,8 +84,13 @@ const SubjectTripleAddBatch = "graph.mutation.triple.add_batch"
 // gives us a real Success/Error reply to return 201 Created honestly.
 // See docs/upstream-asks/semstreams-entity-create-handlers-unwired.md.
 func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
-	if err := requireMediaType(r.Header.Get("Content-Type"), string(MediaSensorML)); err != nil {
-		w.Header().Set("Accept-Post", string(MediaSensorML))
+	// Stage 14: accept both spec form (sml+json) and legacy long form
+	// (sensorml+json). Symmetric with FamilySystemItem's read-side set.
+	// Accept-Post advertises both so clients sending the wrong one know
+	// what's on offer.
+	if err := requireMediaTypeAny(r.Header.Get("Content-Type"),
+		string(MediaSensorML), string(MediaSensorMLLegacy)); err != nil {
+		w.Header().Set("Accept-Post", string(MediaSensorML)+", "+string(MediaSensorMLLegacy))
 		writeJSONError(w, http.StatusUnsupportedMediaType, err.Error())
 		return
 	}
@@ -75,6 +126,26 @@ func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
 		// belt to that suspenders so we never publish a 0-triple batch.
 		writeJSONError(w, http.StatusBadRequest, "SensorML process produced no representable triples")
 		return
+	}
+
+	// Stage 14 sister-side workaround for the framework's missing
+	// SensorML position preservation. `parser/sensorml`'s type model
+	// has no Position field on AbstractProcess (verified at framework
+	// v1.0.0-beta.75 types_process.go:40-55) so `position` in the input
+	// JSON is silently dropped at unmarshal. We peek the raw body for
+	// a top-level `position` here and append a triple under our own
+	// predicate name (`cs-api.system.position`) so /systems/{id} can
+	// surface geometry — without that, the Botts ETS
+	// `systemItemHasGeometryOrValidTime` test SkipExceptions and
+	// cascade-gates the entire sensorml + geojson groups.
+	//
+	// Retire this block when the upstream ask
+	// (docs/upstream-asks/semstreams-sensorml-position-preservation.md)
+	// lands a Position field on AbstractProcess + emits the triple
+	// natively. Migration: triple-rewrite existing entities from
+	// `cs-api.system.position` to the new framework predicate.
+	if posTriple, ok := extractPositionTriple(entityID, body); ok {
+		triples = append(triples, posTriple)
 	}
 
 	id := IdentityFrom(r.Context())

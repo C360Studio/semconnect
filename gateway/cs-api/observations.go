@@ -218,18 +218,36 @@ func validateEntityIDStrict(id string) error {
 	return nil
 }
 
-// requireMediaType verifies the Content-Type header against want. Returns an
-// error suitable for a 415 response when it does not match.
+// requireMediaType is the single-candidate clarity alias for
+// requireMediaTypeAny. Kept because single-form Content-Type checks
+// read more naturally without the variadic — both POST observations
+// (one form) and POST datastreams (one form) use it.
 func requireMediaType(got, want string) error {
+	return requireMediaTypeAny(got, want)
+}
+
+// requireMediaTypeAny accepts any one of the candidate media types.
+// Stage 14 introduced this to handle Content-Type aliases (e.g.
+// SensorML's spec form `application/sml+json` vs the legacy long form
+// `application/sensorml+json` — see negotiation.go MediaSensorML doc).
+// First candidate names the canonical form for the error message;
+// any candidate matches via strings.EqualFold on the parsed media type.
+func requireMediaTypeAny(got string, candidates ...string) error {
+	if len(candidates) == 0 {
+		return fmt.Errorf("requireMediaTypeAny: no candidates provided (programmer error)")
+	}
 	if got == "" {
-		return fmt.Errorf("Content-Type required (expected %s)", want)
+		return fmt.Errorf("Content-Type required (expected %s)", candidates[0])
 	}
 	mt, _, err := mime.ParseMediaType(got)
 	if err != nil {
 		return fmt.Errorf("malformed Content-Type: %v", err)
 	}
-	if !strings.EqualFold(mt, want) {
-		return fmt.Errorf("Content-Type %q not supported (expected %s)", mt, want)
+	for _, c := range candidates {
+		if strings.EqualFold(mt, c) {
+			return nil
+		}
 	}
-	return nil
+	return fmt.Errorf("Content-Type %q not supported (expected one of: %s)",
+		mt, strings.Join(candidates, ", "))
 }

@@ -840,6 +840,18 @@ components:
         label:         {type: string}
         description:   {type: string}
         definition:    {type: string, format: uri}
+        geometry:
+          type: object
+          description: |-
+            GeoJSON-shaped position recovered from the SensorML
+            `position` field. Typically `{type: "Point", coordinates:
+            [lon, lat, alt?]}`. Stage 14 sister-side workaround for
+            the framework's missing SensorML position-preservation;
+            stored under the `cs-api.system.position` triple
+            predicate. Absent when the source SensorML had no
+            position. Retires when upstream `parser/sensorml` lands
+            a Position field on AbstractProcess + emits a triple
+            natively.
         hosts:
           type: array
           items: {type: string}
@@ -854,7 +866,9 @@ components:
           items: {$ref: "#/components/schemas/Link"}
       description: |-
         v0.1 JSON subset reconstructed from triples. Lossy fields
-        documented via `X-CS-Reconstructed-Lossy: true`.
+        documented via `X-CS-Reconstructed-Lossy: true`. Stage 14
+        adds `geometry` via sister-side position-preservation
+        workaround.
 
     DatastreamCollection:
       type: object

@@ -362,9 +362,14 @@ real evidence of POST/PUT/DELETE round-trip.
 `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/create-replace-delete`.
 `update` (PATCH) is intentionally NOT claimed at v0.1.
 
-**Expected outcome:** the harness picks up the CRD group; we expect at
-least the ETS's `createReplaceDeleteResource` cluster to flip from
-SKIPPED to PASSED (~7 tests across the POST/PUT/DELETE cluster).
+**Outcome:** `total=137 passed=38 failed=2 skipped=97`. From Stage 15
+(32/0/105): +6 newly passing tests (the CRD lifecycle group), -8
+SKIPs, +2 failures — both are read-back uid-preservation gaps the
+mutation opt-in surfaced (Stage 18 target). NOTE: this number
+materialized only after PR #19 (`chore/conformance-compose-wait-fix`,
+2026-05-17) fixed a GHA `docker compose up --wait` regression that
+was making every main-branch probe FATAL since 2026-05-16. Pre-fix
+the harness couldn't even start the stack.
 
 ### Stage 17 — CS API §10.6 create-replace-delete on `/datastreams`
 
@@ -392,10 +397,14 @@ The `conformance.go` claim comment is updated to note both resource
 types now serve the full CRD verb set — no more partial-claim
 disclaimer.
 
-**Expected outcome:** the harness's CRD lifecycle group now exercises
-both /systems and /datastreams. Conformance probe should show the
-remaining `createReplaceDeleteResource` cluster targeting datastream
-mutations flip from SKIPPED to PASSED.
+**Outcome:** `total=137 passed=38 failed=2 skipped=97` (unchanged
+from Stage 16's headline numbers). Stage 17's contribution was
+making the `create-replace-delete` claim *honest* across both
+resource types — the ETS's CRD lifecycle tests already passed when
+exercised against /systems alone at Stage 16, so the additional
+/datastreams verbs didn't surface new tests. The 2 failures
+(read-back uid preservation) carried over and are Stage 18's
+target.
 
 ### Stage 18 — uid preservation on read-back
 
@@ -439,9 +448,13 @@ upstream lands the emission natively, the workaround triple +
 write/read code on this side retires the same way Stage 13 retired
 the `X-CS-Geometry-Available` header.
 
-**Expected outcome:** 2 remaining failures flip to PASS. Probe
-projection: `passed=40 / failed=0 / skipped=97` from current
-`passed=38 / failed=2 / skipped=97`.
+**Outcome:** `total=137 passed=40 failed=0 skipped=97` (confirmed
+post-merge 2026-05-17). Both uid-preservation failures flipped
+PASS. **Zero failures against the claimed conformance set** — every
+assertion the harness can run now passes. The 97 SKIPs are gated
+on conformance classes / resources we haven't claimed at v0.1
+(Part 2 write side, `conf/update` (PATCH), Advanced Filtering, and
+all sub-resource item GETs).
 
 ### Stage 19+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
 

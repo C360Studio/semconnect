@@ -515,6 +515,20 @@ paths:
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsDatastreams
+      summary: Advertise allowed methods on /datastreams.
+      description: |-
+        Returns 204 with an `Allow` header. Lets the ETS confirm
+        write-side readiness without exercising POST.
+      tags: [Datastreams]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, POST, OPTIONS`'
 
   /datastreams/{id}:
     parameters:
@@ -541,6 +555,77 @@ paths:
       responses:
         "200": {description: OK (no body)}
         "404": {description: Not Found}
+    put:
+      operationId: replaceDatastream
+      summary: Replace a datastream (CS API §10.6 create-replace-delete).
+      description: |-
+        Replace-or-upsert semantics: existing triples for the entity
+        are removed, then the request body's triples are written. If
+        the entity does not exist, the body's triples are written
+        fresh (CS API §10.6 standard PUT-as-upsert).
+
+        Body media type is `application/json` only — the CS API §10
+        Datastream JSON shape. Required fields (`system`,
+        `observedProperty`) are validated. If the body carries an
+        `id` field it must match the path `{id}` — mismatch yields
+        400 *before* any destructive operation.
+      tags: [Datastreams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DatastreamCreate"}
+      responses:
+        "204":
+          description: Datastream replaced or upserted.
+          headers:
+            X-CS-Attempted-ID:
+              schema: {type: string}
+            X-CS-Partial-Delete:
+              schema: {type: string, enum: ["true"]}
+              description: |-
+                Present (with value `true`) on a 5xx if the destructive
+                half succeeded but the add-batch failed — the entity is
+                in a partial/erased state and the client must retry.
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    delete:
+      operationId: deleteDatastream
+      summary: Delete a datastream (CS API §10.6 create-replace-delete).
+      description: |-
+        Idempotent: a delete against a non-existent ID still returns
+        204. Removes every triple associated with the entity. A 5xx
+        with `X-CS-Partial-Delete: true` indicates the fan-out failed
+        mid-loop — client should retry.
+
+        **Observations are NOT cascade-deleted at v0.1.** Observations
+        published via POST /datastreams/{id}/observations live in the
+        `cs-api.observations.{id}` JetStream, which is operator-managed
+        and outside the triple-graph delete loop. Reading
+        /datastreams/{id}/observations after DELETE returns 200 with
+        whatever observations remain on the stream until the operator
+        (or a future stage) purges them.
+      tags: [Datastreams]
+      responses:
+        "204": {description: Datastream deleted (or never existed).}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsDatastream
+      summary: Advertise allowed methods on /datastreams/{id}.
+      description: |-
+        Returns 204 with an `Allow` header. PATCH intentionally
+        absent — cs-api does not implement PATCH at v0.1.
+      tags: [Datastreams]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, PUT, DELETE, OPTIONS`'
 
   /datastreams/{datastreamID}/observations:
     parameters:

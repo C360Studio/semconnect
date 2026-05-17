@@ -60,20 +60,17 @@ var stageConformanceClasses = []string{
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
-	// Stage 16 — CS API §7.6 create-replace-delete: POST
-	// (application/json + application/sml+json + application/geo+json),
-	// PUT (application/json + application/geo+json), DELETE, OPTIONS.
+	// Stage 16 + 17 — CS API §7.6/§10.6 create-replace-delete:
+	// POST + PUT + DELETE + OPTIONS on /systems (Stage 16) and
+	// /datastreams (Stage 17). Both resource types the IUT implements
+	// now serve the full CRD verb set; the conformance class claim is
+	// honest across all of /systems and /datastreams.
 	//
-	// **Scope at v0.1:** claim is honest at the `/systems`
-	// resource-type only. POST /datastreams already lands at Stage 8;
-	// PUT/DELETE/OPTIONS on /datastreams ship at Stage 17. The CS API
-	// spec defines CRD as a per-resource-type capability — the ETS
-	// exercises CRD against each resource type the IUT implements;
-	// tests against /datastreams remain SKIP until PUT/DELETE/OPTIONS
-	// land there. This is the same partial-claim pattern Stage 4 used
-	// for `conf/sensorml` (only /systems serves sensorml+json) and
-	// Stage 5 used for `conf/geojson` (only /areas served geo+json
-	// before Stage 15).
+	// Per-resource media types:
+	//   /systems POST: sml+json | sensorml+json | json | geo+json
+	//   /systems PUT:  json | geo+json (no SensorML on PUT — lossy
+	//                  reverse-mapping would surprise clients)
+	//   /datastreams POST/PUT: json only (no SensorML wrapper)
 	//
 	// PATCH is intentionally NOT claimed (no `conf/update` either) —
 	// that lands at a future stage when PATCH semantics + a merge

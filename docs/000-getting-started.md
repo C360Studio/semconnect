@@ -366,13 +366,43 @@ real evidence of POST/PUT/DELETE round-trip.
 least the ETS's `createReplaceDeleteResource` cluster to flip from
 SKIPPED to PASSED (~7 tests across the POST/PUT/DELETE cluster).
 
-### Stage 17+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+### Stage 17 — CS API §10.6 create-replace-delete on `/datastreams`
 
-Subsequent stages: extend CRD to `/datastreams` (POST already lands;
-PUT + DELETE + OPTIONS to add), implement `/procedures`,
-`/samplingFeatures`, `/properties`, `/deployments`, and the Part 2
-write side (Control Streams, Commands, System Events). Each is its
-own staged ticket.
+Brings `/datastreams` to parity with Stage 16's `/systems` CRD set so
+the `create-replace-delete` conformance class claim is honest across
+every resource type the IUT implements.
+
+- **PUT /datastreams/{id}** — `application/json` only (no SensorML on
+  datastreams; CS API §10 doesn't define one). Re-validates required
+  `system` (6-part SemStreams strict) + `observedProperty` (non-empty
+  IRI). Body `id` (if present) must match path; mismatch yields 400
+  *before* any destructive remove. Re-uses `datastreamToTriples` +
+  `deleteAllEntityTriples` + `ingestTriples` (same partial-erasure
+  window + same audit-headers symmetry as Stage 16 /systems).
+- **DELETE /datastreams/{id}** — idempotent (errEntityNotFound
+  swallowed → 204). **Does NOT cascade-delete observations.**
+  Observations live in the `cs-api.observations.{datastreamID}`
+  JetStream which is operator-managed and outside the triple-graph
+  delete loop. Documented in the OAS3 description so client SDKs
+  don't ship with the wrong assumption. Future stage (likely 18+)
+  wires per-datastream JetStream Consumer cleanup.
+- **OPTIONS** on collection + item, same shape as /systems.
+
+The `conformance.go` claim comment is updated to note both resource
+types now serve the full CRD verb set — no more partial-claim
+disclaimer.
+
+**Expected outcome:** the harness's CRD lifecycle group now exercises
+both /systems and /datastreams. Conformance probe should show the
+remaining `createReplaceDeleteResource` cluster targeting datastream
+mutations flip from SKIPPED to PASSED.
+
+### Stage 18+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+
+Subsequent stages: implement `/procedures`, `/samplingFeatures`,
+`/properties`, `/deployments`, the Part 2 write side (Control
+Streams, Commands, System Events), and a per-datastream observation
+JetStream Consumer cleanup on DELETE. Each is its own staged ticket.
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)

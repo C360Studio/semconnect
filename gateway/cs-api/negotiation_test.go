@@ -26,8 +26,13 @@ func TestNegotiate(t *testing.T) {
 		{"explicit JSON on system item", "application/json", FamilySystemItem, MediaJSON, true},
 		{"wildcard subtype resolves to family default", "application/*", FamilySystemItem, MediaJSON, true},
 		{"global wildcard resolves to family default", "*/*", FamilyObservationCollection, MediaJSON, true},
-		{"SensorML wired at Stage 4 (item)", "application/sensorml+json", FamilySystemItem, MediaSensorML, true},
-		{"SensorML NOT wired on collection — 406", "application/sensorml+json", FamilySystemCollection, "", false},
+		// Stage 14: MediaSensorML is `application/sml+json` (spec form per
+		// CS API §11.7 + Botts ETS). `application/sensorml+json` is the
+		// long-form legacy alias kept for backward compat.
+		{"SensorML spec form (sml+json) wired at Stage 14", "application/sml+json", FamilySystemItem, MediaSensorML, true},
+		{"SensorML legacy long form still wired", "application/sensorml+json", FamilySystemItem, MediaSensorMLLegacy, true},
+		{"SensorML NOT wired on collection — 406 (sml+json)", "application/sml+json", FamilySystemCollection, "", false},
+		{"SensorML NOT wired on collection — 406 (long form)", "application/sensorml+json", FamilySystemCollection, "", false},
 		{"JSON-LD wired at Stage 4 for system items", "application/ld+json", FamilySystemItem, MediaJSONLD, true},
 		{"JSON-LD NOT wired on collection — 406", "application/ld+json", FamilySystemCollection, "", false},
 		{"JSON-LD wired at Stage 4 for /conformance", "application/ld+json", FamilyService, MediaJSONLD, true},
@@ -36,7 +41,7 @@ func TestNegotiate(t *testing.T) {
 		{"unsupported only → 406", "application/xml, text/html", FamilySystemItem, "", false},
 		{"XML out of scope even when listed first", "application/xml", FamilyObservationCollection, "", false},
 		{"comma-separated with whitespace picks JSON", " application/json , application/xml ", FamilySystemItem, MediaJSON, true},
-		{"q-weighted preference: SensorML over JSON when client weights it higher", "application/json;q=0.5, application/sensorml+json;q=0.9", FamilySystemItem, MediaSensorML, true},
+		{"q-weighted preference: SensorML over JSON when client weights it higher", "application/json;q=0.5, application/sml+json;q=0.9", FamilySystemItem, MediaSensorML, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -84,10 +89,10 @@ func TestNegotiateRequest_FParameterOverridesAccept(t *testing.T) {
 			"/systems?f=html", "application/json", FamilySystemItem, "", false},
 		{"f=garbage — 406 not silent passthrough",
 			"/systems?f=zzz", "application/json", FamilySystemItem, "", false},
-		{"empty f= falls back to Accept",
-			"/systems?f=", "application/sensorml+json", FamilySystemItem, MediaSensorML, true},
-		{"absent f= falls back to Accept",
-			"/systems", "application/sensorml+json", FamilySystemItem, MediaSensorML, true},
+		{"empty f= falls back to Accept (legacy long form)",
+			"/systems?f=", "application/sensorml+json", FamilySystemItem, MediaSensorMLLegacy, true},
+		{"absent f= falls back to Accept (legacy long form)",
+			"/systems", "application/sensorml+json", FamilySystemItem, MediaSensorMLLegacy, true},
 		{"f= case-insensitive",
 			"/systems?f=JSON", "", FamilySystemItem, MediaJSON, true},
 	}

@@ -90,6 +90,12 @@ type system struct {
 	Label         string   `json:"label,omitempty"`
 	Description   string   `json:"description,omitempty"`
 	Definition    string   `json:"definition,omitempty"`
+	// Geometry is the GeoJSON-shaped position (`{type: Point, coordinates:
+	// [lon, lat, alt?]}` typically) recovered from the cs-api.system.position
+	// triple. Stage 14 sister-side workaround for the framework's missing
+	// SensorML position preservation. json.RawMessage so the round-trip
+	// preserves whatever shape the client posted — Point, Polygon, etc.
+	Geometry      json.RawMessage `json:"geometry,omitempty"`
 	Hosts         []string `json:"hosts,omitempty"`
 	HostedBy      string   `json:"hostedBy,omitempty"`
 	UsedProcedure string   `json:"usedProcedure,omitempty"`
@@ -138,6 +144,14 @@ func systemFromState(state graph.EntityState) system {
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredIsHostedBy); ok {
 		s.HostedBy = v
+	}
+	// Stage 14 — surface position from the sister-side workaround
+	// triple (see systems_post.go PredSystemPosition doc). Object is
+	// the raw GeoJSON-shaped JSON bytes (as string); cast back to
+	// RawMessage so the JSON encoder writes them verbatim rather than
+	// re-quoting them as a string literal.
+	if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok {
+		s.Geometry = json.RawMessage(v)
 	}
 	s.Hosts = allStringObjects(state.Triples, sensorml.PredHosts)
 	for _, t := range state.Triples {
@@ -263,8 +277,12 @@ func (c *Component) handleSystem(w http.ResponseWriter, r *http.Request) {
 	switch media {
 	case MediaJSON:
 		c.writeSystemJSON(w, r, state)
-	case MediaSensorML:
-		c.writeSystemSensorML(w, r, state)
+	case MediaSensorML, MediaSensorMLLegacy:
+		// Both spec-form (sml+json) and long-form (sensorml+json) land
+		// on the same reverse mapping; writeSystemSensorML emits the
+		// negotiated media as its Content-Type so the response label
+		// matches what the client asked for. Stage 14.
+		c.writeSystemSensorML(w, r, state, media)
 	case MediaJSONLD:
 		c.writeSystemJSONLD(w, r, state)
 	default:
@@ -312,7 +330,7 @@ func (c *Component) writeSystemJSON(w http.ResponseWriter, r *http.Request, stat
 // gate in handleSystem, so any reconstruction failure here is a server-
 // side data-integrity issue (a malformed triple set the gate didn't catch),
 // not a client problem — 500.
-func (c *Component) writeSystemSensorML(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
+func (c *Component) writeSystemSensorML(w http.ResponseWriter, r *http.Request, state graph.EntityState, media MediaType) {
 	proc, err := systemReconstructionFromState(state)
 	if err != nil {
 		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeSystemSensorML", "reverse mapping"))
@@ -323,7 +341,7 @@ func (c *Component) writeSystemSensorML(w http.ResponseWriter, r *http.Request, 
 		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeSystemSensorML", "marshal sensorml"))
 		return
 	}
-	w.Header().Set("Content-Type", string(MediaSensorML))
+	w.Header().Set("Content-Type", string(media))
 	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {

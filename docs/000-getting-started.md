@@ -291,11 +291,31 @@ cs-api was carrying:
 
 `go.mod` bumped, `conformance/.ets-pin` `SEMSTREAMS_COMMIT` bumped to match. `gateway/cs-api/openapi.yaml` schemas updated to reflect real Point geometry + drop the retired headers from response shapes.
 
-**Outcome:** `total=137 passed=20 failed=0 skipped=117`. Identical to Stage 12 — no regressions, no new PASSes. The headline numbers didn't move because the lone systemfeatures MAY-priority test (`systemItemHasGeometryOrValidTime`) still blocks the sensorml + geojson cascade groups; that test asserts geometry OR validTime on `/systems/{id}` and the framework's sensorml emitter still doesn't preserve the `position` field through the triple round-trip. That's the Stage 14 target — either a new upstream ask for sensorml position-preservation, or a sister-side workaround.
+**Outcome:** `total=137 passed=20 failed=0 skipped=117`. Identical to Stage 12 — no regressions, no new PASSes. The headline numbers didn't move because the lone systemfeatures MAY-priority test (`systemItemHasGeometryOrValidTime`) still blocks the sensorml + geojson cascade groups; that test asserts geometry OR validTime on `/systems/{id}` and the framework's sensorml emitter still doesn't preserve the `position` field through the triple round-trip. That's the Stage 14 target.
 
 The third deferral header — `X-CS-Reconstructed-Lossy: true` on `GET /systems/{id}` — stays in place; it's a property of our triple-round-trip reconstruction and won't retire until the framework's triple emitter preserves more fields (or we switch to a different storage strategy).
 
-### Stage 14+ — sensorml position chokepoint + iterative resource implementation (open-ended)
+### Stage 14 — SensorML position-preservation sister-side workaround + `sml+json` media type alias
+
+The chokepoint cascade unblocker. Pre-Stage 14, one MAY-priority ETS test (`systemItemHasGeometryOrValidTime`) emitted `SkipException` because `/systems/{id}` lacked geometry, keeping the entire `systemfeatures` group "not successfully finished" → sensorml + geojson groups cascade-SKIPped (~26 tests).
+
+The framework's `parser/sensorml` has no `Position` field on `AbstractProcess` and emits no position triple (verified at framework v1.0.0-beta.75). Upstream ask drafted at `docs/upstream-asks/semstreams-sensorml-position-preservation.md`. Until upstream lands, sister-side workaround:
+
+1. **POST /systems** (`gateway/cs-api/systems_post.go`): after `sensorml.NewAsset(...).Triples()`, peek the raw POST body for a top-level `position` field (`extractPositionTriple`). If present + not literal `null`, append a triple `(entityID, "cs-api.system.position", <raw GeoJSON bytes as string>)` to the batch. `PredSystemPosition` const documents the workaround + retire-on-upstream-fix path.
+2. **GET /systems/{id}** (`gateway/cs-api/systems.go` `systemFromState`): look for the `cs-api.system.position` triple; if present, populate a new `Geometry json.RawMessage` field on the System struct (omitempty). RawMessage preserves the exact GeoJSON bytes from POST — no re-marshal-through-interface{} precision loss.
+3. **OAS schema** (`gateway/cs-api/openapi.yaml`): `System.geometry` documented as the GeoJSON-shaped recovered position, with retire-on-upstream-fix note.
+
+Also: **`application/sml+json` media type alias.** CS API §11.7 + the Botts ETS use the spec form `application/sml+json`, not the longer `application/sensorml+json` we'd been serving. Stage 14 made `MediaSensorML = "application/sml+json"` (spec form, primary) and added `MediaSensorMLLegacy = "application/sensorml+json"` (backward-compat). Both `Accept` and POST `Content-Type` honor either; `Accept-Post` advertises both. New `requireMediaTypeAny()` helper in `observations.go` for multi-candidate Content-Type matching.
+
+**Outcome:** `total=137 passed=29 failed=1 skipped=107`. From Stage 12 baseline (`passed=20 failed=0 skipped=117`): +9 newly passing tests (the entire cascade unblock), +1 failure (the next layer surfaced — `geoJsonMediaTypeRead` wants `application/geo+json` on `/systems` collection, deferred to Stage 15), -10 SKIPs.
+
+The 9 newly-passing tests: `systemItemHasGeometryOrValidTime` (the chokepoint) + 6 sensorml + 2 geojson cascade-runtime tests.
+
+### Stage 15 — GeoJSON FeatureCollection on `/systems` collection
+
+The lone remaining failure after Stage 14. The Botts ETS `geoJsonMediaTypeRead` requires `GET /systems` with `Accept: application/geo+json` to return a FeatureCollection — currently 406s (collection family is JSON-only). Implementation: extend `FamilySystemCollection.supported()` to include `MediaGeoJSON`, wrap each system as a Feature with `geometry` from `cs-api.system.position` triple and `properties` carrying the rest. Pattern is established by `/areas` (Stage 13 closed its geometry deferral). Probably ~2 hours of work + tests + probe.
+
+### Stage 16+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)

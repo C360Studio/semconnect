@@ -397,7 +397,53 @@ both /systems and /datastreams. Conformance probe should show the
 remaining `createReplaceDeleteResource` cluster targeting datastream
 mutations flip from SKIPPED to PASSED.
 
-### Stage 18+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+### Stage 18 — uid preservation on read-back
+
+Closes the 2 remaining failures Stage 16's mutation opt-in surfaced:
+`sensorMlMediaTypeWriteParsesSystemBodyWhenMutationEnabled` and
+`geoJsonMediaTypeWriteParsesSystemBodyWhenMutationEnabled`. Both
+assert that a POST → GET round-trip preserves the
+client-submitted `uniqueId` / `properties.uid` on the response, via
+any of three field-name fallbacks: top-level `uid`, top-level
+`uniqueId`, nested `properties.uid`.
+
+Sister-side workaround mirroring Stage 14's
+`cs-api.system.position` pattern:
+
+- New predicate constant `PredSystemUID = "cs-api.system.uid"` in
+  `systems_post.go`.
+- `buildSystemTriplesFromSensorML` appends the triple when
+  `process.Base().UniqueID != ""` (absent uniqueId leaves no
+  synthetic value — the entity ID would mislead the read-back).
+- `buildSystemTriplesFromFeature` appends unconditionally
+  (`properties.uid` is required by the Feature builder).
+- `systemFromState` surfaces the preserved value on top-level
+  `uid`, top-level `uniqueId`, AND nested `properties.uid` via a
+  new `featureProperties` container — belt-and-suspenders so each
+  client family finds the spelling it expects on the same response.
+- `buildAbstractProcess` (SensorML reverse-mapping) reads the
+  triple and writes it back onto `process.Base().UniqueID`.
+
+**Breaking field rename**: the JSON System subset's `properties`
+field (which always carried SensorML characteristics, lossily
+reconstructed) is renamed to `characteristics`. The previous name
+was semantically wrong — SensorML characteristics ≠ GeoJSON Feature
+properties — and freeing the `properties` JSON key was a
+prerequisite for adding the Feature-shape container. Documented in
+the OAS3 schema and via the long-standing
+`X-CS-Reconstructed-Lossy: true` deferral header.
+
+Upstream ask drafted at
+`docs/upstream-asks/semstreams-sensorml-uid-preservation.md`. When
+upstream lands the emission natively, the workaround triple +
+write/read code on this side retires the same way Stage 13 retired
+the `X-CS-Geometry-Available` header.
+
+**Expected outcome:** 2 remaining failures flip to PASS. Probe
+projection: `passed=40 / failed=0 / skipped=97` from current
+`passed=38 / failed=2 / skipped=97`.
+
+### Stage 19+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
 
 Subsequent stages: implement `/procedures`, `/samplingFeatures`,
 `/properties`, `/deployments`, the Part 2 write side (Control

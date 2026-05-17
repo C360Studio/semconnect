@@ -1038,11 +1038,38 @@ components:
       type: object
       required: [id, type, links]
       properties:
-        id:            {type: string}
-        type:          {type: string, enum: [System]}
-        label:         {type: string}
-        description:   {type: string}
-        definition:    {type: string, format: uri}
+        id:          {type: string}
+        type:        {type: string, enum: [System]}
+        label:       {type: string}
+        description: {type: string}
+        definition:  {type: string, format: uri}
+        uid:
+          type: string
+          description: |-
+            Stage 18 — client-submitted identifier (SensorML
+            `uniqueId` or Feature `properties.uid`) preserved via the
+            `cs-api.system.uid` triple. Mirrors `uniqueId` +
+            `properties.uid` on the same entity so SensorML, JSON,
+            and Feature-shape clients each see the spelling they
+            expect. Retires when upstream `parser/sensorml` emits a
+            uid triple natively.
+        uniqueId:
+          type: string
+          description: SensorML spelling of `uid`. Same value, same source triple.
+        properties:
+          type: object
+          required: [uid]
+          description: |-
+            GeoJSON Feature-shape container. Surfaces the same `uid`
+            via `properties.uid` so a client that POSTed a Feature
+            body finds it on read-back where the spec puts it.
+            `uid`, top-level `uid`, and top-level `uniqueId` are
+            **jointly present or jointly absent** — the runtime
+            sources all three from a single `cs-api.system.uid`
+            triple so picking any spelling is safe without checking
+            the other two.
+          properties:
+            uid: {type: string}
         geometry:
           type: object
           description: |-
@@ -1063,7 +1090,15 @@ components:
         attachedTo:    {type: string}
         identifiers:   {type: array, items: {}}
         capabilities:  {type: array, items: {}}
-        properties:    {type: array, items: {}}
+        characteristics:
+          type: array
+          items: {}
+          description: |-
+            SensorML `characteristics` reverse-mapping. Renamed from
+            `properties` at Stage 18 to free the `properties` JSON
+            key for the Feature-shape container above — semantically
+            distinct: SensorML characteristics are metadata
+            descriptors, not GeoJSON Feature properties.
         links:
           type: array
           items: {$ref: "#/components/schemas/Link"}
@@ -1071,7 +1106,8 @@ components:
         v0.1 JSON subset reconstructed from triples. Lossy fields
         documented via `X-CS-Reconstructed-Lossy: true`. Stage 14
         adds `geometry` via sister-side position-preservation
-        workaround.
+        workaround; Stage 18 adds `uid` / `uniqueId` /
+        `properties.uid` via sister-side uid preservation.
 
     SystemFeature:
       type: object

@@ -126,6 +126,12 @@ func reconstructProcessFromTriples(triples []message.Triple, entityID string) (s
 // kind from the triples. Lossy: see file doc comment.
 func buildAbstractProcess(triples []message.Triple, entityID string) sensorml.AbstractProcess {
 	ap := sensorml.AbstractProcess{ID: entityID}
+	// Stage 18 — preserve the client-submitted uniqueId from the
+	// cs-api.system.uid sister-side workaround triple. Absent triple
+	// = absent UniqueID on the response (no synthetic fallback).
+	if v, ok := firstStringObject(triples, PredSystemUID); ok {
+		ap.UniqueID = v
+	}
 	if v, ok := firstStringObject(triples, sensorml.PredLabel); ok {
 		ap.Label = v
 	}

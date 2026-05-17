@@ -43,6 +43,21 @@ const SubjectTripleAddBatch = "graph.mutation.triple.add_batch"
 // migration; readers should look for both until cutover.
 const PredSystemPosition = "cs-api.system.position"
 
+// PredSystemUID is the predicate name cs-api uses to preserve the
+// SensorML `uniqueId` / GeoJSON Feature `properties.uid` submitted at
+// POST time. Stage 18 sister-side workaround: the framework's
+// sensorml.Asset.Triples() does not emit a triple for `uniqueId`
+// (only the *minted* SemStreams entity ID survives), so a read-back
+// after POST surfaces `uniqueId=null` and the ETS's
+// `{sensorMl,geoJson}MediaTypeWriteParsesSystemBodyWhenMutationEnabled`
+// assertions fail.
+//
+// Retires when upstream `parser/sensorml.graphable.go` lands a
+// `sensorml.process.uid` (or similar) triple natively. Three-part
+// dotted form matches framework convention; matches the
+// PredSystemPosition pattern.
+const PredSystemUID = "cs-api.system.uid"
+
 // jsonNull is the byte-equality target for detecting a literal JSON
 // null in extractPositionTriple. Declared above the function so a
 // top-down reader sees it before its first reference.
@@ -184,6 +199,14 @@ func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []messa
 	if posTriple, ok := extractPositionTriple(entityID, body); ok {
 		triples = append(triples, posTriple)
 	}
+	// Stage 18 — preserve the client-submitted uniqueId so a follow-up
+	// GET surfaces it. Absent uniqueId is fine (POST minted a UUID
+	// fallback for the entity ID); we don't store a synthetic value.
+	if uid := process.Base().UniqueID; uid != "" {
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: PredSystemUID, Object: uid,
+		})
+	}
 	return entityID, triples, nil
 }
 
@@ -232,6 +255,12 @@ func (c *Component) buildSystemTriplesFromFeature(body []byte) (string, []messag
 	entityID := c.mintSystemEntityID(feat.Properties.UID)
 	triples := []message.Triple{
 		{Subject: entityID, Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+		// Stage 18 — preserve the submitted properties.uid so a
+		// follow-up GET (json / sml+json / geo+json reconstruction)
+		// can echo it back. UID is required by the Feature builder so
+		// this is unconditional here (unlike the SensorML path which
+		// permits an empty uniqueId).
+		{Subject: entityID, Predicate: PredSystemUID, Object: feat.Properties.UID},
 	}
 	if feat.Properties.Name != "" {
 		triples = append(triples, message.Triple{

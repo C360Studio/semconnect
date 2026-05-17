@@ -47,9 +47,9 @@ type systemCollection struct {
 	// flip on Truncated when the page filled to the requested limit. A
 	// future predicate-query enhancement (or a separate count subject) will
 	// retire the lie. Track as a Stage 4+ follow-up.
-	NumberMatched  int         `json:"numberMatched"`
-	NumberReturned int         `json:"numberReturned"`
-	Truncated      bool        `json:"truncated,omitempty"`
+	NumberMatched  int  `json:"numberMatched"`
+	NumberReturned int  `json:"numberReturned"`
+	Truncated      bool `json:"truncated,omitempty"`
 	// `items` (not `systems`) per CS API §7.13 / OGC API Common §7.14 items
 	// resource. Stage 10 rename — the Botts ETS GeoJSON fixture loader
 	// explicitly looks for the `items` array name and falls back to nothing
@@ -86,25 +86,59 @@ const (
 // lives on the X-CS-Reconstructed-Lossy response header — single source so
 // header and body cannot drift.
 type system struct {
-	ID            string   `json:"id"`
-	Type          string   `json:"type"` // "System"
-	Label         string   `json:"label,omitempty"`
-	Description   string   `json:"description,omitempty"`
-	Definition    string   `json:"definition,omitempty"`
+	ID          string `json:"id"`
+	Type        string `json:"type"` // "System"
+	Label       string `json:"label,omitempty"`
+	Description string `json:"description,omitempty"`
+	Definition  string `json:"definition,omitempty"`
+	// UID + UniqueID + FeatureProperties.UID are Stage 18 sister-side
+	// preservation of the client-submitted identifier. The ETS's
+	// {sensorMl,geoJson}MediaTypeWriteParsesSystemBodyWhenMutationEnabled
+	// assertions check ANY of `uid` / `uniqueId` / `properties.uid` —
+	// we surface the same value on all three from the same
+	// `cs-api.system.uid` triple so SensorML clients (`uniqueId`) and
+	// Feature-shape clients (`properties.uid`) see the spelling they
+	// expect. JSON-System readers see `uid` for backward symmetry
+	// with the Feature POST body. All three are jointly present (uid
+	// triple exists) or jointly absent (no triple) — no partial
+	// states; tested via TestSystemFromState_NoUIDTriple_OmitsAllUIDFields.
+	UID               string             `json:"uid,omitempty"`
+	UniqueID          string             `json:"uniqueId,omitempty"`
+	FeatureProperties *featureProperties `json:"properties,omitempty"`
 	// Geometry is the GeoJSON-shaped position (`{type: Point, coordinates:
 	// [lon, lat, alt?]}` typically) recovered from the cs-api.system.position
 	// triple. Stage 14 sister-side workaround for the framework's missing
 	// SensorML position preservation. json.RawMessage so the round-trip
 	// preserves whatever shape the client posted — Point, Polygon, etc.
 	Geometry      json.RawMessage `json:"geometry,omitempty"`
-	Hosts         []string `json:"hosts,omitempty"`
-	HostedBy      string   `json:"hostedBy,omitempty"`
-	UsedProcedure string   `json:"usedProcedure,omitempty"`
-	AttachedTo    string   `json:"attachedTo,omitempty"`
-	Identifiers   []any    `json:"identifiers,omitempty"`
-	Capabilities  []any    `json:"capabilities,omitempty"`
-	Properties    []any    `json:"properties,omitempty"`
-	Links         []link   `json:"links"`
+	Hosts         []string        `json:"hosts,omitempty"`
+	HostedBy      string          `json:"hostedBy,omitempty"`
+	UsedProcedure string          `json:"usedProcedure,omitempty"`
+	AttachedTo    string          `json:"attachedTo,omitempty"`
+	Identifiers   []any           `json:"identifiers,omitempty"`
+	Capabilities  []any           `json:"capabilities,omitempty"`
+	// Characteristics carries SensorML `characteristics` lossy
+	// reconstruction (Stage 4). Was named `properties` pre-Stage-18;
+	// renamed to free the `properties` JSON key for the Feature-shape
+	// container that the ETS expects. The data is identical, just
+	// relocated. Documented via X-CS-Reconstructed-Lossy.
+	Characteristics []any  `json:"characteristics,omitempty"`
+	Links           []link `json:"links"`
+}
+
+// featureProperties mirrors the GeoJSON Feature-shape `properties`
+// container — the same shape the client POSTs at /systems (Stage 16
+// systemFeatureBody.Properties). Used on read so a Feature-aware
+// client can pull `properties.uid` even from a JSON-only response.
+//
+// Intentionally narrow: only `uid` is surfaced here. Name +
+// description live on the top-level System fields (`label` +
+// `description`) where they're authoritative; mirroring them inside
+// `properties` would create a multi-sourced view that could drift
+// if a future mutation path touches one but not the other. The ETS
+// only checks `properties.uid` — keep this struct exactly that wide.
+type featureProperties struct {
+	UID string `json:"uid"`
 }
 
 // systemFromState collapses an EntityState into the v0.1 JSON shape. Mirrors
@@ -154,6 +188,14 @@ func systemFromState(state graph.EntityState) system {
 	if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok {
 		s.Geometry = json.RawMessage(v)
 	}
+	// Stage 18 — surface the preserved client-submitted identifier on
+	// every spelling the ETS / spec clients look at. The same triple
+	// feeds all three so they cannot drift.
+	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+		s.UID = v
+		s.UniqueID = v
+		s.FeatureProperties = &featureProperties{UID: v}
+	}
 	s.Hosts = allStringObjects(state.Triples, sensorml.PredHosts)
 	for _, t := range state.Triples {
 		switch t.Predicate {
@@ -162,7 +204,7 @@ func systemFromState(state graph.EntityState) system {
 		case sensorml.PredCapabilityValue:
 			s.Capabilities = append(s.Capabilities, t.Object)
 		case sensorml.PredCharacteristicValue:
-			s.Properties = append(s.Properties, t.Object)
+			s.Characteristics = append(s.Characteristics, t.Object)
 		}
 	}
 	return s

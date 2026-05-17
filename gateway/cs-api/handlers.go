@@ -64,6 +64,12 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("GET "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
 	mux.Handle("HEAD "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
 	mux.Handle("POST "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystemPost)))
+	// Stage 16 — CS API §7.6 create-replace-delete: PUT, DELETE on item;
+	// OPTIONS on both collection + item advertising the Allow header.
+	mux.Handle("PUT "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystemPut)))
+	mux.Handle("DELETE "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystemDelete)))
+	mux.Handle("OPTIONS "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystemsOptions)))
+	mux.Handle("OPTIONS "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystemOptions)))
 	mux.Handle("GET "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreams)))
 	mux.Handle("HEAD "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreams)))
 	mux.Handle("POST "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreamPost)))

@@ -321,7 +321,58 @@ N+1 is documented inline. Two future-optimization paths (in `handleSystems` doc 
 
 **Outcome:** `total=137 passed=32 failed=0 skipped=105`. From Stage 14 (29/1/107): +3 newly passing (`geoJsonMediaTypeRead`, `systemFeatureHasGeoJsonShapeAndProperties`, `systemsCollectionIsGeoJsonFeatureCollection`), -1 failure, -2 SKIPs.
 
-### Stage 16+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+### Stage 16 — CS API §7.6 create-replace-delete on `/systems`
+
+Closes the largest single-class gap left after Stage 15: the CRD
+conformance class. Three new verbs land on `/systems`:
+
+- **POST /systems** with `application/json` / `application/geo+json`
+  (GeoJSON Feature body). Joins the existing `application/sml+json` +
+  `application/sensorml+json` accept set. `Content-Type` selects the
+  branch in `handleSystemPost`; the JSON Feature builder
+  (`buildSystemTriplesFromFeature`) mints the entity ID from
+  `properties.uid`, emits `rdf:type ssn:System` + `PredLabel` +
+  `PredDescription` + (when geometry present) the Stage 14
+  `cs-api.system.position` triple. PUT re-uses this builder so the
+  same body works on both verbs.
+- **PUT /systems/{id}** with the same GeoJSON Feature body. **No
+  SensorML on PUT** — the lossy reverse-mapping would mismatch the
+  read-back shape and surprise clients. The handler verifies the
+  body's uid mints to the path ID *before* any destructive operation
+  (mismatch → 400; no remove called). Replace semantics are
+  implemented as `deleteAllEntityTriples` + `ingestTriples`. N
+  per-predicate round-trips per call because the framework's
+  `EntityDelete` request is defined but its NATS handler isn't wired
+  (filed as semstreams#98).
+- **DELETE /systems/{id}** — idempotent (errEntityNotFound is
+  swallowed). 204 No Content.
+- **OPTIONS /systems** + **OPTIONS /systems/{id}** — advertise the
+  `Allow` header so the ETS confirms write-side readiness without
+  exercising the verbs. PATCH is intentionally absent.
+
+The conformance harness gains two opt-in flags
+(`mutation-tests-enabled=true` + `mutation-iut-policy=dedicated-mutable-iut`)
+because the harness's stack is ephemeral per run — `compose down -v`
+at start makes the IUT honestly dedicated and mutable. Without these
+flags the ETS skips the CRD lifecycle tests via
+`ensureMutationEnabledOrSkip` and the conformance picture misses the
+real evidence of POST/PUT/DELETE round-trip.
+
+`stageConformanceClasses` claims
+`http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/create-replace-delete`.
+`update` (PATCH) is intentionally NOT claimed at v0.1.
+
+**Expected outcome:** the harness picks up the CRD group; we expect at
+least the ETS's `createReplaceDeleteResource` cluster to flip from
+SKIPPED to PASSED (~7 tests across the POST/PUT/DELETE cluster).
+
+### Stage 17+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+
+Subsequent stages: extend CRD to `/datastreams` (POST already lands;
+PUT + DELETE + OPTIONS to add), implement `/procedures`,
+`/samplingFeatures`, `/properties`, `/deployments`, and the Part 2
+write side (Control Streams, Commands, System Events). Each is its
+own staged ticket.
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"regexp"
 	"slices"
@@ -16,6 +17,7 @@ import (
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
+	"github.com/c360studio/semstreams/vocabulary/sosa"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 )
@@ -84,13 +86,19 @@ func extractPositionTriple(entityID string, body []byte) (message.Triple, bool) 
 // gives us a real Success/Error reply to return 201 Created honestly.
 // See docs/upstream-asks/semstreams-entity-create-handlers-unwired.md.
 func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
-	// Stage 14: accept both spec form (sml+json) and legacy long form
-	// (sensorml+json). Symmetric with FamilySystemItem's read-side set.
-	// Accept-Post advertises both so clients sending the wrong one know
-	// what's on offer.
-	if err := requireMediaTypeAny(r.Header.Get("Content-Type"),
-		string(MediaSensorML), string(MediaSensorMLLegacy)); err != nil {
-		w.Header().Set("Accept-Post", string(MediaSensorML)+", "+string(MediaSensorMLLegacy))
+	// Stage 14: accept SensorML in both spec form (sml+json) and legacy
+	// long form (sensorml+json).
+	// Stage 16: also accept application/json + application/geo+json for
+	// the CS API §7.6 GeoJSON Feature body shape — what
+	// CreateReplaceDelete ETS tests POST.
+	ct := r.Header.Get("Content-Type")
+	if err := requireMediaTypeAny(ct,
+		string(MediaSensorML), string(MediaSensorMLLegacy),
+		string(MediaJSON), string(MediaGeoJSON)); err != nil {
+		w.Header().Set("Accept-Post", strings.Join([]string{
+			string(MediaSensorML), string(MediaSensorMLLegacy),
+			string(MediaJSON), string(MediaGeoJSON),
+		}, ", "))
 		writeJSONError(w, http.StatusUnsupportedMediaType, err.Error())
 		return
 	}
@@ -107,45 +115,25 @@ func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	process, err := sensorml.UnmarshalProcess(body)
-	if err != nil {
-		writeJSONError(w, http.StatusBadRequest, "invalid SensorML JSON: "+err.Error())
-		return
+	// Branch by Content-Type. mime.ParseMediaType already validated the
+	// header so we strip params here for a clean exact match.
+	mt, _, _ := mime.ParseMediaType(ct)
+	var (
+		entityID string
+		triples  []message.Triple
+		buildErr error
+	)
+	switch mt {
+	case string(MediaSensorML), string(MediaSensorMLLegacy):
+		entityID, triples, buildErr = c.buildSystemTriplesFromSensorML(body)
+	default:
+		// application/json or application/geo+json — the GeoJSON Feature
+		// body shape (Stage 16). CS API §7.6 explicitly lists both.
+		entityID, triples, buildErr = c.buildSystemTriplesFromFeature(body)
 	}
-	if process == nil || process.Base() == nil {
-		writeJSONError(w, http.StatusBadRequest, "empty SensorML process")
+	if buildErr != nil {
+		writeJSONError(w, http.StatusBadRequest, buildErr.Error())
 		return
-	}
-
-	entityID := c.mintSystemEntityID(process.Base().UniqueID)
-	asset := sensorml.NewAsset(entityID, process)
-	triples := asset.Triples()
-	if len(triples) == 0 {
-		// Asset.Triples() returns nil for malformed processes (missing
-		// Base, etc.). The Base check above catches most; this is the
-		// belt to that suspenders so we never publish a 0-triple batch.
-		writeJSONError(w, http.StatusBadRequest, "SensorML process produced no representable triples")
-		return
-	}
-
-	// Stage 14 sister-side workaround for the framework's missing
-	// SensorML position preservation. `parser/sensorml`'s type model
-	// has no Position field on AbstractProcess (verified at framework
-	// v1.0.0-beta.75 types_process.go:40-55) so `position` in the input
-	// JSON is silently dropped at unmarshal. We peek the raw body for
-	// a top-level `position` here and append a triple under our own
-	// predicate name (`cs-api.system.position`) so /systems/{id} can
-	// surface geometry — without that, the Botts ETS
-	// `systemItemHasGeometryOrValidTime` test SkipExceptions and
-	// cascade-gates the entire sensorml + geojson groups.
-	//
-	// Retire this block when the upstream ask
-	// (docs/upstream-asks/semstreams-sensorml-position-preservation.md)
-	// lands a Position field on AbstractProcess + emits the triple
-	// natively. Migration: triple-rewrite existing entities from
-	// `cs-api.system.position` to the new framework predicate.
-	if posTriple, ok := extractPositionTriple(entityID, body); ok {
-		triples = append(triples, posTriple)
 	}
 
 	id := IdentityFrom(r.Context())
@@ -174,6 +162,93 @@ func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
 // this function trusts it.
 func (c *Component) mintSystemEntityID(uniqueID string) string {
 	return c.cfg.SystemIDPrefix + "." + uniqueIDToToken(uniqueID)
+}
+
+// buildSystemTriplesFromSensorML — Stage 8/14 path. Parses body via
+// `parser/sensorml.UnmarshalProcess` + `sensorml.NewAsset(...).Triples()`,
+// then appends the Stage 14 cs-api.system.position workaround triple.
+func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []message.Triple, error) {
+	process, err := sensorml.UnmarshalProcess(body)
+	if err != nil {
+		return "", nil, fmt.Errorf("invalid SensorML JSON: %w", err)
+	}
+	if process == nil || process.Base() == nil {
+		return "", nil, errors.New("empty SensorML process")
+	}
+	entityID := c.mintSystemEntityID(process.Base().UniqueID)
+	asset := sensorml.NewAsset(entityID, process)
+	triples := asset.Triples()
+	if len(triples) == 0 {
+		return entityID, nil, errors.New("SensorML process produced no representable triples")
+	}
+	if posTriple, ok := extractPositionTriple(entityID, body); ok {
+		triples = append(triples, posTriple)
+	}
+	return entityID, triples, nil
+}
+
+// systemFeatureBody is the minimum GeoJSON Feature shape CS API §7.6
+// requires for a JSON System POST. ETS's CRD test sends exactly this
+// (uid + name + description). Stage 16.
+type systemFeatureBody struct {
+	Type       string          `json:"type"`
+	ID         string          `json:"id,omitempty"`
+	Geometry   json.RawMessage `json:"geometry,omitempty"`
+	Properties struct {
+		UID         string `json:"uid"`
+		Name        string `json:"name,omitempty"`
+		Description string `json:"description,omitempty"`
+	} `json:"properties"`
+}
+
+// buildSystemTriplesFromFeature — Stage 16 path for POST /systems with
+// Content-Type application/json or application/geo+json. The body is a
+// GeoJSON Feature with the System fields under `properties`. We map:
+//
+//   - properties.uid → uniqueId source for entity-ID mint
+//   - properties.name → sensorml.PredLabel
+//   - properties.description → sensorml.PredDescription
+//   - top-level geometry → cs-api.system.position triple (re-uses the
+//     Stage 14 sister-side workaround on the Feature path too — so PUT
+//     replace via this same builder preserves geometry symmetrically)
+//   - rdf:type (sensorml.PredType) = sosa.SSNSystem so /systems
+//     predicate query finds it
+//
+// The CS API §7.6 full GeoJSON schema (api/upstream/part1/schemas/geojson/system.json)
+// has more properties (featureType, assetType, validTime, etc.). v0.1
+// surfaces only what the ETS exercises + what we already round-trip via
+// triples; widening the shape is a follow-up when a real client asks.
+func (c *Component) buildSystemTriplesFromFeature(body []byte) (string, []message.Triple, error) {
+	var feat systemFeatureBody
+	if err := json.Unmarshal(body, &feat); err != nil {
+		return "", nil, fmt.Errorf("invalid JSON Feature: %w", err)
+	}
+	if feat.Type != "Feature" {
+		return "", nil, fmt.Errorf("expected Feature, got %q", feat.Type)
+	}
+	if feat.Properties.UID == "" {
+		return "", nil, errors.New("properties.uid required")
+	}
+	entityID := c.mintSystemEntityID(feat.Properties.UID)
+	triples := []message.Triple{
+		{Subject: entityID, Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+	}
+	if feat.Properties.Name != "" {
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: sensorml.PredLabel, Object: feat.Properties.Name,
+		})
+	}
+	if feat.Properties.Description != "" {
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: sensorml.PredDescription, Object: feat.Properties.Description,
+		})
+	}
+	if len(feat.Geometry) > 0 && !bytes.Equal(feat.Geometry, jsonNull) {
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: PredSystemPosition, Object: string(feat.Geometry),
+		})
+	}
+	return entityID, triples, nil
 }
 
 // nonIDTokenChar matches anything outside the SemStreams entity ID

@@ -151,23 +151,28 @@ func TestHandleSystemPost_MissingUniqueIDMintsUUID(t *testing.T) {
 }
 
 // TestHandleSystemPost_ContentTypeWrong returns 415 with Accept-Post
-// header pointing at the supported media type.
+// header pointing at the supported media types.
+//
+// Stage 16 — accepted set expanded to include application/json +
+// application/geo+json (GeoJSON Feature shape, CS API §7.6). Test
+// uses application/xml as the wrong type to exercise the 415 branch.
 func TestHandleSystemPost_ContentTypeWrong(t *testing.T) {
 	fake := &fakeRequester{status: natsclient.StatusConnected}
 	c := newTestComponent(t, fake)
 
 	req := httptest.NewRequest(http.MethodPost, "/systems",
 		bytes.NewReader(minimalSensorML("urn:uuid:x", "x")))
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/xml")
 	rr := httptest.NewRecorder()
 	c.handleSystemPost(rr, req)
 
 	if rr.Code != http.StatusUnsupportedMediaType {
 		t.Errorf("status: got %d want 415", rr.Code)
 	}
-	// Stage 14 — Accept-Post advertises both the spec form and the
-	// legacy long form (see negotiation.go MediaSensorML doc).
-	wantAcceptPost := string(MediaSensorML) + ", " + string(MediaSensorMLLegacy)
+	wantAcceptPost := strings.Join([]string{
+		string(MediaSensorML), string(MediaSensorMLLegacy),
+		string(MediaJSON), string(MediaGeoJSON),
+	}, ", ")
 	if got := rr.Header().Get("Accept-Post"); got != wantAcceptPost {
 		t.Errorf("Accept-Post: got %q want %q", got, wantAcceptPost)
 	}

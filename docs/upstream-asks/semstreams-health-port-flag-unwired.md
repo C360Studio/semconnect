@@ -2,7 +2,7 @@
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 9 conformance backend integration (2026-05-16), framework pin `v1.0.0-beta.73`.
-**Status:** ready to file (copy-paste).
+**Status:** **Filed at [C360Studio/semstreams#100](https://github.com/C360Studio/semstreams/issues/100) (OPEN, as of 2026-05-16; still OPEN at v1.0.0-beta.75 — `cfg.HealthPort` still parsed and never read).** semconnect workaround: `conformance/compose.yml` healthcheck targets the service-manager's `:8090/health` (the actually-bound endpoint) instead of the flag's nominal port.
 
 ## Summary
 

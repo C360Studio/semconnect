@@ -2,7 +2,7 @@
 
 **Repo:** <https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10>
 **Drafted from:** semconnect Stage 7 conformance run (2026-05-16), ETS pin `d9caf33`.
-**Status:** ready to file (copy-paste).
+**Status:** **Filed at [Botts-Innovative-Research/ets-ogcapi-connectedsystems10#1](https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10/issues/1) (OPEN, as of 2026-05-16).** semconnect worked around it at Stage 12 by shipping an OAS3 doc + claiming `oas30` (PR #13) — both assertions now PASS for us. The ETS bug itself remains and still affects any OAS30-less implementer.
 
 ## Summary
 

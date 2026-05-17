@@ -2,7 +2,7 @@
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 8 implementation (2026-05-16), framework pin `v1.0.0-beta.73`.
-**Status:** ready to file (copy-paste).
+**Status:** **Filed at [C360Studio/semstreams#98](https://github.com/C360Studio/semstreams/issues/98) (OPEN, as of 2026-05-16; still OPEN at v1.0.0-beta.75 — verified `processor/graph-ingest/*.go` has no `CreateEntityRequest` subject wiring).** semconnect workaround: `gateway/cs-api/systems_post.go` `ingestTriples` uses `graph.mutation.triple.add_batch` (upsert semantics). Trade-off: no `409 Conflict` on duplicate POST — see CS API §7.6 which spec-requires it.
 
 ## Summary
 

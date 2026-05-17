@@ -1,44 +1,31 @@
 // Package csapi: this file defines the v0.1 Datastream entity model.
 //
-// SOSA has no Datastream class and the semstreams framework
-// (v1.0.0-beta.73) ships no datastream vocabulary. v0.1 emits a minimal
-// subset using locally-minted HTTPS IRIs (DatastreamTypeIRI,
-// PredDatastreamSystem) plus reused dc:title / dc:description /
-// sosa:observedProperty. Deferred-field enumeration + upstream-ask
-// rationale live in docs/upstream-asks/semstreams-datastream-vocabulary.md.
-//
-// The `X-CS-Datastream-Subset: true` response header on GET signals the
-// deferred-field gap to clients, matching the X-CS-Reconstructed-Lossy
-// (Stage 4) and X-CS-Geometry-Available (Stage 5) deferral pattern.
+// Stage 13 — semstreams v1.0.0-beta.75 landed the `vocabulary/csapi`
+// package with native OGC CS API IRIs (`csapi.Datastream`,
+// `csapi.ProducedBy`, etc.). Pre-Stage-13 we minted local HTTPS IRIs
+// under c360studio's own namespace because no canonical IRIs existed;
+// the new constants flip us to the spec-rooted IRI stem and retire the
+// `X-CS-Datastream-Subset: true` deferral header.
 package csapi
 
 import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/c360studio/semstreams/vocabulary/csapi"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
-const (
-	// DatastreamTypeIRI is the rdf:type Object value for v0.1 Datastream
-	// entities. The OGC CS API spec does not yet publish a canonical IRI
-	// and SOSA has none; we mint an HTTPS-shaped IRI under c360studio's
-	// own vocabulary namespace. HTTPS form (vs urn:c360studio:...) so
-	// JSON-LD consumers can dereference (or 404 cleanly) rather than
-	// reject as an unregistered URN. When the spec publishes one, this
-	// constant flips to it; existing entities re-tag in a one-shot
-	// upstream migration.
-	DatastreamTypeIRI = "https://c360studio.github.io/semconnect/vocabulary/v0.1/Datastream"
+// DatastreamTypeIRI is the rdf:type Object value for Datastream entities.
+// Stage 13: aliases csapi.Datastream (the framework's canonical IRI
+// from v1.0.0-beta.75 onward). Kept as a named const so handler /test
+// code reads naturally without leaking the package import everywhere.
+const DatastreamTypeIRI = csapi.Datastream
 
-	// PredDatastreamSystem links a Datastream entity to the 6-part
-	// SemStreams entity ID of the System (Sensor) that produces it.
-	// Symmetric with sensorml.PredIsHostedBy in shape (entity-ID Object)
-	// but distinct in semantics — a Datastream is OUTPUT of a System,
-	// not PHYSICALLY MOUNTED ON it. SOSA has no equivalent (sosa:madeBySensor
-	// is for Observations, not Datastreams). HTTPS form for the same
-	// JSON-LD compatibility reason as DatastreamTypeIRI.
-	PredDatastreamSystem = "https://c360studio.github.io/semconnect/vocabulary/v0.1/producedBy"
-)
+// PredDatastreamSystem links a Datastream entity to the 6-part
+// SemStreams entity ID of the System (Sensor) that produces it.
+// Stage 13: aliases csapi.ProducedBy.
+const PredDatastreamSystem = csapi.ProducedBy
 
 // Datastream is the v0.1 JSON shape for CS API §10 Datastream resources.
 // Fields are the subset semstreams' vocabulary can losslessly round-trip

@@ -22,14 +22,6 @@ info:
       inputs/outputs/parameters/keywords/connections/identifier
       metadata that the framework's triple emitter does not preserve.
       Clients drilling into nested System children get skeleton refs.
-    - `X-CS-Geometry-Available: false` on `GET /areas` — the framework's
-      `SpatialResult` only returns entity IDs; Features carry
-      `geometry: null` until the upstream primitive carries
-      coordinates. Clients drill via `GET /systems/{id}` for
-      precise geometry.
-    - `X-CS-Datastream-Subset: true` on `GET /datastreams` — the
-      Datastream JSON shape is a subset of CS API §10 pending
-      framework datastream-vocabulary primitives.
     - `X-CS-Items-Count: <N>` on `GET /datastreams/{id}/observations`
       with `Accept: application/om+json` — count of items in the bare
       OMS array response (the JSON wrapper already carries
@@ -348,10 +340,11 @@ paths:
       operationId: getDatastreams
       summary: List datastreams.
       description: |-
-        Returns a `DatastreamCollection`. JSON-only at v0.1 with a
-        documented subset (see `X-CS-Datastream-Subset` header) —
-        full CS API §10 shape pending framework datastream-vocabulary
-        primitives.
+        Returns a `DatastreamCollection`. JSON-only at v0.1. Stage 13
+        retired the `X-CS-Datastream-Subset` header — framework
+        v1.0.0-beta.75 ships the native CS API datastream vocabulary
+        (`vocabulary/csapi.Datastream`) so the subset disclaimer no
+        longer applies.
       tags: [Datastreams]
       parameters:
         - $ref: "#/components/parameters/F"
@@ -359,9 +352,6 @@ paths:
       responses:
         "200":
           description: DatastreamCollection.
-          headers:
-            X-CS-Datastream-Subset:
-              $ref: "#/components/headers/CsDatastreamSubset"
           content:
             application/json:
               schema: {$ref: "#/components/schemas/DatastreamCollection"}
@@ -533,10 +523,11 @@ paths:
         Filter systems by spatial extent. Exactly one of `bbox` or
         `polygon` is required. Returns a GeoJSON `FeatureCollection`.
 
-        Features carry `geometry: null` because the framework's
-        `SpatialResult` returns entity IDs only — `X-CS-Geometry-Available:
-        false` signals this honest lossiness. Clients drill via
-        `GET /systems/{id}` for precise coordinates.
+        Features carry real Point geometry (Stage 13). Framework
+        v1.0.0-beta.75 added Lat/Lon/Alt echo to `SpatialResult`,
+        retiring the pre-Stage-13 `X-CS-Geometry-Available: false`
+        deferral header. Alt is omitted when the indexed entity has
+        no vertical component.
       tags: [Areas]
       parameters:
         - $ref: "#/components/parameters/F"
@@ -559,9 +550,6 @@ paths:
       responses:
         "200":
           description: GeoJSON FeatureCollection.
-          headers:
-            X-CS-Geometry-Available:
-              $ref: "#/components/headers/CsGeometryAvailable"
           content:
             application/geo+json:
               schema: {$ref: "#/components/schemas/FeatureCollection"}
@@ -776,18 +764,6 @@ components:
         (inputs/outputs/parameters/keywords/connections/identifier
         metadata).
       schema: {type: boolean, enum: [true]}
-    CsGeometryAvailable:
-      description: |-
-        `false` when GeoJSON Features in the response carry `geometry:
-        null` because the framework's `SpatialResult` returns entity
-        IDs only. Clients drill via `GET /systems/{id}` for coordinates.
-      schema: {type: boolean, enum: [false]}
-    CsDatastreamSubset:
-      description: |-
-        `true` when the Datastream JSON is a documented subset of
-        CS API §10 (pending framework datastream-vocabulary
-        primitives).
-      schema: {type: boolean, enum: [true]}
 
   # --- Schemas ---
   schemas:
@@ -970,8 +946,11 @@ components:
       type: object
       required: [type, features]
       description: |-
-        RFC 7946 GeoJSON FeatureCollection. v0.1 emits features with
-        `geometry: null` — see `X-CS-Geometry-Available: false`.
+        RFC 7946 GeoJSON FeatureCollection. Stage 13: features now
+        carry real Point geometry built from
+        `processor/graph-index-spatial.SpatialResult.Lat/Lon/Alt`
+        (framework v1.0.0-beta.75). Pre-Stage-13 emitted
+        `geometry: null` + `X-CS-Geometry-Available: false`.
       properties:
         type: {type: string, enum: [FeatureCollection]}
         features:
@@ -983,9 +962,19 @@ components:
               type: {type: string, enum: [Feature]}
               id:   {type: string}
               geometry:
-                nullable: true
                 type: object
-                description: "Null at v0.1 — see `X-CS-Geometry-Available` response header."
+                required: [type, coordinates]
+                properties:
+                  type:        {type: string, enum: [Point]}
+                  coordinates:
+                    type: array
+                    minItems: 2
+                    maxItems: 3
+                    items: {type: number}
+                description: |-
+                  RFC 7946 Point geometry. 2D (lon, lat) when the
+                  indexed entity has no vertical component; 3D
+                  (lon, lat, alt) otherwise.
               properties:
                 type: object
 

@@ -1,8 +1,12 @@
-# Upstream ask — semstreams: datastream vocabulary (predicates + class IRI)
+# RESOLVED — Upstream ask — semstreams: datastream vocabulary (predicates + class IRI)
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 8 implementation (2026-05-16), framework pin `v1.0.0-beta.73`.
-**Status:** ready to file (copy-paste).
+**Status:** **RESOLVED in v1.0.0-beta.75** (semstreams commit b3f705e — `feat(vocabulary/csapi): add OGC Connected Systems v1.0 Datastream package`). semconnect Stage 13 adopted the new `vocabulary/csapi.Datastream` IRI + predicates; pre-Stage-13 we minted a local `https://c360studio.github.io/semconnect/vocabulary/v0.1/Datastream` IRI. Kept here for historical context.
+
+---
+
+ORIGINAL ASK (resolved):
 
 ## Summary
 

@@ -55,8 +55,11 @@ func TestHandleDatastreams_GoldenPath(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status: got %d want 200", rr.Code)
 	}
-	if got := rr.Header().Get("X-CS-Datastream-Subset"); got != "true" {
-		t.Errorf("X-CS-Datastream-Subset: got %q want %q", got, "true")
+	// Stage 13 — X-CS-Datastream-Subset retired; framework v1.0.0-beta.75
+	// ships native csapi.Datastream vocabulary so the subset disclaimer
+	// no longer applies. Negative-assertion pins the deprecation.
+	if got := rr.Header().Get("X-CS-Datastream-Subset"); got != "" {
+		t.Errorf("X-CS-Datastream-Subset should be unset post-Stage-13; got %q", got)
 	}
 	var coll datastreamCollection
 	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
@@ -93,8 +96,9 @@ func TestHandleDatastream_GoldenPath(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status: got %d want 200 (body=%s)", rr.Code, rr.Body.String())
 	}
-	if got := rr.Header().Get("X-CS-Datastream-Subset"); got != "true" {
-		t.Errorf("X-CS-Datastream-Subset: got %q want %q", got, "true")
+	// Stage 13 — X-CS-Datastream-Subset retired (see collection-shape test).
+	if got := rr.Header().Get("X-CS-Datastream-Subset"); got != "" {
+		t.Errorf("X-CS-Datastream-Subset should be unset post-Stage-13; got %q", got)
 	}
 	var d Datastream
 	if err := json.Unmarshal(rr.Body.Bytes(), &d); err != nil {

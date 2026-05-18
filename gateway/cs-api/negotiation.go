@@ -47,6 +47,16 @@ const (
 	FamilySpatial
 	FamilyService // /, /conformance
 	FamilyAPI     // GET /api (Stage 12) — OAS3 service definition
+
+	// FamilyProcedureCollection — GET /procedures. Stage 20 added the
+	// resource; Stage 20.1 added MediaGeoJSON to the supported set
+	// after the ETS's procedureFeatureHasGeoJsonSchemaAndMapping
+	// assertion surfaced that `Accept: application/geo+json` is
+	// expected to return a FeatureCollection (every Feature with
+	// `geometry: null` per /req/procedure/location).
+	FamilyProcedureCollection
+	// FamilyProcedureItem — GET /procedures/{id}. JSON-only at v0.1.
+	FamilyProcedureItem
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -108,6 +118,19 @@ func (fam ResourceFamily) supported() []MediaType {
 		return []MediaType{MediaGeoJSON, MediaJSON}
 	case FamilyService:
 		return []MediaType{MediaJSON, MediaJSONLD}
+	case FamilyProcedureCollection:
+		// Stage 20.1 — geo+json wired to satisfy the ETS's
+		// procedureFeatureHasGeoJsonSchemaAndMapping assertion. The
+		// FeatureCollection emits each procedure as a Feature with
+		// `geometry: null` per /req/procedure/location (procedures
+		// have no location). Mirrors FamilySystemCollection's
+		// geo+json wiring (Stage 15).
+		return []MediaType{MediaJSON, MediaGeoJSON}
+	case FamilyProcedureItem:
+		// JSON-only at v0.1. SensorML on a procedure item would be
+		// natural (Procedure ↔ SimpleProcess) but adds reverse-mapping
+		// surface area not exercised by the ETS at v0.1; deferred.
+		return []MediaType{MediaJSON}
 	case FamilyAPI:
 		// OAS3 JSON is the default — most OpenAPI tooling (Swagger UI,
 		// Redoc, openapi-generator, kin-openapi) prefers it. MediaJSON

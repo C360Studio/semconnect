@@ -109,10 +109,14 @@ func isProcedureKind(triples []message.Triple) bool {
 	return typeIRI == sosa.Procedure
 }
 
-// handleProcedures serves GET /procedures.
+// handleProcedures serves GET /procedures. Stage 20.1 added
+// geo+json content negotiation (returns a FeatureCollection with
+// every Feature carrying `geometry: null` per
+// /req/procedure/location).
 func (c *Component) handleProcedures(w http.ResponseWriter, r *http.Request) {
-	if _, ok := NegotiateRequest(r, FamilyService); !ok {
-		WriteNotAcceptable(w, FamilyService)
+	media, ok := NegotiateRequest(r, FamilyProcedureCollection)
+	if !ok {
+		WriteNotAcceptable(w, FamilyProcedureCollection)
 		return
 	}
 
@@ -125,6 +129,11 @@ func (c *Component) handleProcedures(w http.ResponseWriter, r *http.Request) {
 	ids, err := c.listEntitiesByType(r.Context(), sosa.Procedure, limit, "listProcedureEntities")
 	if err != nil {
 		c.writeBackendError(w, err)
+		return
+	}
+
+	if media == MediaGeoJSON {
+		c.writeProceduresGeoJSON(w, r, ids, limit)
 		return
 	}
 
@@ -159,10 +168,74 @@ func (c *Component) handleProcedures(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(coll)
 }
 
+// writeProceduresGeoJSON emits the GeoJSON FeatureCollection form of
+// /procedures. Stage 20.1. Per /req/procedure/location, procedures
+// MUST NOT carry geometry — every Feature's `geometry` field is the
+// literal JSON `null`. Distinct from /systems's GeoJSON path: no
+// N+1 entity-query (no per-entity geometry to fetch); featureType
+// is `Procedure`.
+func (c *Component) writeProceduresGeoJSON(w http.ResponseWriter, r *http.Request, ids []string, limit int) {
+	// RawMessage holding the literal JSON `null` — used as a fixed
+	// value for every Feature's geometry. Marshaling a nil pointer
+	// would also emit `null`, but RawMessage is the idiomatic
+	// "literal JSON I want emitted as-is" type.
+	nullGeom := json.RawMessage("null")
+
+	type procedureFeature struct {
+		Type       string          `json:"type"`     // "Feature"
+		ID         string          `json:"id"`
+		Geometry   json.RawMessage `json:"geometry"` // always literal null
+		Properties map[string]any  `json:"properties"`
+		Links      []link          `json:"links,omitempty"`
+	}
+	type procedureFeatureCollection struct {
+		Type           string             `json:"type"` // "FeatureCollection"
+		NumberMatched  int                `json:"numberMatched"`
+		NumberReturned int                `json:"numberReturned"`
+		Truncated      bool               `json:"truncated,omitempty"`
+		Features       []procedureFeature `json:"features"`
+		Links          []link             `json:"links"`
+	}
+
+	fc := procedureFeatureCollection{
+		Type:           "FeatureCollection",
+		NumberMatched:  len(ids),
+		NumberReturned: len(ids),
+		Features:       make([]procedureFeature, 0, len(ids)),
+		Links: []link{
+			{Href: "/procedures", Rel: "self", Type: string(MediaGeoJSON)},
+		},
+	}
+	for _, id := range ids {
+		fc.Features = append(fc.Features, procedureFeature{
+			Type:     "Feature",
+			ID:       id,
+			Geometry: nullGeom, // literal null per /req/procedure/location
+			Properties: map[string]any{
+				"featureType": "Procedure",
+			},
+			Links: []link{
+				{Href: "/procedures/" + id, Rel: "self", Type: string(MediaJSON)},
+				{Href: "/procedures/" + id, Rel: "canonical", Type: string(MediaJSON)},
+			},
+		})
+	}
+	if len(ids) >= limit {
+		fc.Truncated = true
+	}
+
+	w.Header().Set("Content-Type", string(MediaGeoJSON))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	_ = json.NewEncoder(w).Encode(fc)
+}
+
 // handleProcedure serves GET /procedures/{id}.
 func (c *Component) handleProcedure(w http.ResponseWriter, r *http.Request) {
-	if _, ok := NegotiateRequest(r, FamilyService); !ok {
-		WriteNotAcceptable(w, FamilyService)
+	if _, ok := NegotiateRequest(r, FamilyProcedureItem); !ok {
+		WriteNotAcceptable(w, FamilyProcedureItem)
 		return
 	}
 

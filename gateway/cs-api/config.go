@@ -100,6 +100,11 @@ type Config struct {
 	// token cleanly separates systems from datastreams under the same
 	// deployment.
 	DatastreamIDPrefix string `json:"datastream_id_prefix"`
+
+	// ProcedureIDPrefix is the 5-part prefix for POST /procedures.
+	// Stage 20 — separate from SystemIDPrefix so cross-tenant procedure
+	// IDs land under a distinct 5th-token namespace.
+	ProcedureIDPrefix string `json:"procedure_id_prefix"`
 }
 
 // DefaultConfig returns a fully-populated Config. Stage 2 binaries call this
@@ -124,6 +129,7 @@ func DefaultConfig() Config {
 		ObservationsReplicas:      1,
 		SystemIDPrefix:            "c360.semconnect.systems.csapi.system",
 		DatastreamIDPrefix:        "c360.semconnect.systems.csapi.datastream",
+		ProcedureIDPrefix:         "c360.semconnect.systems.csapi.procedure",
 	}
 }
 
@@ -180,6 +186,9 @@ func (c *Config) ApplyDefaults() {
 	if c.DatastreamIDPrefix == "" {
 		c.DatastreamIDPrefix = d.DatastreamIDPrefix
 	}
+	if c.ProcedureIDPrefix == "" {
+		c.ProcedureIDPrefix = d.ProcedureIDPrefix
+	}
 	// ObservationsMaxBytes: 0 is a meaningful value (unlimited); do not
 	// overwrite with the default.
 }
@@ -226,6 +235,9 @@ func (c *Config) Validate() error {
 		return errors.New("observations_replicas must be between 1 and 5")
 	}
 	if err := validateEntityIDPrefix(c.SystemIDPrefix, "system_id_prefix"); err != nil {
+		return err
+	}
+	if err := validateEntityIDPrefix(c.ProcedureIDPrefix, "procedure_id_prefix"); err != nil {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.DatastreamIDPrefix, "datastream_id_prefix"); err != nil {

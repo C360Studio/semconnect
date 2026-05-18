@@ -440,16 +440,26 @@ func (c *Component) handleSystem(w http.ResponseWriter, r *http.Request) {
 // isSystemKind reports whether the entity's rdf:type maps to one of the
 // SOSA/SSN classes /systems/{id} serves: ssn:System (PhysicalSystem),
 // sosa:Sensor (PhysicalComponent in CS API parlance — Sensors are Systems),
-// or sosa:Procedure (SimpleProcess / AggregateProcess). An entity of any
-// other rdf:type (Observation, FeatureOfInterest, Deployment, …) is not a
-// System and the URL space owes a 404.
+// or `sosa:Sensor`. An entity of any other rdf:type (Observation,
+// FeatureOfInterest, Deployment, Procedure, …) is not a System and
+// the URL space owes a 404.
+//
+// **Stage 20 NOTE:** `sosa.Procedure` was previously whitelisted
+// here as a legacy concession for SensorML SimpleProcess /
+// AggregateProcess bodies POSTed to /systems. With Stage 20
+// minting genuine Procedure entities under /procedures, that
+// concession is now a cross-resource collision: a procedure
+// entity would be reachable through BOTH `/procedures/{id}` AND
+// `/systems/{id}`. Removed. SimpleProcess bodies that need
+// /systems-shaped serialization should POST to /procedures and
+// be read back via /procedures/{id}.
 func isSystemKind(triples []message.Triple) bool {
 	typeIRI, ok := firstStringObject(triples, typeAliases...)
 	if !ok {
 		return false
 	}
 	switch typeIRI {
-	case sosa.SSNSystem, sosa.Sensor, sosa.Procedure:
+	case sosa.SSNSystem, sosa.Sensor:
 		return true
 	}
 	return false

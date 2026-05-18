@@ -56,6 +56,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	procedureItemPath := join("procedures/{id}")
 	deploymentsPath := join("deployments")
 	deploymentItemPath := join("deployments/{id}")
+	samplingFeaturesPath := join("samplingFeatures")
+	samplingFeatureItemPath := join("samplingFeatures/{id}")
 
 	mux.Handle("GET "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
 	mux.Handle("HEAD "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
@@ -113,6 +115,14 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("GET "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeployment)))
 	mux.Handle("HEAD "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeployment)))
 	mux.Handle("OPTIONS "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeploymentOptions)))
+	// Stage 22 — /samplingFeatures.
+	mux.Handle("GET "+samplingFeaturesPath, c.middleware(http.HandlerFunc(c.handleSamplingFeatures)))
+	mux.Handle("HEAD "+samplingFeaturesPath, c.middleware(http.HandlerFunc(c.handleSamplingFeatures)))
+	mux.Handle("POST "+samplingFeaturesPath, c.middleware(http.HandlerFunc(c.handleSamplingFeaturePost)))
+	mux.Handle("OPTIONS "+samplingFeaturesPath, c.middleware(http.HandlerFunc(c.handleSamplingFeaturesOptions)))
+	mux.Handle("GET "+samplingFeatureItemPath, c.middleware(http.HandlerFunc(c.handleSamplingFeature)))
+	mux.Handle("HEAD "+samplingFeatureItemPath, c.middleware(http.HandlerFunc(c.handleSamplingFeature)))
+	mux.Handle("OPTIONS "+samplingFeatureItemPath, c.middleware(http.HandlerFunc(c.handleSamplingFeatureOptions)))
 
 	c.logger.Debug("HTTP handlers registered",
 		"landing", landingPath,
@@ -125,7 +135,11 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"observations", observationsPath,
 		"areas", areasPath,
 		"procedures", proceduresPath,
-		"procedure_item", procedureItemPath)
+		"procedure_item", procedureItemPath,
+		"deployments", deploymentsPath,
+		"deployment_item", deploymentItemPath,
+		"sampling_features", samplingFeaturesPath,
+		"sampling_feature_item", samplingFeatureItemPath)
 }
 
 // middleware composes the per-request chain. Order matters:

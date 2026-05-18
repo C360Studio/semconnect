@@ -546,14 +546,66 @@ items-have-no-geometry, item-has-id-type-links,
 item-has-canonical-link). Probe projection: `passed=49 / failed=0 /
 skipped=88` from current 45/0/92 (+4 procedures-group tests, -4 SKIPs).
 
-### Stage 21+ — Continue OSH-bar resource buildout (Stages 21-27)
+### Stage 21 — CS API §8 Deployments resource (OSH bar)
+
+Stage 21 ships `/deployments`:
+
+- `GET /deployments` (collection) — predicate-query on
+  `rdf:type = ssn:Deployment`; JSON `DeploymentCollection` or
+  `application/geo+json` FeatureCollection with per-deployment
+  geometry recovered from the position triple.
+- `GET /deployments/{id}` — JSON Deployment subset with geometry
+  when present.
+- `POST /deployments` — `application/json` / `application/geo+json`
+  Feature body only. SensorML is intentionally absent; no CS API
+  encoding pairs SensorML with Deployment.
+- `OPTIONS /deployments` (`GET, HEAD, POST, OPTIONS`) and
+  `OPTIONS /deployments/{id}` (`GET, HEAD, OPTIONS`).
+- `conformance.go` claims
+  `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/deployment`.
+- Conformance harness gains a seed Deployment fixture with Point
+  geometry.
+- New config field `DeploymentIDPrefix` (default
+  `c360.semconnect.systems.csapi.deployment`).
+
+**Outcome:** rolled into the Stage 22 conformance probe below. The
+Stage 22 run includes the landed Stage 21 deployment group and keeps
+the claimed conformance set at zero failures.
+
+### Stage 22 — CS API Sampling Features resource (OSH bar)
+
+Stage 22 ships `/samplingFeatures`:
+
+- `GET /samplingFeatures` (collection) — predicate-query on
+  `rdf:type = sosa:Sample`; JSON `SamplingFeatureCollection` or
+  `application/geo+json` FeatureCollection. Sampling Feature geometry
+  is treated as first-class GeoJSON resource data.
+- `GET /samplingFeatures/{id}` — JSON SamplingFeature subset with
+  `uid` / `uniqueId` / nested `properties.uid` and geometry when
+  present.
+- `POST /samplingFeatures` — `application/json` /
+  `application/geo+json` Feature body; mints from `properties.uid`,
+  stores label/description, and preserves optional geometry.
+- `OPTIONS /samplingFeatures` (`GET, HEAD, POST, OPTIONS`) and
+  `OPTIONS /samplingFeatures/{id}` (`GET, HEAD, OPTIONS`).
+- `conformance.go` claims
+  `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sf`.
+- Conformance harness gains a seed SamplingFeature fixture with
+  Polygon geometry.
+- New config field `SamplingFeatureIDPrefix` (default
+  `c360.semconnect.systems.csapi.samplingfeature`).
+
+**Outcome:** `total=137 passed=58 failed=0 skipped=79` (confirmed
+2026-05-18 after adding Stage 22 and hydrating GeoJSON Feature
+properties for procedures, deployments, and sampling features with
+`uid` / `name` / `description`). The TeamEngine host-port readiness
+check now polls because Tomcat can briefly reset connections after
+Docker starts the container but before `/teamengine/` is serving.
+
+### Stage 23+ — Continue OSH-bar resource buildout (Stages 23-27)
 
 Subsequent stages from the OSH-bar memory:
 
-- **Stage 21** — `/deployments` + `conf/deployment` (+ `subdeployment`).
-  CS API §8. validTime + SamplingFeature reference.
-- **Stage 22** — `/samplingFeatures` + `conf/sf`. SOSA core class.
-  GeoJSON geometry as first-class field (not sister-side workaround).
 - **Stage 23** — `/properties` + `conf/property`. Observed-property
   registry; simplest of the resource types.
 - **Stages 24-26** — Part 2 read-side: `/controlStreams`,

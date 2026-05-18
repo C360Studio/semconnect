@@ -11,9 +11,9 @@ import (
 type MediaType string
 
 const (
-	MediaJSON     MediaType = "application/json"
-	MediaJSONLD   MediaType = "application/ld+json"
-	MediaGeoJSON  MediaType = "application/geo+json"
+	MediaJSON    MediaType = "application/json"
+	MediaJSONLD  MediaType = "application/ld+json"
+	MediaGeoJSON MediaType = "application/geo+json"
 	// SensorML 2.0 JSON encoding. Per CS API §11.7 the canonical media
 	// type is `application/sml+json`; `application/sensorml+json` was a
 	// pre-Stage-14 longer-name choice. We now serve the spec form;
@@ -39,11 +39,11 @@ const (
 type ResourceFamily int
 
 const (
-	FamilySystemItem           ResourceFamily = iota // GET /systems/{id}
-	FamilySystemCollection                           // GET /systems
-	FamilyDatastreamItem                             // GET /datastreams/{id}
-	FamilyDatastreamCollection                       // GET /datastreams
-	FamilyObservationCollection                      // GET /datastreams/{id}/observations (Stage 11)
+	FamilySystemItem            ResourceFamily = iota // GET /systems/{id}
+	FamilySystemCollection                            // GET /systems
+	FamilyDatastreamItem                              // GET /datastreams/{id}
+	FamilyDatastreamCollection                        // GET /datastreams
+	FamilyObservationCollection                       // GET /datastreams/{id}/observations (Stage 11)
 	FamilySpatial
 	FamilyService // /, /conformance
 	FamilyAPI     // GET /api (Stage 12) — OAS3 service definition
@@ -63,6 +63,13 @@ const (
 	FamilyDeploymentCollection
 	// FamilyDeploymentItem — GET /deployments/{id}. JSON-only.
 	FamilyDeploymentItem
+
+	// FamilySamplingFeatureCollection — GET /samplingFeatures (Stage 22).
+	// JSON + geo+json supported; sampling features carry first-class
+	// geometry in the CS API Feature shape.
+	FamilySamplingFeatureCollection
+	// FamilySamplingFeatureItem — GET /samplingFeatures/{id}. JSON-only.
+	FamilySamplingFeatureItem
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -142,6 +149,13 @@ func (fam ResourceFamily) supported() []MediaType {
 		// Deployments DO carry geometry (deploy site location).
 		return []MediaType{MediaJSON, MediaGeoJSON}
 	case FamilyDeploymentItem:
+		return []MediaType{MediaJSON}
+	case FamilySamplingFeatureCollection:
+		// Stage 22 — mirrors deployments. SamplingFeature geometry is
+		// first-class in the resource shape rather than an OSH-bar
+		// workaround.
+		return []MediaType{MediaJSON, MediaGeoJSON}
+	case FamilySamplingFeatureItem:
 		return []MediaType{MediaJSON}
 	case FamilyAPI:
 		// OAS3 JSON is the default — most OpenAPI tooling (Swagger UI,

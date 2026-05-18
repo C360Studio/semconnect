@@ -305,6 +305,27 @@ EOF
     fi
     log "  seeded deployment (HTTP $depl_code)"
 
+    # Stage 22 — seed a SamplingFeature so the ETS sampling-features
+    # group has non-empty /samplingFeatures. Polygon geometry exercises
+    # the first-class GeoJSON path.
+    log "  POST /samplingFeatures with seed Feature"
+    local sf_body='{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-122.42,37.77],[-122.41,37.77],[-122.41,37.78],[-122.42,37.77]]]},"properties":{"uid":"urn:ets:sf:site:01","name":"Conformance seed sampling feature","description":"Stage 22 seed fixture — sampled site area"}}'
+    local sf_resp
+    sf_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$sf_body" \
+        "${cs_api_url}/samplingFeatures" 2>&1)" || true
+    echo "$sf_resp" >>"$SEED_LOG"
+    local sf_code
+    sf_code="$(echo "$sf_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$sf_code" != "201" ]]; then
+        die "POST /samplingFeatures failed: $sf_code (see $SEED_LOG)"
+    fi
+    log "  seeded sampling feature (HTTP $sf_code)"
+
     log "  seed complete (log: $SEED_LOG)"
 }
 
@@ -421,8 +442,20 @@ fi
 #    is wired). The host probe avoids relying on `curl` being installed
 #    inside whatever teamengine image the pin produces.
 log "step 4/7 — verifying TeamEngine is reachable on host port ${TE_HOST_PORT}"
-curl -fsS -o /dev/null "http://localhost:${TE_HOST_PORT}/teamengine/" \
-    || die "TeamEngine UI not reachable on http://localhost:${TE_HOST_PORT}/teamengine/"
+te_ready=0
+for i in $(seq 1 "$HEALTH_TIMEOUT_S"); do
+    te_http="$(curl -sS -o /dev/null -w '%{http_code}' \
+        "http://localhost:${TE_HOST_PORT}/teamengine/" 2>/dev/null || true)"
+    if [[ "$te_http" == "200" ]]; then
+        te_ready=1
+        log "  TeamEngine UI reachable after ${i}s"
+        break
+    fi
+    sleep 1
+done
+if [[ "$te_ready" != "1" ]]; then
+    die "TeamEngine UI not reachable on http://localhost:${TE_HOST_PORT}/teamengine/ within ${HEALTH_TIMEOUT_S}s"
+fi
 
 # 5. Seed CS-API fixtures. Stage 9 — without this the Botts ETS
 #    @BeforeClass fixture loaders (fetchSensorMlInputs /

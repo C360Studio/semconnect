@@ -197,8 +197,10 @@ func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Reque
 	}
 	for _, id := range ids {
 		geom := nullGeom
+		props := map[string]any{"featureType": "Deployment"}
 		state, ferr := c.fetchEntity(r.Context(), id)
 		if ferr == nil {
+			props = geoJSONFeaturePropertiesFromState("Deployment", state)
 			if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok && v != "" {
 				geom = json.RawMessage(v)
 			}
@@ -213,7 +215,7 @@ func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Reque
 			Type:       "Feature",
 			ID:         id,
 			Geometry:   geom,
-			Properties: map[string]any{"featureType": "Deployment"},
+			Properties: props,
 			Links: []link{
 				{Href: "/deployments/" + id, Rel: "self", Type: string(MediaJSON)},
 				{Href: "/deployments/" + id, Rel: "canonical", Type: string(MediaJSON)},

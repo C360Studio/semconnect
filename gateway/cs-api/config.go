@@ -109,6 +109,10 @@ type Config struct {
 	// DeploymentIDPrefix is the 5-part prefix for POST /deployments.
 	// Stage 21.
 	DeploymentIDPrefix string `json:"deployment_id_prefix"`
+
+	// SamplingFeatureIDPrefix is the 5-part prefix for POST /samplingFeatures.
+	// Stage 22.
+	SamplingFeatureIDPrefix string `json:"sampling_feature_id_prefix"`
 }
 
 // DefaultConfig returns a fully-populated Config. Stage 2 binaries call this
@@ -135,6 +139,7 @@ func DefaultConfig() Config {
 		DatastreamIDPrefix:        "c360.semconnect.systems.csapi.datastream",
 		ProcedureIDPrefix:         "c360.semconnect.systems.csapi.procedure",
 		DeploymentIDPrefix:        "c360.semconnect.systems.csapi.deployment",
+		SamplingFeatureIDPrefix:   "c360.semconnect.systems.csapi.samplingfeature",
 	}
 }
 
@@ -197,6 +202,9 @@ func (c *Config) ApplyDefaults() {
 	if c.DeploymentIDPrefix == "" {
 		c.DeploymentIDPrefix = d.DeploymentIDPrefix
 	}
+	if c.SamplingFeatureIDPrefix == "" {
+		c.SamplingFeatureIDPrefix = d.SamplingFeatureIDPrefix
+	}
 	// ObservationsMaxBytes: 0 is a meaningful value (unlimited); do not
 	// overwrite with the default.
 }
@@ -249,6 +257,9 @@ func (c *Config) Validate() error {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.DeploymentIDPrefix, "deployment_id_prefix"); err != nil {
+		return err
+	}
+	if err := validateEntityIDPrefix(c.SamplingFeatureIDPrefix, "sampling_feature_id_prefix"); err != nil {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.DatastreamIDPrefix, "datastream_id_prefix"); err != nil {

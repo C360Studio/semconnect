@@ -182,7 +182,7 @@ func (c *Component) writeProceduresGeoJSON(w http.ResponseWriter, r *http.Reques
 	nullGeom := json.RawMessage("null")
 
 	type procedureFeature struct {
-		Type       string          `json:"type"`     // "Feature"
+		Type       string          `json:"type"` // "Feature"
 		ID         string          `json:"id"`
 		Geometry   json.RawMessage `json:"geometry"` // always literal null
 		Properties map[string]any  `json:"properties"`
@@ -207,13 +207,19 @@ func (c *Component) writeProceduresGeoJSON(w http.ResponseWriter, r *http.Reques
 		},
 	}
 	for _, id := range ids {
+		props := map[string]any{"featureType": "Procedure"}
+		state, ferr := c.fetchEntity(r.Context(), id)
+		if ferr == nil {
+			props = geoJSONFeaturePropertiesFromState("Procedure", state)
+		} else {
+			c.logger.Warn("fetch entity for procedure FeatureCollection failed; degrading to featureType-only properties",
+				"entity", id, "err", ferr.Error())
+		}
 		fc.Features = append(fc.Features, procedureFeature{
-			Type:     "Feature",
-			ID:       id,
-			Geometry: nullGeom, // literal null per /req/procedure/location
-			Properties: map[string]any{
-				"featureType": "Procedure",
-			},
+			Type:       "Feature",
+			ID:         id,
+			Geometry:   nullGeom, // literal null per /req/procedure/location
+			Properties: props,
 			Links: []link{
 				{Href: "/procedures/" + id, Rel: "self", Type: string(MediaJSON)},
 				{Href: "/procedures/" + id, Rel: "canonical", Type: string(MediaJSON)},

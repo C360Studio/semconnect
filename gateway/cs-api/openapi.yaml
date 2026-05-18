@@ -834,15 +834,126 @@ paths:
       responses:
         "501": {$ref: "#/components/responses/NotImplemented"}
 
+  # ============================================================
+  # Procedures (CS API §6) — Stage 20
+  # ============================================================
   /procedures:
-    x-not-implemented-at-v01: true
-    x-cs-upstream-source: api/upstream/part1/paths/procedures.yaml
     get:
-      tags: [NotImplementedAtV01]
-      summary: List Procedures (not implemented at v0.1).
-      description: Stub. See `x-cs-upstream-source`.
+      operationId: getProcedures
+      summary: List procedures.
+      description: |-
+        Returns a `ProcedureCollection`. JSON-only at v0.1. Stage 20
+        — closes the OpenSensorHub bar's `conf/procedure` class.
+      tags: [Procedures]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
       responses:
-        "501": {$ref: "#/components/responses/NotImplemented"}
+        "200":
+          description: ProcedureCollection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ProcedureCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headProcedures
+      tags: [Procedures]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createProcedure
+      summary: Create a procedure (CS API §6.6).
+      description: |-
+        Accepts the same media types POST /systems does: SensorML
+        (sml+json / sensorml+json) for full SOSA Procedure ↔
+        SimpleProcess parity, or GeoJSON Feature shape
+        (json / geo+json) for the ETS-style minimum body.
+      tags: [Procedures]
+      requestBody:
+        required: true
+        content:
+          application/sml+json:
+            schema: {type: object, description: SensorML SimpleProcess / AggregateProcess.}
+          application/sensorml+json:
+            schema: {type: object, description: Alias for application/sml+json.}
+          application/json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+          application/geo+json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, type]
+                properties:
+                  status: {type: string, enum: [created]}
+                  id:    {type: string}
+                  type:  {type: string, enum: [Procedure]}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsProcedures
+      tags: [Procedures]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, POST, OPTIONS`'
+
+  /procedures/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getProcedure
+      summary: Fetch a procedure by ID.
+      description: |-
+        Returns the Procedure resource as `application/json`. Per
+        CS API §6 `/req/procedure/location`, procedures MUST NOT
+        carry geometry — the response shape omits the field entirely.
+      tags: [Procedures]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Procedure resource.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Procedure"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headProcedure
+      tags: [Procedures]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsProcedure
+      tags: [Procedures]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, OPTIONS`'
 
   /samplingFeatures:
     x-not-implemented-at-v01: true
@@ -1177,6 +1288,56 @@ components:
         on /systems. Distinct from the read-side `System` resource:
         write-side accepts the spec's Feature shape; read-side
         returns the §7.2 JSON subset.
+
+    ProcedureCollection:
+      type: object
+      required: [type, numberMatched, numberReturned, items, links]
+      properties:
+        type:           {type: string, enum: [ProcedureCollection]}
+        numberMatched:  {type: integer, minimum: 0}
+        numberReturned: {type: integer, minimum: 0}
+        truncated:      {type: boolean}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/ProcedureRef"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    ProcedureRef:
+      type: object
+      required: [id, type]
+      properties:
+        id:    {type: string}
+        type:  {type: string, enum: [Procedure]}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    Procedure:
+      type: object
+      required: [id, type, links]
+      properties:
+        id:          {type: string}
+        type:        {type: string, enum: [Procedure]}
+        label:       {type: string}
+        description: {type: string}
+        definition:  {type: string, format: uri}
+        uid:         {type: string, description: Stage 18 uid preservation — same triple as /systems.}
+        uniqueId:    {type: string, description: SensorML spelling of uid.}
+        properties:
+          type: object
+          required: [uid]
+          properties:
+            uid: {type: string}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        v0.1 JSON subset reconstructed from triples. Lossy fields
+        documented via `X-CS-Reconstructed-Lossy: true`. No
+        `geometry` field — per `/req/procedure/location` procedures
+        MUST NOT carry location.
 
     DatastreamCollection:
       type: object

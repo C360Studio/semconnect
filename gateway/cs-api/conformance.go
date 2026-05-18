@@ -90,6 +90,21 @@ var stageConformanceClasses = []string{
 	// RFC 7396 null-as-delete is NOT implemented (treated as
 	// no-op) — the ETS doesn't exercise it.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/update",
+	// Stage 20 — CS API §6 Procedure resource. GET collection/item
+	// + POST + OPTIONS. PUT/DELETE/PATCH not landed for /procedures
+	// at v0.1 because the ETS CRD/Update test groups only exercise
+	// them against /systems; the existing conf/create-replace-delete
+	// + conf/update claims stay honest at /systems-only. If a future
+	// ETS version (or a real client) asks for procedure mutation,
+	// follow the Stage 16/19 pattern.
+	//
+	// **Per-resource CRD verb matrix at v0.1** (anchor for stage
+	// 21+ as new resource types land):
+	//   /systems:       POST PUT DELETE PATCH OPTIONS (full)
+	//   /datastreams:   POST PUT DELETE        OPTIONS (no PATCH)
+	//   /procedures:    POST                   OPTIONS (Stage 20 —
+	//                   ETS doesn't exercise CRD/PATCH here)
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/procedure",
 }
 
 type conformanceDeclaration struct {

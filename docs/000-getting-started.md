@@ -501,13 +501,70 @@ assertions; `passed=44 / failed=0 / skipped=93` from current
 40/0/97. The conformance-declaration test will need its expected
 list updated to include `conf/update`.
 
-### Stage 20+ — Botts ETS pin bumps + iterative resource implementation (open-ended)
+### Stage 20 — CS API §6 Procedures resource (OSH bar)
 
-Subsequent stages: PATCH parity on `/datastreams` for full
-`conf/update` scope, implement `/procedures`, `/samplingFeatures`,
-`/properties`, `/deployments`, the Part 2 write side (Control
-Streams, Commands, System Events), and a per-datastream observation
-JetStream Consumer cleanup on DELETE. Each is its own staged ticket.
+Sponsor set the new bar 2026-05-17: "at least as compliant as
+OpenSensorHub." OSH's public IUT at `api.georobotix.io` declares
+**34 conformance classes** vs our **11**. The gap is dominated by
+resource types (procedures, deployments, samplingFeatures,
+properties, controlStreams, system-history, system-event) plus SWE
+Common encodings plus HTML plus Part 3 protocols. Stages 20-27
+address the read-side resource-type gap; Stage 28+ defers HTML and
+Part 3.
+
+Stage 20 ships `/procedures`:
+
+- `GET /procedures` (collection) — predicate-query on
+  `rdf:type = sosa.Procedure`; JSON `ProcedureCollection`.
+- `GET /procedures/{id}` — JSON Procedure subset (id, type, label,
+  description, definition, uid/uniqueId/properties.uid). Per
+  `/req/procedure/location`, procedures MUST NOT carry geometry —
+  the JSON shape omits the field entirely.
+- `POST /procedures` — same four media types `POST /systems`
+  accepts (sml+json, sensorml+json, json, geo+json). SensorML path
+  feeds `buildProcedureTriplesFromSensorML` which OVERRIDES the
+  emitted rdf:type to `sosa.Procedure` (so a PhysicalSystem
+  mistakenly POSTed still lands correctly). Feature path feeds
+  `buildProcedureTriplesFromFeature` — same minimum shape as
+  `/systems`, no position triple emitted.
+- `OPTIONS /procedures` (`GET, HEAD, POST, OPTIONS`) and
+  `OPTIONS /procedures/{id}` (`GET, HEAD, OPTIONS`). PUT/DELETE/
+  PATCH intentionally absent — the ETS CRD/update test groups only
+  exercise them against /systems, so the existing
+  `conf/create-replace-delete` + `conf/update` claims stay honest
+  at /systems-only.
+- `conformance.go` claims
+  `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/procedure`.
+- Conformance harness gains a seed Procedure fixture so the ETS
+  procedures test group has non-empty `/procedures` to exercise.
+- New config field `ProcedureIDPrefix` (default
+  `c360.semconnect.systems.csapi.procedure`).
+
+**Expected outcome:** the ETS `procedures` group runs and passes
+its 3-4 assertions (collection-returns-200,
+items-have-no-geometry, item-has-id-type-links,
+item-has-canonical-link). Probe projection: `passed=49 / failed=0 /
+skipped=88` from current 45/0/92 (+4 procedures-group tests, -4 SKIPs).
+
+### Stage 21+ — Continue OSH-bar resource buildout (Stages 21-27)
+
+Subsequent stages from the OSH-bar memory:
+
+- **Stage 21** — `/deployments` + `conf/deployment` (+ `subdeployment`).
+  CS API §8. validTime + SamplingFeature reference.
+- **Stage 22** — `/samplingFeatures` + `conf/sf`. SOSA core class.
+  GeoJSON geometry as first-class field (not sister-side workaround).
+- **Stage 23** — `/properties` + `conf/property`. Observed-property
+  registry; simplest of the resource types.
+- **Stages 24-26** — Part 2 read-side: `/controlStreams`,
+  `/systems/{id}/history`, `/systems/{id}/events`.
+- **Stage 27** — SWE Common encodings (Part 2)
+  `swecommon-{json,text,binary}`.
+
+Also pending: PATCH parity on `/datastreams` for full
+`conf/update` scope, per-datastream observation JetStream Consumer
+cleanup on DELETE, and (Stage 28+) HTML + Part 3 (`websocket`,
+`mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)

@@ -262,6 +262,27 @@ EOF
         sleep 1
     done
 
+    # Stage 20 — seed a Procedure so the ETS procedures test group
+    # has non-empty /procedures to exercise. Same Feature shape POST
+    # /procedures accepts (no SensorML required for a fixture).
+    log "  POST /procedures with seed Feature"
+    local proc_body='{"type":"Feature","properties":{"uid":"urn:ets:proc:calibration:01","name":"Conformance seed procedure","description":"Stage 20 seed fixture — daily calibration"}}'
+    local proc_resp
+    proc_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$proc_body" \
+        "${cs_api_url}/procedures" 2>&1)" || true
+    echo "$proc_resp" >>"$SEED_LOG"
+    local proc_code
+    proc_code="$(echo "$proc_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$proc_code" != "201" ]]; then
+        die "POST /procedures failed: $proc_code (see $SEED_LOG)"
+    fi
+    log "  seeded procedure (HTTP $proc_code)"
+
     log "  seed complete (log: $SEED_LOG)"
 }
 

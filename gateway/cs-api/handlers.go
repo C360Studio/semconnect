@@ -52,6 +52,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	datastreamItemPath := join("datastreams/{id}")
 	observationsPath := join("datastreams/{datastreamID}/observations")
 	areasPath := join("areas")
+	proceduresPath := join("procedures")
+	procedureItemPath := join("procedures/{id}")
 
 	mux.Handle("GET "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
 	mux.Handle("HEAD "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
@@ -91,6 +93,16 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+apiPath, c.middleware(http.HandlerFunc(c.handleAPI)))
 	mux.Handle("GET "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
 	mux.Handle("HEAD "+areasPath, c.middleware(http.HandlerFunc(c.handleAreas)))
+	// Stage 20 — /procedures. Read + POST + OPTIONS only at v0.1;
+	// CRD/update verbs intentionally absent (ETS doesn't exercise them
+	// on this resource type).
+	mux.Handle("GET "+proceduresPath, c.middleware(http.HandlerFunc(c.handleProcedures)))
+	mux.Handle("HEAD "+proceduresPath, c.middleware(http.HandlerFunc(c.handleProcedures)))
+	mux.Handle("POST "+proceduresPath, c.middleware(http.HandlerFunc(c.handleProcedurePost)))
+	mux.Handle("OPTIONS "+proceduresPath, c.middleware(http.HandlerFunc(c.handleProceduresOptions)))
+	mux.Handle("GET "+procedureItemPath, c.middleware(http.HandlerFunc(c.handleProcedure)))
+	mux.Handle("HEAD "+procedureItemPath, c.middleware(http.HandlerFunc(c.handleProcedure)))
+	mux.Handle("OPTIONS "+procedureItemPath, c.middleware(http.HandlerFunc(c.handleProcedureOptions)))
 
 	c.logger.Debug("HTTP handlers registered",
 		"landing", landingPath,
@@ -101,7 +113,9 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"datastreams", datastreamsPath,
 		"datastream_item", datastreamItemPath,
 		"observations", observationsPath,
-		"areas", areasPath)
+		"areas", areasPath,
+		"procedures", proceduresPath,
+		"procedure_item", procedureItemPath)
 }
 
 // middleware composes the per-request chain. Order matters:

@@ -984,15 +984,113 @@ paths:
       responses:
         "501": {$ref: "#/components/responses/NotImplemented"}
 
+  # ============================================================
+  # Deployments (CS API §8) — Stage 21
+  # ============================================================
   /deployments:
-    x-not-implemented-at-v01: true
-    x-cs-upstream-source: api/upstream/part1/paths/deployments.yaml
     get:
-      tags: [NotImplementedAtV01]
-      summary: List Deployments (not implemented at v0.1).
-      description: Stub. See `x-cs-upstream-source`.
+      operationId: getDeployments
+      summary: List deployments.
+      tags: [Deployments]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
       responses:
-        "501": {$ref: "#/components/responses/NotImplemented"}
+        "200":
+          description: DeploymentCollection (JSON) or FeatureCollection (geo+json).
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/DeploymentCollection"}
+            application/geo+json:
+              schema: {type: object, description: RFC 7946 FeatureCollection with per-deployment geometry where present.}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headDeployments
+      tags: [Deployments]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createDeployment
+      summary: Create a deployment.
+      description: |-
+        Accepts `application/json` / `application/geo+json` Feature
+        body. Optional geometry rounds-trips via the
+        `cs-api.system.position` triple. No SensorML wrapper for
+        Deployment.
+      tags: [Deployments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+          application/geo+json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, type]
+                properties:
+                  status: {type: string, enum: [created]}
+                  id:    {type: string}
+                  type:  {type: string, enum: [Deployment]}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsDeployments
+      tags: [Deployments]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, POST, OPTIONS`'
+
+  /deployments/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getDeployment
+      summary: Fetch a deployment by ID.
+      tags: [Deployments]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Deployment resource.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Deployment"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headDeployment
+      tags: [Deployments]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsDeployment
+      tags: [Deployments]
+      responses:
+        "204":
+          description: No Content.
 
   /controlstreams:
     x-not-implemented-at-v01: true
@@ -1347,6 +1445,57 @@ components:
         documented via `X-CS-Reconstructed-Lossy: true`. No
         `geometry` field — per `/req/procedure/location` procedures
         MUST NOT carry location.
+
+    DeploymentCollection:
+      type: object
+      required: [type, numberMatched, numberReturned, items, links]
+      properties:
+        type:           {type: string, enum: [DeploymentCollection]}
+        numberMatched:  {type: integer, minimum: 0}
+        numberReturned: {type: integer, minimum: 0}
+        truncated:      {type: boolean}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/DeploymentRef"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    DeploymentRef:
+      type: object
+      required: [id, type]
+      properties:
+        id:    {type: string}
+        type:  {type: string, enum: [Deployment]}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    Deployment:
+      type: object
+      required: [id, type, links]
+      properties:
+        id:          {type: string}
+        type:        {type: string, enum: [Deployment]}
+        label:       {type: string}
+        description: {type: string}
+        uid:         {type: string}
+        uniqueId:    {type: string}
+        properties:
+          type: object
+          properties:
+            uid:         {type: string}
+            name:        {type: string}
+            description: {type: string}
+        geometry:
+          type: object
+          description: GeoJSON geometry — deploy site location, round-tripped via `cs-api.system.position`.
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        v0.1 JSON subset reconstructed from triples. Lossy fields
+        documented via `X-CS-Reconstructed-Lossy: true`.
 
     DatastreamCollection:
       type: object

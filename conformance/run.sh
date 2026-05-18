@@ -283,6 +283,28 @@ EOF
     fi
     log "  seeded procedure (HTTP $proc_code)"
 
+    # Stage 21 — seed a Deployment so the ETS deployments group has
+    # non-empty /deployments. Geometry included so the geojson group's
+    # deploymentFeatureHasGeoJsonSchemaAndMapping test has a real
+    # point to verify.
+    log "  POST /deployments with seed Feature"
+    local depl_body='{"type":"Feature","geometry":{"type":"Point","coordinates":[-122.4194,37.7749]},"properties":{"uid":"urn:ets:deploy:weather:01","name":"Conformance seed deployment","description":"Stage 21 seed fixture — weather station deploy"}}'
+    local depl_resp
+    depl_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$depl_body" \
+        "${cs_api_url}/deployments" 2>&1)" || true
+    echo "$depl_resp" >>"$SEED_LOG"
+    local depl_code
+    depl_code="$(echo "$depl_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$depl_code" != "201" ]]; then
+        die "POST /deployments failed: $depl_code (see $SEED_LOG)"
+    fi
+    log "  seeded deployment (HTTP $depl_code)"
+
     log "  seed complete (log: $SEED_LOG)"
 }
 

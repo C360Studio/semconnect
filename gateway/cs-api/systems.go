@@ -129,16 +129,30 @@ type system struct {
 // featureProperties mirrors the GeoJSON Feature-shape `properties`
 // container — the same shape the client POSTs at /systems (Stage 16
 // systemFeatureBody.Properties). Used on read so a Feature-aware
-// client can pull `properties.uid` even from a JSON-only response.
+// client can pull `properties.{uid,name,description}` from a
+// JSON-only response in the spelling the spec puts them.
 //
-// Intentionally narrow: only `uid` is surfaced here. Name +
-// description live on the top-level System fields (`label` +
-// `description`) where they're authoritative; mirroring them inside
-// `properties` would create a multi-sourced view that could drift
-// if a future mutation path touches one but not the other. The ETS
-// only checks `properties.uid` — keep this struct exactly that wide.
+// **Drift discipline**: all three fields are derived at marshal time
+// from the same source triples (PredSystemUID → uid;
+// sensorml.PredLabel → name; sensorml.PredDescription → description).
+// Nothing stored separately. The "single-sourced" guarantee holds
+// because systemFromState is the sole writer of this struct, and
+// it reads name/description from the same top-level Label/Description
+// fields the JSON System surfaces.
+//
+// Stage 19 NOTE: name was reinstated after the ETS's
+// `systemsPatchLifecycleOptIn` test surfaced that
+// `properties.name` is checked on the GET-after-PATCH; an earlier
+// Stage 18 narrowing to uid-only broke that test. The "ETS only
+// checks uid" narrowing from Stage 18 was correct for the
+// {sensorMl,geoJson}MediaTypeWriteParsesSystemBodyWhenMutationEnabled
+// assertions but missed the Update group's name check. Description
+// re-added in symmetry; future fields land here when the ETS or a
+// real client asks for them.
 type featureProperties struct {
-	UID string `json:"uid"`
+	UID         string `json:"uid,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
 }
 
 // systemFromState collapses an EntityState into the v0.1 JSON shape. Mirrors
@@ -194,7 +208,11 @@ func systemFromState(state graph.EntityState) system {
 	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
 		s.UID = v
 		s.UniqueID = v
-		s.FeatureProperties = &featureProperties{UID: v}
+		s.FeatureProperties = &featureProperties{
+			UID:         v,
+			Name:        s.Label,
+			Description: s.Description,
+		}
 	}
 	s.Hosts = allStringObjects(state.Triples, sensorml.PredHosts)
 	for _, t := range state.Triples {

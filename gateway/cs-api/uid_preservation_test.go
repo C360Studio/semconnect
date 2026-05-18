@@ -103,9 +103,14 @@ func TestSystemFromState_SurfacesUIDOnAllThreeFields(t *testing.T) {
 	if s.FeatureProperties == nil || s.FeatureProperties.UID != uid {
 		t.Errorf("properties.uid: got %+v want uid=%q", s.FeatureProperties, uid)
 	}
-	// Note: featureProperties is intentionally uid-only (see
-	// systems.go featureProperties doc) — name/description live on
-	// top-level Label/Description where they're authoritative.
+	// Stage 19 — featureProperties.{Name,Description} re-added after
+	// the ETS UpdateTests.systemsPatchLifecycleOptIn surfaced that
+	// properties.name is checked on GET-after-PATCH. Derived from
+	// top-level Label/Description (single-source — no separate
+	// triples).
+	if s.FeatureProperties.Name != "Stage 18 Drone" {
+		t.Errorf("properties.name: got %q want %q", s.FeatureProperties.Name, "Stage 18 Drone")
+	}
 	if s.Label != "Stage 18 Drone" {
 		t.Errorf("top-level label: got %q want %q", s.Label, "Stage 18 Drone")
 	}
@@ -154,10 +159,44 @@ func TestSystemFromState_JSONSerialization_SurfacesUID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
+	// No label triple → properties contains uid only (Name omitempty).
 	for _, want := range []string{
 		`"uid":"` + uid + `"`,
 		`"uniqueId":"` + uid + `"`,
 		`"properties":{"uid":"` + uid + `"}`,
+	} {
+		if !bytes.Contains(out, []byte(want)) {
+			t.Errorf("body should contain %s; got %s", want, string(out))
+		}
+	}
+}
+
+// TestSystemFromState_JSONSerialization_PropertiesNameSurfaces — Stage 19
+// regression guard. The ETS UpdateTests.systemsPatchLifecycleOptIn GETs
+// after PATCH and asserts properties.name carries the new value.
+// Pin that name reaches the wire body via the featureProperties
+// container (not just top-level label).
+func TestSystemFromState_JSONSerialization_PropertiesNameSurfaces(t *testing.T) {
+	const id = "acme.ops.robotics.gcs.drone.023"
+	const uid = "urn:example:stage19:patch-target"
+	state := graph.EntityState{
+		ID: id,
+		Triples: []message.Triple{
+			{Subject: id, Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+			{Subject: id, Predicate: sensorml.PredLabel, Object: "Patched Name"},
+			{Subject: id, Predicate: sensorml.PredDescription, Object: "Patched Desc"},
+			{Subject: id, Predicate: PredSystemUID, Object: uid},
+		},
+	}
+	out, err := json.Marshal(systemFromState(state))
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	for _, want := range []string{
+		`"properties":{`,
+		`"uid":"` + uid + `"`,
+		`"name":"Patched Name"`,
+		`"description":"Patched Desc"`,
 	} {
 		if !bytes.Contains(out, []byte(want)) {
 			t.Errorf("body should contain %s; got %s", want, string(out))

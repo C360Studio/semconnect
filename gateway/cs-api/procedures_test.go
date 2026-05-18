@@ -58,8 +58,8 @@ func TestHandleProcedures_GoldenPath(t *testing.T) {
 }
 
 // TestHandleProcedures_NonJSONAccept406 — collection endpoint
-// honestly 406s on non-JSON Accept (no SensorML ProcedureCollection
-// envelope at v0.1).
+// honestly 406s on unsupported Accept (sml+json / xml are not
+// negotiable on the collection).
 func TestHandleProcedures_NonJSONAccept406(t *testing.T) {
 	fake := &fakeRequester{status: natsclient.StatusConnected}
 	c := newTestComponent(t, fake)
@@ -71,6 +71,62 @@ func TestHandleProcedures_NonJSONAccept406(t *testing.T) {
 
 	if rr.Code != http.StatusNotAcceptable {
 		t.Errorf("status: got %d want 406; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+// TestHandleProcedures_GeoJSON — Stage 20.1 / required by the
+// ETS's procedureFeatureHasGeoJsonSchemaAndMapping assertion.
+// Accept: application/geo+json returns a FeatureCollection where
+// every Feature carries `geometry: null` per /req/procedure/location.
+func TestHandleProcedures_GeoJSON(t *testing.T) {
+	ids := []string{
+		"c360.semconnect.systems.csapi.procedure.alpha",
+		"c360.semconnect.systems.csapi.procedure.beta",
+	}
+	fake := &fakeRequester{
+		reply:  encodeReply(t, ids),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/procedures", nil)
+	req.Header.Set("Accept", string(MediaGeoJSON))
+	rr := httptest.NewRecorder()
+	c.handleProcedures(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaGeoJSON) {
+		t.Errorf("Content-Type: got %q want %q", ct, MediaGeoJSON)
+	}
+	// Decode loosely so we can assert the literal-null shape on
+	// every Feature's geometry.
+	var fc struct {
+		Type     string `json:"type"`
+		Features []struct {
+			Type       string          `json:"type"`
+			ID         string          `json:"id"`
+			Geometry   json.RawMessage `json:"geometry"`
+			Properties map[string]any  `json:"properties"`
+		} `json:"features"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &fc); err != nil {
+		t.Fatalf("decode: %v; body=%s", err, rr.Body.String())
+	}
+	if fc.Type != "FeatureCollection" {
+		t.Errorf("type: got %q want FeatureCollection", fc.Type)
+	}
+	if len(fc.Features) != 2 {
+		t.Fatalf("features: got %d want 2", len(fc.Features))
+	}
+	for _, f := range fc.Features {
+		if string(f.Geometry) != "null" {
+			t.Errorf("Feature %s geometry should be literal null; got %q", f.ID, f.Geometry)
+		}
+		if f.Properties["featureType"] != "Procedure" {
+			t.Errorf("Feature %s featureType: got %v want Procedure", f.ID, f.Properties["featureType"])
+		}
 	}
 }
 

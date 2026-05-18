@@ -850,10 +850,19 @@ paths:
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: ProcedureCollection.
+          description: ProcedureCollection (JSON) or FeatureCollection (geo+json).
           content:
             application/json:
               schema: {$ref: "#/components/schemas/ProcedureCollection"}
+            application/geo+json:
+              schema:
+                type: object
+                description: |-
+                  RFC 7946 FeatureCollection. Every Feature carries
+                  `geometry: null` (literal JSON null) per CS API §6
+                  `/req/procedure/location` — procedures MUST NOT
+                  carry location data. Each Feature's `properties`
+                  includes `featureType: "Procedure"`. Stage 20.1.
         "400": {$ref: "#/components/responses/BadRequest"}
         "406": {$ref: "#/components/responses/NotAcceptable"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}

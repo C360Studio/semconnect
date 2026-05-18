@@ -54,6 +54,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	areasPath := join("areas")
 	proceduresPath := join("procedures")
 	procedureItemPath := join("procedures/{id}")
+	deploymentsPath := join("deployments")
+	deploymentItemPath := join("deployments/{id}")
 
 	mux.Handle("GET "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
 	mux.Handle("HEAD "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
@@ -103,6 +105,14 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("GET "+procedureItemPath, c.middleware(http.HandlerFunc(c.handleProcedure)))
 	mux.Handle("HEAD "+procedureItemPath, c.middleware(http.HandlerFunc(c.handleProcedure)))
 	mux.Handle("OPTIONS "+procedureItemPath, c.middleware(http.HandlerFunc(c.handleProcedureOptions)))
+	// Stage 21 — /deployments.
+	mux.Handle("GET "+deploymentsPath, c.middleware(http.HandlerFunc(c.handleDeployments)))
+	mux.Handle("HEAD "+deploymentsPath, c.middleware(http.HandlerFunc(c.handleDeployments)))
+	mux.Handle("POST "+deploymentsPath, c.middleware(http.HandlerFunc(c.handleDeploymentPost)))
+	mux.Handle("OPTIONS "+deploymentsPath, c.middleware(http.HandlerFunc(c.handleDeploymentsOptions)))
+	mux.Handle("GET "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeployment)))
+	mux.Handle("HEAD "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeployment)))
+	mux.Handle("OPTIONS "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeploymentOptions)))
 
 	c.logger.Debug("HTTP handlers registered",
 		"landing", landingPath,

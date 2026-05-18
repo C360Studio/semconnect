@@ -105,6 +105,10 @@ var stageConformanceClasses = []string{
 	//   /procedures:    POST                   OPTIONS (Stage 20 —
 	//                   ETS doesn't exercise CRD/PATCH here)
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/procedure",
+	// Stage 21 — CS API §8 Deployment resource. GET collection/item +
+	// POST + OPTIONS (no PUT/DELETE/PATCH — same scoping reasoning
+	// as Stage 20 /procedures).
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/deployment",
 }
 
 type conformanceDeclaration struct {

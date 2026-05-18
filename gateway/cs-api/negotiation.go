@@ -57,6 +57,12 @@ const (
 	FamilyProcedureCollection
 	// FamilyProcedureItem — GET /procedures/{id}. JSON-only at v0.1.
 	FamilyProcedureItem
+
+	// FamilyDeploymentCollection — GET /deployments (Stage 21). JSON +
+	// geo+json supported; deployments DO carry geometry (deploy site).
+	FamilyDeploymentCollection
+	// FamilyDeploymentItem — GET /deployments/{id}. JSON-only.
+	FamilyDeploymentItem
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -130,6 +136,12 @@ func (fam ResourceFamily) supported() []MediaType {
 		// JSON-only at v0.1. SensorML on a procedure item would be
 		// natural (Procedure ↔ SimpleProcess) but adds reverse-mapping
 		// surface area not exercised by the ETS at v0.1; deferred.
+		return []MediaType{MediaJSON}
+	case FamilyDeploymentCollection:
+		// Stage 21 — same JSON + geo+json shape /systems uses.
+		// Deployments DO carry geometry (deploy site location).
+		return []MediaType{MediaJSON, MediaGeoJSON}
+	case FamilyDeploymentItem:
 		return []MediaType{MediaJSON}
 	case FamilyAPI:
 		// OAS3 JSON is the default — most OpenAPI tooling (Swagger UI,

@@ -791,6 +791,8 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/update",
 		// Stage 20 — conf/procedure: /procedures resource (read + POST + OPTIONS).
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/procedure",
+		// Stage 21 — conf/deployment: /deployments resource (read + POST + OPTIONS).
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/deployment",
 	}
 	if len(decl.ConformsTo) != len(stageConformanceClasses) {
 		t.Errorf("ConformsTo count: got %d want %d (declared classes drift from stageConformanceClasses)",

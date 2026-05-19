@@ -964,25 +964,226 @@ paths:
               schema: {type: string}
               description: '`GET, HEAD, OPTIONS`'
 
+  # ============================================================
+  # Sampling Features (CS API §9) — Stage 22
+  # ============================================================
   /samplingFeatures:
-    x-not-implemented-at-v01: true
-    x-cs-upstream-source: api/upstream/part1/paths/samplingFeatures.yaml
     get:
-      tags: [NotImplementedAtV01]
-      summary: List Sampling Features (not implemented at v0.1).
-      description: Stub. See `x-cs-upstream-source`.
+      operationId: getSamplingFeatures
+      summary: List sampling features.
+      tags: [SamplingFeatures]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
       responses:
-        "501": {$ref: "#/components/responses/NotImplemented"}
+        "200":
+          description: SamplingFeatureCollection (JSON) or FeatureCollection (geo+json).
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SamplingFeatureCollection"}
+            application/geo+json:
+              schema: {type: object, description: RFC 7946 FeatureCollection with per-sampling-feature geometry where present.}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSamplingFeatures
+      tags: [SamplingFeatures]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createSamplingFeature
+      summary: Create a sampling feature.
+      description: |-
+        Accepts `application/json` / `application/geo+json` Feature
+        body. Optional geometry is stored as the sampling feature's
+        first-class GeoJSON location.
+      tags: [SamplingFeatures]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+          application/geo+json:
+            schema: {$ref: "#/components/schemas/SystemFeature"}
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, type]
+                properties:
+                  status: {type: string, enum: [created]}
+                  id:    {type: string}
+                  type:  {type: string, enum: [SamplingFeature]}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsSamplingFeatures
+      tags: [SamplingFeatures]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, POST, OPTIONS`'
+
+  /samplingFeatures/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getSamplingFeature
+      summary: Fetch a sampling feature by ID.
+      tags: [SamplingFeatures]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: SamplingFeature resource.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SamplingFeature"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSamplingFeature
+      tags: [SamplingFeatures]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsSamplingFeature
+      tags: [SamplingFeatures]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, OPTIONS`'
 
   /properties:
-    x-not-implemented-at-v01: true
     x-cs-upstream-source: api/upstream/part1/paths/properties.yaml
     get:
-      tags: [NotImplementedAtV01]
-      summary: List Properties (not implemented at v0.1).
-      description: Stub. See `x-cs-upstream-source`.
+      operationId: getProperties
+      tags: [Properties]
+      summary: List properties.
+      description: |-
+        Stage 23 — lists SOSA ObservableProperty definitions indexed
+        in the graph. JSON-only at v0.1.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
       responses:
-        "501": {$ref: "#/components/responses/NotImplemented"}
+        "200":
+          description: PropertyCollection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/PropertyCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headProperties
+      tags: [Properties]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createProperty
+      summary: Create a property.
+      description: |-
+        Accepts the SensorML DerivedProperty JSON subset this gateway
+        can round-trip: `uniqueId`, optional `label`/`name`,
+        `description`, `definition`, and `baseProperty`.
+      tags: [Properties]
+      requestBody:
+        required: true
+        content:
+          application/sml+json:
+            schema: {$ref: "#/components/schemas/PropertyPost"}
+          application/sensorml+json:
+            schema: {$ref: "#/components/schemas/PropertyPost"}
+          application/json:
+            schema: {$ref: "#/components/schemas/PropertyPost"}
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, type]
+                properties:
+                  status: {type: string, enum: [created]}
+                  id:    {type: string}
+                  type:  {type: string, enum: [Property]}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsProperties
+      tags: [Properties]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, POST, OPTIONS`'
+
+  /properties/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getProperty
+      tags: [Properties]
+      summary: Get a property.
+      responses:
+        "200":
+          description: Property JSON subset.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Property"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headProperty
+      tags: [Properties]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsProperty
+      tags: [Properties]
+      responses:
+        "204":
+          description: No Content.
+          headers:
+            Allow:
+              schema: {type: string}
+              description: '`GET, HEAD, OPTIONS`'
 
   # ============================================================
   # Deployments (CS API §8) — Stage 21
@@ -1496,6 +1697,114 @@ components:
       description: |-
         v0.1 JSON subset reconstructed from triples. Lossy fields
         documented via `X-CS-Reconstructed-Lossy: true`.
+
+    SamplingFeatureCollection:
+      type: object
+      required: [type, numberMatched, numberReturned, items, links]
+      properties:
+        type:           {type: string, enum: [SamplingFeatureCollection]}
+        numberMatched:  {type: integer, minimum: 0}
+        numberReturned: {type: integer, minimum: 0}
+        truncated:      {type: boolean}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/SamplingFeatureRef"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    SamplingFeatureRef:
+      type: object
+      required: [id, type]
+      properties:
+        id:    {type: string}
+        type:  {type: string, enum: [SamplingFeature]}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    SamplingFeature:
+      type: object
+      required: [id, type, links]
+      properties:
+        id:          {type: string}
+        type:        {type: string, enum: [SamplingFeature]}
+        label:       {type: string}
+        description: {type: string}
+        uid:         {type: string}
+        uniqueId:    {type: string}
+        properties:
+          type: object
+          properties:
+            uid:         {type: string}
+            name:        {type: string}
+            description: {type: string}
+        geometry:
+          type: object
+          description: GeoJSON geometry for the sampled feature or site.
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        v0.1 JSON subset reconstructed from triples. Lossy fields
+        documented via `X-CS-Reconstructed-Lossy: true`.
+
+    PropertyCollection:
+      type: object
+      required: [type, numberMatched, numberReturned, items, links]
+      properties:
+        type:           {type: string, enum: [PropertyCollection]}
+        numberMatched:  {type: integer, minimum: 0}
+        numberReturned: {type: integer, minimum: 0}
+        truncated:      {type: boolean}
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/PropertyRef"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    PropertyRef:
+      type: object
+      required: [id, type]
+      properties:
+        id:    {type: string}
+        type:  {type: string, enum: [Property]}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    Property:
+      type: object
+      required: [id, type, links]
+      properties:
+        id:           {type: string}
+        type:         {type: string, enum: [Property]}
+        label:        {type: string}
+        description:  {type: string}
+        definition:   {type: string, format: uri}
+        baseProperty: {type: string, format: uri}
+        uid:          {type: string}
+        uniqueId:     {type: string}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        v0.1 JSON subset reconstructed from triples for a SOSA
+        ObservableProperty / SensorML DerivedProperty. Lossy fields
+        documented via `X-CS-Reconstructed-Lossy: true`.
+
+    PropertyPost:
+      type: object
+      required: [uniqueId]
+      properties:
+        uniqueId:     {type: string}
+        uid:          {type: string, description: Alias accepted when JSON clients do not use SensorML spelling.}
+        label:        {type: string}
+        name:         {type: string, description: Alias for label.}
+        description:  {type: string}
+        definition:   {type: string, format: uri}
+        baseProperty: {type: string, format: uri}
 
     DatastreamCollection:
       type: object

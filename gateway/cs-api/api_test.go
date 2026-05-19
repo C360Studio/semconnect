@@ -156,6 +156,9 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		// Stage 24 — Part 2 /controlstreams read-side.
 		"/controlstreams", "/controlstreams/{id}",
 		"/systems/{id}/controlstreams",
+		// Stage 25 — Part 2 /systemEvents read-side.
+		"/systemEvents", "/systemEvents/{id}",
+		"/systems/{id}/events", "/systems/{id}/events/{eventID}",
 	}
 	for _, p := range wantImpl {
 		entry, ok := paths[p].(map[string]any)
@@ -171,7 +174,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 	}
 	wantStub := []string{
 		"/collections",
-		"/commands", "/systemEvents",
+		"/commands",
 	}
 	for _, p := range wantStub {
 		entry, ok := paths[p].(map[string]any)
@@ -194,6 +197,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"ProcedureCollection", "ProcedureRef", "Procedure",
 		"DeploymentCollection", "DeploymentRef", "Deployment",
 		"SamplingFeatureCollection", "SamplingFeatureRef", "SamplingFeature",
+		"SystemEventCollection", "SystemEvent",
 		"FeatureCollection", "ErrorResponse",
 	}
 	for _, s := range wantSchemas {

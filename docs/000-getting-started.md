@@ -659,12 +659,44 @@ depend on the existing `common` group being fully successful. This
 stage therefore lands the endpoint surface and conformance fixture
 without changing headline counts.
 
-### Stage 25+ — Continue OSH-bar resource buildout (Stages 25-27)
+### Stage 25 — CS API Part 2 System Events read-side (OSH bar)
+
+Stage 25 ships the SystemEvent read subset:
+
+- `GET /systemEvents` — predicate-query on a local Part 2
+  SystemEvent type IRI, then N+1 entity hydration so collection
+  `items` are full SystemEvent resources.
+- `GET /systemEvents/{id}` — JSON SystemEvent subset with
+  `time` / `eventTime`, `eventType`, message, system reference,
+  source, severity, keywords, optional payload, and links.
+- `GET /systems/{id}/events` — normative Requirement 43
+  system-scoped collection path, filtered by the local
+  `cs-api.systemevent.system` triple.
+- `GET /systems/{id}/events/{eventID}` — system-scoped item alias;
+  404s if the event is not associated with the path system.
+- `POST /systemEvents` and `POST /systems/{id}/events` — JSON fixture
+  helpers for the conformance harness. They create read-side event
+  facts only; streaming/SSE event delivery remains out of scope.
+- `conformance.go` claims Part 2 `conf/api-common` and
+  `conf/system-event`. Landing-page links now advertise the Part 2
+  `/controlstreams` and `/systemEvents` resource collections so the
+  API Common claim has discovery evidence.
+- New config field `SystemEventIDPrefix` (default
+  `c360.semconnect.systems.csapi.systemevent`).
+
+**Outcome:** `total=137 passed=62 failed=0 skipped=75` (confirmed
+2026-05-19). No regression from Stage 24. The pinned ETS fetches
+Part 2 setup inputs, and the harness seeds a SystemEvent, but Part 2
+API Common / ControlStream / SystemEvent assertion methods remain
+SKIPPED because TestNG declares them dependent on the existing
+`common` group being fully successful. This stage lands the endpoint
+surface and declarations without changing headline counts.
+
+### Stage 26+ — Continue OSH-bar resource buildout (Stages 26-27)
 
 Subsequent stages from the OSH-bar memory:
 
-- **Stages 25-26** — Part 2 read-side:
-  `/systems/{id}/history`, `/systems/{id}/events`.
+- **Stage 26** — Part 2 read-side: `/systems/{id}/history`.
 - **Stage 27** — SWE Common encodings (Part 2)
   `swecommon-{json,text,binary}`.
 

@@ -105,6 +105,12 @@ func (c *Component) handleLanding(w http.ResponseWriter, r *http.Request) {
 			// OGC Common Part 1 compatibility.
 			{Href: base + "/systems", Rel: "systems", Type: string(MediaJSON), Title: "system resources"},
 			{Href: base + "/datastreams", Rel: "datastreams", Type: string(MediaJSON), Title: "datastream resources"},
+			// Stage 25 — Part 2 API Common discovery. The pinned ETS
+			// uses landing-page links whose rel/path tokens name Part 2
+			// resource collections, then verifies collection JSON
+			// exposes items[] and links[].
+			{Href: base + "/controlstreams", Rel: "controlstreams", Type: string(MediaJSON), Title: "control stream resources"},
+			{Href: base + "/systemEvents", Rel: "systemevents", Type: string(MediaJSON), Title: "system event resources"},
 		},
 	}
 

@@ -60,6 +60,10 @@ var stageConformanceClasses = []string{
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
+	// Stage 25 — CS API Part 2 API Common read-only prerequisite:
+	// landing-page discovery of Part 2 resource collections plus
+	// JSON collection shapes with items[] and links[].
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/api-common",
 	// Stage 16 + 17 — CS API §7.6/§10.6 create-replace-delete:
 	// POST + PUT + DELETE + OPTIONS on /systems (Stage 16) and
 	// /datastreams (Stage 17). Both resource types the IUT implements
@@ -120,6 +124,10 @@ var stageConformanceClasses = []string{
 	// subset: /controlstreams, item GET, schema, empty commands
 	// collection, and system-scoped controlstreams.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/controlstream",
+	// Stage 25 — CS API Part 2 System Events read-side plus fixture
+	// POST helper: /systemEvents, /systemEvents/{id}, and
+	// /systems/{id}/events.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/system-event",
 }
 
 type conformanceDeclaration struct {

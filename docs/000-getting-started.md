@@ -627,11 +627,43 @@ Stage 23 ships `/properties`:
 2026-05-19). From Stage 22 (58/0/79): +4 newly passing
 properties-group tests, -4 SKIPs, zero failures.
 
-### Stage 24+ — Continue OSH-bar resource buildout (Stages 24-27)
+### Stage 24 — CS API Part 2 Control Streams read-side (OSH bar)
+
+Stage 24 ships the ControlStream read subset:
+
+- `GET /controlstreams` — predicate-query on a local Part 2
+  ControlStream type IRI, then N+1 entity hydration so collection
+  `items` are full ControlStream resources.
+- `GET /controlstreams/{id}` — JSON ControlStream subset with system
+  reference, inputName, controlledProperties, issue/execution time
+  placeholders, formats, live/async flags, and command links.
+- `GET /controlstreams/{id}/schema` — stored command schema subset
+  with `commandFormat` and `parametersSchema`.
+- `GET /controlstreams/{id}/commands` — readable empty Command
+  collection. Command execution remains out of scope at v0.1.
+- `GET /systems/{id}/controlstreams` — system-scoped collection,
+  filtered by the local `cs-api.controlstream.system` triple.
+- `POST /controlstreams` — JSON fixture helper for the conformance
+  harness. It creates read-side metadata only; it is not a command
+  execution path.
+- `conformance.go` claims
+  `http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/controlstream`.
+- New config field `ControlStreamIDPrefix` (default
+  `c360.semconnect.systems.csapi.controlstream`).
+
+**Outcome:** `total=137 passed=62 failed=0 skipped=75` (confirmed
+2026-05-19). No regression from Stage 23. The pinned ETS fetches
+`/controlstreams?limit=2` during fixture setup, but all Part 2
+ControlStream assertions remain SKIPPED because the TestNG methods
+depend on the existing `common` group being fully successful. This
+stage therefore lands the endpoint surface and conformance fixture
+without changing headline counts.
+
+### Stage 25+ — Continue OSH-bar resource buildout (Stages 25-27)
 
 Subsequent stages from the OSH-bar memory:
 
-- **Stages 24-26** — Part 2 read-side: `/controlStreams`,
+- **Stages 25-26** — Part 2 read-side:
   `/systems/{id}/history`, `/systems/{id}/events`.
 - **Stage 27** — SWE Common encodings (Part 2)
   `swecommon-{json,text,binary}`.

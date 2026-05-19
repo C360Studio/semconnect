@@ -60,6 +60,11 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	samplingFeatureItemPath := join("samplingFeatures/{id}")
 	propertiesPath := join("properties")
 	propertyItemPath := join("properties/{id}")
+	controlStreamsPath := join("controlstreams")
+	controlStreamItemPath := join("controlstreams/{id}")
+	controlStreamSchemaPath := join("controlstreams/{id}/schema")
+	controlStreamCommandsPath := join("controlstreams/{id}/commands")
+	systemControlStreamsPath := join("systems/{id}/controlstreams")
 
 	mux.Handle("GET "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
 	mux.Handle("HEAD "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
@@ -133,6 +138,20 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("GET "+propertyItemPath, c.middleware(http.HandlerFunc(c.handleProperty)))
 	mux.Handle("HEAD "+propertyItemPath, c.middleware(http.HandlerFunc(c.handleProperty)))
 	mux.Handle("OPTIONS "+propertyItemPath, c.middleware(http.HandlerFunc(c.handlePropertyOptions)))
+	// Stage 24 — Part 2 /controlstreams read-side plus fixture POST.
+	mux.Handle("GET "+controlStreamsPath, c.middleware(http.HandlerFunc(c.handleControlStreams)))
+	mux.Handle("HEAD "+controlStreamsPath, c.middleware(http.HandlerFunc(c.handleControlStreams)))
+	mux.Handle("POST "+controlStreamsPath, c.middleware(http.HandlerFunc(c.handleControlStreamPost)))
+	mux.Handle("OPTIONS "+controlStreamsPath, c.middleware(http.HandlerFunc(c.handleControlStreamsOptions)))
+	mux.Handle("GET "+controlStreamItemPath, c.middleware(http.HandlerFunc(c.handleControlStream)))
+	mux.Handle("HEAD "+controlStreamItemPath, c.middleware(http.HandlerFunc(c.handleControlStream)))
+	mux.Handle("OPTIONS "+controlStreamItemPath, c.middleware(http.HandlerFunc(c.handleControlStreamOptions)))
+	mux.Handle("GET "+controlStreamSchemaPath, c.middleware(http.HandlerFunc(c.handleControlStreamSchema)))
+	mux.Handle("HEAD "+controlStreamSchemaPath, c.middleware(http.HandlerFunc(c.handleControlStreamSchema)))
+	mux.Handle("GET "+controlStreamCommandsPath, c.middleware(http.HandlerFunc(c.handleControlStreamCommands)))
+	mux.Handle("HEAD "+controlStreamCommandsPath, c.middleware(http.HandlerFunc(c.handleControlStreamCommands)))
+	mux.Handle("GET "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
+	mux.Handle("HEAD "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
 
 	c.logger.Debug("HTTP handlers registered",
 		"landing", landingPath,
@@ -151,7 +170,12 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"sampling_features", samplingFeaturesPath,
 		"sampling_feature_item", samplingFeatureItemPath,
 		"properties", propertiesPath,
-		"property_item", propertyItemPath)
+		"property_item", propertyItemPath,
+		"controlstreams", controlStreamsPath,
+		"controlstream_item", controlStreamItemPath,
+		"controlstream_schema", controlStreamSchemaPath,
+		"controlstream_commands", controlStreamCommandsPath,
+		"system_controlstreams", systemControlStreamsPath)
 }
 
 // middleware composes the per-request chain. Order matters:

@@ -117,6 +117,10 @@ type Config struct {
 	// PropertyIDPrefix is the 5-part prefix for POST /properties.
 	// Stage 23.
 	PropertyIDPrefix string `json:"property_id_prefix"`
+
+	// ControlStreamIDPrefix is the 5-part prefix for POST /controlstreams.
+	// Stage 24.
+	ControlStreamIDPrefix string `json:"controlstream_id_prefix"`
 }
 
 // DefaultConfig returns a fully-populated Config. Stage 2 binaries call this
@@ -145,6 +149,7 @@ func DefaultConfig() Config {
 		DeploymentIDPrefix:        "c360.semconnect.systems.csapi.deployment",
 		SamplingFeatureIDPrefix:   "c360.semconnect.systems.csapi.samplingfeature",
 		PropertyIDPrefix:          "c360.semconnect.systems.csapi.property",
+		ControlStreamIDPrefix:     "c360.semconnect.systems.csapi.controlstream",
 	}
 }
 
@@ -213,6 +218,9 @@ func (c *Config) ApplyDefaults() {
 	if c.PropertyIDPrefix == "" {
 		c.PropertyIDPrefix = d.PropertyIDPrefix
 	}
+	if c.ControlStreamIDPrefix == "" {
+		c.ControlStreamIDPrefix = d.ControlStreamIDPrefix
+	}
 	// ObservationsMaxBytes: 0 is a meaningful value (unlimited); do not
 	// overwrite with the default.
 }
@@ -271,6 +279,9 @@ func (c *Config) Validate() error {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.PropertyIDPrefix, "property_id_prefix"); err != nil {
+		return err
+	}
+	if err := validateEntityIDPrefix(c.ControlStreamIDPrefix, "controlstream_id_prefix"); err != nil {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.DatastreamIDPrefix, "datastream_id_prefix"); err != nil {

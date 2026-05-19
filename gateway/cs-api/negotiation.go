@@ -78,6 +78,12 @@ const (
 	FamilyPropertyCollection
 	// FamilyPropertyItem — GET /properties/{id}. JSON-only.
 	FamilyPropertyItem
+
+	// FamilyControlStreamCollection — GET /controlstreams and
+	// /systems/{id}/controlstreams (Stage 24). JSON-only at v0.1.
+	FamilyControlStreamCollection
+	// FamilyControlStreamItem — GET /controlstreams/{id}. JSON-only.
+	FamilyControlStreamItem
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -166,6 +172,8 @@ func (fam ResourceFamily) supported() []MediaType {
 	case FamilySamplingFeatureItem:
 		return []MediaType{MediaJSON}
 	case FamilyPropertyCollection, FamilyPropertyItem:
+		return []MediaType{MediaJSON}
+	case FamilyControlStreamCollection, FamilyControlStreamItem:
 		return []MediaType{MediaJSON}
 	case FamilyAPI:
 		// OAS3 JSON is the default — most OpenAPI tooling (Swagger UI,

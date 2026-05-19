@@ -116,6 +116,10 @@ var stageConformanceClasses = []string{
 	// Stage 23 — Property resource. GET collection/item + POST +
 	// OPTIONS for SOSA ObservableProperty definitions.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/property",
+	// Stage 24 — CS API Part 2 Control Streams and Commands read-only
+	// subset: /controlstreams, item GET, schema, empty commands
+	// collection, and system-scoped controlstreams.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/controlstream",
 }
 
 type conformanceDeclaration struct {

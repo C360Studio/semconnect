@@ -348,6 +348,27 @@ EOF
     fi
     log "  seeded property (HTTP $prop_code)"
 
+    # Stage 24 — seed a ControlStream so the Part 2 read-only
+    # controlstream group can exercise /controlstreams, item GET,
+    # /schema, /commands, and /systems/{id}/controlstreams.
+    log "  POST /controlstreams with seed command schema"
+    local ctrl_body='{"name":"Conformance seed PTZ control","system@id":"'"${sys_id}"'","inputName":"ptz","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"},{"name":"tilt","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/TiltAngle","label":"Tilt Angle"}]}}}'
+    local ctrl_resp
+    ctrl_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$ctrl_body" \
+        "${cs_api_url}/controlstreams" 2>&1)" || true
+    echo "$ctrl_resp" >>"$SEED_LOG"
+    local ctrl_code
+    ctrl_code="$(echo "$ctrl_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$ctrl_code" != "201" ]]; then
+        die "POST /controlstreams failed: $ctrl_code (see $SEED_LOG)"
+    fi
+    log "  seeded controlstream (HTTP $ctrl_code)"
+
     log "  seed complete (log: $SEED_LOG)"
 }
 

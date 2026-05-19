@@ -1294,16 +1294,158 @@ paths:
           description: No Content.
 
   /controlstreams:
-    x-not-implemented-at-v01: true
     x-cs-upstream-source: api/upstream/part2/paths/controlStreams.yaml
     get:
-      tags: [NotImplementedAtV01]
-      summary: List Control Streams (not implemented at v0.1).
+      operationId: getControlStreams
+      tags: [ControlStreams]
+      summary: List control streams.
       description: |-
-        Part 2 — actuator command channels. Stub today; lands when
-        cs-api gains the actuator-write side.
+        Stage 24 — Part 2 read-side command channels. JSON-only
+        ControlStream collection.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
       responses:
-        "501": {$ref: "#/components/responses/NotImplemented"}
+        "200":
+          description: ControlStreamCollection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlStreamCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headControlStreams
+      tags: [ControlStreams]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: createControlStream
+      tags: [ControlStreams]
+      summary: Create a control stream fixture.
+      description: |-
+        v0.1 fixture helper used by the conformance harness. Command
+        execution remains out of scope; the created resource exposes
+        read-side metadata and an empty commands collection.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ControlStreamPost"}
+      responses:
+        "201":
+          description: Created.
+          headers:
+            Location:
+              schema: {type: string, format: uri-reference}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, id, type]
+                properties:
+                  status: {type: string, enum: [created]}
+                  id:    {type: string}
+                  type:  {type: string, enum: [ControlStream]}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsControlStreams
+      tags: [ControlStreams]
+      responses:
+        "204":
+          description: No Content.
+
+  /controlstreams/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getControlStream
+      tags: [ControlStreams]
+      summary: Get a control stream.
+      responses:
+        "200":
+          description: ControlStream JSON subset.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlStream"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headControlStream
+      tags: [ControlStreams]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsControlStream
+      tags: [ControlStreams]
+      responses:
+        "204":
+          description: No Content.
+
+  /controlstreams/{id}/schema:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getControlStreamSchema
+      tags: [ControlStreams]
+      summary: Get a control stream command schema.
+      responses:
+        "200":
+          description: Command schema.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CommandSchema"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+
+  /controlstreams/{id}/commands:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getControlStreamCommands
+      tags: [ControlStreams]
+      summary: List commands for a control stream.
+      description: Command execution is not implemented at v0.1, so this returns an empty collection.
+      responses:
+        "200":
+          description: Empty Command collection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ItemsOnlyCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+
+  /systems/{id}/controlstreams:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getSystemControlStreams
+      tags: [ControlStreams]
+      summary: List control streams for a system.
+      description: Stage 24 — filters ControlStreams by the stored system reference.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: ControlStreamCollection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlStreamCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
 
   /commands:
     x-not-implemented-at-v01: true
@@ -1805,6 +1947,83 @@ components:
         description:  {type: string}
         definition:   {type: string, format: uri}
         baseProperty: {type: string, format: uri}
+
+    ControlStreamCollection:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/ControlStream"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    ControlStream:
+      type: object
+      required: [id, name, system@link, inputName, controlledProperties, issueTime, executionTime, live, async, formats]
+      properties:
+        id:          {type: string}
+        name:        {type: string}
+        description: {type: string}
+        system@id:   {type: string}
+        system@link: {$ref: "#/components/schemas/Link"}
+        inputName:   {type: string}
+        controlledProperties:
+          type: array
+          items: {$ref: "#/components/schemas/ControlledProperty"}
+        issueTime:     {nullable: true}
+        executionTime: {nullable: true}
+        live:          {type: boolean}
+        async:         {type: boolean}
+        formats:
+          type: array
+          items: {type: string}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    ControlledProperty:
+      type: object
+      properties:
+        definition:  {type: string, format: uri}
+        label:       {type: string}
+        description: {type: string}
+
+    CommandSchema:
+      type: object
+      required: [commandFormat, parametersSchema]
+      properties:
+        commandFormat: {type: string}
+        parametersSchema:
+          type: object
+          additionalProperties: true
+
+    ControlStreamPost:
+      type: object
+      required: [name, inputName, schema]
+      properties:
+        id:          {type: string, description: Optional client-supplied 6-part SemStreams ID.}
+        name:        {type: string}
+        description: {type: string}
+        system@id:   {type: string}
+        inputName:   {type: string}
+        async:       {type: boolean}
+        controlledProperties:
+          type: array
+          items: {$ref: "#/components/schemas/ControlledProperty"}
+        schema: {$ref: "#/components/schemas/CommandSchema"}
+
+    ItemsOnlyCollection:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
 
     DatastreamCollection:
       type: object

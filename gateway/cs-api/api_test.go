@@ -151,6 +151,8 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"/deployments", "/deployments/{id}",
 		// Stage 22 — /samplingFeatures + /samplingFeatures/{id} now implemented.
 		"/samplingFeatures", "/samplingFeatures/{id}",
+		// Stage 23 — /properties + /properties/{id} now implemented.
+		"/properties", "/properties/{id}",
 	}
 	for _, p := range wantImpl {
 		entry, ok := paths[p].(map[string]any)
@@ -165,7 +167,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		}
 	}
 	wantStub := []string{
-		"/collections", "/properties",
+		"/collections",
 		"/controlstreams", "/commands", "/systemEvents",
 	}
 	for _, p := range wantStub {

@@ -113,6 +113,9 @@ var stageConformanceClasses = []string{
 	// POST + OPTIONS, with geo+json collection support and first-class
 	// geometry on the item resource.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sf",
+	// Stage 23 — Property resource. GET collection/item + POST +
+	// OPTIONS for SOSA ObservableProperty definitions.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/property",
 }
 
 type conformanceDeclaration struct {

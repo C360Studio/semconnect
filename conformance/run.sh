@@ -326,6 +326,28 @@ EOF
     fi
     log "  seeded sampling feature (HTTP $sf_code)"
 
+    # Stage 23 — seed a Property so the ETS properties group has
+    # non-empty /properties. The upstream request schema is SensorML
+    # DerivedProperty JSON; cs-api stores the representable subset as
+    # triples.
+    log "  POST /properties with seed DerivedProperty"
+    local prop_body='{"uniqueId":"urn:ets:property:air-temperature","label":"Conformance seed air temperature","description":"Stage 23 seed fixture — observed property","definition":"http://qudt.org/vocab/quantitykind/Temperature"}'
+    local prop_resp
+    prop_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/sml+json' \
+        --data-binary "$prop_body" \
+        "${cs_api_url}/properties" 2>&1)" || true
+    echo "$prop_resp" >>"$SEED_LOG"
+    local prop_code
+    prop_code="$(echo "$prop_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$prop_code" != "201" ]]; then
+        die "POST /properties failed: $prop_code (see $SEED_LOG)"
+    fi
+    log "  seeded property (HTTP $prop_code)"
+
     log "  seed complete (log: $SEED_LOG)"
 }
 

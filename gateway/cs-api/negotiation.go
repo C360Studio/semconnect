@@ -70,6 +70,14 @@ const (
 	FamilySamplingFeatureCollection
 	// FamilySamplingFeatureItem — GET /samplingFeatures/{id}. JSON-only.
 	FamilySamplingFeatureItem
+
+	// FamilyPropertyCollection — GET /properties (Stage 23). JSON-only
+	// at v0.1; the upstream schema is SensorML DerivedProperty-shaped
+	// JSON, but this gateway returns the same JSON subset style used by
+	// the other OSH-bar registry resources.
+	FamilyPropertyCollection
+	// FamilyPropertyItem — GET /properties/{id}. JSON-only.
+	FamilyPropertyItem
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -156,6 +164,8 @@ func (fam ResourceFamily) supported() []MediaType {
 		// workaround.
 		return []MediaType{MediaJSON, MediaGeoJSON}
 	case FamilySamplingFeatureItem:
+		return []MediaType{MediaJSON}
+	case FamilyPropertyCollection, FamilyPropertyItem:
 		return []MediaType{MediaJSON}
 	case FamilyAPI:
 		// OAS3 JSON is the default — most OpenAPI tooling (Swagger UI,

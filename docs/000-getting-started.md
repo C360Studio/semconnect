@@ -602,12 +602,35 @@ properties for procedures, deployments, and sampling features with
 check now polls because Tomcat can briefly reset connections after
 Docker starts the container but before `/teamengine/` is serving.
 
-### Stage 23+ — Continue OSH-bar resource buildout (Stages 23-27)
+### Stage 23 — CS API Properties resource (OSH bar)
+
+Stage 23 ships `/properties`:
+
+- `GET /properties` (collection) — predicate-query on
+  `rdf:type = sosa:ObservableProperty`; JSON `PropertyCollection`.
+- `GET /properties/{id}` — JSON Property subset with
+  `uid` / `uniqueId`, label, description, definition, and optional
+  baseProperty recovered from triples.
+- `POST /properties` — accepts `application/sml+json`,
+  `application/sensorml+json`, or `application/json` SensorML
+  DerivedProperty-shaped JSON. The v0.1 subset stores `uniqueId`,
+  label/name, description, definition, and baseProperty.
+- `OPTIONS /properties` (`GET, HEAD, POST, OPTIONS`) and
+  `OPTIONS /properties/{id}` (`GET, HEAD, OPTIONS`).
+- `conformance.go` claims
+  `http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/property`.
+- Conformance harness gains a seed Property fixture.
+- New config field `PropertyIDPrefix` (default
+  `c360.semconnect.systems.csapi.property`).
+
+**Outcome:** `total=137 passed=62 failed=0 skipped=75` (confirmed
+2026-05-19). From Stage 22 (58/0/79): +4 newly passing
+properties-group tests, -4 SKIPs, zero failures.
+
+### Stage 24+ — Continue OSH-bar resource buildout (Stages 24-27)
 
 Subsequent stages from the OSH-bar memory:
 
-- **Stage 23** — `/properties` + `conf/property`. Observed-property
-  registry; simplest of the resource types.
 - **Stages 24-26** — Part 2 read-side: `/controlStreams`,
   `/systems/{id}/history`, `/systems/{id}/events`.
 - **Stage 27** — SWE Common encodings (Part 2)

@@ -744,7 +744,32 @@ side:
 pinned ETS still defers SWE Common suites and v0.1 does not claim a SWE
 Common conformance class for this observation-value subset.
 
-### Stage 28+ — Continue OSH-bar resource buildout
+### Stage 28 — OGC API Common Part 2 Collections metadata
+
+Stage 28 keeps the work on the read/discovery path while upstream
+semstreams works the framework issues filed from Stages 14-27:
+
+- `GET /collections` returns an OGC API Common Part 2-style
+  `collections[]` document.
+- Entries cover resource families semconnect already reads:
+  `all_systems`, `all_procedures`, `all_deployments`,
+  `all_sampling_features`, `all_properties`, and `all_datastreams`.
+- Feature collections carry the CS API marker fields the spec and ETS
+  look for (`itemType: "feature"` plus `featureType`, e.g.
+  `sosa:System`). Property collections use `itemType:
+  "sosa:Property"`.
+- `items` links point at canonical endpoints such as
+  `/systems?f=geojson`; v0.1 does **not** add a
+  `/collections/{id}/items` facade or any write-side aliases.
+- No new Common Part 2 conformance class is claimed yet.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-21). `/collections` unblocked the Common Part 2 collections
+assertion and the resource-specific collections cascade for already
+implemented read-side resources. No write-side or SWE Common classes
+were added.
+
+### Stage 29+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 

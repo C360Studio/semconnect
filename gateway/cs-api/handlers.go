@@ -46,6 +46,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	landingPath := join("{$}")
 	systemsPath := join("systems")
 	systemItemPath := join("systems/{id}")
+	collectionsPath := join("collections")
 	conformancePath := join("conformance")
 	healthPath := join("health")
 	datastreamsPath := join("datastreams")
@@ -78,6 +79,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
 	mux.Handle("GET "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
 	mux.Handle("HEAD "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
+	mux.Handle("GET "+collectionsPath, c.middleware(http.HandlerFunc(c.handleCollections)))
+	mux.Handle("HEAD "+collectionsPath, c.middleware(http.HandlerFunc(c.handleCollections)))
 	mux.Handle("GET "+conformancePath, c.middleware(http.HandlerFunc(c.handleConformance)))
 	mux.Handle("HEAD "+conformancePath, c.middleware(http.HandlerFunc(c.handleConformance)))
 	mux.Handle("GET "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
@@ -185,6 +188,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"landing", landingPath,
 		"systems", systemsPath,
 		"system_item", systemItemPath,
+		"collections", collectionsPath,
 		"conformance", conformancePath,
 		"health", healthPath,
 		"datastreams", datastreamsPath,

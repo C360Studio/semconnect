@@ -159,6 +159,8 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		// Stage 25 — Part 2 /systemEvents read-side.
 		"/systemEvents", "/systemEvents/{id}",
 		"/systems/{id}/events", "/systems/{id}/events/{eventID}",
+		// Stage 26 — System History vendor-extension read-side.
+		"/systems/{id}/history", "/systems/{id}/history/{revID}",
 	}
 	for _, p := range wantImpl {
 		entry, ok := paths[p].(map[string]any)

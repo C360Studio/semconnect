@@ -311,6 +311,97 @@ func TestObservationsGet_OMSBareArray(t *testing.T) {
 	}
 }
 
+func TestObservationsGet_SWEJSON(t *testing.T) {
+	obs := &oms.Observation{
+		ID: "obs-swe-json", Procedure: "http://example.org/proc",
+		ObservedProperty: "http://example.org/prop",
+		ResultTime:       "2026-05-15T14:30:00Z",
+		Result:           12.4,
+	}
+	rd := &fakeReader{msgs: []observationMsg{{Data: encodeBaseMessage(t, obs), Sequence: 9}}}
+	c := wireObservationsReadComponent(t, rd)
+
+	req := httptest.NewRequest(http.MethodGet,
+		"/datastreams/c360.semconnect.systems.csapi.datastream.001/observations", nil)
+	req.Header.Set("Accept", string(MediaSWEJSON))
+	req.SetPathValue("datastreamID", "c360.semconnect.systems.csapi.datastream.001")
+	rr := httptest.NewRecorder()
+	c.handleObservationsGet(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSWEJSON) {
+		t.Errorf("Content-Type: got %q want %q", ct, string(MediaSWEJSON))
+	}
+	if rr.Header().Get("X-CS-SWE-Subset") != "observation-values" {
+		t.Errorf("X-CS-SWE-Subset: got %q", rr.Header().Get("X-CS-SWE-Subset"))
+	}
+	var body sweObservationCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(body.Items) != 1 || body.Items[0].Time != "2026-05-15T14:30:00Z" || body.Items[0].Result != 12.4 {
+		t.Errorf("SWE JSON body: %+v", body)
+	}
+}
+
+func TestObservationsGet_SWECsv(t *testing.T) {
+	obs := &oms.Observation{
+		ID: "obs-swe-csv", Procedure: "http://example.org/proc",
+		ObservedProperty: "http://example.org/prop",
+		ResultTime:       "2026-05-15T14:30:00Z",
+		Result:           12.4,
+	}
+	rd := &fakeReader{msgs: []observationMsg{{Data: encodeBaseMessage(t, obs), Sequence: 9}}}
+	c := wireObservationsReadComponent(t, rd)
+
+	req := httptest.NewRequest(http.MethodGet,
+		"/datastreams/c360.semconnect.systems.csapi.datastream.001/observations", nil)
+	req.Header.Set("Accept", string(MediaSWECsv))
+	req.SetPathValue("datastreamID", "c360.semconnect.systems.csapi.datastream.001")
+	rr := httptest.NewRecorder()
+	c.handleObservationsGet(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSWECsv) {
+		t.Errorf("Content-Type: got %q want %q", ct, string(MediaSWECsv))
+	}
+	if got := strings.TrimSpace(rr.Body.String()); got != "time,result\n2026-05-15T14:30:00Z,12.4" {
+		t.Errorf("CSV body:\n%s", rr.Body.String())
+	}
+}
+
+func TestObservationsGet_SWEBinary(t *testing.T) {
+	obs := &oms.Observation{
+		ID: "obs-swe-bin", Procedure: "http://example.org/proc",
+		ObservedProperty: "http://example.org/prop",
+		ResultTime:       "2026-05-15T14:30:00Z",
+		Result:           12.4,
+	}
+	rd := &fakeReader{msgs: []observationMsg{{Data: encodeBaseMessage(t, obs), Sequence: 9}}}
+	c := wireObservationsReadComponent(t, rd)
+
+	req := httptest.NewRequest(http.MethodGet,
+		"/datastreams/c360.semconnect.systems.csapi.datastream.001/observations", nil)
+	req.Header.Set("Accept", string(MediaSWEBinary))
+	req.SetPathValue("datastreamID", "c360.semconnect.systems.csapi.datastream.001")
+	rr := httptest.NewRecorder()
+	c.handleObservationsGet(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSWEBinary) {
+		t.Errorf("Content-Type: got %q want %q", ct, string(MediaSWEBinary))
+	}
+	if got := rr.Body.String(); got != "2026-05-15T14:30:00Z,12.4\n" {
+		t.Errorf("binary subset body: %q", got)
+	}
+}
+
 // TestObservationsGet_InvalidPaths covers the validation seams that 400
 // before any backend call.
 func TestObservationsGet_InvalidPaths(t *testing.T) {

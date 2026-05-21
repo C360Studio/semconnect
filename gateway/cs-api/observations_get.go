@@ -2,11 +2,13 @@ package csapi
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/nats-io/nats.go"
@@ -25,13 +27,13 @@ import (
 //   - Truncated is a heuristic: true when len(items) == limit AND
 //     lastSeq > 0. Two failure modes worth knowing:
 //     (a) MaxAge purge between cursor and tail — page returns < limit
-//         items even though there might be later sequences. Caller
-//         walks the cursor on next request and finds them. False
-//         negative (truncated=false but more pages exist).
+//     items even though there might be later sequences. Caller
+//     walks the cursor on next request and finds them. False
+//     negative (truncated=false but more pages exist).
 //     (b) The genuine tail happened to fill the page — next link
-//         points past the tail and the follow-up request returns
-//         200 with empty items. Legal but wasteful. False positive
-//         (truncated=true but no more pages).
+//     points past the tail and the follow-up request returns
+//     200 with empty items. Legal but wasteful. False positive
+//     (truncated=true but no more pages).
 //     Both fold away when NumPending lands.
 type observationCollection struct {
 	Type           string            `json:"type"` // "ObservationCollection"
@@ -146,6 +148,12 @@ func (c *Component) handleObservationsGet(w http.ResponseWriter, r *http.Request
 	switch media {
 	case MediaOMS:
 		c.writeObservationsBare(w, r, items)
+	case MediaSWEJSON:
+		c.writeObservationsSWEJSON(w, r, datastreamID, items, lastSeq, limit)
+	case MediaSWECsv:
+		c.writeObservationsSWECsv(w, r, items)
+	case MediaSWEBinary:
+		c.writeObservationsSWEBinary(w, r, items)
 	default:
 		c.writeObservationsWrapped(w, r, datastreamID, items, lastSeq, limit)
 	}
@@ -269,6 +277,124 @@ func (c *Component) writeObservationsBare(w http.ResponseWriter, r *http.Request
 	if _, err := w.Write([]byte("]")); err != nil {
 		c.errs.Add(1)
 		return
+	}
+}
+
+type sweObservationRecord struct {
+	Time   string `json:"time,omitempty"`
+	Result any    `json:"result,omitempty"`
+}
+
+type sweObservationCollection struct {
+	Items []sweObservationRecord `json:"items"`
+	Links []link                 `json:"links,omitempty"`
+}
+
+func (c *Component) writeObservationsSWEJSON(
+	w http.ResponseWriter,
+	r *http.Request,
+	datastreamID string,
+	items []json.RawMessage,
+	lastSeq uint64,
+	limit int,
+) {
+	records := sweRecordsFromOMS(items)
+	links := []link{
+		{Href: c.observationsSelfLink(datastreamID, r.URL.RawQuery), Rel: "self", Type: string(MediaSWEJSON)},
+	}
+	if len(items) == limit && lastSeq > 0 {
+		links = append(links, link{
+			Href: fmt.Sprintf("/datastreams/%s/observations?limit=%d&after=%d",
+				datastreamID, limit, lastSeq),
+			Rel:  "next",
+			Type: string(MediaSWEJSON),
+		})
+	}
+	w.Header().Set("Content-Type", string(MediaSWEJSON))
+	w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	_ = json.NewEncoder(w).Encode(sweObservationCollection{Items: records, Links: links})
+}
+
+func (c *Component) writeObservationsSWECsv(w http.ResponseWriter, r *http.Request, items []json.RawMessage) {
+	w.Header().Set("Content-Type", string(MediaSWECsv))
+	w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	cw := csv.NewWriter(w)
+	_ = cw.Write([]string{"time", "result"})
+	for _, rec := range sweRecordsFromOMS(items) {
+		_ = cw.Write([]string{rec.Time, sweResultString(rec.Result)})
+	}
+	cw.Flush()
+	if err := cw.Error(); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("encode observations SWE CSV response", "err", err)
+	}
+}
+
+func (c *Component) writeObservationsSWEBinary(w http.ResponseWriter, r *http.Request, items []json.RawMessage) {
+	w.Header().Set("Content-Type", string(MediaSWEBinary))
+	w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	for _, rec := range sweRecordsFromOMS(items) {
+		line := rec.Time + "," + sweResultString(rec.Result) + "\n"
+		if _, err := w.Write([]byte(line)); err != nil {
+			c.errs.Add(1)
+			c.logger.Error("write observations SWE binary response", "err", err)
+			return
+		}
+	}
+}
+
+func sweRecordsFromOMS(items []json.RawMessage) []sweObservationRecord {
+	records := make([]sweObservationRecord, 0, len(items))
+	for _, item := range items {
+		var obj map[string]any
+		if err := json.Unmarshal(item, &obj); err != nil {
+			continue
+		}
+		records = append(records, sweObservationRecord{
+			Time:   firstStringValue(obj, "phenomenonTime", "resultTime", "time"),
+			Result: obj["result"],
+		})
+	}
+	return records
+}
+
+func firstStringValue(obj map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if v, ok := obj[key].(string); ok {
+			return v
+		}
+	}
+	return ""
+}
+
+func sweResultString(v any) string {
+	switch t := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return t
+	case float64:
+		return strconv.FormatFloat(t, 'f', -1, 64)
+	case bool:
+		return strconv.FormatBool(t)
+	default:
+		b, err := json.Marshal(t)
+		if err != nil {
+			return ""
+		}
+		return strings.TrimSpace(string(b))
 	}
 }
 

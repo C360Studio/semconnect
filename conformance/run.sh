@@ -369,6 +369,27 @@ EOF
     fi
     log "  seeded controlstream (HTTP $ctrl_code)"
 
+    # Stage 25 — seed a SystemEvent so the Part 2 system-event group
+    # can exercise /systemEvents, /systemEvents/{id}, and the
+    # normative /systems/{id}/events reference path.
+    log "  POST /systems/{id}/events with seed SystemEvent"
+    local event_body='{"eventTime":"2026-05-19T12:00:00Z","eventType":"SystemChanged","message":"Conformance seed system event","source":"ets","payload":{"status":"nominal"}}'
+    local event_resp
+    event_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$event_body" \
+        "${cs_api_url}/systems/${sys_id}/events" 2>&1)" || true
+    echo "$event_resp" >>"$SEED_LOG"
+    local event_code
+    event_code="$(echo "$event_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$event_code" != "201" ]]; then
+        die "POST /systems/{id}/events failed: $event_code (see $SEED_LOG)"
+    fi
+    log "  seeded system event (HTTP $event_code)"
+
     log "  seed complete (log: $SEED_LOG)"
 }
 

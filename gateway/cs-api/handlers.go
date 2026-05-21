@@ -65,6 +65,10 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	controlStreamSchemaPath := join("controlstreams/{id}/schema")
 	controlStreamCommandsPath := join("controlstreams/{id}/commands")
 	systemControlStreamsPath := join("systems/{id}/controlstreams")
+	systemEventsPath := join("systemEvents")
+	systemEventItemPath := join("systemEvents/{id}")
+	systemScopedEventsPath := join("systems/{id}/events")
+	systemScopedEventItemPath := join("systems/{id}/events/{eventID}")
 
 	mux.Handle("GET "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
 	mux.Handle("HEAD "+landingPath, c.middleware(http.HandlerFunc(c.handleLanding)))
@@ -152,6 +156,21 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+controlStreamCommandsPath, c.middleware(http.HandlerFunc(c.handleControlStreamCommands)))
 	mux.Handle("GET "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
 	mux.Handle("HEAD "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
+	// Stage 25 — Part 2 /systemEvents read-side plus fixture POST.
+	mux.Handle("GET "+systemEventsPath, c.middleware(http.HandlerFunc(c.handleSystemEvents)))
+	mux.Handle("HEAD "+systemEventsPath, c.middleware(http.HandlerFunc(c.handleSystemEvents)))
+	mux.Handle("POST "+systemEventsPath, c.middleware(http.HandlerFunc(c.handleSystemEventPost)))
+	mux.Handle("OPTIONS "+systemEventsPath, c.middleware(http.HandlerFunc(c.handleSystemEventsOptions)))
+	mux.Handle("GET "+systemEventItemPath, c.middleware(http.HandlerFunc(c.handleSystemEvent)))
+	mux.Handle("HEAD "+systemEventItemPath, c.middleware(http.HandlerFunc(c.handleSystemEvent)))
+	mux.Handle("OPTIONS "+systemEventItemPath, c.middleware(http.HandlerFunc(c.handleSystemEventOptions)))
+	mux.Handle("GET "+systemScopedEventsPath, c.middleware(http.HandlerFunc(c.handleSystemScopedEvents)))
+	mux.Handle("HEAD "+systemScopedEventsPath, c.middleware(http.HandlerFunc(c.handleSystemScopedEvents)))
+	mux.Handle("POST "+systemScopedEventsPath, c.middleware(http.HandlerFunc(c.handleSystemScopedEventPost)))
+	mux.Handle("OPTIONS "+systemScopedEventsPath, c.middleware(http.HandlerFunc(c.handleSystemEventsOptions)))
+	mux.Handle("GET "+systemScopedEventItemPath, c.middleware(http.HandlerFunc(c.handleSystemScopedEvent)))
+	mux.Handle("HEAD "+systemScopedEventItemPath, c.middleware(http.HandlerFunc(c.handleSystemScopedEvent)))
+	mux.Handle("OPTIONS "+systemScopedEventItemPath, c.middleware(http.HandlerFunc(c.handleSystemEventOptions)))
 
 	c.logger.Debug("HTTP handlers registered",
 		"landing", landingPath,
@@ -175,7 +194,11 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"controlstream_item", controlStreamItemPath,
 		"controlstream_schema", controlStreamSchemaPath,
 		"controlstream_commands", controlStreamCommandsPath,
-		"system_controlstreams", systemControlStreamsPath)
+		"system_controlstreams", systemControlStreamsPath,
+		"system_events", systemEventsPath,
+		"system_event_item", systemEventItemPath,
+		"system_scoped_events", systemScopedEventsPath,
+		"system_scoped_event_item", systemScopedEventItemPath)
 }
 
 // middleware composes the per-request chain. Order matters:

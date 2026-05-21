@@ -121,6 +121,10 @@ type Config struct {
 	// ControlStreamIDPrefix is the 5-part prefix for POST /controlstreams.
 	// Stage 24.
 	ControlStreamIDPrefix string `json:"controlstream_id_prefix"`
+
+	// SystemEventIDPrefix is the 5-part prefix for POST /systemEvents and
+	// /systems/{id}/events. Stage 25.
+	SystemEventIDPrefix string `json:"system_event_id_prefix"`
 }
 
 // DefaultConfig returns a fully-populated Config. Stage 2 binaries call this
@@ -150,6 +154,7 @@ func DefaultConfig() Config {
 		SamplingFeatureIDPrefix:   "c360.semconnect.systems.csapi.samplingfeature",
 		PropertyIDPrefix:          "c360.semconnect.systems.csapi.property",
 		ControlStreamIDPrefix:     "c360.semconnect.systems.csapi.controlstream",
+		SystemEventIDPrefix:       "c360.semconnect.systems.csapi.systemevent",
 	}
 }
 
@@ -221,6 +226,9 @@ func (c *Config) ApplyDefaults() {
 	if c.ControlStreamIDPrefix == "" {
 		c.ControlStreamIDPrefix = d.ControlStreamIDPrefix
 	}
+	if c.SystemEventIDPrefix == "" {
+		c.SystemEventIDPrefix = d.SystemEventIDPrefix
+	}
 	// ObservationsMaxBytes: 0 is a meaningful value (unlimited); do not
 	// overwrite with the default.
 }
@@ -282,6 +290,9 @@ func (c *Config) Validate() error {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.ControlStreamIDPrefix, "controlstream_id_prefix"); err != nil {
+		return err
+	}
+	if err := validateEntityIDPrefix(c.SystemEventIDPrefix, "system_event_id_prefix"); err != nil {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.DatastreamIDPrefix, "datastream_id_prefix"); err != nil {

@@ -718,12 +718,37 @@ less honest.
 API-surface parity work for the OSH bar, not an active ETS assertion
 unlock in the pinned suite.
 
-### Stage 27+ — Continue OSH-bar resource buildout
+### Stage 27 — SWE Common observation value encodings (Part 2 subset)
+
+Stage 27 starts the SWE Common encoding work on the observation read
+side:
+
+- `GET /datastreams/{id}/observations` now negotiates
+  `application/swe+json`, `application/swe+csv`, and
+  `application/swe+binary` in addition to the existing
+  `application/json` and `application/om+json`.
+- `application/swe+json` returns a JSON object with `items[]`, where
+  each item carries the stored observation `time` and `result` value
+  recovered from the OMS payload.
+- `application/swe+csv` returns a `time,result` CSV value stream.
+- `application/swe+binary` returns the same value records as bytes.
+  This is intentionally labelled with `X-CS-SWE-Subset:
+  observation-values`; full schema-bound SWE binary layouts remain
+  deferred until observation schema binding lands.
+- No SWE Common conformance class is claimed yet. The pinned ETS still
+  marks the SWE Common suites deferred, and v0.1 has not completed the
+  command/schema side of those classes.
+
+**Outcome:** `total=137 passed=62 failed=0 skipped=75` (confirmed
+2026-05-21). No TestNG headline movement from Stage 26 because the
+pinned ETS still defers SWE Common suites and v0.1 does not claim a SWE
+Common conformance class for this observation-value subset.
+
+### Stage 28+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
-- **Stage 27** — SWE Common encodings (Part 2)
-  `swecommon-{json,text,binary}`.
+- Complete SWE Common schema-bound encodings and command-side parity.
 
 Also pending: PATCH parity on `/datastreams` for full
 `conf/update` scope, per-datastream observation JetStream Consumer

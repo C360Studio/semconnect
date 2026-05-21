@@ -23,6 +23,9 @@ const (
 	MediaSensorML       MediaType = "application/sml+json"
 	MediaSensorMLLegacy MediaType = "application/sensorml+json"
 	MediaOMS            MediaType = "application/om+json"
+	MediaSWEJSON        MediaType = "application/swe+json"
+	MediaSWECsv         MediaType = "application/swe+csv"
+	MediaSWEBinary      MediaType = "application/swe+binary"
 	// OAS3 content types per OpenAPI Initiative registration (2021).
 	// Used by /api (Stage 12) — Swagger UI / Redoc / openapi-generator
 	// all prefer the +json form; the YAML form is the raw embedded body.
@@ -140,9 +143,9 @@ func (fam ResourceFamily) supported() []MediaType {
 	case FamilyObservationCollection:
 		// JSON returns the CS API §11.3 ObservationCollection wrapper
 		// (numberMatched / items / links); OMS returns a bare array of
-		// observation payloads for OMS-native clients. POST takes the
-		// same OMS shape, so the round-trip is symmetric. Stage 11.
-		return []MediaType{MediaJSON, MediaOMS}
+		// observation payloads for OMS-native clients. Stage 27 adds
+		// SWE Common read-side encodings for observation values.
+		return []MediaType{MediaJSON, MediaOMS, MediaSWEJSON, MediaSWECsv, MediaSWEBinary}
 	case FamilySpatial:
 		// GeoJSON is the natural default for /areas — RFC 7946
 		// FeatureCollection is the wire shape; clients asking for
@@ -205,6 +208,9 @@ var shortMediaNames = map[string]MediaType{
 	"geojson":  MediaGeoJSON,
 	"sensorml": MediaSensorML,
 	"om":       MediaOMS,
+	"swejson":  MediaSWEJSON,
+	"swecsv":   MediaSWECsv,
+	"swebin":   MediaSWEBinary,
 	"jsonld":   MediaJSONLD,
 	// Stage 12: OAS3 short names for `/api?f=...`. `openapi` resolves to
 	// the JSON form (matches the default); `yaml` resolves to the raw

@@ -500,6 +500,98 @@ paths:
               description: '`GET, HEAD, PUT, PATCH, DELETE, OPTIONS`'
 
   # ============================================================
+  # System History (OSH-bar vendor extension)
+  # ============================================================
+  /systems/{id}/history:
+    x-cs-vendor-extension: true
+    x-cs-upstream-source: api/upstream/part2/paths/systemHistory.yaml
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getSystemHistory
+      summary: List current system history.
+      description: |-
+        Stage 26 — OSH-bar System History read-side vendor extension.
+        OGC 23-002 Annex A does not define a system-history
+        conformance class in the pinned ETS, so this endpoint is
+        documented but not claimed in `/conformance`.
+
+        v0.1 exposes the current System description as the single
+        available revision, linked as `current`.
+      tags: [Systems]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: SystemCollection containing the current revision.
+          headers:
+            X-CS-History-Current-Only:
+              schema: {type: string, enum: ["true"]}
+              description: Indicates that only the current revision is available at v0.1.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SystemCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSystemHistory
+      tags: [Systems]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsSystemHistory
+      tags: [Systems]
+      responses:
+        "204": {description: No Content.}
+
+  /systems/{id}/history/{revID}:
+    x-cs-vendor-extension: true
+    x-cs-upstream-source: api/upstream/part2/paths/systemHistoryById.yaml
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+      - in: path
+        name: revID
+        required: true
+        schema: {type: string, enum: [current]}
+        description: Only `current` is available at v0.1.
+    get:
+      operationId: getSystemHistoryItem
+      summary: Fetch a system history revision.
+      description: |-
+        Returns the current System JSON representation when `revID`
+        is `current`; unknown revisions return 404.
+      tags: [Systems]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: System resource for the requested revision.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/System"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSystemHistoryItem
+      tags: [Systems]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsSystemHistoryItem
+      tags: [Systems]
+      responses:
+        "204": {description: No Content.}
+
+  # ============================================================
   # Datastreams (CS API §10)
   # ============================================================
   /datastreams:

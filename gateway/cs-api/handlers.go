@@ -65,6 +65,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	controlStreamSchemaPath := join("controlstreams/{id}/schema")
 	controlStreamCommandsPath := join("controlstreams/{id}/commands")
 	systemControlStreamsPath := join("systems/{id}/controlstreams")
+	systemHistoryPath := join("systems/{id}/history")
+	systemHistoryItemPath := join("systems/{id}/history/{revID}")
 	systemEventsPath := join("systemEvents")
 	systemEventItemPath := join("systemEvents/{id}")
 	systemScopedEventsPath := join("systems/{id}/events")
@@ -156,6 +158,13 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+controlStreamCommandsPath, c.middleware(http.HandlerFunc(c.handleControlStreamCommands)))
 	mux.Handle("GET "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
 	mux.Handle("HEAD "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
+	// Stage 26 — OSH-bar System History read-side vendor extension.
+	mux.Handle("GET "+systemHistoryPath, c.middleware(http.HandlerFunc(c.handleSystemHistory)))
+	mux.Handle("HEAD "+systemHistoryPath, c.middleware(http.HandlerFunc(c.handleSystemHistory)))
+	mux.Handle("GET "+systemHistoryItemPath, c.middleware(http.HandlerFunc(c.handleSystemHistoryItem)))
+	mux.Handle("HEAD "+systemHistoryItemPath, c.middleware(http.HandlerFunc(c.handleSystemHistoryItem)))
+	mux.Handle("OPTIONS "+systemHistoryPath, c.middleware(http.HandlerFunc(c.handleSystemHistoryOptions)))
+	mux.Handle("OPTIONS "+systemHistoryItemPath, c.middleware(http.HandlerFunc(c.handleSystemHistoryOptions)))
 	// Stage 25 — Part 2 /systemEvents read-side plus fixture POST.
 	mux.Handle("GET "+systemEventsPath, c.middleware(http.HandlerFunc(c.handleSystemEvents)))
 	mux.Handle("HEAD "+systemEventsPath, c.middleware(http.HandlerFunc(c.handleSystemEvents)))
@@ -195,6 +204,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"controlstream_schema", controlStreamSchemaPath,
 		"controlstream_commands", controlStreamCommandsPath,
 		"system_controlstreams", systemControlStreamsPath,
+		"system_history", systemHistoryPath,
+		"system_history_item", systemHistoryItemPath,
 		"system_events", systemEventsPath,
 		"system_event_item", systemEventItemPath,
 		"system_scoped_events", systemScopedEventsPath,

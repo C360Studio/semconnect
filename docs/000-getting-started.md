@@ -692,11 +692,36 @@ SKIPPED because TestNG declares them dependent on the existing
 `common` group being fully successful. This stage lands the endpoint
 surface and declarations without changing headline counts.
 
-### Stage 26+ — Continue OSH-bar resource buildout (Stages 26-27)
+### Stage 26 — System History read-side (OSH-bar vendor extension)
+
+Stage 26 ships the OSH-compatible System History read subset:
+
+- `GET /systems/{id}/history` — returns a `SystemCollection`
+  containing the current system description as the single available
+  revision. The response sets `X-CS-History-Current-Only: true`.
+- `GET /systems/{id}/history/current` — returns the same JSON System
+  representation as `/systems/{id}`. Unknown revision IDs return 404
+  before a backend lookup.
+- `OPTIONS /systems/{id}/history` and
+  `OPTIONS /systems/{id}/history/{revID}` advertise `GET, HEAD,
+  OPTIONS`.
+- The OpenAPI description marks both paths `x-cs-vendor-extension:
+  true` and points back to the upstream Part 2 history path files.
+
+No conformance class is claimed. The pinned Botts ETS explicitly
+documents `/conf/system-history` as a GeoRobotix vendor extension, not
+an OGC 23-002 Annex A class, so claiming it would make `/conformance`
+less honest.
+
+**Outcome:** `total=137 passed=62 failed=0 skipped=75` (confirmed
+2026-05-21). No headline movement from Stage 25. This stage is
+API-surface parity work for the OSH bar, not an active ETS assertion
+unlock in the pinned suite.
+
+### Stage 27+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
-- **Stage 26** — Part 2 read-side: `/systems/{id}/history`.
 - **Stage 27** — SWE Common encodings (Part 2)
   `swecommon-{json,text,binary}`.
 

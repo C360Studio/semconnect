@@ -145,6 +145,8 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"/datastreams", "/datastreams/{id}",
 		"/datastreams/{datastreamID}/observations",
 		"/areas",
+		// Stage 28 — OGC API Common Part 2 /collections metadata.
+		"/collections",
 		// Stage 20 — /procedures + /procedures/{id} now implemented.
 		"/procedures", "/procedures/{id}",
 		// Stage 21 — /deployments + /deployments/{id} now implemented.
@@ -175,7 +177,6 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		}
 	}
 	wantStub := []string{
-		"/collections",
 		"/commands",
 	}
 	for _, p := range wantStub {
@@ -193,6 +194,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 	schemas, _ := components["schemas"].(map[string]any)
 	wantSchemas := []string{
 		"LandingPage", "ConformanceDeclaration", "Link",
+		"CollectionsDocument", "CollectionMetadata",
 		"SystemCollection", "SystemRef", "System",
 		"DatastreamCollection", "DatastreamRef", "Datastream", "DatastreamCreate",
 		"ObservationCollection", "Observation",

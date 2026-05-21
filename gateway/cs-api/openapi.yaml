@@ -71,6 +71,8 @@ tags:
       Spatial filter — returns Systems whose location intersects a
       bbox or polygon. cs-api-specific endpoint shaped on OGC GeoJSON
       conformance class.
+  - name: Collections
+    description: OGC API Common Part 2 collection metadata.
   - name: NotImplementedAtV01
     description: |-
       Vendored from the upstream OGC OAS for roadmap visibility;
@@ -933,22 +935,34 @@ paths:
         "200": {description: OK (no body)}
 
   # ============================================================
-  # Deferred to follow-up stages — vendored from upstream OGC OAS
-  # for roadmap visibility. 501 today.
+  # OGC API Common Part 2 Collections — Stage 28
   # ============================================================
   /collections:
-    x-not-implemented-at-v01: true
     x-cs-upstream-source: api/upstream/part1/paths/collections.yaml
     get:
-      tags: [NotImplementedAtV01]
-      summary: List OGC API Collections (not implemented at v0.1).
+      operationId: getCollections
+      tags: [Collections]
+      summary: List OGC API Collections.
       description: |-
-        Stub. Full shape at `x-cs-upstream-source`. Implementation
-        deferred — cs-api's canonical resource collections at
-        `/systems`, `/datastreams`, `/areas` are the primary discovery
-        surface today.
+        Stage 28 — discovery metadata for the CS API resource
+        collections semconnect already reads. Collection `items`
+        links point at the canonical resource endpoints (for example
+        `/systems?f=geojson`) rather than exposing the full
+        `/collections/{id}/items` facade at v0.1.
+      parameters:
+        - $ref: "#/components/parameters/F"
       responses:
-        "501": {$ref: "#/components/responses/NotImplemented"}
+        "200":
+          description: Collections metadata.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CollectionsDocument"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+    head:
+      operationId: headCollections
+      tags: [Collections]
+      responses:
+        "200": {description: OK (no body)}
 
   # ============================================================
   # Procedures (CS API §6) — Stage 20
@@ -1563,6 +1577,10 @@ paths:
         "406": {$ref: "#/components/responses/NotAcceptable"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
 
+  # ============================================================
+  # Deferred to follow-up stages — vendored from upstream OGC OAS
+  # for roadmap visibility. 501 today.
+  # ============================================================
   /commands:
     x-not-implemented-at-v01: true
     x-cs-upstream-source: api/upstream/part2/paths/commands.yaml
@@ -1873,6 +1891,39 @@ components:
         rel:   {type: string}
         type:  {type: string}
         title: {type: string}
+
+    CollectionsDocument:
+      type: object
+      required: [collections, links]
+      properties:
+        collections:
+          type: array
+          items: {$ref: "#/components/schemas/CollectionMetadata"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+      description: |-
+        Stage 28 OGC API Common Part 2 collections metadata. The
+        `items` links target semconnect's canonical CS API resource
+        collection endpoints rather than a `/collections/{id}/items`
+        facade at v0.1.
+
+    CollectionMetadata:
+      type: object
+      required: [id, title, itemType, links]
+      properties:
+        id:          {type: string}
+        title:       {type: string}
+        description: {type: string}
+        itemType:
+          type: string
+          description: "`feature` for feature resources; direct SOSA/CS API resource type otherwise."
+        featureType:
+          type: string
+          description: SOSA/SSN marker for feature collections such as `sosa:System`.
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
 
     SystemCollection:
       type: object

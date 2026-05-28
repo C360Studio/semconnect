@@ -33,76 +33,11 @@ func sensorMLWithPosition(uniqueID, label string, lon, lat, alt float64) []byte 
 	return out
 }
 
-// TestExtractPositionTriple pins the helper that peeks the raw body
-// for `position` — Stage 14 sister-side workaround. Direct unit test
-// (no HTTP) so the parsing behavior is exercised independent of the
-// full handler.
-func TestExtractPositionTriple(t *testing.T) {
-	cases := []struct {
-		name    string
-		body    string
-		wantOK  bool
-		wantObj string
-	}{
-		{
-			name:    "Point position present",
-			body:    `{"type":"PhysicalSystem","position":{"type":"Point","coordinates":[-122.4,37.8,10]}}`,
-			wantOK:  true,
-			wantObj: `{"type":"Point","coordinates":[-122.4,37.8,10]}`,
-		},
-		{
-			name:    "Polygon position present",
-			body:    `{"type":"PhysicalSystem","position":{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,0]]]}}`,
-			wantOK:  true,
-			wantObj: `{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,0]]]}`,
-		},
-		{
-			name:    "position absent",
-			body:    `{"type":"PhysicalSystem","label":"no position"}`,
-			wantOK:  false,
-			wantObj: "",
-		},
-		{
-			name:    "position literal null skipped",
-			body:    `{"type":"PhysicalSystem","position":null}`,
-			wantOK:  false,
-			wantObj: "",
-		},
-		{
-			name:    "invalid outer JSON returns false (don't crash)",
-			body:    `not json`,
-			wantOK:  false,
-			wantObj: "",
-		},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			tri, ok := extractPositionTriple("entity-x", []byte(tc.body))
-			if ok != tc.wantOK {
-				t.Fatalf("ok: got %v want %v", ok, tc.wantOK)
-			}
-			if !ok {
-				return
-			}
-			if tri.Subject != "entity-x" {
-				t.Errorf("Subject: got %q want entity-x", tri.Subject)
-			}
-			if tri.Predicate != PredSystemPosition {
-				t.Errorf("Predicate: got %q want %q", tri.Predicate, PredSystemPosition)
-			}
-			if got, _ := tri.Object.(string); got != tc.wantObj {
-				t.Errorf("Object: got %q want %q", got, tc.wantObj)
-			}
-		})
-	}
-}
-
 // TestHandleSystemPost_PositionForwardedAsTriple — full POST handler
 // path: a SensorML body with `position` results in a
-// cs-api.system.position triple in the request to
+// sensorml.process.position triple in the request to
 // graph.mutation.triple.add_batch. The triple's Object preserves the
-// exact GeoJSON bytes (including number precision and field ordering)
-// from the input.
+// GeoJSON payload from the input.
 func TestHandleSystemPost_PositionForwardedAsTriple(t *testing.T) {
 	fake := &fakeRequester{
 		status: natsclient.StatusConnected,
@@ -135,7 +70,7 @@ func TestHandleSystemPost_PositionForwardedAsTriple(t *testing.T) {
 		}
 	}
 	if found == nil {
-		t.Fatal("no cs-api.system.position triple published")
+		t.Fatal("no position triple published")
 	}
 	obj, ok := found.Object.(string)
 	if !ok {
@@ -158,7 +93,7 @@ func TestHandleSystemPost_PositionForwardedAsTriple(t *testing.T) {
 }
 
 // TestHandleSystemPost_PositionAbsent — when the input has no position,
-// no cs-api.system.position triple is added. Regression guard against
+// no position triple is added. Regression guard against
 // emitting a noise triple with an empty Object value.
 func TestHandleSystemPost_PositionAbsent(t *testing.T) {
 	fake := &fakeRequester{
@@ -190,7 +125,7 @@ func TestHandleSystemPost_PositionAbsent(t *testing.T) {
 }
 
 // TestSystemFromState_SurfacesGeometry — the read side: a state with
-// a cs-api.system.position triple produces a System JSON with the
+// a position triple produces a System JSON with the
 // `geometry` field carrying the raw GeoJSON bytes (no re-quoting,
 // no shape mangling).
 func TestSystemFromState_SurfacesGeometry(t *testing.T) {
@@ -220,6 +155,20 @@ func TestSystemFromState_SurfacesGeometry(t *testing.T) {
 	}
 	if !strings.Contains(string(out), `"geometry":{"type":"Point","coordinates":[-122.4,37.8,10]}`) {
 		t.Errorf("marshaled system doesn't contain expected geometry block:\n%s", out)
+	}
+}
+
+func TestSystemFromState_SurfacesLegacyGeometryPredicate(t *testing.T) {
+	state := graph.EntityState{
+		ID: "c360.semconnect.systems.csapi.system.legacy",
+		Triples: []message.Triple{
+			{Predicate: "sensorml.process.type", Object: "http://www.w3.org/ns/ssn/System"},
+			{Predicate: legacyPredSystemPosition, Object: `{"type":"Point","coordinates":[1,2]}`},
+		},
+	}
+	sys := systemFromState(state)
+	if string(sys.Geometry) != `{"type":"Point","coordinates":[1,2]}` {
+		t.Errorf("geometry fallback: got %s", string(sys.Geometry))
 	}
 }
 

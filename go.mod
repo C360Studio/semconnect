@@ -3,7 +3,7 @@ module github.com/c360studio/semconnect
 go 1.26.3
 
 require (
-	github.com/c360studio/semstreams v1.0.0-beta.75
+	github.com/c360studio/semstreams v1.0.0-beta.79
 	github.com/google/uuid v1.6.0
 	github.com/nats-io/nats.go v1.48.0
 	gopkg.in/yaml.v3 v3.0.1

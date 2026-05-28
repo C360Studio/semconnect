@@ -101,7 +101,7 @@ func (c *Component) handleSystemPatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If the body specifies a uid, it MUST match the entity's
-	// preserved uid (Stage 18 cs-api.system.uid triple). Two cases:
+	// preserved uid (framework uid triple). Two cases:
 	//
 	//   (a) existing entity has a uid triple → strict equality check
 	//       (mismatch → 400 before any destructive op).
@@ -115,7 +115,7 @@ func (c *Component) handleSystemPatch(w http.ResponseWriter, r *http.Request) {
 	//       the entity with a uid, or omit `properties.uid` from
 	//       the PATCH.
 	if feat.Properties.UID != "" {
-		existingUID, _ := firstStringObject(existing.Triples, PredSystemUID)
+		existingUID, _ := firstSystemUIDObject(existing.Triples)
 		if existingUID == "" {
 			writeJSONError(w, http.StatusBadRequest,
 				"existing entity has no preserved uid; PATCH cannot establish one — re-POST or PUT to rebuild")
@@ -185,7 +185,7 @@ func mergePatchSystemTriples(entityID string, existing []message.Triple, feat sy
 				})
 				continue
 			}
-		case PredSystemPosition:
+		case PredSystemPosition, legacyPredSystemPosition:
 			sawPosition = true
 			if hasGeometry {
 				out = append(out, message.Triple{

@@ -134,12 +134,6 @@ func (c *Component) buildProcedureTriplesFromSensorML(body []byte) (string, []me
 			Subject: entityID, Predicate: sensorml.PredType, Object: sosa.Procedure,
 		})
 	}
-	// Stage 18 uid preservation — same predicate as /systems.
-	if uid := process.Base().UniqueID; uid != "" {
-		triples = append(triples, message.Triple{
-			Subject: entityID, Predicate: PredSystemUID, Object: uid,
-		})
-	}
 	return entityID, triples, nil
 }
 

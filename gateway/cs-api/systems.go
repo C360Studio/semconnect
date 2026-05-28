@@ -91,12 +91,12 @@ type system struct {
 	Label       string `json:"label,omitempty"`
 	Description string `json:"description,omitempty"`
 	Definition  string `json:"definition,omitempty"`
-	// UID + UniqueID + FeatureProperties.UID are Stage 18 sister-side
-	// preservation of the client-submitted identifier. The ETS's
+	// UID + UniqueID + FeatureProperties.UID preserve the
+	// client-submitted identifier. The ETS's
 	// {sensorMl,geoJson}MediaTypeWriteParsesSystemBodyWhenMutationEnabled
 	// assertions check ANY of `uid` / `uniqueId` / `properties.uid` —
 	// we surface the same value on all three from the same
-	// `cs-api.system.uid` triple so SensorML clients (`uniqueId`) and
+	// framework uid triple so SensorML clients (`uniqueId`) and
 	// Feature-shape clients (`properties.uid`) see the spelling they
 	// expect. JSON-System readers see `uid` for backward symmetry
 	// with the Feature POST body. All three are jointly present (uid
@@ -106,10 +106,9 @@ type system struct {
 	UniqueID          string             `json:"uniqueId,omitempty"`
 	FeatureProperties *featureProperties `json:"properties,omitempty"`
 	// Geometry is the GeoJSON-shaped position (`{type: Point, coordinates:
-	// [lon, lat, alt?]}` typically) recovered from the cs-api.system.position
-	// triple. Stage 14 sister-side workaround for the framework's missing
-	// SensorML position preservation. json.RawMessage so the round-trip
-	// preserves whatever shape the client posted — Point, Polygon, etc.
+	// [lon, lat, alt?]}` typically) recovered from the framework position
+	// triple. json.RawMessage so the round-trip preserves whatever shape
+	// the client posted — Point, Polygon, etc.
 	Geometry      json.RawMessage `json:"geometry,omitempty"`
 	Hosts         []string        `json:"hosts,omitempty"`
 	HostedBy      string          `json:"hostedBy,omitempty"`
@@ -194,18 +193,17 @@ func systemFromState(state graph.EntityState) system {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredIsHostedBy); ok {
 		s.HostedBy = v
 	}
-	// Stage 14 — surface position from the sister-side workaround
-	// triple (see systems_post.go PredSystemPosition doc). Object is
+	// Surface position from the framework position triple. Object is
 	// the raw GeoJSON-shaped JSON bytes (as string); cast back to
 	// RawMessage so the JSON encoder writes them verbatim rather than
 	// re-quoting them as a string literal.
-	if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok {
+	if v, ok := firstSystemPositionObject(state.Triples); ok {
 		s.Geometry = json.RawMessage(v)
 	}
 	// Stage 18 — surface the preserved client-submitted identifier on
 	// every spelling the ETS / spec clients look at. The same triple
 	// feeds all three so they cannot drift.
-	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+	if v, ok := firstSystemUIDObject(state.Triples); ok {
 		s.UID = v
 		s.UniqueID = v
 		s.FeatureProperties = &featureProperties{
@@ -239,7 +237,7 @@ func systemFromState(state graph.EntityState) system {
 //
 // The GeoJSON path is N+1 by design: predicate-query gives us entity IDs,
 // then we fetch each entity's state via graph.query.entity to recover the
-// cs-api.system.position triple (Stage 14). At v0.1 list sizes this is
+// framework position triple. At v0.1 list sizes this is
 // acceptable; a future optimization either (a) extends graph-index to
 // return entity properties alongside IDs, or (b) adds a batched
 // entity-query subject. Per-entity failures degrade to null-geometry
@@ -304,7 +302,7 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 
 // writeSystemsGeoJSON emits the GeoJSON FeatureCollection form of
 // /systems. Stage 15. Per-entity entity-query for the
-// cs-api.system.position triple is N+1 — see handleSystems doc comment
+// framework position triple is N+1 — see handleSystems doc comment
 // for the deferred optimization paths. Per-entity backend failures
 // log a warn and degrade to a Feature with null geometry; transport-
 // layer failures (NATS unreachable) on the *first* entity surface as
@@ -344,8 +342,8 @@ func (c *Component) writeSystemsGeoJSON(w http.ResponseWriter, r *http.Request, 
 		feature.Properties["description"] = sys.Description
 		feature.Properties["definition"] = sys.Definition
 		// Pluck the position triple (if present) as the Feature's
-		// geometry. Re-uses the Stage 14 sister-side workaround.
-		if posBytes, ok := firstStringObject(state.Triples, PredSystemPosition); ok {
+		// geometry.
+		if posBytes, ok := firstSystemPositionObject(state.Triples); ok {
 			if geom, gerr := geojson.UnmarshalGeometry([]byte(posBytes)); gerr == nil {
 				feature.Geometry = geom
 			} else {

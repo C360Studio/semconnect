@@ -1,8 +1,12 @@
-# Upstream ask — semstreams: `CreateEntityRequest` handlers are defined but not wired
+# Upstream ask — semstreams: entity mutation handlers need read-back semantics
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 8 implementation (2026-05-16), framework pin `v1.0.0-beta.73`.
-**Status:** **Filed at [C360Studio/semstreams#98](https://github.com/C360Studio/semstreams/issues/98) (OPEN, as of 2026-05-16; still OPEN at v1.0.0-beta.75 — verified `processor/graph-ingest/*.go` has no `CreateEntityRequest` subject wiring).** semconnect workaround: `gateway/cs-api/systems_post.go` `ingestTriples` uses `graph.mutation.triple.add_batch` (upsert semantics). Trade-off: no `409 Conflict` on duplicate POST — see CS API §7.6 which spec-requires it.
+**Status:** semstreams#98 handler wiring landed before `v1.0.0-beta.79`, but semconnect is still waiting on semstreams#120 for post-write read-back semantics before migrating. semconnect workaround remains: `gateway/cs-api/systems_post.go` `ingestTriples` uses `graph.mutation.triple.add_batch` (upsert semantics). Trade-off: no `409 Conflict` on duplicate POST — see CS API §7.6 which spec-requires it.
+
+## 2026-05-22 update
+
+`v1.0.0-beta.79` includes the entity-level NATS handlers originally requested here. We are deliberately not switching semconnect yet because the new entity mutation path needs an explicit post-write read-back contract (semstreams#120) before the gateway can depend on the response for CS API semantics and audit headers. Once #120 closes, this doc can be renamed `RESOLVED-...` and the write path can move off `graph.mutation.triple.add_batch`.
 
 ## Summary
 

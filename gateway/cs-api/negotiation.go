@@ -126,16 +126,14 @@ func (fam ResourceFamily) supported() []MediaType {
 		// follow-up (vocabulary/export is per-entity today). Stage 15
 		// added MediaGeoJSON — `/systems` with Accept application/geo+json
 		// returns an RFC 7946 FeatureCollection where each Feature
-		// carries the system's cs-api.system.position (Stage 14) as
-		// geometry. Required by the Botts ETS `geoJsonMediaTypeRead`
-		// assertion.
+		// carries the system's framework position triple as geometry.
+		// Required by the Botts ETS `geoJsonMediaTypeRead` assertion.
 		return []MediaType{MediaJSON, MediaGeoJSON}
 	case FamilyDatastreamItem, FamilyDatastreamCollection:
-		// Datastream is JSON-only at v0.1. The framework lacks
-		// datastream vocabulary primitives (see
-		// docs/upstream-asks/semstreams-datastream-vocabulary.md), so
-		// JSON-LD would emit broken Linked Data; SWE Common 3.0 (the
-		// natural datastream encoding) is in the framework's Scope-cut.
+		// Datastream is JSON-only at v0.1. The framework has CS API
+		// datastream vocabulary, but a full JSON-LD datastream shape
+		// still needs a broader linked-data contract. SWE Common 3.0
+		// (the natural datastream encoding) is still in scope-cut.
 		// Distinct from FamilyObservationCollection so adding a future
 		// datastream encoding (CoverageJSON, JSON-LD) doesn't drag the
 		// observation negotiation set with it.

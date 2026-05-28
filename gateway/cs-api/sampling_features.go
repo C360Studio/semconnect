@@ -59,7 +59,7 @@ func samplingFeatureFromState(state graph.EntityState) samplingFeature {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		sf.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+	if v, ok := firstSystemUIDObject(state.Triples); ok {
 		sf.UID = v
 		sf.UniqueID = v
 		sf.FeatureProperties = &featureProperties{
@@ -68,7 +68,7 @@ func samplingFeatureFromState(state graph.EntityState) samplingFeature {
 			Description: sf.Description,
 		}
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok {
+	if v, ok := firstSystemPositionObject(state.Triples); ok {
 		sf.Geometry = json.RawMessage(v)
 	}
 	return sf
@@ -76,7 +76,7 @@ func samplingFeatureFromState(state graph.EntityState) samplingFeature {
 
 func geoJSONFeaturePropertiesFromState(featureType string, state graph.EntityState) map[string]any {
 	props := map[string]any{"featureType": featureType}
-	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+	if v, ok := firstSystemUIDObject(state.Triples); ok {
 		props["uid"] = v
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {
@@ -184,7 +184,7 @@ func (c *Component) writeSamplingFeaturesGeoJSON(w http.ResponseWriter, r *http.
 		state, ferr := c.fetchEntity(r.Context(), id)
 		if ferr == nil {
 			props = geoJSONFeaturePropertiesFromState("SamplingFeature", state)
-			if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok && v != "" {
+			if v, ok := firstSystemPositionObject(state.Triples); ok && v != "" {
 				geom = json.RawMessage(v)
 			}
 		} else {

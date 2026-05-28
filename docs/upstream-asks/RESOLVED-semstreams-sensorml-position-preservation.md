@@ -1,8 +1,8 @@
-# Upstream ask — semstreams: `parser/sensorml` drops `position` from SensorML input
+# RESOLVED upstream ask — semstreams: `parser/sensorml` drops `position` from SensorML input
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 13 conformance probe (2026-05-16), framework pin `v1.0.0-beta.75`.
-**Status:** ready to file (copy-paste).
+**Status:** **RESOLVED in v1.0.0-beta.79** (semstreams commit `edf51da` / issue #114). semconnect Stage 29 adopted `sensorml.PredPosition`, removed the raw-body SensorML workaround append, and keeps a legacy read fallback for data written under `cs-api.system.position`.
 
 ## Summary
 

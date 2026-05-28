@@ -123,6 +123,28 @@ compose() {
     fi
 }
 
+wait_for_seeded_collection() {
+    local cs_api_url="$1"
+    local path="$2"
+    local label="$3"
+    local field="${4:-numberReturned}"
+    local poll_attempt
+    for poll_attempt in $(seq 1 30); do
+        local count
+        count="$(docker run --rm \
+            --network "${COMPOSE_PROJECT}_default" \
+            curlimages/curl:8.10.1 \
+            -sS "${cs_api_url}${path}" 2>/dev/null \
+            | python3 -c "import sys,json; data=json.loads(sys.stdin.read()); print(len(data.get('items', [])) if '$field' == 'items' else data.get('$field', 0))" 2>/dev/null || echo 0)"
+        if [[ "$count" -gt 0 ]]; then
+            log "  predicate index ready after ${poll_attempt} attempt(s); ${path} ${field}=$count"
+            return 0
+        fi
+        sleep 1
+    done
+    die "predicate index never reflected ${label} seed after 30 attempts (~30s); see $SEED_LOG"
+}
+
 ensure_ets_vendor() {
     if [[ -d "$ETS_VENDOR_DIR/.git" ]]; then
         local current
@@ -244,23 +266,7 @@ EOF
     # non-empty — without this wait it races the KV-watch and FAILs even
     # though /systems/{id} (direct entity query) already works.
     log "  waiting for predicate index to reflect seed (eventual consistency)"
-    local poll_attempt
-    for poll_attempt in $(seq 1 30); do
-        local count
-        count="$(docker run --rm \
-            --network "${COMPOSE_PROJECT}_default" \
-            curlimages/curl:8.10.1 \
-            -sS "${cs_api_url}/systems" 2>/dev/null \
-            | python3 -c "import sys,json; print(json.loads(sys.stdin.read()).get('numberReturned', 0))" 2>/dev/null || echo 0)"
-        if [[ "$count" -gt 0 ]]; then
-            log "  predicate index ready after ${poll_attempt} attempt(s); /systems numberReturned=$count"
-            break
-        fi
-        if [[ "$poll_attempt" -eq 30 ]]; then
-            die "predicate index never reflected seed after 30 attempts (~30s); see $SEED_LOG"
-        fi
-        sleep 1
-    done
+    wait_for_seeded_collection "$cs_api_url" "/systems" "system"
 
     # Stage 20 — seed a Procedure so the ETS procedures test group
     # has non-empty /procedures to exercise. Same Feature shape POST
@@ -368,6 +374,7 @@ EOF
         die "POST /controlstreams failed: $ctrl_code (see $SEED_LOG)"
     fi
     log "  seeded controlstream (HTTP $ctrl_code)"
+    wait_for_seeded_collection "$cs_api_url" "/controlstreams" "controlstream" "items"
 
     # Stage 25 — seed a SystemEvent so the Part 2 system-event group
     # can exercise /systemEvents, /systemEvents/{id}, and the
@@ -389,6 +396,7 @@ EOF
         die "POST /systems/{id}/events failed: $event_code (see $SEED_LOG)"
     fi
     log "  seeded system event (HTTP $event_code)"
+    wait_for_seeded_collection "$cs_api_url" "/systemEvents" "system event" "items"
 
     log "  seed complete (log: $SEED_LOG)"
 }

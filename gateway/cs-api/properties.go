@@ -77,7 +77,7 @@ func propertyFromState(state graph.EntityState) propertyResource {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		prop.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+	if v, ok := firstSystemUIDObject(state.Triples); ok {
 		prop.UID = v
 		prop.UniqueID = v
 	}

@@ -299,7 +299,7 @@ The third deferral header — `X-CS-Reconstructed-Lossy: true` on `GET /systems/
 
 The chokepoint cascade unblocker. Pre-Stage 14, one MAY-priority ETS test (`systemItemHasGeometryOrValidTime`) emitted `SkipException` because `/systems/{id}` lacked geometry, keeping the entire `systemfeatures` group "not successfully finished" → sensorml + geojson groups cascade-SKIPped (~26 tests).
 
-The framework's `parser/sensorml` has no `Position` field on `AbstractProcess` and emits no position triple (verified at framework v1.0.0-beta.75). Upstream ask drafted at `docs/upstream-asks/semstreams-sensorml-position-preservation.md`. Until upstream lands, sister-side workaround:
+The framework's `parser/sensorml` has no `Position` field on `AbstractProcess` and emits no position triple (verified at framework v1.0.0-beta.75). Upstream ask drafted at `docs/upstream-asks/RESOLVED-semstreams-sensorml-position-preservation.md`. Until upstream lands, sister-side workaround:
 
 1. **POST /systems** (`gateway/cs-api/systems_post.go`): after `sensorml.NewAsset(...).Triples()`, peek the raw POST body for a top-level `position` field (`extractPositionTriple`). If present + not literal `null`, append a triple `(entityID, "cs-api.system.position", <raw GeoJSON bytes as string>)` to the batch. `PredSystemPosition` const documents the workaround + retire-on-upstream-fix path.
 2. **GET /systems/{id}** (`gateway/cs-api/systems.go` `systemFromState`): look for the `cs-api.system.position` triple; if present, populate a new `Geometry json.RawMessage` field on the System struct (omitempty). RawMessage preserves the exact GeoJSON bytes from POST — no re-marshal-through-interface{} precision loss.
@@ -443,7 +443,7 @@ the OAS3 schema and via the long-standing
 `X-CS-Reconstructed-Lossy: true` deferral header.
 
 Upstream ask drafted at
-`docs/upstream-asks/semstreams-sensorml-uid-preservation.md`. When
+`docs/upstream-asks/RESOLVED-semstreams-sensorml-uid-preservation.md`. When
 upstream lands the emission natively, the workaround triple +
 write/read code on this side retires the same way Stage 13 retired
 the `X-CS-Geometry-Available` header.
@@ -631,8 +631,8 @@ properties-group tests, -4 SKIPs, zero failures.
 
 Stage 24 ships the ControlStream read subset:
 
-- `GET /controlstreams` — predicate-query on a local Part 2
-  ControlStream type IRI, then N+1 entity hydration so collection
+- `GET /controlstreams` — predicate-query on
+  `vocabulary/csapi.ControlStream`, then N+1 entity hydration so collection
   `items` are full ControlStream resources.
 - `GET /controlstreams/{id}` — JSON ControlStream subset with system
   reference, inputName, controlledProperties, issue/execution time
@@ -642,7 +642,7 @@ Stage 24 ships the ControlStream read subset:
 - `GET /controlstreams/{id}/commands` — readable empty Command
   collection. Command execution remains out of scope at v0.1.
 - `GET /systems/{id}/controlstreams` — system-scoped collection,
-  filtered by the local `cs-api.controlstream.system` triple.
+  filtered by `vocabulary/csapi.ControlsSystem`.
 - `POST /controlstreams` — JSON fixture helper for the conformance
   harness. It creates read-side metadata only; it is not a command
   execution path.
@@ -663,15 +663,15 @@ without changing headline counts.
 
 Stage 25 ships the SystemEvent read subset:
 
-- `GET /systemEvents` — predicate-query on a local Part 2
-  SystemEvent type IRI, then N+1 entity hydration so collection
+- `GET /systemEvents` — predicate-query on
+  `vocabulary/csapi.SystemEvent`, then N+1 entity hydration so collection
   `items` are full SystemEvent resources.
 - `GET /systemEvents/{id}` — JSON SystemEvent subset with
   `time` / `eventTime`, `eventType`, message, system reference,
   source, severity, keywords, optional payload, and links.
 - `GET /systems/{id}/events` — normative Requirement 43
-  system-scoped collection path, filtered by the local
-  `cs-api.systemevent.system` triple.
+  system-scoped collection path, filtered by
+  `vocabulary/csapi.EventForSystem`.
 - `GET /systems/{id}/events/{eventID}` — system-scoped item alias;
   404s if the event is not associated with the path system.
 - `POST /systemEvents` and `POST /systems/{id}/events` — JSON fixture
@@ -769,7 +769,38 @@ assertion and the resource-specific collections cascade for already
 implemented read-side resources. No write-side or SWE Common classes
 were added.
 
-### Stage 29+ — Continue OSH-bar resource buildout
+### Stage 29 — semstreams pin bump to v1.0.0-beta.79 + retired closed shims
+
+Stage 29 pins semconnect to semstreams `v1.0.0-beta.79` and adopts the
+framework fixes that landed from our upstream issue queue:
+
+- SensorML `uniqueId` now emits as `sensorml.process.uid`; the gateway
+  no longer appends its own `cs-api.system.uid` triple on SensorML POST.
+- SensorML `position` now emits as `sensorml.process.position`; the
+  gateway no longer peeks raw SensorML bodies for a position workaround.
+- Feature-shaped resources (systems, deployments, sampling features)
+  use the same framework uid/position predicates. Read paths still
+  recognize the old `cs-api.system.uid` and `cs-api.system.position`
+  predicates during the migration window.
+- Deployments use `sosa.SSNDeployment`.
+- ControlStream and SystemEvent type / relationship triples use
+  `vocabulary/csapi.ControlStream`, `vocabulary/csapi.SystemEvent`,
+  `vocabulary/csapi.ControlsSystem`, and
+  `vocabulary/csapi.EventForSystem`.
+
+The write path intentionally stays on `graph.mutation.triple.add_batch`
+and the existing delete fan-out until semstreams#120 closes the new
+entity mutation post-write read-back semantics. `classifyEntityQueryError`
+also stays until semstreams#93 ships structured/header-classified errors.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-27). Headline conformance is unchanged from Stage 28. The
+harness now actively polls `/controlstreams` and `/systemEvents` after
+seeding because their predicate-index visibility can lag the POST by a
+few seconds under beta.79; the confirmed run needed five attempts for
+`/controlstreams`.
+
+### Stage 30+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
@@ -777,7 +808,7 @@ Subsequent stages from the OSH-bar memory:
 
 Also pending: PATCH parity on `/datastreams` for full
 `conf/update` scope, per-datastream observation JetStream Consumer
-cleanup on DELETE, and (Stage 28+) HTML + Part 3 (`websocket`,
+cleanup on DELETE, and (Stage 30+) HTML + Part 3 (`websocket`,
 `mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target

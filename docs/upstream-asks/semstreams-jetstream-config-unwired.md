@@ -2,7 +2,7 @@
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 9 conformance backend integration (2026-05-16), framework pin `v1.0.0-beta.73`.
-**Status:** **Filed at [C360Studio/semstreams#101](https://github.com/C360Studio/semstreams/issues/101) (OPEN, as of 2026-05-16; still OPEN at v1.0.0-beta.75 — `MaxFileStore` declared but `grep -rn "\.MaxFileStore\b"` shows zero read sites).** semconnect workaround: `conformance/nats.conf` pins JetStream limits at the nats-server level (10GB file / 1GB memory) via `jetstream { max_file_store: 10GB; max_memory_store: 1GB }`.
+**Status:** **Filed at [C360Studio/semstreams#101](https://github.com/C360Studio/semstreams/issues/101) (OPEN, as of v1.0.0-beta.79 — `MaxFileStore` declared but not applied to the connected server).** semconnect workaround: `conformance/nats.conf` pins JetStream limits at the nats-server level (10GB file / 1GB memory) via `jetstream { max_file_store: 10GB; max_memory_store: 1GB }`.
 
 ## Summary
 

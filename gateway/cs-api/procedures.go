@@ -87,7 +87,7 @@ func procedureFromState(state graph.EntityState) procedure {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDefinition); ok {
 		p.Definition = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+	if v, ok := firstSystemUIDObject(state.Triples); ok {
 		p.UID = v
 		p.UniqueID = v
 		p.FeatureProperties = &featureProperties{

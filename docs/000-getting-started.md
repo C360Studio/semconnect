@@ -959,17 +959,47 @@ Remaining local work:
 pinned ETS still does not exercise the deferred SWE Common suites while
 semconnect does not claim a SWE Common conformance class.
 
-### Stage 35+ — Continue OSH-bar resource buildout
+### Stage 35 — Datastream PATCH parity
+
+Stage 35 extends the `conf/update` surface from systems to datastreams:
+
+- `PATCH /datastreams/{id}` accepts `application/json` Datastream-shaped
+  partial bodies.
+- Non-empty `name`, `description`, `system`, `observedProperty`, and
+  `schema` fields replace the corresponding triples; absent/empty fields
+  preserve existing state.
+- Body `id` mismatch, invalid system refs, invalid SWE Common schemas,
+  and `schema: null` fail before any destructive operation.
+- Missing entities return 404 rather than upserting; PUT remains the
+  create-or-replace path.
+- `OPTIONS /datastreams/{id}` now advertises
+  `GET, HEAD, PUT, PATCH, DELETE, OPTIONS`.
+
+The implementation intentionally reuses the existing
+`deleteAllEntityTriples` + `ingestTriples` path, so it has the same
+partial-erasure window as PUT until the gateway migrates to semstreams'
+entity mutation subjects.
+
+Remaining local work:
+
+- Per-datastream observation JetStream Consumer cleanup on DELETE.
+- Command execution only if v0.1 scope expands beyond read-side
+  ControlStream metadata.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-29). Headline conformance is unchanged from Stage 34; the
+pinned ETS already exercises the claimed update surface through systems,
+and Datastream PATCH parity does not unlock a new ETS branch.
+
+### Stage 36+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
 - Command execution, if/when v0.1 scope expands beyond read-side
   ControlStream metadata.
 
-Also pending: PATCH parity on `/datastreams` for full
-`conf/update` scope, per-datastream observation JetStream Consumer
-cleanup on DELETE, and (Stage 35+) HTML + Part 3 (`websocket`,
-`mqtt`).
+Also pending: per-datastream observation JetStream Consumer cleanup on
+DELETE, and (Stage 36+) HTML + Part 3 (`websocket`, `mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)

@@ -157,14 +157,13 @@ func (c *Component) handleDatastreamsOptions(w http.ResponseWriter, _ *http.Requ
 }
 
 // handleDatastreamOptions serves OPTIONS /datastreams/{id} —
-// advertises the item-level Allow header. PATCH intentionally
-// absent (no `conf/update` claim at v0.1).
+// advertises the item-level Allow header.
 func (c *Component) handleDatastreamOptions(w http.ResponseWriter, r *http.Request) {
 	pathID := r.PathValue("id")
 	if err := validateEntityID(pathID); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid datastream id: "+err.Error())
 		return
 	}
-	w.Header().Set("Allow", "GET, HEAD, PUT, DELETE, OPTIONS")
+	w.Header().Set("Allow", "GET, HEAD, PUT, PATCH, DELETE, OPTIONS")
 	w.WriteHeader(http.StatusNoContent)
 }

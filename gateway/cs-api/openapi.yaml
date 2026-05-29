@@ -737,6 +737,48 @@ paths:
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    patch:
+      operationId: patchDatastream
+      summary: Partial-update a datastream (CS API conf/update).
+      description: |-
+        Partial-update semantics: each non-empty field present in the
+        body replaces the corresponding triple on the Datastream entity;
+        absent/empty fields are left alone. Body shape is the same
+        Datastream JSON shape PUT accepts, but all fields are optional
+        and the path `{id}` is authoritative.
+
+        If the body carries an `id` field it must match the path `{id}`
+        before any backend lookup or destructive operation. Optional
+        `schema` is validated as a SWE Common DataRecord before replace
+        begins. `schema: null` is rejected rather than treated as delete;
+        omit schema to leave the stored schema unchanged.
+
+        404 if the entity does not exist (no upsert; PUT is the upsert
+        path) or if the entity exists but is not a Datastream.
+      tags: [Datastreams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DatastreamPatch"}
+      responses:
+        "204":
+          description: Datastream patched.
+          headers:
+            X-CS-Attempted-ID:
+              schema: {type: string}
+            X-CS-Partial-Delete:
+              schema: {type: string, enum: ["true"]}
+              description: |-
+                Present (with value `true`) on a 5xx if the destructive
+                half of merge succeeded but the add-batch failed — the
+                entity is in a partial state and the client should retry
+                the PATCH.
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
     delete:
       operationId: deleteDatastream
       summary: Delete a datastream (CS API §10.6 create-replace-delete).
@@ -762,8 +804,7 @@ paths:
       operationId: optionsDatastream
       summary: Advertise allowed methods on /datastreams/{id}.
       description: |-
-        Returns 204 with an `Allow` header. PATCH intentionally
-        absent — cs-api does not implement PATCH at v0.1.
+        Returns 204 with an `Allow` header.
       tags: [Datastreams]
       responses:
         "204":
@@ -771,7 +812,7 @@ paths:
           headers:
             Allow:
               schema: {type: string}
-              description: '`GET, HEAD, PUT, DELETE, OPTIONS`'
+              description: '`GET, HEAD, PUT, PATCH, DELETE, OPTIONS`'
 
   /datastreams/{id}/schema:
     parameters:
@@ -2471,6 +2512,18 @@ components:
       required: [name, system, observedProperty]
       properties:
         id:               {type: string, description: Optional client-supplied 6-part ID; minted otherwise.}
+        name:             {type: string}
+        description:      {type: string}
+        system:           {type: string, description: 6-part SemStreams system ID (strict).}
+        observedProperty: {type: string, format: uri}
+        schema:
+          $ref: "#/components/schemas/SWEDataRecordSchema"
+
+    DatastreamPatch:
+      type: object
+      properties:
+        id:               {type: string, description: Optional safety check; must match the path ID when supplied.}
+        type:             {type: string, enum: [Datastream]}
         name:             {type: string}
         description:      {type: string}
         system:           {type: string, description: 6-part SemStreams system ID (strict).}

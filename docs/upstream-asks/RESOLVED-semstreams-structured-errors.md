@@ -1,10 +1,13 @@
-# Upstream ask — semstreams: header-classified structured request/reply errors
+# RESOLVED upstream ask — semstreams: header-classified structured request/reply errors
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Issue:** [C360Studio/semstreams#93](https://github.com/C360Studio/semstreams/issues/93)
-**Status:** **OPEN as of semstreams `v1.0.0-beta.86`.**
+**Status:** **RESOLVED for semconnect in `v1.0.0-beta.87`** via
+semstreams PR #165. #93 remains open upstream for deferred Phase 4
+breaking cleanup and follow-up hardening, but the additive
+header-classified error path semconnect needs has shipped.
 
-## What semconnect still needs
+## What semconnect needed
 
 NATS request/reply error responses should carry machine-readable
 classification so gateways can map framework failures to HTTP status
@@ -19,14 +22,15 @@ a classified JSON body that distinguishes at least:
 
 ## Current semconnect workaround
 
-`gateway/cs-api` still uses `classifyEntityQueryError` to parse the
-framework's current `error: <message>` body convention on entity-query
-failures. That parser exists only because the response body is the
-classification surface today.
+Stage 30 on beta.87 switches `gateway/cs-api` entity reads to
+`natsclient.ClassifyReply`, which consumes `X-Status` /
+`X-Error-Class` when present and keeps legacy body-prefix fallback
+during the upstream dual-encoding window.
 
-The workaround should be removed when #93 ships. At that point
-semconnect should read the structured classification and stop matching
-human-readable error text.
+semconnect still maps `"not found: ..."` inside the Invalid class to
+its local `errEntityNotFound` sentinel because HTTP `404` vs `400` is a
+gateway-level distinction; semstreams intentionally does not add a
+NotFound class in this phase.
 
 ## Why it matters
 
@@ -41,3 +45,9 @@ CS API endpoints need precise status mapping:
 String parsing makes that contract fragile and forces semconnect to
 track framework wording changes. Header-classified errors would let both
 repos evolve without coupling on text.
+
+## Resolution notes
+
+No further semstreams action is required before semconnect can continue.
+Open upstream follow-ups from #93 Phase 4 do not block the CS API read
+path.

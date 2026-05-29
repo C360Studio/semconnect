@@ -24,7 +24,7 @@ import (
 
 // SubjectTripleAddBatch is the NATS request/reply subject the framework's
 // graph-ingest component exposes for batched triple writes. Stage 30 pins
-// semstreams beta.86, which also exposes entity-level mutation subjects;
+// semstreams beta.87, which also exposes entity-level mutation subjects;
 // this legacy subject remains until semconnect migrates the write path.
 const SubjectTripleAddBatch = "graph.mutation.triple.add_batch"
 
@@ -55,7 +55,7 @@ func firstSystemUIDObject(triples []message.Triple) (string, bool) {
 
 // handleSystemPost serves POST /systems — CS API §7.6.
 //
-// This still uses `graph.mutation.triple.add_batch`; semstreams beta.86
+// This still uses `graph.mutation.triple.add_batch`; semstreams beta.87
 // now has entity-level mutation subjects, so swapping to
 // `graph.mutation.entity.create_with_triples` is a semconnect-local
 // follow-up that should also add the duplicate-create 409 path.

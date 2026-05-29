@@ -15,7 +15,7 @@ it is no longer blocked on semstreams.
 
 ## 2026-05-29 update
 
-`v1.0.0-beta.86` includes the beta.81 fixes for the entity mutation
+`v1.0.0-beta.87` includes the beta.81 fixes for the entity mutation
 contract. The relevant framework surface is now:
 
 - `graph.mutation.entity.create`

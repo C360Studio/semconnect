@@ -27,11 +27,11 @@ import (
 // test that forgets to seed a state for an enumerated entity fails
 // loudly instead of silently dropping a Feature.
 type multiReplyFakeRequester struct {
-	predicateReply     []byte
-	entityRepliesByID  map[string][]byte
-	entityErrorsByID   map[string]error
-	predicateErr       error
-	calls              int // request count for assertions about N+1
+	predicateReply    []byte
+	entityRepliesByID map[string][]byte
+	entityErrorsByID  map[string]error
+	predicateErr      error
+	calls             int // request count for assertions about N+1
 }
 
 func (f *multiReplyFakeRequester) Request(_ context.Context, subj string, data []byte, _ time.Duration) ([]byte, error) {
@@ -60,8 +60,12 @@ func (f *multiReplyFakeRequester) Request(_ context.Context, subj string, data [
 	return nil, errors.New("multiReplyFakeRequester: unexpected subject " + subj)
 }
 
-func (f *multiReplyFakeRequester) RequestWithHeaders(_ context.Context, _ string, _ []byte, _ map[string]string, _ time.Duration) (*nats.Msg, error) {
-	return nil, errors.New("multiReplyFakeRequester: not exercised by GeoJSON tests")
+func (f *multiReplyFakeRequester) RequestWithHeaders(ctx context.Context, subj string, data []byte, _ map[string]string, to time.Duration) (*nats.Msg, error) {
+	reply, err := f.Request(ctx, subj, data, to)
+	if err != nil {
+		return nil, err
+	}
+	return &nats.Msg{Data: reply}, nil
 }
 func (f *multiReplyFakeRequester) Status() natsclient.ConnectionStatus {
 	return natsclient.StatusConnected

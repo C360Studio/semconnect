@@ -67,6 +67,12 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	switch subj {
+	case subjectEntityQuery:
+		f.entityQueryCalls++
+		if f.entityErr != nil {
+			return nil, f.entityErr
+		}
+		return &nats.Msg{Data: f.entityReply}, nil
 	case SubjectTripleAddBatch:
 		f.batchCount++
 		f.batchBody = append([]byte(nil), data...)
@@ -275,8 +281,8 @@ func TestHandleSystemDelete_GoldenPath(t *testing.T) {
 func TestHandleSystemDelete_NotFound_Idempotent(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.404"
 	fake := &crdFakeRequester{
-		// entity-query returns a not-found error envelope. classifyEntityQueryError
-		// maps the raw "error: not found: ..." byte prefix to errEntityNotFound.
+		// entity-query returns a legacy not-found error envelope;
+		// ClassifyReply fallback + the CS API mapper turn it into 404.
 		entityReply: []byte("error: not found: " + pathID),
 	}
 	c := newComponentWithRequester(t, fake)

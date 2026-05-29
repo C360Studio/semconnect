@@ -303,8 +303,7 @@ func TestHandleAreas_UnstructuredFrameworkErrorBecomes500(t *testing.T) {
 	// replies shaped "error: Component.handleQueryBoundsNATS: invalid
 	// request failed: ..." — different prefix structure from
 	// graph-ingest's "error: not found: ..." / "error: invalid request: ..."
-	// shapes. classifyEntityQueryError cannot disambiguate, so we removed
-	// the workaround from the spatial path. Tight client-side validation
+	// legacy shapes. Tight client-side validation
 	// (parseBBox / parsePolygon) means we should never put invalid input
 	// on the wire in the first place — but if the framework does emit an
 	// error: reply for any other reason, it surfaces as a 500 (decode

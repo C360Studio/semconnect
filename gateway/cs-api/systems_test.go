@@ -26,13 +26,14 @@ import (
 // methods exist to satisfy the interface; tests that exercise the publish
 // path inject a *fakePublisher onto c.publisher directly.
 type fakeRequester struct {
-	gotSubject string
-	gotBody    []byte
-	gotTimeout time.Duration
-	gotHeaders map[string]string
-	reply      []byte
-	replyErr   error
-	status     natsclient.ConnectionStatus
+	gotSubject  string
+	gotBody     []byte
+	gotTimeout  time.Duration
+	gotHeaders  map[string]string
+	reply       []byte
+	replyHeader nats.Header
+	replyErr    error
+	status      natsclient.ConnectionStatus
 }
 
 func (f *fakeRequester) Request(_ context.Context, subj string, data []byte, to time.Duration) ([]byte, error) {
@@ -58,7 +59,7 @@ func (f *fakeRequester) RequestWithHeaders(_ context.Context, subj string, data 
 	if f.replyErr != nil {
 		return nil, f.replyErr
 	}
-	return &nats.Msg{Data: f.reply}, nil
+	return &nats.Msg{Data: f.reply, Header: f.replyHeader}, nil
 }
 
 func (f *fakeRequester) Status() natsclient.ConnectionStatus {
@@ -528,8 +529,8 @@ func TestHandleSystem_JSONLD(t *testing.T) {
 }
 
 func TestHandleSystem_NotFound(t *testing.T) {
-	// Framework's request-reply error format is `"error: not found: <id>"`
-	// (see classifyEntityQueryError TODO upstream). Detect → 404.
+	// Legacy request/reply error bodies still map to 404 through
+	// natsclient.ClassifyReply's dual-encoding fallback.
 	fake := &fakeRequester{
 		reply:  []byte("error: not found: acme.ops.robotics.gcs.drone.999"),
 		status: natsclient.StatusConnected,
@@ -688,45 +689,45 @@ func TestHandleSystem_BackendTransientErrorClassifiedAs503(t *testing.T) {
 	}
 }
 
-func TestClassifyEntityQueryError(t *testing.T) {
-	// Direct unit cover for the framework-error-prefix workaround. When
-	// upstream ships structured errors this function becomes a no-op;
-	// these cases pin the current taxonomy.
+func TestClassifyEntityQueryFailure(t *testing.T) {
+	// Direct unit cover for the CS API mapping that remains after
+	// semstreams beta.87's header-classified error boundary. "Not found"
+	// is still a gateway-level distinction inside the Invalid class.
 	tests := []struct {
 		name    string
-		body    []byte
+		err     error
 		wantNil bool
 		probe   func(error) bool // optional further check
 	}{
 		{
-			name:    "success body returns nil",
-			body:    []byte(`{"id":"x","triples":[]}`),
+			name:    "nil error returns nil",
+			err:     nil,
 			wantNil: true,
 		},
 		{
 			name: "not found wraps errEntityNotFound sentinel",
-			body: []byte("error: not found: acme.ops.robotics.gcs.drone.999"),
+			err:  errs.Classified(errs.ErrorInvalid, errors.New("not found: acme.ops.robotics.gcs.drone.999")),
 			probe: func(err error) bool {
 				return errors.Is(err, errEntityNotFound)
 			},
 		},
 		{
 			name: "invalid request wraps as Invalid",
-			body: []byte("error: invalid request: empty id"),
+			err:  errs.Classified(errs.ErrorInvalid, errors.New("invalid request: empty id")),
 			probe: func(err error) bool {
 				return errs.IsInvalid(err)
 			},
 		},
 		{
-			name: "internal error is unclassified",
-			body: []byte("error: internal error: kv get failed"),
+			name: "internal error follows upstream transient class",
+			err:  errs.Classified(errs.ErrorTransient, errors.New("internal error: kv get failed")),
 			probe: func(err error) bool {
-				return !errs.IsInvalid(err) && !errs.IsTransient(err) && !errors.Is(err, errEntityNotFound)
+				return errs.IsTransient(err)
 			},
 		},
 		{
 			name: "unknown tail also unclassified",
-			body: []byte("error: something unexpected"),
+			err:  errors.New("something unexpected"),
 			probe: func(err error) bool {
 				return !errs.IsInvalid(err) && !errs.IsTransient(err)
 			},
@@ -734,7 +735,7 @@ func TestClassifyEntityQueryError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := classifyEntityQueryError(tt.body)
+			got := classifyEntityQueryFailure(tt.err)
 			if tt.wantNil {
 				if got != nil {
 					t.Errorf("expected nil; got %v", got)

@@ -795,13 +795,15 @@ paths:
         - `application/om+json` — bare JSON array of OMS observation
           payloads. Symmetric with the POST shape; OMS-native clients
           consume directly. Count is signalled via `X-CS-Items-Count`.
-        - `application/swe+json` — Stage 27 SWE Common observation
-          value subset (`items[]` of `{time,result}` records).
-        - `application/swe+csv` — Stage 27 CSV value subset with
-          `time,result` header.
-        - `application/swe+binary` — Stage 27 binary value subset using
-          the same comma-separated record bytes. Full schema-bound SWE
-          binary remains deferred; this response carries
+        - `application/swe+json` — Stage 32 SWE Common JSON rows
+          encoded by semstreams `pkg/swecommon` from a v0.1 inferred
+          `{time,result}` DataRecord.
+        - `application/swe+csv` — Stage 32 SWE TextEncoding rows for
+          the same inferred DataRecord, with `time,result` header.
+        - `application/swe+binary` — Stage 32 SWE BinaryEncoding packed
+          primitive rows for the same inferred DataRecord. Full
+          datastream-advertised schema binding remains deferred; these
+          responses carry
           `X-CS-SWE-Subset: observation-values`.
       tags: [Observations]
       parameters:
@@ -827,8 +829,9 @@ paths:
               schema: {type: integer, minimum: 0}
             X-CS-SWE-Subset:
               description: |-
-                Present on Stage 27 SWE Common responses to signal the
-                v0.1 observation-value subset.
+                Present on Stage 32 SWE Common responses to signal that
+                the schema is inferred from the OMS page rather than
+                advertised by the Datastream resource.
               schema: {type: string, enum: [observation-values]}
           content:
             application/json:
@@ -842,12 +845,12 @@ paths:
             application/swe+csv:
               schema:
                 type: string
-                description: CSV with `time,result` header.
+                description: SWE TextEncoding rows with `time,result` header.
             application/swe+binary:
               schema:
                 type: string
                 format: binary
-                description: Stage 27 value-subset byte stream.
+                description: Stage 32 SWE BinaryEncoding byte stream.
         "400": {$ref: "#/components/responses/BadRequest"}
         "406": {$ref: "#/components/responses/NotAcceptable"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -2457,23 +2460,17 @@ components:
         `consumer.Info().NumPending`.
 
     SWEObservationCollection:
-      type: object
-      required: [items]
-      properties:
-        items:
-          type: array
-          items:
-            type: object
-            properties:
-              time: {type: string}
-              result: {}
-        links:
-          type: array
-          items: {$ref: "#/components/schemas/Link"}
+      type: array
+      items:
+        type: object
+        properties:
+          time: {type: string}
+          result: {}
       description: |-
-        Stage 27 SWE Common observation-value subset derived from
-        stored OMS observations. Full schema-bound SWE records and
-        binary layouts remain deferred; responses carry
+        Stage 32 SWE Common JSON rows derived from stored OMS
+        observations and encoded with semstreams `pkg/swecommon`.
+        The v0.1 schema is inferred per page as `{time,result}` until
+        Datastream resources advertise result schemas; responses carry
         `X-CS-SWE-Subset: observation-values`.
 
     Observation:

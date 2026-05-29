@@ -12,6 +12,7 @@ import (
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/message/oms"
 	"github.com/c360studio/semstreams/payloadbuiltins"
+	"github.com/c360studio/semstreams/pkg/swecommon"
 	"github.com/nats-io/nats.go"
 )
 
@@ -337,11 +338,11 @@ func TestObservationsGet_SWEJSON(t *testing.T) {
 	if rr.Header().Get("X-CS-SWE-Subset") != "observation-values" {
 		t.Errorf("X-CS-SWE-Subset: got %q", rr.Header().Get("X-CS-SWE-Subset"))
 	}
-	var body sweObservationCollection
+	var body []map[string]any
 	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if len(body.Items) != 1 || body.Items[0].Time != "2026-05-15T14:30:00Z" || body.Items[0].Result != 12.4 {
+	if len(body) != 1 || body[0]["time"] != "2026-05-15T14:30:00Z" || body[0]["result"] != 12.4 {
 		t.Errorf("SWE JSON body: %+v", body)
 	}
 }
@@ -397,8 +398,35 @@ func TestObservationsGet_SWEBinary(t *testing.T) {
 	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSWEBinary) {
 		t.Errorf("Content-Type: got %q want %q", ct, string(MediaSWEBinary))
 	}
-	if got := rr.Body.String(); got != "2026-05-15T14:30:00Z,12.4\n" {
-		t.Errorf("binary subset body: %q", got)
+	rows, err := swecommon.UnmarshalBinaryRows(
+		rr.Body.Bytes(),
+		sweObservationSchema(swecommon.KindQuantity),
+		swecommon.DefaultBinaryEncoding(),
+	)
+	if err != nil {
+		t.Fatalf("decode SWE binary rows: %v", err)
+	}
+	if len(rows) != 1 || rows[0]["time"] != "2026-05-15T14:30:00Z" || rows[0]["result"] != 12.4 {
+		t.Errorf("binary rows: %+v", rows)
+	}
+}
+
+func TestSWERowsFromOMS_MixedResultsUseTextSchema(t *testing.T) {
+	items := []json.RawMessage{
+		json.RawMessage(`{"resultTime":"2026-05-15T14:30:00Z","result":12.4}`),
+		json.RawMessage(`{"resultTime":"2026-05-15T14:31:00Z","result":true}`),
+	}
+
+	schema, rows := sweRowsFromOMS(items)
+	result, ok := schema.FieldByName("result")
+	if !ok {
+		t.Fatalf("result field missing")
+	}
+	if result.Component.Kind() != swecommon.KindText {
+		t.Fatalf("result kind: got %s want %s", result.Component.Kind(), swecommon.KindText)
+	}
+	if len(rows) != 2 || rows[0]["result"] != "12.4" || rows[1]["result"] != "true" {
+		t.Fatalf("rows: %+v", rows)
 	}
 }
 

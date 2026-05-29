@@ -1,16 +1,16 @@
 package csapi
 
 import (
+	"bytes"
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/c360studio/semstreams/pkg/errs"
+	"github.com/c360studio/semstreams/pkg/swecommon"
 	"github.com/nats-io/nats.go"
 )
 
@@ -149,7 +149,7 @@ func (c *Component) handleObservationsGet(w http.ResponseWriter, r *http.Request
 	case MediaOMS:
 		c.writeObservationsBare(w, r, items)
 	case MediaSWEJSON:
-		c.writeObservationsSWEJSON(w, r, datastreamID, items, lastSeq, limit)
+		c.writeObservationsSWEJSON(w, r, items)
 	case MediaSWECsv:
 		c.writeObservationsSWECsv(w, r, items)
 	case MediaSWEBinary:
@@ -280,35 +280,22 @@ func (c *Component) writeObservationsBare(w http.ResponseWriter, r *http.Request
 	}
 }
 
-type sweObservationRecord struct {
-	Time   string `json:"time,omitempty"`
-	Result any    `json:"result,omitempty"`
-}
-
-type sweObservationCollection struct {
-	Items []sweObservationRecord `json:"items"`
-	Links []link                 `json:"links,omitempty"`
-}
-
 func (c *Component) writeObservationsSWEJSON(
 	w http.ResponseWriter,
 	r *http.Request,
-	datastreamID string,
 	items []json.RawMessage,
-	lastSeq uint64,
-	limit int,
 ) {
-	records := sweRecordsFromOMS(items)
-	links := []link{
-		{Href: c.observationsSelfLink(datastreamID, r.URL.RawQuery), Rel: "self", Type: string(MediaSWEJSON)},
-	}
-	if len(items) == limit && lastSeq > 0 {
-		links = append(links, link{
-			Href: fmt.Sprintf("/datastreams/%s/observations?limit=%d&after=%d",
-				datastreamID, limit, lastSeq),
-			Rel:  "next",
-			Type: string(MediaSWEJSON),
-		})
+	var body []byte
+	if r.Method != http.MethodHead {
+		schema, rows := sweRowsFromOMS(items)
+		var err error
+		body, err = swecommon.MarshalJSONRows(schema, rows)
+		if err != nil {
+			c.errs.Add(1)
+			c.logger.Error("encode observations SWE JSON response", "err", err)
+			writeJSONError(w, http.StatusInternalServerError, "encode observations SWE JSON response")
+			return
+		}
 	}
 	w.Header().Set("Content-Type", string(MediaSWEJSON))
 	w.Header().Set("X-CS-SWE-Subset", "observation-values")
@@ -316,58 +303,174 @@ func (c *Component) writeObservationsSWEJSON(
 	if r.Method == http.MethodHead {
 		return
 	}
-	_ = json.NewEncoder(w).Encode(sweObservationCollection{Items: records, Links: links})
+	if _, err := w.Write(body); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("write observations SWE JSON response", "err", err)
+	}
 }
 
 func (c *Component) writeObservationsSWECsv(w http.ResponseWriter, r *http.Request, items []json.RawMessage) {
+	var body []byte
+	if r.Method != http.MethodHead {
+		schema, rows := sweRowsFromOMS(items)
+		enc := swecommon.DefaultTextEncoding()
+		enc.EmitHeader = true
+		var err error
+		body, err = swecommon.MarshalTextRows(schema, rows, enc)
+		if err != nil {
+			c.errs.Add(1)
+			c.logger.Error("encode observations SWE CSV response", "err", err)
+			writeJSONError(w, http.StatusInternalServerError, "encode observations SWE CSV response")
+			return
+		}
+	}
 	w.Header().Set("Content-Type", string(MediaSWECsv))
 	w.Header().Set("X-CS-SWE-Subset", "observation-values")
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
 	}
-	cw := csv.NewWriter(w)
-	_ = cw.Write([]string{"time", "result"})
-	for _, rec := range sweRecordsFromOMS(items) {
-		_ = cw.Write([]string{rec.Time, sweResultString(rec.Result)})
-	}
-	cw.Flush()
-	if err := cw.Error(); err != nil {
+	if _, err := w.Write(body); err != nil {
 		c.errs.Add(1)
-		c.logger.Error("encode observations SWE CSV response", "err", err)
+		c.logger.Error("write observations SWE CSV response", "err", err)
 	}
 }
 
 func (c *Component) writeObservationsSWEBinary(w http.ResponseWriter, r *http.Request, items []json.RawMessage) {
+	var body []byte
+	if r.Method != http.MethodHead {
+		schema, rows := sweRowsFromOMS(items)
+		var err error
+		body, err = swecommon.MarshalBinaryRows(schema, rows, swecommon.DefaultBinaryEncoding())
+		if err != nil {
+			c.errs.Add(1)
+			c.logger.Error("encode observations SWE binary response", "err", err)
+			writeJSONError(w, http.StatusInternalServerError, "encode observations SWE binary response")
+			return
+		}
+	}
 	w.Header().Set("Content-Type", string(MediaSWEBinary))
 	w.Header().Set("X-CS-SWE-Subset", "observation-values")
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
 	}
-	for _, rec := range sweRecordsFromOMS(items) {
-		line := rec.Time + "," + sweResultString(rec.Result) + "\n"
-		if _, err := w.Write([]byte(line)); err != nil {
-			c.errs.Add(1)
-			c.logger.Error("write observations SWE binary response", "err", err)
-			return
-		}
+	if _, err := w.Write(body); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("write observations SWE binary response", "err", err)
 	}
 }
 
-func sweRecordsFromOMS(items []json.RawMessage) []sweObservationRecord {
-	records := make([]sweObservationRecord, 0, len(items))
+func sweRowsFromOMS(items []json.RawMessage) (*swecommon.DataRecord, []swecommon.Values) {
+	raw := make([]map[string]any, 0, len(items))
+	var resultKind swecommon.ComponentKind
 	for _, item := range items {
 		var obj map[string]any
 		if err := json.Unmarshal(item, &obj); err != nil {
 			continue
 		}
-		records = append(records, sweObservationRecord{
-			Time:   firstStringValue(obj, "phenomenonTime", "resultTime", "time"),
-			Result: obj["result"],
+		raw = append(raw, obj)
+		resultKind = widenSWEKind(resultKind, sweKindForValue(obj["result"]))
+	}
+	if resultKind == "" {
+		resultKind = swecommon.KindQuantity
+	}
+
+	schema := sweObservationSchema(resultKind)
+	rows := make([]swecommon.Values, 0, len(raw))
+	for _, obj := range raw {
+		var timeValue any
+		if t := firstStringValue(obj, "phenomenonTime", "resultTime", "time"); t != "" {
+			timeValue = t
+		}
+		rows = append(rows, swecommon.Values{
+			"time":   timeValue,
+			"result": sweValueForKind(obj["result"], resultKind),
 		})
 	}
-	return records
+	return schema, rows
+}
+
+func sweObservationSchema(resultKind swecommon.ComponentKind) *swecommon.DataRecord {
+	return &swecommon.DataRecord{
+		Fields: []swecommon.Field{
+			{
+				Name: "time",
+				Component: swecommon.Time{CommonFields: swecommon.CommonFields{
+					LabelValue:      "Observation time",
+					DefinitionValue: "http://www.opengis.net/def/property/OGC/0/SamplingTime",
+				}},
+			},
+			{
+				Name:      "result",
+				Component: sweComponentForKind(resultKind),
+			},
+		},
+	}
+}
+
+func sweComponentForKind(kind swecommon.ComponentKind) swecommon.DataComponent {
+	switch kind {
+	case swecommon.KindBoolean:
+		return swecommon.Boolean{CommonFields: swecommon.CommonFields{LabelValue: "Result"}}
+	case swecommon.KindText:
+		return swecommon.Text{CommonFields: swecommon.CommonFields{LabelValue: "Result"}}
+	default:
+		return swecommon.Quantity{CommonFields: swecommon.CommonFields{LabelValue: "Result"}}
+	}
+}
+
+func sweKindForValue(v any) swecommon.ComponentKind {
+	switch v.(type) {
+	case nil:
+		return ""
+	case bool:
+		return swecommon.KindBoolean
+	case float64:
+		return swecommon.KindQuantity
+	case string:
+		return swecommon.KindText
+	default:
+		return swecommon.KindText
+	}
+}
+
+func widenSWEKind(current, next swecommon.ComponentKind) swecommon.ComponentKind {
+	if next == "" {
+		return current
+	}
+	if current == "" {
+		return next
+	}
+	if current == next {
+		return current
+	}
+	return swecommon.KindText
+}
+
+func sweValueForKind(v any, kind swecommon.ComponentKind) any {
+	if v == nil {
+		return nil
+	}
+	switch kind {
+	case swecommon.KindText:
+		return sweTextValue(v)
+	default:
+		return v
+	}
+}
+
+func sweTextValue(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	default:
+		var buf bytes.Buffer
+		if err := json.NewEncoder(&buf).Encode(t); err != nil {
+			return ""
+		}
+		return string(bytes.TrimSpace(buf.Bytes()))
+	}
 }
 
 func firstStringValue(obj map[string]any, keys ...string) string {
@@ -377,25 +480,6 @@ func firstStringValue(obj map[string]any, keys ...string) string {
 		}
 	}
 	return ""
-}
-
-func sweResultString(v any) string {
-	switch t := v.(type) {
-	case nil:
-		return ""
-	case string:
-		return t
-	case float64:
-		return strconv.FormatFloat(t, 'f', -1, 64)
-	case bool:
-		return strconv.FormatBool(t)
-	default:
-		b, err := json.Marshal(t)
-		if err != nil {
-			return ""
-		}
-		return strings.TrimSpace(string(b))
-	}
 }
 
 func (c *Component) observationsSelfLink(datastreamID, rawQuery string) string {

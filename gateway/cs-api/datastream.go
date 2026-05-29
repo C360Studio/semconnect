@@ -9,9 +9,13 @@
 package csapi
 
 import (
+	"bytes"
+	"encoding/json"
+
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/c360studio/semstreams/pkg/swecommon"
 	"github.com/c360studio/semstreams/vocabulary/csapi"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
@@ -27,17 +31,25 @@ const DatastreamTypeIRI = csapi.Datastream
 // Stage 13: aliases csapi.ProducedBy.
 const PredDatastreamSystem = csapi.ProducedBy
 
+// PredDatastreamSchema stores the v0.1 SWE Common DataRecord schema
+// JSON that observation SWE encoders use for this Datastream. semstreams
+// beta.88 intentionally scope-cuts schema storage from vocabulary/csapi
+// (the long-term primitive is a StorageRef), so this gateway-local
+// predicate is a narrow bridge rather than an upstream vocabulary fork.
+const PredDatastreamSchema = "cs-api.datastream.schema"
+
 // Datastream is the v0.1 JSON shape for CS API §10 Datastream resources.
 // Fields are the subset semstreams' vocabulary can losslessly round-trip
 // today; deferred fields are listed in the package doc comment above.
 type Datastream struct {
-	ID               string `json:"id"`
-	Type             string `json:"type"` // "Datastream"
-	Name             string `json:"name,omitempty"`
-	Description      string `json:"description,omitempty"`
-	System           string `json:"system,omitempty"`           // 6-part entity ID
-	ObservedProperty string `json:"observedProperty,omitempty"` // IRI
-	Links            []link `json:"links"`
+	ID               string          `json:"id"`
+	Type             string          `json:"type"` // "Datastream"
+	Name             string          `json:"name,omitempty"`
+	Description      string          `json:"description,omitempty"`
+	System           string          `json:"system,omitempty"`           // 6-part entity ID
+	ObservedProperty string          `json:"observedProperty,omitempty"` // IRI
+	Schema           json.RawMessage `json:"schema,omitempty"`           // SWE Common DataRecord JSON
+	Links            []link          `json:"links"`
 }
 
 // datastreamRef is the per-item shape inside a DatastreamCollection.
@@ -87,6 +99,14 @@ func datastreamFromState(state graph.EntityState) Datastream {
 	if v, ok := firstStringObject(state.Triples, sosa.ObservedProperty); ok {
 		d.ObservedProperty = v
 	}
+	if v, ok := firstStringObject(state.Triples, PredDatastreamSchema); ok && json.Valid([]byte(v)) {
+		d.Schema = json.RawMessage(v)
+		d.Links = append(d.Links, link{
+			Href: "/datastreams/" + state.ID + "/schema",
+			Rel:  "schema",
+			Type: string(MediaJSON),
+		})
+	}
 	return d
 }
 
@@ -130,5 +150,24 @@ func datastreamToTriples(entityID string, d *Datastream) []message.Triple {
 	if d.ObservedProperty != "" {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: sosa.ObservedProperty, Object: d.ObservedProperty})
 	}
+	if len(d.Schema) > 0 {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredDatastreamSchema, Object: string(d.Schema)})
+	}
 	return triples
+}
+
+func normalizeDatastreamSchema(raw json.RawMessage) (json.RawMessage, error) {
+	raw = bytes.TrimSpace(raw)
+	if len(raw) == 0 {
+		return nil, nil
+	}
+	schema, err := swecommon.UnmarshalSchema(raw)
+	if err != nil {
+		return nil, err
+	}
+	canonical, err := swecommon.MarshalSchema(schema)
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(canonical), nil
 }

@@ -77,6 +77,12 @@ func (c *Component) handleDatastreamPut(w http.ResponseWriter, r *http.Request) 
 		writeJSONError(w, http.StatusBadRequest, "observedProperty required")
 		return
 	}
+	if schema, err := normalizeDatastreamSchema(in.Schema); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid Datastream schema: "+err.Error())
+		return
+	} else {
+		in.Schema = schema
+	}
 
 	// Pre-flight ID check: if the body carries an `id`, it must equal
 	// the path. An empty body `id` is permitted (path is authoritative).

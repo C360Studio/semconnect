@@ -849,7 +849,7 @@ This closes the last semstreams-side upstream ask tracked by
 a local gateway stage wires datastream result schemas and controlstream
 command schemas through `pkg/swecommon`.
 
-Remaining post-unblock local work:
+Remaining post-unblock local work as of Stage 31:
 
 - Replace the hand-rolled observation SWE JSON/CSV/binary projection
   with schema-bound `pkg/swecommon` encoders.
@@ -896,15 +896,49 @@ Remaining local work:
 still does not exercise the deferred SWE Common suites while semconnect
 does not claim a SWE Common conformance class.
 
-### Stage 33+ — Continue OSH-bar resource buildout
+### Stage 33 — Datastream SWE result schemas
+
+Stage 33 makes Datastream result schemas first-class in the gateway:
+
+- `POST /datastreams` and `PUT /datastreams/{id}` accept an optional
+  `schema` field containing a SWE Common `DataRecord` JSON schema.
+- The schema is validated and canonicalized with semstreams
+  `pkg/swecommon` before any graph mutation.
+- The schema is stored on a gateway-local `cs-api.datastream.schema`
+  predicate. semstreams beta.88 intentionally keeps Datastream schema
+  storage out of `vocabulary/csapi`; the long-term primitive is a
+  StorageRef rather than an inline vocabulary predicate.
+- `GET /datastreams/{id}` returns the schema and a `rel=schema` link
+  when one is stored.
+- `GET /datastreams/{id}/schema` returns the stored `DataRecord`
+  schema as JSON.
+- SWE observation reads use the stored schema when present and omit
+  `X-CS-SWE-Subset`. Legacy Datastreams without a schema keep the
+  Stage 32 inferred `{time,result}` fallback and still carry
+  `X-CS-SWE-Subset: observation-values`.
+
+Remaining local work:
+
+- Add command payload/schema parity for controlstreams.
+- Decide whether a future StorageRef-backed schema primitive in
+  semstreams should replace the gateway-local Datastream schema
+  predicate.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-29). Headline conformance is unchanged from Stage 32; schema
+binding is a local capability and the pinned ETS still does not exercise
+the deferred SWE Common suites while semconnect does not claim a SWE
+Common conformance class.
+
+### Stage 34+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
-- Complete Datastream schema binding and command-side SWE parity.
+- Complete command-side SWE parity.
 
 Also pending: PATCH parity on `/datastreams` for full
 `conf/update` scope, per-datastream observation JetStream Consumer
-cleanup on DELETE, and (Stage 33+) HTML + Part 3 (`websocket`,
+cleanup on DELETE, and (Stage 34+) HTML + Part 3 (`websocket`,
 `mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target

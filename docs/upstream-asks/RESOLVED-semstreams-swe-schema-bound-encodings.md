@@ -19,23 +19,23 @@ values to the described schema for:
 
 ## Current semconnect behavior
 
-Stage 32 exposes observation-value subsets for:
+Stage 32 exposed observation-value subsets for:
 
 - `application/swe+json`
 - `application/swe+csv`
 - `application/swe+binary`
 
-Those responses now route through semstreams `pkg/swecommon` using a
-v0.1 inferred `{time,result}` `DataRecord`. They still intentionally
-carry `X-CS-SWE-Subset: observation-values` because Datastream resources
-do not yet advertise result schemas. semconnect does not claim SWE
-Common conformance, and command-side SWE payload execution remains out
-of scope at v0.1.
+Those responses route through semstreams `pkg/swecommon`. Stage 33 adds
+gateway-local Datastream schema storage and `/datastreams/{id}/schema`;
+schema-backed SWE observation responses omit
+`X-CS-SWE-Subset: observation-values`. Legacy Datastreams without a
+stored schema still use the inferred `{time,result}` fallback and carry
+the subset header. semconnect does not claim SWE Common conformance, and
+command-side SWE payload execution remains out of scope at v0.1.
 
 That is now local semconnect follow-up work, not an upstream framework
-blocker. The next gateway step is to bind datastream result schemas and
-controlstream command schemas to `pkg/swecommon.DataRecord`, then drop
-the subset header.
+blocker. The next gateway step is command payload/schema parity for
+controlstreams.
 
 ## Why it matters
 

@@ -633,7 +633,8 @@ paths:
         reference (6-part SemStreams shape strict) and
         `observedProperty` (non-empty IRI). Honors a client-supplied
         6-part `id` verbatim — otherwise mints from
-        `cfg.DatastreamIDPrefix`.
+        `cfg.DatastreamIDPrefix`. Optional `schema` is a SWE Common
+        DataRecord JSON schema used by observation SWE encoders.
       tags: [Datastreams]
       requestBody:
         required: true
@@ -712,7 +713,8 @@ paths:
         Datastream JSON shape. Required fields (`system`,
         `observedProperty`) are validated. If the body carries an
         `id` field it must match the path `{id}` — mismatch yields
-        400 *before* any destructive operation.
+        400 *before* any destructive operation. Optional `schema` is
+        validated as a SWE Common DataRecord before replace begins.
       tags: [Datastreams]
       requestBody:
         required: true
@@ -771,6 +773,37 @@ paths:
               schema: {type: string}
               description: '`GET, HEAD, PUT, DELETE, OPTIONS`'
 
+  /datastreams/{id}/schema:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getDatastreamSchema
+      summary: Fetch the SWE Common schema for a datastream.
+      description: |-
+        Returns the stored SWE Common DataRecord JSON schema for
+        observation value encodings. v0.1 stores this under a
+        gateway-local predicate because semstreams currently models
+        Datastream schema storage as a future StorageRef primitive.
+      tags: [Datastreams]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: SWE Common DataRecord schema.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SWEDataRecordSchema"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headDatastreamSchema
+      tags: [Datastreams]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
   /datastreams/{datastreamID}/observations:
     parameters:
       - in: path
@@ -795,16 +828,18 @@ paths:
         - `application/om+json` — bare JSON array of OMS observation
           payloads. Symmetric with the POST shape; OMS-native clients
           consume directly. Count is signalled via `X-CS-Items-Count`.
-        - `application/swe+json` — Stage 32 SWE Common JSON rows
-          encoded by semstreams `pkg/swecommon` from a v0.1 inferred
-          `{time,result}` DataRecord.
-        - `application/swe+csv` — Stage 32 SWE TextEncoding rows for
-          the same inferred DataRecord, with `time,result` header.
-        - `application/swe+binary` — Stage 32 SWE BinaryEncoding packed
-          primitive rows for the same inferred DataRecord. Full
-          datastream-advertised schema binding remains deferred; these
-          responses carry
-          `X-CS-SWE-Subset: observation-values`.
+        - `application/swe+json` — SWE Common JSON rows encoded by
+          semstreams `pkg/swecommon`.
+        - `application/swe+csv` — SWE TextEncoding rows. Schema-backed
+          Datastreams omit the header row; fallback inferred responses
+          keep the `time,result` header.
+        - `application/swe+binary` — SWE BinaryEncoding packed
+          primitive rows.
+
+        If the Datastream has a stored `schema`, SWE responses use it
+        and omit `X-CS-SWE-Subset`. Legacy Datastreams fall back to the
+        Stage 32 inferred `{time,result}` DataRecord and carry
+        `X-CS-SWE-Subset: observation-values`.
       tags: [Observations]
       parameters:
         - $ref: "#/components/parameters/F"
@@ -829,9 +864,8 @@ paths:
               schema: {type: integer, minimum: 0}
             X-CS-SWE-Subset:
               description: |-
-                Present on Stage 32 SWE Common responses to signal that
-                the schema is inferred from the OMS page rather than
-                advertised by the Datastream resource.
+                Present only when no Datastream schema is stored and
+                the schema is inferred from the OMS page.
               schema: {type: string, enum: [observation-values]}
           content:
             application/json:
@@ -2425,6 +2459,8 @@ components:
         description:      {type: string}
         system:           {type: string, description: 6-part SemStreams system ID.}
         observedProperty: {type: string, format: uri}
+        schema:
+          $ref: "#/components/schemas/SWEDataRecordSchema"
         links:
           type: array
           items: {$ref: "#/components/schemas/Link"}
@@ -2438,6 +2474,38 @@ components:
         description:      {type: string}
         system:           {type: string, description: 6-part SemStreams system ID (strict).}
         observedProperty: {type: string, format: uri}
+        schema:
+          $ref: "#/components/schemas/SWEDataRecordSchema"
+
+    SWEDataRecordSchema:
+      type: object
+      required: [type, fields]
+      properties:
+        type: {type: string, enum: [DataRecord]}
+        label: {type: string}
+        definition: {type: string, format: uri}
+        nilValue: {type: string}
+        fields:
+          type: array
+          items:
+            type: object
+            required: [name, type]
+            properties:
+              name: {type: string}
+              type:
+                type: string
+                enum: [Quantity, Count, Time, Boolean, Text, Category]
+              label: {type: string}
+              definition: {type: string, format: uri}
+              nilValue: {type: string}
+              uomCode: {type: string}
+              uomHref: {type: string, format: uri}
+              referenceFrame: {type: string, format: uri}
+              codeSpace: {type: string, format: uri}
+      description: |-
+        SWE Common DataRecord schema accepted by semstreams
+        `pkg/swecommon`. Nested DataRecord fields are not supported in
+        the current framework encoder.
 
     ObservationCollection:
       type: object
@@ -2467,11 +2535,11 @@ components:
           time: {type: string}
           result: {}
       description: |-
-        Stage 32 SWE Common JSON rows derived from stored OMS
-        observations and encoded with semstreams `pkg/swecommon`.
-        The v0.1 schema is inferred per page as `{time,result}` until
-        Datastream resources advertise result schemas; responses carry
-        `X-CS-SWE-Subset: observation-values`.
+        SWE Common JSON rows derived from stored OMS observations and
+        encoded with semstreams `pkg/swecommon`. If the Datastream has
+        a stored `schema`, rows follow that schema. Otherwise the v0.1
+        fallback schema is inferred per page as `{time,result}` and
+        responses carry `X-CS-SWE-Subset: observation-values`.
 
     Observation:
       type: object

@@ -149,11 +149,11 @@ func (c *Component) handleObservationsGet(w http.ResponseWriter, r *http.Request
 	case MediaOMS:
 		c.writeObservationsBare(w, r, items)
 	case MediaSWEJSON:
-		c.writeObservationsSWEJSON(w, r, items)
+		c.writeObservationsSWEJSON(w, r, datastreamID, items)
 	case MediaSWECsv:
-		c.writeObservationsSWECsv(w, r, items)
+		c.writeObservationsSWECsv(w, r, datastreamID, items)
 	case MediaSWEBinary:
-		c.writeObservationsSWEBinary(w, r, items)
+		c.writeObservationsSWEBinary(w, r, datastreamID, items)
 	default:
 		c.writeObservationsWrapped(w, r, datastreamID, items, lastSeq, limit)
 	}
@@ -283,11 +283,12 @@ func (c *Component) writeObservationsBare(w http.ResponseWriter, r *http.Request
 func (c *Component) writeObservationsSWEJSON(
 	w http.ResponseWriter,
 	r *http.Request,
+	datastreamID string,
 	items []json.RawMessage,
 ) {
+	schema, rows, schemaBacked := c.sweRowsForDatastream(r, datastreamID, items)
 	var body []byte
 	if r.Method != http.MethodHead {
-		schema, rows := sweRowsFromOMS(items)
 		var err error
 		body, err = swecommon.MarshalJSONRows(schema, rows)
 		if err != nil {
@@ -298,7 +299,9 @@ func (c *Component) writeObservationsSWEJSON(
 		}
 	}
 	w.Header().Set("Content-Type", string(MediaSWEJSON))
-	w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	if !schemaBacked {
+		w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	}
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
@@ -309,12 +312,12 @@ func (c *Component) writeObservationsSWEJSON(
 	}
 }
 
-func (c *Component) writeObservationsSWECsv(w http.ResponseWriter, r *http.Request, items []json.RawMessage) {
+func (c *Component) writeObservationsSWECsv(w http.ResponseWriter, r *http.Request, datastreamID string, items []json.RawMessage) {
+	schema, rows, schemaBacked := c.sweRowsForDatastream(r, datastreamID, items)
 	var body []byte
 	if r.Method != http.MethodHead {
-		schema, rows := sweRowsFromOMS(items)
 		enc := swecommon.DefaultTextEncoding()
-		enc.EmitHeader = true
+		enc.EmitHeader = !schemaBacked
 		var err error
 		body, err = swecommon.MarshalTextRows(schema, rows, enc)
 		if err != nil {
@@ -325,7 +328,9 @@ func (c *Component) writeObservationsSWECsv(w http.ResponseWriter, r *http.Reque
 		}
 	}
 	w.Header().Set("Content-Type", string(MediaSWECsv))
-	w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	if !schemaBacked {
+		w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	}
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
@@ -336,10 +341,10 @@ func (c *Component) writeObservationsSWECsv(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (c *Component) writeObservationsSWEBinary(w http.ResponseWriter, r *http.Request, items []json.RawMessage) {
+func (c *Component) writeObservationsSWEBinary(w http.ResponseWriter, r *http.Request, datastreamID string, items []json.RawMessage) {
+	schema, rows, schemaBacked := c.sweRowsForDatastream(r, datastreamID, items)
 	var body []byte
 	if r.Method != http.MethodHead {
-		schema, rows := sweRowsFromOMS(items)
 		var err error
 		body, err = swecommon.MarshalBinaryRows(schema, rows, swecommon.DefaultBinaryEncoding())
 		if err != nil {
@@ -350,7 +355,9 @@ func (c *Component) writeObservationsSWEBinary(w http.ResponseWriter, r *http.Re
 		}
 	}
 	w.Header().Set("Content-Type", string(MediaSWEBinary))
-	w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	if !schemaBacked {
+		w.Header().Set("X-CS-SWE-Subset", "observation-values")
+	}
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
@@ -359,6 +366,18 @@ func (c *Component) writeObservationsSWEBinary(w http.ResponseWriter, r *http.Re
 		c.errs.Add(1)
 		c.logger.Error("write observations SWE binary response", "err", err)
 	}
+}
+
+func (c *Component) sweRowsForDatastream(
+	r *http.Request,
+	datastreamID string,
+	items []json.RawMessage,
+) (*swecommon.DataRecord, []swecommon.Values, bool) {
+	if schema, ok := c.fetchDatastreamObservationSchema(r, datastreamID); ok {
+		return schema, sweRowsFromOMSWithSchema(items, schema), true
+	}
+	schema, rows := sweRowsFromOMS(items)
+	return schema, rows, false
 }
 
 func sweRowsFromOMS(items []json.RawMessage) (*swecommon.DataRecord, []swecommon.Values) {
@@ -389,6 +408,52 @@ func sweRowsFromOMS(items []json.RawMessage) (*swecommon.DataRecord, []swecommon
 		})
 	}
 	return schema, rows
+}
+
+func sweRowsFromOMSWithSchema(items []json.RawMessage, schema *swecommon.DataRecord) []swecommon.Values {
+	rows := make([]swecommon.Values, 0, len(items))
+	for _, item := range items {
+		var obj map[string]any
+		if err := json.Unmarshal(item, &obj); err != nil {
+			continue
+		}
+		row := make(swecommon.Values, len(schema.Fields))
+		result := obj["result"]
+		resultObj, _ := result.(map[string]any)
+		for _, field := range schema.Fields {
+			row[field.Name] = sweSchemaFieldValue(obj, result, resultObj, field, len(schema.Fields))
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
+
+func sweSchemaFieldValue(
+	obs map[string]any,
+	result any,
+	resultObj map[string]any,
+	field swecommon.Field,
+	fieldCount int,
+) any {
+	var v any
+	switch field.Name {
+	case "time":
+		if t := firstStringValue(obs, "phenomenonTime", "resultTime", "time"); t != "" {
+			v = t
+		}
+	case "result":
+		v = result
+	default:
+		if resultObj != nil {
+			v = resultObj[field.Name]
+		} else if fieldCount == 1 {
+			v = result
+		}
+	}
+	if field.Component.Kind() == swecommon.KindText {
+		return sweValueForKind(v, swecommon.KindText)
+	}
+	return v
 }
 
 func sweObservationSchema(resultKind swecommon.ComponentKind) *swecommon.DataRecord {

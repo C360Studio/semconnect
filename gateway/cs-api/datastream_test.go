@@ -35,6 +35,25 @@ func encodeDatastreamEntityState(t *testing.T, id, name, system, obsProp string)
 	return out
 }
 
+func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsProp, schema string) []byte {
+	t.Helper()
+	triples := []message.Triple{
+		{Subject: id, Predicate: sensorml.PredType, Object: DatastreamTypeIRI},
+		{Subject: id, Predicate: sensorml.PredLabel, Object: name},
+		{Subject: id, Predicate: PredDatastreamSystem, Object: system},
+		{Subject: id, Predicate: sosa.ObservedProperty, Object: obsProp},
+		{Subject: id, Predicate: PredDatastreamSchema, Object: schema},
+	}
+	state := graph.EntityState{ID: id, Triples: triples}
+	out, err := json.Marshal(state)
+	if err != nil {
+		t.Fatalf("encode datastream schema entity state: %v", err)
+	}
+	return out
+}
+
+const testSWEDataRecordSchema = `{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}`
+
 // TestHandleDatastreams_GoldenPath pins the list shape for a populated
 // datastream graph.
 func TestHandleDatastreams_GoldenPath(t *testing.T) {
@@ -118,6 +137,73 @@ func TestHandleDatastream_GoldenPath(t *testing.T) {
 	}
 }
 
+func TestHandleDatastream_IncludesSchemaLinkWhenStored(t *testing.T) {
+	id := "c360.semconnect.systems.csapi.datastream.001"
+	fake := &fakeRequester{
+		status: natsclient.StatusConnected,
+		reply: encodeDatastreamEntityStateWithSchema(t, id,
+			"Temperature feed",
+			"c360.semconnect.systems.csapi.system.sensor1",
+			"http://example.org/properties/temperature",
+			testSWEDataRecordSchema),
+	}
+	c := newTestComponent(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/datastreams/"+id, nil)
+	req.SetPathValue("id", id)
+	rr := httptest.NewRecorder()
+	c.handleDatastream(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200 (body=%s)", rr.Code, rr.Body.String())
+	}
+	var d Datastream
+	if err := json.Unmarshal(rr.Body.Bytes(), &d); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(d.Schema) == 0 {
+		t.Fatalf("schema omitted from datastream response")
+	}
+	var hasSchemaLink bool
+	for _, l := range d.Links {
+		if l.Rel == "schema" && l.Href == "/datastreams/"+id+"/schema" {
+			hasSchemaLink = true
+		}
+	}
+	if !hasSchemaLink {
+		t.Fatalf("schema link missing: %+v", d.Links)
+	}
+}
+
+func TestHandleDatastreamSchema_GoldenPath(t *testing.T) {
+	id := "c360.semconnect.systems.csapi.datastream.001"
+	fake := &fakeRequester{
+		status: natsclient.StatusConnected,
+		reply: encodeDatastreamEntityStateWithSchema(t, id,
+			"Temperature feed",
+			"c360.semconnect.systems.csapi.system.sensor1",
+			"http://example.org/properties/temperature",
+			testSWEDataRecordSchema),
+	}
+	c := newTestComponent(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/datastreams/"+id+"/schema", nil)
+	req.SetPathValue("id", id)
+	rr := httptest.NewRecorder()
+	c.handleDatastreamSchema(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200 (body=%s)", rr.Code, rr.Body.String())
+	}
+	var body map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if body["type"] != "DataRecord" {
+		t.Fatalf("schema type: got %v", body["type"])
+	}
+}
+
 // TestHandleDatastream_NotDatastreamKind: an entity that exists but is not
 // a Datastream returns 404 (preserves CS API §10.4 resource-not-found
 // semantics — the URL space owes a 404, not a degraded body).
@@ -188,6 +274,66 @@ func TestHandleDatastreamPost_GoldenPath(t *testing.T) {
 	}
 	if !hasType {
 		t.Errorf("missing rdf:type triple for DatastreamTypeIRI; triples=%+v", sent.Triples)
+	}
+}
+
+func TestHandleDatastreamPost_StoresSchema(t *testing.T) {
+	fake := &fakeRequester{status: natsclient.StatusConnected, reply: encodeBatchOK(t, 5)}
+	c := newTestComponent(t, fake)
+
+	body, _ := json.Marshal(map[string]any{
+		"id":               "tenantA.proj.feeds.csapi.datastream.temp",
+		"name":             "Temperature feed",
+		"system":           "tenantA.proj.feeds.csapi.system.sensor1",
+		"observedProperty": "http://example.org/properties/temperature",
+		"schema":           json.RawMessage(testSWEDataRecordSchema),
+	})
+	req := httptest.NewRequest(http.MethodPost, "/datastreams", bytes.NewReader(body))
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleDatastreamPost(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("status: got %d want 201 (body=%s)", rr.Code, rr.Body.String())
+	}
+	var sent graph.AddTriplesBatchRequest
+	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
+		t.Fatalf("decode published body: %v", err)
+	}
+	var schemaTriple string
+	for _, tr := range sent.Triples {
+		if tr.Predicate == PredDatastreamSchema {
+			schemaTriple, _ = tr.Object.(string)
+		}
+	}
+	if schemaTriple == "" {
+		t.Fatalf("missing schema triple: %+v", sent.Triples)
+	}
+	if !json.Valid([]byte(schemaTriple)) {
+		t.Fatalf("schema triple is not JSON: %s", schemaTriple)
+	}
+}
+
+func TestHandleDatastreamPost_InvalidSchema(t *testing.T) {
+	fake := &fakeRequester{status: natsclient.StatusConnected}
+	c := newTestComponent(t, fake)
+
+	body, _ := json.Marshal(map[string]any{
+		"name":             "Bad schema feed",
+		"system":           "c360.semconnect.systems.csapi.system.sensor1",
+		"observedProperty": "http://example.org/properties/temperature",
+		"schema":           map[string]any{"type": "Quantity"},
+	})
+	req := httptest.NewRequest(http.MethodPost, "/datastreams", bytes.NewReader(body))
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleDatastreamPost(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d want 400 (body=%s)", rr.Code, rr.Body.String())
+	}
+	if fake.gotSubject != "" {
+		t.Fatalf("publish should not happen on invalid schema; got %q", fake.gotSubject)
 	}
 }
 

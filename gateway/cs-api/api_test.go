@@ -130,7 +130,7 @@ func TestHandleAPI_HEAD(t *testing.T) {
 }
 
 // TestEmbeddedOpenAPI_Shape — the embedded openapi.yaml must declare
-// all 10 v0.1-implemented paths AND all 14 schemas we depend on. Catches
+// all v0.1-implemented paths AND schemas we depend on. Catches
 // the "moved an endpoint but forgot to update the spec" class of bug
 // at compile-test time, before clients see the drift.
 func TestEmbeddedOpenAPI_Shape(t *testing.T) {
@@ -143,6 +143,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"/", "/api", "/conformance", "/health",
 		"/systems", "/systems/{id}",
 		"/datastreams", "/datastreams/{id}",
+		"/datastreams/{id}/schema",
 		"/datastreams/{datastreamID}/observations",
 		"/areas",
 		// Stage 28 — OGC API Common Part 2 /collections metadata.
@@ -197,7 +198,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"CollectionsDocument", "CollectionMetadata",
 		"SystemCollection", "SystemRef", "System",
 		"DatastreamCollection", "DatastreamRef", "Datastream", "DatastreamCreate",
-		"ObservationCollection", "Observation",
+		"SWEDataRecordSchema", "ObservationCollection", "Observation",
 		"ProcedureCollection", "ProcedureRef", "Procedure",
 		"DeploymentCollection", "DeploymentRef", "Deployment",
 		"SamplingFeatureCollection", "SamplingFeatureRef", "SamplingFeature",

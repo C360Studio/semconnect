@@ -14,8 +14,8 @@ directory tracks is resolved for semconnect.
 
 - `v1.0.0-beta.88`: #116 schema-bound SWE Common JSON/text/binary
   encoders and decoders. semconnect Stage 32 adopts them on the
-  observation read path; local work remains to bind datastream result
-  schemas to observation values and command payloads.
+  observation read path, and Stage 33 binds Datastream schemas locally;
+  command payload/schema parity remains local work.
 - `v1.0.0-beta.87`: #93 Phase 1+2+3 header-classified request/reply
   errors. semconnect uses `natsclient.ClassifyReply` on entity reads;
   #93 remains open upstream only for deferred breaking cleanup and
@@ -32,8 +32,9 @@ directory tracks is resolved for semconnect.
 - Migrate gateway writes from `graph.mutation.triple.add_batch` plus
   delete fan-out to `graph.mutation.entity.*`. This is no longer an
   upstream ask now that #120 is closed.
-- Bind Datastream result schemas and controlstream command schemas to
-  `pkg/swecommon` so semconnect can retire
-  `X-CS-SWE-Subset: observation-values` and claim the fuller SWE path.
+- Bind controlstream command schemas to `pkg/swecommon` so semconnect
+  can claim the fuller command-side SWE path.
+- Revisit Datastream schema storage when semstreams grows the
+  StorageRef primitive documented in the `vocabulary/csapi` scope-cut.
 - Keep `conformance/nats.conf` for local server limits; semstreams now
   validates/warns, but the harness still owns the NATS server config.

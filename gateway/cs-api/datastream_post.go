@@ -65,6 +65,12 @@ func (c *Component) handleDatastreamPost(w http.ResponseWriter, r *http.Request)
 		writeJSONError(w, http.StatusBadRequest, "observedProperty required")
 		return
 	}
+	if schema, err := normalizeDatastreamSchema(in.Schema); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid Datastream schema: "+err.Error())
+		return
+	} else {
+		in.Schema = schema
+	}
 
 	// Honor client-supplied id if shaped as a SemStreams 6-part ID;
 	// otherwise mint from prefix + sanitized client id (or a fresh UUID

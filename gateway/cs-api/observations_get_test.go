@@ -11,6 +11,7 @@ import (
 
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/message/oms"
+	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/payloadbuiltins"
 	"github.com/c360studio/semstreams/pkg/swecommon"
 	"github.com/nats-io/nats.go"
@@ -45,6 +46,15 @@ func (f *fakeReader) FetchSubject(_ context.Context, subject string, limit int, 
 func wireObservationsReadComponent(t *testing.T, rd *fakeReader) *Component {
 	t.Helper()
 	fake := &fakeRequester{}
+	c := newTestComponent(t, fake)
+	var sr streamReader = rd
+	c.reader.Store(&sr)
+	c.initialized = true
+	return c
+}
+
+func wireObservationsReadComponentWithRequester(t *testing.T, rd *fakeReader, fake *fakeRequester) *Component {
+	t.Helper()
 	c := newTestComponent(t, fake)
 	var sr streamReader = rd
 	c.reader.Store(&sr)
@@ -371,6 +381,44 @@ func TestObservationsGet_SWECsv(t *testing.T) {
 		t.Errorf("Content-Type: got %q want %q", ct, string(MediaSWECsv))
 	}
 	if got := strings.TrimSpace(rr.Body.String()); got != "time,result\n2026-05-15T14:30:00Z,12.4" {
+		t.Errorf("CSV body:\n%s", rr.Body.String())
+	}
+}
+
+func TestObservationsGet_SWECsvUsesStoredDatastreamSchema(t *testing.T) {
+	obs := &oms.Observation{
+		ID: "obs-swe-csv-schema", Procedure: "http://example.org/proc",
+		ObservedProperty: "http://example.org/prop",
+		ResultTime:       "2026-05-15T14:30:00Z",
+		Result: map[string]any{
+			"temperature": 12.4,
+		},
+	}
+	datastreamID := "c360.semconnect.systems.csapi.datastream.001"
+	rd := &fakeReader{msgs: []observationMsg{{Data: encodeBaseMessage(t, obs), Sequence: 9}}}
+	fake := &fakeRequester{
+		status: natsclient.StatusConnected,
+		reply: encodeDatastreamEntityStateWithSchema(t, datastreamID,
+			"Temperature feed",
+			"c360.semconnect.systems.csapi.system.sensor1",
+			"http://example.org/properties/temperature",
+			testSWEDataRecordSchema),
+	}
+	c := wireObservationsReadComponentWithRequester(t, rd, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/datastreams/"+datastreamID+"/observations", nil)
+	req.Header.Set("Accept", string(MediaSWECsv))
+	req.SetPathValue("datastreamID", datastreamID)
+	rr := httptest.NewRecorder()
+	c.handleObservationsGet(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if rr.Header().Get("X-CS-SWE-Subset") != "" {
+		t.Fatalf("X-CS-SWE-Subset should be omitted for schema-backed SWE; got %q", rr.Header().Get("X-CS-SWE-Subset"))
+	}
+	if got := strings.TrimSpace(rr.Body.String()); got != "2026-05-15T14:30:00Z,12.4" {
 		t.Errorf("CSV body:\n%s", rr.Body.String())
 	}
 }

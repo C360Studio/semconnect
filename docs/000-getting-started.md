@@ -930,15 +930,45 @@ binding is a local capability and the pinned ETS still does not exercise
 the deferred SWE Common suites while semconnect does not claim a SWE
 Common conformance class.
 
-### Stage 34+ — Continue OSH-bar resource buildout
+### Stage 34 — ControlStream SWE command schema parity
+
+Stage 34 makes ControlStream command schemas use the same semstreams
+`pkg/swecommon` `DataRecord` contract as Datastream result schemas:
+
+- `POST /controlstreams` validates `schema.parametersSchema` as a SWE
+  Common `DataRecord` and canonicalizes it before storing the schema
+  triple.
+- `GET /controlstreams/{id}/schema` returns the canonical command
+  schema when the stored schema is valid.
+- `controlledProperties` are still derived from the schema fields when
+  omitted, but now from a validated DataRecord.
+- `ControlStream.formats` reflects the stored `commandFormat`.
+- Command execution remains intentionally out of scope at v0.1;
+  `/controlstreams/{id}/commands` still returns a readable empty
+  collection.
+
+Remaining local work:
+
+- Implement command execution only when the product scope asks for it;
+  the schema/read side is now SWE-backed.
+- Decide whether a future StorageRef-backed schema primitive in
+  semstreams should replace gateway-local schema storage patterns.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-29). Headline conformance is unchanged from Stage 33; the
+pinned ETS still does not exercise the deferred SWE Common suites while
+semconnect does not claim a SWE Common conformance class.
+
+### Stage 35+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
-- Complete command-side SWE parity.
+- Command execution, if/when v0.1 scope expands beyond read-side
+  ControlStream metadata.
 
 Also pending: PATCH parity on `/datastreams` for full
 `conf/update` scope, per-datastream observation JetStream Consumer
-cleanup on DELETE, and (Stage 34+) HTML + Part 3 (`websocket`,
+cleanup on DELETE, and (Stage 35+) HTML + Part 3 (`websocket`,
 `mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target

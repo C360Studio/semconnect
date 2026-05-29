@@ -14,6 +14,7 @@ import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/c360studio/semstreams/pkg/swecommon"
 	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 )
 
@@ -102,6 +103,9 @@ func controlStreamFromState(state graph.EntityState) controlStream {
 	}
 	if v, ok := firstStringObject(state.Triples, predControlStreamAsync); ok && v == "true" {
 		cs.Async = true
+	}
+	if schema := controlStreamSchemaFromTriples(state.Triples); schema.CommandFormat != "" {
+		cs.Formats = []string{schema.CommandFormat}
 	}
 	cs.ControlledProperties = controlledPropertiesFromTriples(state.Triples)
 	return cs
@@ -334,9 +338,11 @@ func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Tr
 	if in.Schema.CommandFormat == "" {
 		in.Schema.CommandFormat = string(MediaJSON)
 	}
-	if in.Schema.ParametersSchema == nil {
-		in.Schema.ParametersSchema = map[string]any{"type": "DataRecord", "fields": []any{}}
+	schema, err := normalizeCommandSchema(in.Schema)
+	if err != nil {
+		return "", nil, fmt.Errorf("schema invalid: %w", err)
 	}
+	in.Schema = schema
 	if len(in.ControlledProperties) == 0 {
 		in.ControlledProperties = controlledPropertiesFromSchema(in.Schema)
 	}
@@ -373,8 +379,8 @@ func controlStreamSchemaFromTriples(triples []message.Triple) commandSchema {
 	if v, ok := firstStringObject(triples, predControlStreamSchema); ok && v != "" {
 		var schema commandSchema
 		if err := json.Unmarshal([]byte(v), &schema); err == nil && schema.CommandFormat != "" {
-			if schema.ParametersSchema == nil {
-				schema.ParametersSchema = map[string]any{"type": "DataRecord", "fields": []any{}}
+			if normalized, err := normalizeCommandSchema(schema); err == nil {
+				return normalized
 			}
 			return schema
 		}
@@ -383,6 +389,33 @@ func controlStreamSchemaFromTriples(triples []message.Triple) commandSchema {
 		CommandFormat:    string(MediaJSON),
 		ParametersSchema: map[string]any{"type": "DataRecord", "fields": []any{}},
 	}
+}
+
+func normalizeCommandSchema(schema commandSchema) (commandSchema, error) {
+	if schema.CommandFormat == "" {
+		schema.CommandFormat = string(MediaJSON)
+	}
+	if schema.ParametersSchema == nil {
+		return commandSchema{}, errors.New("parametersSchema required")
+	}
+	raw, err := json.Marshal(schema.ParametersSchema)
+	if err != nil {
+		return commandSchema{}, fmt.Errorf("marshal parametersSchema: %w", err)
+	}
+	record, err := swecommon.UnmarshalSchema(raw)
+	if err != nil {
+		return commandSchema{}, err
+	}
+	canonical, err := swecommon.MarshalSchema(record)
+	if err != nil {
+		return commandSchema{}, err
+	}
+	var params map[string]any
+	if err := json.Unmarshal(canonical, &params); err != nil {
+		return commandSchema{}, fmt.Errorf("decode canonical parametersSchema: %w", err)
+	}
+	schema.ParametersSchema = params
+	return schema, nil
 }
 
 func controlledPropertiesFromSchema(schema commandSchema) []controlledProperty {

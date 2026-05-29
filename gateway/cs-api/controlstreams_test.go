@@ -167,7 +167,7 @@ func TestHandleControlStreamPost_JSON(t *testing.T) {
 	}
 	c := newTestComponent(t, fake)
 
-	body := []byte(`{"name":"PTZ Control","system@id":"` + testControlSystemID + `","inputName":"ptz","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"}]}}}`)
+	body := []byte(`{"name":"PTZ Control","system@id":"` + testControlSystemID + `","inputName":"ptz","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"}]}}}`)
 	req := httptest.NewRequest(http.MethodPost, "/controlstreams", bytes.NewReader(body))
 	req.Header.Set("Content-Type", string(MediaJSON))
 	rr := httptest.NewRecorder()
@@ -184,6 +184,7 @@ func TestHandleControlStreamPost_JSON(t *testing.T) {
 		t.Fatalf("decode batch: %v", err)
 	}
 	var sawType, sawSystem, sawSchema bool
+	var schema commandSchema
 	for _, tr := range batch.Triples {
 		switch tr.Predicate {
 		case sensorml.PredType:
@@ -192,11 +193,41 @@ func TestHandleControlStreamPost_JSON(t *testing.T) {
 			sawSystem = true
 		case predControlStreamSchema:
 			sawSchema = true
+			raw, _ := tr.Object.(string)
+			if err := json.Unmarshal([]byte(raw), &schema); err != nil {
+				t.Fatalf("decode schema triple: %v", err)
+			}
 		}
 	}
 	if !sawType || !sawSystem || !sawSchema {
 		t.Errorf("batch missing triples: type=%v system=%v schema=%v batch=%+v",
 			sawType, sawSystem, sawSchema, batch.Triples)
+	}
+	fields, _ := schema.ParametersSchema["fields"].([]any)
+	if len(fields) != 1 {
+		t.Fatalf("canonical schema fields: %+v", schema.ParametersSchema)
+	}
+	field, _ := fields[0].(map[string]any)
+	if field["type"] != "Quantity" {
+		t.Fatalf("canonical field type: %+v", field)
+	}
+}
+
+func TestHandleControlStreamPost_InvalidParametersSchema(t *testing.T) {
+	fake := &fakeRequester{status: natsclient.StatusConnected}
+	c := newTestComponent(t, fake)
+
+	body := []byte(`{"name":"PTZ Control","inputName":"ptz","schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","label":"Pan Angle"}]}}}`)
+	req := httptest.NewRequest(http.MethodPost, "/controlstreams", bytes.NewReader(body))
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleControlStreamPost(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+	if fake.gotSubject != "" {
+		t.Fatalf("publish should not happen on invalid command schema; got %q", fake.gotSubject)
 	}
 }
 

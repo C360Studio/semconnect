@@ -106,6 +106,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	// Stage 17 — /datastreams CRD parity with Stage 16's /systems set.
 	mux.Handle("PUT "+datastreamItemPath, c.middleware(http.HandlerFunc(c.handleDatastreamPut)))
 	mux.Handle("DELETE "+datastreamItemPath, c.middleware(http.HandlerFunc(c.handleDatastreamDelete)))
+	// Stage 35 — /datastreams PATCH parity with Stage 19's /systems update.
+	mux.Handle("PATCH "+datastreamItemPath, c.middleware(http.HandlerFunc(c.handleDatastreamPatch)))
 	mux.Handle("OPTIONS "+datastreamsPath, c.middleware(http.HandlerFunc(c.handleDatastreamsOptions)))
 	mux.Handle("OPTIONS "+datastreamItemPath, c.middleware(http.HandlerFunc(c.handleDatastreamOptions)))
 	mux.Handle("POST "+observationsPath, c.middleware(http.HandlerFunc(c.handleObservationsPost)))

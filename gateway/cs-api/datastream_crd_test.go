@@ -294,7 +294,6 @@ func TestHandleDatastreamsOptions(t *testing.T) {
 }
 
 // TestHandleDatastreamOptions advertises the item-level Allow header.
-// PATCH must be absent (no conf/update claim at v0.1).
 func TestHandleDatastreamOptions(t *testing.T) {
 	fake := &crdFakeRequester{}
 	c := newComponentWithRequester(t, fake)
@@ -307,12 +306,12 @@ func TestHandleDatastreamOptions(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
-	want := "GET, HEAD, PUT, DELETE, OPTIONS"
+	want := "GET, HEAD, PUT, PATCH, DELETE, OPTIONS"
 	if got := rr.Header().Get("Allow"); got != want {
 		t.Errorf("Allow: got %q want %q", got, want)
 	}
-	if strings.Contains(rr.Header().Get("Allow"), "PATCH") {
-		t.Errorf("Allow must NOT advertise PATCH at v0.1; got %q", rr.Header().Get("Allow"))
+	if !strings.Contains(rr.Header().Get("Allow"), "PATCH") {
+		t.Errorf("Allow must advertise PATCH at Stage 35+; got %q", rr.Header().Get("Allow"))
 	}
 }
 
@@ -331,7 +330,7 @@ func TestHandleDatastreamOptions_ViaMux(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
-	want := "GET, HEAD, PUT, DELETE, OPTIONS"
+	want := "GET, HEAD, PUT, PATCH, DELETE, OPTIONS"
 	if got := rr.Header().Get("Allow"); got != want {
 		t.Errorf("Allow: got %q want %q", got, want)
 	}

@@ -197,7 +197,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"LandingPage", "ConformanceDeclaration", "Link",
 		"CollectionsDocument", "CollectionMetadata",
 		"SystemCollection", "SystemRef", "System",
-		"DatastreamCollection", "DatastreamRef", "Datastream", "DatastreamCreate",
+		"DatastreamCollection", "DatastreamRef", "Datastream", "DatastreamCreate", "DatastreamPatch",
 		"SWEDataRecordSchema", "ObservationCollection", "Observation",
 		"ProcedureCollection", "ProcedureRef", "Procedure",
 		"DeploymentCollection", "DeploymentRef", "Deployment",

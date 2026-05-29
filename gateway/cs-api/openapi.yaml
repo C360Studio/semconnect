@@ -2336,10 +2336,11 @@ components:
       type: object
       required: [commandFormat, parametersSchema]
       properties:
-        commandFormat: {type: string}
+        commandFormat:
+          type: string
+          description: Command payload media type. v0.1 stores and returns the declared value; command execution remains out of scope.
         parametersSchema:
-          type: object
-          additionalProperties: true
+          $ref: "#/components/schemas/SWEDataRecordSchema"
 
     ControlStreamPost:
       type: object

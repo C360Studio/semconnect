@@ -30,12 +30,13 @@ gateway-local Datastream schema storage and `/datastreams/{id}/schema`;
 schema-backed SWE observation responses omit
 `X-CS-SWE-Subset: observation-values`. Legacy Datastreams without a
 stored schema still use the inferred `{time,result}` fallback and carry
-the subset header. semconnect does not claim SWE Common conformance, and
-command-side SWE payload execution remains out of scope at v0.1.
+the subset header. Stage 34 validates ControlStream command schemas with
+`pkg/swecommon` too. semconnect does not claim SWE Common conformance,
+and command-side SWE payload execution remains out of scope at v0.1.
 
 That is now local semconnect follow-up work, not an upstream framework
-blocker. The next gateway step is command payload/schema parity for
-controlstreams.
+blocker. No additional semstreams issue blocks the current schema/read
+side.
 
 ## Why it matters
 

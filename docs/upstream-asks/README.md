@@ -7,15 +7,16 @@ without making semstreams review stale blockers.
 
 ## Open asks
 
-- [#93 — header-classified structured request/reply errors](semstreams-structured-errors.md).
-  semconnect still carries `classifyEntityQueryError` to parse the
-  current stringly `error: ...` response body convention.
 - [#116 — schema-bound SWE Common encodings](semstreams-swe-schema-bound-encodings.md).
   semconnect Stage 27 only exposes observation-value subsets and does
   not claim SWE Common conformance.
 
 ## Resolved in current pins
 
+- `v1.0.0-beta.87`: #93 Phase 1+2+3 header-classified request/reply
+  errors. semconnect uses `natsclient.ClassifyReply` on entity reads;
+  #93 remains open upstream only for deferred breaking cleanup and
+  follow-ups that do not block semconnect.
 - `v1.0.0-beta.81`: #100 health-port wiring, #101 JetStream limit
   validation/documentation, and #120 entity mutation degraded read-back
   semantics.

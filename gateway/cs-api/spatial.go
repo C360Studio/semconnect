@@ -300,9 +300,8 @@ func (c *Component) querySpatialPolygon(ctx context.Context, poly json.RawMessag
 // Note on the framework-error workaround: graph-index-spatial wraps its
 // handler errors via errs.WrapInvalid, which produces wire replies shaped
 // "error: Component.<method>: <action> failed: …" — NOT the
-// "error: <kind>: …" prefix that graph-ingest emits. classifyEntityQueryError
-// (used on the /systems/{id} path) cannot disambiguate these because the
-// prefix structure is different. Instead we rely on tight client-side
+// "error: <kind>: …" prefix that graph-ingest emitted before the beta.87
+// classified-error surface. The spatial path still relies on tight client-side
 // validation in parseBBox / parsePolygon so the framework never receives
 // invalid input from us; any "error:" reply from this subject therefore
 // represents a server-side fault and falls through to the generic decode

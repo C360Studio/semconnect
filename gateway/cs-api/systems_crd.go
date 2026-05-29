@@ -3,7 +3,7 @@
 //
 // **Implementation trade-off (re-derivable to know when to retire):**
 // PUT-as-replace and DELETE still use a fetch + per-predicate-remove
-// loop, which is N round-trips per entity. semstreams beta.86 exposes
+// loop, which is N round-trips per entity. semstreams beta.87 exposes
 // entity-level mutation subjects with read-back semantics, so retiring
 // `deleteAllEntityTriples` in favor of `graph.mutation.entity.delete`
 // is now local semconnect cleanup rather than an upstream blocker.
@@ -108,7 +108,7 @@ func (c *Component) handleSystemPut(w http.ResponseWriter, r *http.Request) {
 	//       so a retrying client knows the entity needs replacement,
 	//       not just creation.
 	// Both windows retire when semconnect moves this path onto the
-	// beta.86 entity-level mutation primitives.
+	// beta.87 entity-level mutation primitives.
 	if err := c.deleteAllEntityTriples(r.Context(), pathID, id); err != nil {
 		c.writeBackendError(w, err)
 		return
@@ -160,7 +160,7 @@ func (c *Component) handleSystemDelete(w http.ResponseWriter, r *http.Request) {
 
 // deleteAllEntityTriples implements entity-level deletion via the
 // framework's triple-level primitives — fetch + per-predicate remove.
-// Stage 16. N round-trips per call; retire now that beta.86 exposes
+// Stage 16. N round-trips per call; retire now that beta.87 exposes
 // `graph.mutation.entity.delete`.
 //
 // Non-existent entity is a no-op (the entity-query returns "not found",

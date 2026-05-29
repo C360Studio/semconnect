@@ -13,6 +13,7 @@ import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/graph/geo/geojson"
 	"github.com/c360studio/semstreams/message"
+	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/c360studio/semstreams/vocabulary/export"
@@ -380,9 +381,8 @@ func (c *Component) writeSystemsGeoJSON(w http.ResponseWriter, r *http.Request, 
 //     as datastream IDs since SemStreams 6-part IDs are NATS-shape).
 //  2. Negotiate Accept across JSON / SensorML+JSON / JSON-LD.
 //  3. NATS request to graph.query.entity to fetch the EntityState.
-//  4. Detect "not found" via classifyEntityQueryError (until upstream
-//     ships structured request-reply errors — issue filed with
-//     C360Studio/semstreams).
+//  4. Classify framework handler failures via natsclient.ClassifyReply;
+//     map entity-query "not found" to the local 404 sentinel.
 //  5. Encode per the chosen media type:
 //     - JSON:           shape from systemFromState (CS API §7.2 subset)
 //     - SensorML+JSON:  reconstructProcessFromTriples → json.Marshal
@@ -539,7 +539,7 @@ func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntitySta
 		return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "marshal entity query")
 	}
 
-	respBytes, err := c.nats.Request(ctx, subjectEntityQuery, reqBody, c.cfg.QueryTimeout)
+	reply, err := c.nats.RequestWithHeaders(ctx, subjectEntityQuery, reqBody, nil, c.cfg.QueryTimeout)
 	if err != nil {
 		switch {
 		case errors.Is(err, nats.ErrNoResponders),
@@ -552,8 +552,9 @@ func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntitySta
 		}
 	}
 
-	// Detect framework error-reply prefix (see classifyEntityQueryError).
-	if classified := classifyEntityQueryError(respBytes); classified != nil {
+	respBytes, err := natsclient.ClassifyReply(reply)
+	if err != nil {
+		classified := classifyEntityQueryFailure(err)
 		return graph.EntityState{}, classified
 	}
 
@@ -567,39 +568,31 @@ func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntitySta
 // errEntityNotFound is the sentinel writeBackendError translates to 404.
 // pkg/errs has no NotFound class today (Invalid / Transient / Fatal only);
 // rather than overload Invalid → 400 to also mean "missing entity → 404",
-// we keep a local sentinel here and have writeBackendError detect it. When
-// upstream ships structured request-reply errors (see classifyEntityQueryError
-// TODO) this can fold back into a framework class.
+// we keep a local sentinel here and have writeBackendError detect it.
 var errEntityNotFound = errors.New("cs-api: entity not found")
 
-// classifyEntityQueryError parses the framework's unstructured error-reply
-// format into a pkg/errs-classified error. Upstream issue filed with
-// C360Studio/semstreams to ship structured NATS-header error responses; when
-// that lands, this function becomes a no-op and the call site swaps to
-// reading the X-Status header.
+// classifyEntityQueryFailure maps semstreams' header-classified
+// graph.query.entity handler errors into CS API HTTP semantics. beta.87
+// carries X-Error-Class via natsclient.ClassifyReply, but "not found" is
+// intentionally still a gateway-level distinction within the Invalid class.
 //
-// Today natsclient/request.go replies with literal bytes `"error: " +
-// err.Error()` on handler failure. graph-ingest produces these error tails:
-//
-//   - "error: not found: <id>"            → 404 (errEntityNotFound sentinel)
-//   - "error: invalid request: ..."       → 400 (Invalid)
-//   - "error: internal error: ..."        → 500 (unclassified)
-//
-// Returns nil when respBytes is a successful payload (no leading "error: ").
-func classifyEntityQueryError(respBytes []byte) error {
-	const prefix = "error: "
-	if !bytes.HasPrefix(respBytes, []byte(prefix)) {
+// During the additive #93 window, ClassifyReply also handles legacy
+// "error: ..." bodies from older handlers, so the mapping remains backward
+// compatible with pre-beta.87 replies.
+func classifyEntityQueryFailure(err error) error {
+	if err == nil {
 		return nil
 	}
-	tail := string(respBytes[len(prefix):])
+	tail := strings.TrimPrefix(err.Error(), "error: ")
 	switch {
 	case strings.HasPrefix(tail, "not found:"):
 		return fmt.Errorf("%w: %s", errEntityNotFound, tail)
-	case strings.HasPrefix(tail, "invalid request:"):
-		return errs.WrapInvalid(errors.New(tail), "cs-api", "fetchEntity", "bad query")
+	case errs.IsInvalid(err):
+		return errs.WrapInvalid(err, "cs-api", "fetchEntity", "bad query")
+	case errs.IsTransient(err):
+		return errs.WrapTransient(err, "cs-api", "fetchEntity", "graph backend unavailable")
 	default:
-		// Includes "internal error: ..." and any unknown tail.
-		return errs.Wrap(errors.New(tail), "cs-api", "fetchEntity", "backend error")
+		return errs.Wrap(err, "cs-api", "fetchEntity", "backend error")
 	}
 }
 

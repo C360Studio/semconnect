@@ -34,7 +34,7 @@ import (
 // its triple set, then route through the same delete-all + add-batch
 // path PUT uses. N round-trips per call (entity-query + N
 // per-predicate removes + 1 add-batch); retire alongside PUT when
-// semconnect moves onto the beta.86 entity-level mutation subjects.
+// semconnect moves onto the beta.87 entity-level mutation subjects.
 //
 // **No `properties.geometry: null` support** — RFC 7396 says null
 // removes the field, but CS API spec doesn't explicitly require

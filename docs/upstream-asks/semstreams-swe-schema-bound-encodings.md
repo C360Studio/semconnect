@@ -2,7 +2,7 @@
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Issue:** [C360Studio/semstreams#116](https://github.com/C360Studio/semstreams/issues/116)
-**Status:** **OPEN as of semstreams `v1.0.0-beta.86`.**
+**Status:** **OPEN as of semstreams `v1.0.0-beta.87`.**
 
 ## What semconnect still needs
 

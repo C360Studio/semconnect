@@ -342,7 +342,7 @@ conformance class. Three new verbs land on `/systems`:
   (mismatch → 400; no remove called). Replace semantics are
   implemented as `deleteAllEntityTriples` + `ingestTriples`. N
   per-predicate round-trips per call. Stage 30 confirms semstreams
-  beta.86 now exposes entity-level mutation subjects, so replacing
+  beta.87 now exposes entity-level mutation subjects, so replacing
   this fan-out is local semconnect cleanup.
 - **DELETE /systems/{id}** — idempotent (errEntityNotFound is
   swallowed). 204 No Content.
@@ -791,8 +791,8 @@ framework fixes that landed from our upstream issue queue:
 The write path still uses `graph.mutation.triple.add_batch` and the
 existing delete fan-out; Stage 30 confirms semstreams#120 is closed, so
 moving onto `graph.mutation.entity.*` is now local semconnect cleanup.
-`classifyEntityQueryError` stays until semstreams#93 ships
-structured/header-classified errors.
+The read path now uses beta.87's header-classified request/reply error
+surface via `natsclient.ClassifyReply`.
 
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
 2026-05-27). Headline conformance is unchanged from Stage 28. The
@@ -801,9 +801,9 @@ seeding because their predicate-index visibility can lag the POST by a
 few seconds under beta.79; the confirmed run needed five attempts for
 `/controlstreams`.
 
-### Stage 30 — semstreams pin bump to v1.0.0-beta.86 + upstream ask triage
+### Stage 30 — semstreams pin bump to v1.0.0-beta.87 + upstream ask triage
 
-Stage 30 pins semconnect to semstreams `v1.0.0-beta.86` and re-triages
+Stage 30 pins semconnect to semstreams `v1.0.0-beta.87` and re-triages
 the upstream ask queue for semstreams review.
 
 Resolved upstream asks now covered by the pin:
@@ -816,11 +816,12 @@ Resolved upstream asks now covered by the pin:
 - #120: entity mutation responses now expose `Degraded` semantics so a
   gateway can distinguish committed-write/read-back-failed from an
   uncommitted mutation.
+- #93 Phase 1+2+3: request/reply handler failures now carry
+  `X-Status` / `X-Error-Class` headers while preserving the legacy
+  `error: ...` body during the dual-encoding window.
 
 Open semstreams asks that still matter for CS API coverage:
 
-- #93: structured/header-classified request/reply errors. semconnect
-  keeps `classifyEntityQueryError` until this lands.
 - #116: schema-bound SWE Common JSON/text/binary encodings for
   observations and commands. semconnect keeps the Stage 27
   observation-value subsets and does not claim SWE Common conformance.
@@ -832,9 +833,9 @@ longer an upstream blocker.
 
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
 2026-05-29). Headline conformance is unchanged from Stage 29 on the
-beta.86 backend pin. `/controlstreams` predicate-index readiness still
-needed five poll attempts in the confirmed run; `/systemEvents` was
-ready on the first attempt.
+beta.87 backend pin. `/controlstreams` predicate-index readiness was
+immediate in the confirmed run; `/systemEvents` needed five poll
+attempts.
 
 ### Stage 31+ — Continue OSH-bar resource buildout
 

@@ -7,12 +7,14 @@ without making semstreams review stale blockers.
 
 ## Open asks
 
-- [#116 — schema-bound SWE Common encodings](semstreams-swe-schema-bound-encodings.md).
-  semconnect Stage 27 only exposes observation-value subsets and does
-  not claim SWE Common conformance.
+None. As of semstreams `v1.0.0-beta.88`, every semstreams issue this
+directory tracks is resolved for semconnect.
 
 ## Resolved in current pins
 
+- `v1.0.0-beta.88`: #116 schema-bound SWE Common JSON/text/binary
+  encoders and decoders. semconnect still needs local adoption work to
+  bind datastream result schemas to observation and command payloads.
 - `v1.0.0-beta.87`: #93 Phase 1+2+3 header-classified request/reply
   errors. semconnect uses `natsclient.ClassifyReply` on entity reads;
   #93 remains open upstream only for deferred breaking cleanup and
@@ -29,5 +31,8 @@ without making semstreams review stale blockers.
 - Migrate gateway writes from `graph.mutation.triple.add_batch` plus
   delete fan-out to `graph.mutation.entity.*`. This is no longer an
   upstream ask now that #120 is closed.
+- Adopt `pkg/swecommon` for full schema-bound observation and command
+  payload encodings; Stage 27's observation-value subset remains until
+  semconnect wires result schemas to datastream/controlstream resources.
 - Keep `conformance/nats.conf` for local server limits; semstreams now
   validates/warns, but the harness still owns the NATS server config.

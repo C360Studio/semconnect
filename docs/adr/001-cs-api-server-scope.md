@@ -3,7 +3,7 @@
 - **Status**: Proposed (2026-05-15)
 - **Repo**: `semconnect`
 - **Companion**: [ADR-044 (semstreams)](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md) — framework/sister split
-- **Framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.73`
+- **Framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.88`
 
 ## Context
 

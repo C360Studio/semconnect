@@ -837,15 +837,42 @@ beta.87 backend pin. `/controlstreams` predicate-index readiness was
 immediate in the confirmed run; `/systemEvents` needed five poll
 attempts.
 
-### Stage 31+ — Continue OSH-bar resource buildout
+### Stage 31 — semstreams pin bump to v1.0.0-beta.88 + SWE unblock
+
+Stage 31 pins semconnect to semstreams `v1.0.0-beta.88`, which ships
+ADR-050 / #116: schema-bound SWE Common `DataRecord` values and
+JSON/text/binary encoders and decoders in `pkg/swecommon`.
+
+This closes the last semstreams-side upstream ask tracked by
+`docs/upstream-asks`. Semconnect still intentionally returns the Stage
+27 `X-CS-SWE-Subset: observation-values` responses until a local gateway
+stage wires datastream result schemas and controlstream command schemas
+through `pkg/swecommon`.
+
+Remaining post-unblock local work:
+
+- Replace the hand-rolled observation SWE JSON/CSV/binary projection
+  with schema-bound `pkg/swecommon` encoders.
+- Bind datastream result schemas to observation values so the gateway
+  can remove `X-CS-SWE-Subset`.
+- Add command payload/schema parity for controlstreams.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-29). Headline conformance is unchanged from Stage 30 on the
+beta.88 backend pin. `/controlstreams` predicate-index readiness needed
+five poll attempts in the confirmed run; `/systemEvents` was ready on
+the first attempt.
+
+### Stage 32+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
-- Complete SWE Common schema-bound encodings and command-side parity.
+- Complete local adoption of SWE Common schema-bound encodings and
+  command-side parity.
 
 Also pending: PATCH parity on `/datastreams` for full
 `conf/update` scope, per-datastream observation JetStream Consumer
-cleanup on DELETE, and (Stage 31+) HTML + Part 3 (`websocket`,
+cleanup on DELETE, and (Stage 32+) HTML + Part 3 (`websocket`,
 `mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target

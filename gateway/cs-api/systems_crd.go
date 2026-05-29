@@ -2,16 +2,11 @@
 // Closes the CS API §7.6 create-replace-delete conformance class.
 //
 // **Implementation trade-off (re-derivable to know when to retire):**
-// the framework's `processor/graph-ingest` exposes triple-level
-// `graph.mutation.triple.{add,add_batch,remove}` but NOT entity-level
-// `entity.{create,update,delete}` — those are defined in
-// `graph/mutation_requests.go` but the NATS handlers aren't wired
-// (see docs/upstream-asks/semstreams-entity-create-handlers-unwired.md,
-// filed as semstreams#98). PUT-as-replace and DELETE here use a
-// fetch + per-predicate-remove loop, which is N round-trips per
-// entity. Acceptable at v0.1 list sizes; retire when upstream lands
-// an entity-level delete request and we can swap `deleteAllEntityTriples`
-// for a single subject call.
+// PUT-as-replace and DELETE still use a fetch + per-predicate-remove
+// loop, which is N round-trips per entity. semstreams beta.86 exposes
+// entity-level mutation subjects with read-back semantics, so retiring
+// `deleteAllEntityTriples` in favor of `graph.mutation.entity.delete`
+// is now local semconnect cleanup rather than an upstream blocker.
 package csapi
 
 import (
@@ -112,8 +107,8 @@ func (c *Component) handleSystemPut(w http.ResponseWriter, r *http.Request) {
 	//       We extend the X-CS-Partial-Delete: true header on this case
 	//       so a retrying client knows the entity needs replacement,
 	//       not just creation.
-	// Both windows retire when upstream wires an entity-level delete
-	// primitive with transactional semantics (semstreams#98).
+	// Both windows retire when semconnect moves this path onto the
+	// beta.86 entity-level mutation primitives.
 	if err := c.deleteAllEntityTriples(r.Context(), pathID, id); err != nil {
 		c.writeBackendError(w, err)
 		return
@@ -165,8 +160,8 @@ func (c *Component) handleSystemDelete(w http.ResponseWriter, r *http.Request) {
 
 // deleteAllEntityTriples implements entity-level deletion via the
 // framework's triple-level primitives — fetch + per-predicate remove.
-// Stage 16. N round-trips per call; retire when upstream wires
-// `graph.mutation.entity.delete` (filed as semstreams#98).
+// Stage 16. N round-trips per call; retire now that beta.86 exposes
+// `graph.mutation.entity.delete`.
 //
 // Non-existent entity is a no-op (the entity-query returns "not found",
 // classified as errEntityNotFound, which we swallow here so DELETE is
@@ -271,4 +266,3 @@ func (c *Component) handleSystemOptions(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Allow", "GET, HEAD, PUT, PATCH, DELETE, OPTIONS")
 	w.WriteHeader(http.StatusNoContent)
 }
-

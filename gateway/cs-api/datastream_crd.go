@@ -6,8 +6,8 @@
 // Implementation re-uses deleteAllEntityTriples + ingestTriples
 // from the Stage 16 fan-out path (same per-predicate N round-trips
 // + same partial-erasure window + same audit-headers symmetry).
-// Retires alongside Stage 16 when upstream wires
-// `graph.mutation.entity.delete` (semstreams#98).
+// Retires alongside Stage 16 when semconnect migrates to the
+// beta.86 entity-level mutation subjects.
 package csapi
 
 import (

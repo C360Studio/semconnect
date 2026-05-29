@@ -341,9 +341,9 @@ conformance class. Three new verbs land on `/systems`:
   body's uid mints to the path ID *before* any destructive operation
   (mismatch → 400; no remove called). Replace semantics are
   implemented as `deleteAllEntityTriples` + `ingestTriples`. N
-  per-predicate round-trips per call because the framework's
-  `EntityDelete` request is defined but its NATS handler isn't wired
-  (filed as semstreams#98).
+  per-predicate round-trips per call. Stage 30 confirms semstreams
+  beta.86 now exposes entity-level mutation subjects, so replacing
+  this fan-out is local semconnect cleanup.
 - **DELETE /systems/{id}** — idempotent (errEntityNotFound is
   swallowed). 204 No Content.
 - **OPTIONS /systems** + **OPTIONS /systems/{id}** — advertise the
@@ -788,10 +788,11 @@ framework fixes that landed from our upstream issue queue:
   `vocabulary/csapi.ControlsSystem`, and
   `vocabulary/csapi.EventForSystem`.
 
-The write path intentionally stays on `graph.mutation.triple.add_batch`
-and the existing delete fan-out until semstreams#120 closes the new
-entity mutation post-write read-back semantics. `classifyEntityQueryError`
-also stays until semstreams#93 ships structured/header-classified errors.
+The write path still uses `graph.mutation.triple.add_batch` and the
+existing delete fan-out; Stage 30 confirms semstreams#120 is closed, so
+moving onto `graph.mutation.entity.*` is now local semconnect cleanup.
+`classifyEntityQueryError` stays until semstreams#93 ships
+structured/header-classified errors.
 
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
 2026-05-27). Headline conformance is unchanged from Stage 28. The
@@ -800,7 +801,42 @@ seeding because their predicate-index visibility can lag the POST by a
 few seconds under beta.79; the confirmed run needed five attempts for
 `/controlstreams`.
 
-### Stage 30+ — Continue OSH-bar resource buildout
+### Stage 30 — semstreams pin bump to v1.0.0-beta.86 + upstream ask triage
+
+Stage 30 pins semconnect to semstreams `v1.0.0-beta.86` and re-triages
+the upstream ask queue for semstreams review.
+
+Resolved upstream asks now covered by the pin:
+
+- #100: the `-health-port` flag is wired to a dedicated `/health` and
+  `/healthz` listener, disabled by default with `0`.
+- #101: `nats.jetstream` limits are documented and validated against
+  server-side `AccountInfo`; enforcement remains a nats-server config
+  concern.
+- #120: entity mutation responses now expose `Degraded` semantics so a
+  gateway can distinguish committed-write/read-back-failed from an
+  uncommitted mutation.
+
+Open semstreams asks that still matter for CS API coverage:
+
+- #93: structured/header-classified request/reply errors. semconnect
+  keeps `classifyEntityQueryError` until this lands.
+- #116: schema-bound SWE Common JSON/text/binary encodings for
+  observations and commands. semconnect keeps the Stage 27
+  observation-value subsets and does not claim SWE Common conformance.
+
+The remaining write-path cleanup is local to semconnect: move POST,
+PUT/PATCH, and DELETE off `graph.mutation.triple.add_batch` plus
+delete fan-out and onto `graph.mutation.entity.*`. That work is no
+longer an upstream blocker.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-29). Headline conformance is unchanged from Stage 29 on the
+beta.86 backend pin. `/controlstreams` predicate-index readiness still
+needed five poll attempts in the confirmed run; `/systemEvents` was
+ready on the first attempt.
+
+### Stage 31+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
@@ -808,7 +844,7 @@ Subsequent stages from the OSH-bar memory:
 
 Also pending: PATCH parity on `/datastreams` for full
 `conf/update` scope, per-datastream observation JetStream Consumer
-cleanup on DELETE, and (Stage 30+) HTML + Part 3 (`websocket`,
+cleanup on DELETE, and (Stage 31+) HTML + Part 3 (`websocket`,
 `mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target

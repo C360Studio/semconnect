@@ -20,8 +20,7 @@ import (
 )
 
 // TestBuildSystemTriplesFromSensorML_EmitsUIDTriple — POST SensorML
-// path adds a cs-api.system.uid triple carrying the submitted
-// uniqueId verbatim.
+// path preserves the submitted uniqueId as the framework uid triple.
 func TestBuildSystemTriplesFromSensorML_EmitsUIDTriple(t *testing.T) {
 	fake := &fakeRequester{status: natsclient.StatusConnected}
 	c := newTestComponent(t, fake)
@@ -41,7 +40,7 @@ func TestBuildSystemTriplesFromSensorML_EmitsUIDTriple(t *testing.T) {
 }
 
 // TestBuildSystemTriplesFromSensorML_EmptyUniqueIDOmitsTriple — when
-// the SensorML body has no uniqueId, no cs-api.system.uid triple is
+// the SensorML body has no uniqueId, no uid triple is
 // emitted (no synthetic fallback that would mislead read-back).
 func TestBuildSystemTriplesFromSensorML_EmptyUniqueIDOmitsTriple(t *testing.T) {
 	fake := &fakeRequester{status: natsclient.StatusConnected}
@@ -113,6 +112,22 @@ func TestSystemFromState_SurfacesUIDOnAllThreeFields(t *testing.T) {
 	}
 	if s.Label != "Stage 18 Drone" {
 		t.Errorf("top-level label: got %q want %q", s.Label, "Stage 18 Drone")
+	}
+}
+
+func TestSystemFromState_SurfacesLegacyUIDPredicate(t *testing.T) {
+	const id = "acme.ops.robotics.gcs.drone.legacy"
+	const uid = "urn:example:legacy:uid"
+	state := graph.EntityState{
+		ID: id,
+		Triples: []message.Triple{
+			{Subject: id, Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+			{Subject: id, Predicate: legacyPredSystemUID, Object: uid},
+		},
+	}
+	s := systemFromState(state)
+	if s.UID != uid || s.UniqueID != uid || s.FeatureProperties == nil || s.FeatureProperties.UID != uid {
+		t.Errorf("legacy uid fallback: got %+v want uid %q on all read fields", s, uid)
 	}
 }
 
@@ -262,7 +277,7 @@ func TestSensorMLReverseMapping_SurfacesUniqueID(t *testing.T) {
 // TestHandleSystemPost_JSONFeature_UIDRoundsTripToTriples is the
 // integration-style check: POST a Feature with properties.uid,
 // confirm the publish payload to graph.mutation.triple.add_batch
-// contains the cs-api.system.uid triple.
+// contains the framework uid triple.
 func TestHandleSystemPost_JSONFeature_UIDRoundsTripToTriples(t *testing.T) {
 	fake := &fakeRequester{
 		status: natsclient.StatusConnected,

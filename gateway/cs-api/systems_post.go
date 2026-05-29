@@ -30,64 +30,29 @@ import (
 // (lowercased name).
 const SubjectTripleAddBatch = "graph.mutation.triple.add_batch"
 
-// PredSystemPosition is the predicate name cs-api uses to store the
-// SensorML `position` field as a triple — a sister-side workaround for
-// the framework's missing position-preservation. Stage 14. Three-part
-// dotted form matches framework convention. The Object value is the
-// raw GeoJSON-shaped JSON bytes (as a string) from the SensorML input.
-//
-// Retires when the upstream ask
-// (docs/upstream-asks/semstreams-sensorml-position-preservation.md)
-// lands and Asset.Triples() emits a `sensorml.process.position` triple
-// (or similar) natively. The two predicate names can coexist during
-// migration; readers should look for both until cutover.
-const PredSystemPosition = "cs-api.system.position"
+// PredSystemPosition and PredSystemUID are the framework-owned SensorML
+// predicates semconnect uses for CS API uid / geometry round-trips. They
+// are kept behind gateway-local names because Feature-shaped resources
+// (deployments, sampling features, etc.) use the same graph predicates
+// even when their HTTP representation is not SensorML.
+const (
+	PredSystemPosition = sensorml.PredPosition
+	PredSystemUID      = sensorml.PredUniqueID
 
-// PredSystemUID is the predicate name cs-api uses to preserve the
-// SensorML `uniqueId` / GeoJSON Feature `properties.uid` submitted at
-// POST time. Stage 18 sister-side workaround: the framework's
-// sensorml.Asset.Triples() does not emit a triple for `uniqueId`
-// (only the *minted* SemStreams entity ID survives), so a read-back
-// after POST surfaces `uniqueId=null` and the ETS's
-// `{sensorMl,geoJson}MediaTypeWriteParsesSystemBodyWhenMutationEnabled`
-// assertions fail.
-//
-// Retires when upstream `parser/sensorml.graphable.go` lands a
-// `sensorml.process.uid` (or similar) triple natively. Three-part
-// dotted form matches framework convention; matches the
-// PredSystemPosition pattern.
-const PredSystemUID = "cs-api.system.uid"
+	legacyPredSystemPosition = "cs-api.system.position"
+	legacyPredSystemUID      = "cs-api.system.uid"
+)
 
 // jsonNull is the byte-equality target for detecting a literal JSON
-// null in extractPositionTriple. Declared above the function so a
-// top-down reader sees it before its first reference.
+// null in GeoJSON Feature geometry.
 var jsonNull = []byte("null")
 
-// extractPositionTriple peeks the raw POST body for a top-level
-// `position` field and returns it as a sister-side workaround triple.
-// We unmarshal into a struct with `Position json.RawMessage` (not
-// full JSON-to-map) so the bytes preserve client-side number precision
-// and field ordering — critical for GeoJSON consumers that compare
-// coordinates strictly. Returns ok=false when the field is absent,
-// empty, or the literal JSON null.
-func extractPositionTriple(entityID string, body []byte) (message.Triple, bool) {
-	var probe struct {
-		Position json.RawMessage `json:"position,omitempty"`
-	}
-	if err := json.Unmarshal(body, &probe); err != nil || len(probe.Position) == 0 {
-		return message.Triple{}, false
-	}
-	// JSON literal `null` decodes to a 4-byte RawMessage `[]byte("null")`.
-	// Skip it — there's no geometry to store and downstream consumers
-	// shouldn't have to special-case the string "null".
-	if bytes.Equal(probe.Position, jsonNull) {
-		return message.Triple{}, false
-	}
-	return message.Triple{
-		Subject:   entityID,
-		Predicate: PredSystemPosition,
-		Object:    string(probe.Position),
-	}, true
+func firstSystemPositionObject(triples []message.Triple) (string, bool) {
+	return firstStringObject(triples, PredSystemPosition, legacyPredSystemPosition)
+}
+
+func firstSystemUIDObject(triples []message.Triple) (string, bool) {
+	return firstStringObject(triples, PredSystemUID, legacyPredSystemUID)
 }
 
 // handleSystemPost serves POST /systems — CS API §7.6.
@@ -180,8 +145,8 @@ func (c *Component) mintSystemEntityID(uniqueID string) string {
 }
 
 // buildSystemTriplesFromSensorML — Stage 8/14 path. Parses body via
-// `parser/sensorml.UnmarshalProcess` + `sensorml.NewAsset(...).Triples()`,
-// then appends the Stage 14 cs-api.system.position workaround triple.
+// `parser/sensorml.UnmarshalProcess` + `sensorml.NewAsset(...).Triples()`.
+// semstreams beta.79 emits uniqueId and position triples natively.
 func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []message.Triple, error) {
 	process, err := sensorml.UnmarshalProcess(body)
 	if err != nil {
@@ -195,17 +160,6 @@ func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []messa
 	triples := asset.Triples()
 	if len(triples) == 0 {
 		return entityID, nil, errors.New("SensorML process produced no representable triples")
-	}
-	if posTriple, ok := extractPositionTriple(entityID, body); ok {
-		triples = append(triples, posTriple)
-	}
-	// Stage 18 — preserve the client-submitted uniqueId so a follow-up
-	// GET surfaces it. Absent uniqueId is fine (POST minted a UUID
-	// fallback for the entity ID); we don't store a synthetic value.
-	if uid := process.Base().UniqueID; uid != "" {
-		triples = append(triples, message.Triple{
-			Subject: entityID, Predicate: PredSystemUID, Object: uid,
-		})
 	}
 	return entityID, triples, nil
 }
@@ -231,9 +185,8 @@ type systemFeatureBody struct {
 //   - properties.uid → uniqueId source for entity-ID mint
 //   - properties.name → sensorml.PredLabel
 //   - properties.description → sensorml.PredDescription
-//   - top-level geometry → cs-api.system.position triple (re-uses the
-//     Stage 14 sister-side workaround on the Feature path too — so PUT
-//     replace via this same builder preserves geometry symmetrically)
+//   - top-level geometry → sensorml.process.position triple, the same
+//     framework predicate SensorML bodies emit
 //   - rdf:type (sensorml.PredType) = sosa.SSNSystem so /systems
 //     predicate query finds it
 //

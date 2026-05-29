@@ -1,8 +1,8 @@
-# Upstream ask — semstreams: `parser/sensorml` drops `uniqueId` from the triple set
+# RESOLVED upstream ask — semstreams: `parser/sensorml` drops `uniqueId` from the triple set
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 18 conformance probe (2026-05-17), framework pin `v1.0.0-beta.75`.
-**Status:** ready to file (copy-paste).
+**Status:** **RESOLVED in v1.0.0-beta.79** (semstreams commit `edf51da` / issue #115). semconnect Stage 29 adopted `sensorml.PredUniqueID`, removed the SensorML uid workaround append, and keeps a legacy read fallback for data written under `cs-api.system.uid`.
 
 ## Summary
 
@@ -52,4 +52,4 @@ Symmetric to the position-preservation ask: cs-api will keep its `cs-api.system.
 
 ## Related
 
-- [[semstreams-sensorml-position-preservation]] — sibling workaround for the same emission gap on `position`. Both have the same shape (field present on the type model, missing from the emission list).
+- [[RESOLVED-semstreams-sensorml-position-preservation]] — sibling workaround for the same emission gap on `position`. Both have the same shape (field present on the type model, missing from the emission list).

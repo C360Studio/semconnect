@@ -14,12 +14,14 @@ import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 )
 
 const (
-	ControlStreamTypeIRI = "http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/ControlStream"
+	ControlStreamTypeIRI = csapivocab.ControlStream
 
-	PredControlStreamSystem               = "cs-api.controlstream.system"
+	PredControlStreamSystem               = csapivocab.ControlsSystem
+	legacyPredControlStreamSystem         = "cs-api.controlstream.system"
 	predControlStreamInputName            = "cs-api.controlstream.inputName"
 	predControlStreamAsync                = "cs-api.controlstream.async"
 	predControlStreamSchema               = "cs-api.controlstream.schema"
@@ -91,7 +93,7 @@ func controlStreamFromState(state graph.EntityState) controlStream {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		cs.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredControlStreamSystem); ok {
+	if v, ok := firstStringObject(state.Triples, PredControlStreamSystem, legacyPredControlStreamSystem); ok {
 		cs.SystemID = v
 		cs.SystemLink = &link{Href: "/systems/" + v, Rel: "system", Type: string(MediaJSON), Title: v}
 	}

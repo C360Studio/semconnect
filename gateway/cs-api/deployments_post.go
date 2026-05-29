@@ -2,8 +2,7 @@
 // (no SensorML — SensorML doesn't have a Deployment encoding).
 //
 // Distinct from /procedures:
-//   - rdf:type → ssnDeployment (local const; sosa.SSNDeployment not
-//     defined upstream as of beta.75)
+//   - rdf:type → ssnDeployment / sosa.SSNDeployment
 //   - Position triple emitted from `geometry` (deployments DO carry
 //     location, unlike procedures)
 //

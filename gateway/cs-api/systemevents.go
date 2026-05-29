@@ -15,21 +15,23 @@ import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 )
 
 const (
-	SystemEventTypeIRI = "http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/SystemEvent"
+	SystemEventTypeIRI = csapivocab.SystemEvent
 
-	PredSystemEventSystem    = "cs-api.systemevent.system"
-	predSystemEventTime      = "cs-api.systemevent.time"
-	predSystemEventType      = "cs-api.systemevent.type"
-	predSystemEventMessage   = "cs-api.systemevent.message"
-	predSystemEventSeverity  = "cs-api.systemevent.severity"
-	predSystemEventSource    = "cs-api.systemevent.source"
-	predSystemEventPayload   = "cs-api.systemevent.payload"
-	predSystemEventKeywords  = "cs-api.systemevent.keywords"
-	defaultSystemEventType   = "SystemChanged"
-	defaultSystemEventSource = "semconnect"
+	PredSystemEventSystem       = csapivocab.EventForSystem
+	legacyPredSystemEventSystem = "cs-api.systemevent.system"
+	predSystemEventTime         = "cs-api.systemevent.time"
+	predSystemEventType         = "cs-api.systemevent.type"
+	predSystemEventMessage      = "cs-api.systemevent.message"
+	predSystemEventSeverity     = "cs-api.systemevent.severity"
+	predSystemEventSource       = "cs-api.systemevent.source"
+	predSystemEventPayload      = "cs-api.systemevent.payload"
+	predSystemEventKeywords     = "cs-api.systemevent.keywords"
+	defaultSystemEventType      = "SystemChanged"
+	defaultSystemEventSource    = "semconnect"
 )
 
 type systemEventCollection struct {
@@ -93,12 +95,12 @@ func systemEventFromState(state graph.EntityState) systemEvent {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		ev.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemEventSystem); ok {
+	if v, ok := firstStringObject(state.Triples, PredSystemEventSystem, legacyPredSystemEventSystem); ok {
 		ev.SystemID = v
 		ev.SystemLink = &link{Href: "/systems/" + v, Rel: "system", Type: string(MediaJSON), Title: v}
 		ev.Links = append(ev.Links, link{Href: "/systems/" + v + "/events/" + state.ID, Rel: "alternate", Type: string(MediaJSON)})
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+	if v, ok := firstSystemUIDObject(state.Triples); ok {
 		ev.SystemUID = v
 	}
 	if v, ok := firstStringObject(state.Triples, predSystemEventSeverity); ok {

@@ -223,8 +223,9 @@ paths:
       description: |-
         Returns a `SystemCollection` of `System` entities (default,
         `application/json`) or an RFC 7946 `FeatureCollection` with
-        per-system geometry recovered from the `cs-api.system.position`
-        triple (`application/geo+json`, Stage 15).
+        per-system geometry recovered from the `sensorml.process.position`
+        triple (`application/geo+json`, Stage 15; legacy
+        `cs-api.system.position` triples are still read).
 
         No SensorML `SystemCollection` wrapper exists; SensorML is
         per-item via `GET /systems/{id}`.
@@ -1348,7 +1349,7 @@ paths:
       description: |-
         Accepts `application/json` / `application/geo+json` Feature
         body. Optional geometry rounds-trips via the
-        `cs-api.system.position` triple. No SensorML wrapper for
+        `sensorml.process.position` triple. No SensorML wrapper for
         Deployment.
       tags: [Deployments]
       requestBody:
@@ -1965,13 +1966,12 @@ components:
         uid:
           type: string
           description: |-
-            Stage 18 — client-submitted identifier (SensorML
-            `uniqueId` or Feature `properties.uid`) preserved via the
-            `cs-api.system.uid` triple. Mirrors `uniqueId` +
+            Client-submitted identifier (SensorML `uniqueId` or
+            Feature `properties.uid`) preserved via the framework
+            `sensorml.process.uid` triple. Mirrors `uniqueId` +
             `properties.uid` on the same entity so SensorML, JSON,
             and Feature-shape clients each see the spelling they
-            expect. Retires when upstream `parser/sensorml` emits a
-            uid triple natively.
+            expect.
         uniqueId:
           type: string
           description: SensorML spelling of `uid`. Same value, same source triple.
@@ -1984,7 +1984,7 @@ components:
             body finds it on read-back where the spec puts it.
             `uid`, top-level `uid`, and top-level `uniqueId` are
             **jointly present or jointly absent** — the runtime
-            sources all three from a single `cs-api.system.uid`
+            sources all three from a single `sensorml.process.uid`
             triple so picking any spelling is safe without checking
             the other two.
           properties:
@@ -1994,13 +1994,9 @@ components:
           description: |-
             GeoJSON-shaped position recovered from the SensorML
             `position` field. Typically `{type: "Point", coordinates:
-            [lon, lat, alt?]}`. Stage 14 sister-side workaround for
-            the framework's missing SensorML position-preservation;
-            stored under the `cs-api.system.position` triple
-            predicate. Absent when the source SensorML had no
-            position. Retires when upstream `parser/sensorml` lands
-            a Position field on AbstractProcess + emits a triple
-            natively.
+            [lon, lat, alt?]}`. Stored under the framework
+            `sensorml.process.position` predicate. Absent when the
+            source SensorML had no position.
         hosts:
           type: array
           items: {type: string}
@@ -2141,7 +2137,7 @@ components:
             description: {type: string}
         geometry:
           type: object
-          description: GeoJSON geometry — deploy site location, round-tripped via `cs-api.system.position`.
+          description: GeoJSON geometry — deploy site location, round-tripped via `sensorml.process.position`.
         links:
           type: array
           items: {$ref: "#/components/schemas/Link"}

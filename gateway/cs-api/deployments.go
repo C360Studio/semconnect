@@ -8,12 +8,8 @@
 // /systems — same Stage-20 reasoning).
 //
 // **rdf:type IRI**: SSN's `Deployment` class IRI is
-// `http://www.w3.org/ns/ssn/Deployment`. The framework's
-// `vocabulary/sosa` exports `SSNNamespace` + `SSNHasDeployment` but
-// not the class constant itself. We define `ssnDeployment` locally
-// from the same namespace prefix; flip to `sosa.SSNDeployment`
-// (upstream-ask drafted in stage 21 description) once the framework
-// adds the constant.
+// `http://www.w3.org/ns/ssn/Deployment`, exported by semstreams as
+// `sosa.SSNDeployment` since v1.0.0-beta.79.
 package csapi
 
 import (
@@ -27,11 +23,8 @@ import (
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
-// ssnDeployment is the SSN class IRI for Deployment entities. Local
-// const because `sosa.SSNDeployment` doesn't exist upstream as of
-// framework v1.0.0-beta.75; same convention as the local
-// `PredSystemPosition` / `PredSystemUID` workarounds.
-const ssnDeployment = sosa.SSNNamespace + "Deployment"
+// ssnDeployment is the SSN class IRI for Deployment entities.
+const ssnDeployment = sosa.SSNDeployment
 
 // deploymentCollection mirrors systemCollection / procedureCollection.
 type deploymentCollection struct {
@@ -81,7 +74,7 @@ func deploymentFromState(state graph.EntityState) deployment {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		d.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemUID); ok {
+	if v, ok := firstSystemUIDObject(state.Triples); ok {
 		d.UID = v
 		d.UniqueID = v
 		d.FeatureProperties = &featureProperties{
@@ -90,7 +83,7 @@ func deploymentFromState(state graph.EntityState) deployment {
 			Description: d.Description,
 		}
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok {
+	if v, ok := firstSystemPositionObject(state.Triples); ok {
 		d.Geometry = json.RawMessage(v)
 	}
 	return d
@@ -164,9 +157,7 @@ func (c *Component) handleDeployments(w http.ResponseWriter, r *http.Request) {
 }
 
 // writeDeploymentsGeoJSON emits FeatureCollection with per-entity
-// geometry recovered from the cs-api.system.position triple (same
-// Stage-14 sister-side predicate /systems uses — see the upstream
-// uid-preservation ask thread for the eventual cleanup). N+1
+// geometry recovered from the framework position triple. N+1
 // entity-query, same as /systems Stage 15.
 func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Request, ids []string, limit int) {
 	type deploymentFeature struct {
@@ -201,7 +192,7 @@ func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Reque
 		state, ferr := c.fetchEntity(r.Context(), id)
 		if ferr == nil {
 			props = geoJSONFeaturePropertiesFromState("Deployment", state)
-			if v, ok := firstStringObject(state.Triples, PredSystemPosition); ok && v != "" {
+			if v, ok := firstSystemPositionObject(state.Triples); ok && v != "" {
 				geom = json.RawMessage(v)
 			}
 		} else {

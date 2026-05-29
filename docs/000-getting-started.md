@@ -844,10 +844,10 @@ ADR-050 / #116: schema-bound SWE Common `DataRecord` values and
 JSON/text/binary encoders and decoders in `pkg/swecommon`.
 
 This closes the last semstreams-side upstream ask tracked by
-`docs/upstream-asks`. Semconnect still intentionally returns the Stage
-27 `X-CS-SWE-Subset: observation-values` responses until a local gateway
-stage wires datastream result schemas and controlstream command schemas
-through `pkg/swecommon`.
+`docs/upstream-asks`. Semconnect still intentionally returns
+`X-CS-SWE-Subset: observation-values` on SWE observation responses until
+a local gateway stage wires datastream result schemas and controlstream
+command schemas through `pkg/swecommon`.
 
 Remaining post-unblock local work:
 
@@ -863,16 +863,48 @@ beta.88 backend pin. `/controlstreams` predicate-index readiness needed
 five poll attempts in the confirmed run; `/systemEvents` was ready on
 the first attempt.
 
-### Stage 32+ — Continue OSH-bar resource buildout
+### Stage 32 — adopt semstreams SWE encoders on observation read path
+
+Stage 32 replaces the hand-rolled SWE observation projection with
+semstreams `pkg/swecommon` encoders:
+
+- `application/swe+json` now emits SWE Common JSON rows from
+  `swecommon.MarshalJSONRows`.
+- `application/swe+csv` now emits SWE TextEncoding rows from
+  `swecommon.MarshalTextRows`; the v0.1 response keeps the
+  `time,result` header because the Datastream schema is not yet
+  advertised separately.
+- `application/swe+binary` now emits real SWE BinaryEncoding packed
+  primitive rows from `swecommon.MarshalBinaryRows`, replacing the
+  former comma-separated byte stream.
+- The gateway infers a v0.1 `{time,result}` `DataRecord` from the OMS
+  page. Numeric results map to `Quantity`, boolean results to
+  `Boolean`, and mixed/object/string results degrade to `Text`.
+- `X-CS-SWE-Subset: observation-values` remains intentionally present:
+  the framework encoder is now in use, but the schema is still inferred
+  per page rather than stored on and advertised by the Datastream
+  resource.
+
+Remaining local work:
+
+- Bind Datastream result schemas to observation values so clients can
+  discover the schema and the gateway can remove `X-CS-SWE-Subset`.
+- Add command payload/schema parity for controlstreams.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-29). Headline conformance is unchanged from Stage 31; the ETS
+still does not exercise the deferred SWE Common suites while semconnect
+does not claim a SWE Common conformance class.
+
+### Stage 33+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
-- Complete local adoption of SWE Common schema-bound encodings and
-  command-side parity.
+- Complete Datastream schema binding and command-side SWE parity.
 
 Also pending: PATCH parity on `/datastreams` for full
 `conf/update` scope, per-datastream observation JetStream Consumer
-cleanup on DELETE, and (Stage 32+) HTML + Part 3 (`websocket`,
+cleanup on DELETE, and (Stage 33+) HTML + Part 3 (`websocket`,
 `mqtt`).
 
 The sponsor has confirmed Botts CS API ETS as the conformance target

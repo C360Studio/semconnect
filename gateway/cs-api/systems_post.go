@@ -23,11 +23,9 @@ import (
 )
 
 // SubjectTripleAddBatch is the NATS request/reply subject the framework's
-// graph-ingest component exposes for batched triple writes (verified at
-// processor/graph-ingest/mutations.go in pinned v1.0.0-beta.73). The same
-// subject is the constant `graphingest.SubjectTripleAddBatch` upstream;
-// duplicated locally because the upstream package is not importable
-// (lowercased name).
+// graph-ingest component exposes for batched triple writes. Stage 30 pins
+// semstreams beta.86, which also exposes entity-level mutation subjects;
+// this legacy subject remains until semconnect migrates the write path.
 const SubjectTripleAddBatch = "graph.mutation.triple.add_batch"
 
 // PredSystemPosition and PredSystemUID are the framework-owned SensorML
@@ -57,14 +55,10 @@ func firstSystemUIDObject(triples []message.Triple) (string, bool) {
 
 // handleSystemPost serves POST /systems — CS API §7.6.
 //
-// Why request-reply on `graph.mutation.triple.add_batch` and not the
-// JetStream fire-and-forget path on `entity.>`: the framework defines
-// graph.CreateEntityRequest / CreateEntityWithTriplesRequest in
-// graph/mutation_requests.go but no NATS handler is wired for them in
-// v1.0.0-beta.73. The JetStream path would force 202 Accepted (no
-// synchronous storage confirmation); add_batch's per-Subject CAS upsert
-// gives us a real Success/Error reply to return 201 Created honestly.
-// See docs/upstream-asks/semstreams-entity-create-handlers-unwired.md.
+// This still uses `graph.mutation.triple.add_batch`; semstreams beta.86
+// now has entity-level mutation subjects, so swapping to
+// `graph.mutation.entity.create_with_triples` is a semconnect-local
+// follow-up that should also add the duplicate-create 409 path.
 func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
 	// Stage 14: accept SensorML in both spec form (sml+json) and legacy
 	// long form (sensorml+json).
@@ -146,7 +140,7 @@ func (c *Component) mintSystemEntityID(uniqueID string) string {
 
 // buildSystemTriplesFromSensorML — Stage 8/14 path. Parses body via
 // `parser/sensorml.UnmarshalProcess` + `sensorml.NewAsset(...).Triples()`.
-// semstreams beta.79 emits uniqueId and position triples natively.
+// semstreams beta.79+ emits uniqueId and position triples natively.
 func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []message.Triple, error) {
 	process, err := sensorml.UnmarshalProcess(body)
 	if err != nil {

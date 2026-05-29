@@ -33,8 +33,8 @@ import (
 // Implementation: read the existing entity, merge body fields onto
 // its triple set, then route through the same delete-all + add-batch
 // path PUT uses. N round-trips per call (entity-query + N
-// per-predicate removes + 1 add-batch); same retire-when-upstream
-// gates as PUT (semstreams#98).
+// per-predicate removes + 1 add-batch); retire alongside PUT when
+// semconnect moves onto the beta.86 entity-level mutation subjects.
 //
 // **No `properties.geometry: null` support** — RFC 7396 says null
 // removes the field, but CS API spec doesn't explicitly require

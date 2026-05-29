@@ -1,8 +1,16 @@
-# Upstream ask — semstreams: `nats.jetstream` config block declared but never applied
+# RESOLVED upstream ask — semstreams: `nats.jetstream` config limits were misleading
 
 **Repo:** <https://github.com/C360Studio/semstreams>
 **Drafted from:** semconnect Stage 9 conformance backend integration (2026-05-16), framework pin `v1.0.0-beta.73`.
-**Status:** **Filed at [C360Studio/semstreams#101](https://github.com/C360Studio/semstreams/issues/101) (OPEN, as of v1.0.0-beta.79 — `MaxFileStore` declared but not applied to the connected server).** semconnect workaround: `conformance/nats.conf` pins JetStream limits at the nats-server level (10GB file / 1GB memory) via `jetstream { max_file_store: 10GB; max_memory_store: 1GB }`.
+**Status:** **RESOLVED in `v1.0.0-beta.81`** via
+[C360Studio/semstreams#101](https://github.com/C360Studio/semstreams/issues/101)
+and PR #137. The framework now treats account limits as a server-side
+NATS concern, verifies the connected account through `AccountInfo`, and
+warns when configured expectations exceed the actual server limits.
+
+semconnect keeps `conformance/nats.conf` because the conformance harness
+owns its local nats-server. That file is now the correct enforcement
+surface, not a workaround for a misleading framework knob.
 
 ## Summary
 
@@ -115,3 +123,9 @@ jetstream {
 Mounted into the `nats` compose service with `-c /etc/nats/nats.conf`.
 Works, but the lever lives outside the framework's config — which is
 the wart.
+
+## Resolution notes
+
+semstreams chose the validate-and-warn/documentation path rather than
+trying to mutate server/account limits from a client connection. No
+further upstream action is needed from semconnect.

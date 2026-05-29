@@ -61,6 +61,13 @@ type streamReader interface {
 	FetchSubject(ctx context.Context, subject string, limit int, startSeq uint64) ([]observationMsg, error)
 }
 
+// streamCleaner is the write-side twin of streamReader: DELETE
+// /datastreams/{id} uses it to purge all observation messages published
+// to the datastream's exact subject after graph triples are removed.
+type streamCleaner interface {
+	PurgeSubject(ctx context.Context, subject string) error
+}
+
 // observationMsg is the minimal per-message tuple FetchSubject returns.
 // Data is the raw BaseMessage envelope bytes (the handler unwraps); Sequence
 // is the JetStream stream sequence so the gateway can mint a next-link cursor.
@@ -75,6 +82,14 @@ type observationMsg struct {
 // seeded datastreams.
 type jetstreamObservationReader struct {
 	stream jetstream.Stream
+}
+
+type jetstreamObservationCleaner struct {
+	stream jetstream.Stream
+}
+
+func (c *jetstreamObservationCleaner) PurgeSubject(ctx context.Context, subject string) error {
+	return c.stream.Purge(ctx, jetstream.WithPurgeSubject(subject))
 }
 
 func (r *jetstreamObservationReader) FetchSubject(
@@ -153,6 +168,10 @@ type Component struct {
 	// a round-trip and proves the stream exists before any reader
 	// arrives. Same lifecycle as publisher.
 	reader atomic.Pointer[streamReader]
+
+	// cleaner is the JetStream Stream handle used by DELETE /datastreams/{id}
+	// to purge observations scoped to that datastream's subject.
+	cleaner atomic.Pointer[streamCleaner]
 
 	errs         atomic.Int64
 	requests     atomic.Int64
@@ -353,6 +372,8 @@ func (c *Component) Start(ctx context.Context) error {
 	c.publisher.Store(&pub)
 	var rd streamReader = &jetstreamObservationReader{stream: stream}
 	c.reader.Store(&rd)
+	var cleaner streamCleaner = &jetstreamObservationCleaner{stream: stream}
+	c.cleaner.Store(&cleaner)
 
 	if c.cfg.StandaloneServer {
 		// Bind synchronously so a port conflict / permission error

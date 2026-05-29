@@ -385,12 +385,9 @@ every resource type the IUT implements.
   `deleteAllEntityTriples` + `ingestTriples` (same partial-erasure
   window + same audit-headers symmetry as Stage 16 /systems).
 - **DELETE /datastreams/{id}** — idempotent (errEntityNotFound
-  swallowed → 204). **Does NOT cascade-delete observations.**
-  Observations live in the `cs-api.observations.{datastreamID}`
-  JetStream which is operator-managed and outside the triple-graph
-  delete loop. Documented in the OAS3 description so client SDKs
-  don't ship with the wrong assumption. Future stage (likely 18+)
-  wires per-datastream JetStream Consumer cleanup.
+  swallowed → 204). Stage 17 only deleted graph triples; Stage 36
+  adds subject-scoped JetStream purge for
+  `cs-api.observations.{datastreamID}` after graph deletion succeeds.
 - **OPTIONS** on collection + item, same shape as /systems.
 
 The `conformance.go` claim comment is updated to note both resource
@@ -982,7 +979,6 @@ entity mutation subjects.
 
 Remaining local work:
 
-- Per-datastream observation JetStream Consumer cleanup on DELETE.
 - Command execution only if v0.1 scope expands beyond read-side
   ControlStream metadata.
 
@@ -991,15 +987,43 @@ Remaining local work:
 pinned ETS already exercises the claimed update surface through systems,
 and Datastream PATCH parity does not unlock a new ETS branch.
 
-### Stage 36+ — Continue OSH-bar resource buildout
+### Stage 36 — Datastream DELETE observation purge
+
+Stage 36 closes the observation orphan note on Datastream DELETE:
+
+- `DELETE /datastreams/{id}` still removes graph triples first and keeps
+  the same idempotent 204 behavior when the graph entity is missing.
+- After graph deletion succeeds, the gateway purges messages on the exact
+  JetStream subject `cs-api.observations.{id}`.
+- The purge is subject-scoped; it does not touch observations for any
+  other datastream in the shared `cs-api.observations.>` stream.
+- If graph deletion succeeds but purge fails, the handler returns 503
+  with `X-CS-Partial-Delete: true` and
+  `X-CS-Observation-Purge-Failed: true`. Retrying DELETE finishes the
+  cleanup.
+
+The implementation adds a narrow `streamCleaner` seam over
+`jetstream.Stream.Purge(WithPurgeSubject(...))`, matching the existing
+`streamReader` seam for observation reads.
+
+Remaining local work:
+
+- Command execution only if v0.1 scope expands beyond read-side
+  ControlStream metadata.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-29). Headline conformance is unchanged from Stage 35; the
+pinned ETS does not seed or assert observation cleanup.
+
+### Stage 37+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
 - Command execution, if/when v0.1 scope expands beyond read-side
   ControlStream metadata.
 
-Also pending: per-datastream observation JetStream Consumer cleanup on
-DELETE, and (Stage 36+) HTML + Part 3 (`websocket`, `mqtt`).
+Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
+expands in that direction.
 
 The sponsor has confirmed Botts CS API ETS as the conformance target
 through v1.0. Each pin bump (`conformance/.ets-pin: ETS_COMMIT`)

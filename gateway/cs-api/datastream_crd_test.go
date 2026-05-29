@@ -23,6 +23,23 @@ const (
 	testSystemRef    = "acme.ops.weather.station.deploy.alpha"
 )
 
+type fakeStreamCleaner struct {
+	calls   int
+	subject string
+	err     error
+}
+
+func (f *fakeStreamCleaner) PurgeSubject(_ context.Context, subject string) error {
+	f.calls++
+	f.subject = subject
+	return f.err
+}
+
+func wireObservationCleaner(c *Component, cleaner *fakeStreamCleaner) {
+	var sc streamCleaner = cleaner
+	c.cleaner.Store(&sc)
+}
+
 func minimalDatastreamJSON(id, system string) []byte {
 	body := map[string]any{
 		"name":             "Flow stream alpha",
@@ -206,6 +223,8 @@ func TestHandleDatastreamDelete_GoldenPath(t *testing.T) {
 		removeReply: encodeRemoveOK(t),
 	}
 	c := newComponentWithRequester(t, fake)
+	cleaner := &fakeStreamCleaner{}
+	wireObservationCleaner(c, cleaner)
 
 	req := httptest.NewRequest(http.MethodDelete, "/datastreams/"+testDatastreamID, nil)
 	req.SetPathValue("id", testDatastreamID)
@@ -219,15 +238,25 @@ func TestHandleDatastreamDelete_GoldenPath(t *testing.T) {
 	if got, want := len(fake.removeCalls), 5; got != want {
 		t.Errorf("remove call count: got %d want %d (calls=%+v)", got, want, fake.removeCalls)
 	}
+	if cleaner.calls != 1 {
+		t.Fatalf("observation purge calls: got %d want 1", cleaner.calls)
+	}
+	if want := "cs-api.observations." + testDatastreamID; cleaner.subject != want {
+		t.Errorf("purge subject: got %q want %q", cleaner.subject, want)
+	}
 }
 
 // TestHandleDatastreamDelete_NotFound_Idempotent — same idempotent
 // contract as DELETE /systems/{id}: 204 even when entity didn't exist.
+// Observation subject purge still runs so the final state is clean for
+// that id.
 func TestHandleDatastreamDelete_NotFound_Idempotent(t *testing.T) {
 	fake := &crdFakeRequester{
 		entityReply: []byte("error: not found: " + testDatastreamID),
 	}
 	c := newComponentWithRequester(t, fake)
+	cleaner := &fakeStreamCleaner{}
+	wireObservationCleaner(c, cleaner)
 
 	req := httptest.NewRequest(http.MethodDelete, "/datastreams/"+testDatastreamID, nil)
 	req.SetPathValue("id", testDatastreamID)
@@ -239,6 +268,9 @@ func TestHandleDatastreamDelete_NotFound_Idempotent(t *testing.T) {
 	}
 	if len(fake.removeCalls) != 0 {
 		t.Errorf("remove should not be called for not-found; got %d calls", len(fake.removeCalls))
+	}
+	if cleaner.calls != 1 {
+		t.Errorf("observation purge calls: got %d want 1", cleaner.calls)
 	}
 }
 
@@ -254,6 +286,36 @@ func TestHandleDatastreamDelete_InvalidID(t *testing.T) {
 
 	if rr.Code != http.StatusBadRequest {
 		t.Errorf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+// TestHandleDatastreamDelete_ObservationPurgeTransient reports the
+// split-brain state: triples are gone, but stream cleanup failed.
+func TestHandleDatastreamDelete_ObservationPurgeTransient(t *testing.T) {
+	fake := &crdFakeRequester{
+		entityReply: mustMarshal(t, existingDatastreamState(testDatastreamID)),
+		removeReply: encodeRemoveOK(t),
+	}
+	c := newComponentWithRequester(t, fake)
+	cleaner := &fakeStreamCleaner{err: nats.ErrNoResponders}
+	wireObservationCleaner(c, cleaner)
+
+	req := httptest.NewRequest(http.MethodDelete, "/datastreams/"+testDatastreamID, nil)
+	req.SetPathValue("id", testDatastreamID)
+	rr := httptest.NewRecorder()
+	c.handleDatastreamDelete(rr, req)
+
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status: got %d want 503; body=%s", rr.Code, rr.Body.String())
+	}
+	if cleaner.calls != 1 {
+		t.Errorf("observation purge calls: got %d want 1", cleaner.calls)
+	}
+	if got := rr.Header().Get("X-CS-Observation-Purge-Failed"); got != "true" {
+		t.Errorf("X-CS-Observation-Purge-Failed: got %q want true", got)
+	}
+	if got := rr.Header().Get("X-CS-Partial-Delete"); got != "true" {
+		t.Errorf("X-CS-Partial-Delete: got %q want true", got)
 	}
 }
 

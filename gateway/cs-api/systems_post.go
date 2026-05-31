@@ -10,7 +10,6 @@ import (
 	"mime"
 	"net/http"
 	"regexp"
-	"slices"
 	"strings"
 
 	"github.com/c360studio/semstreams/graph"
@@ -22,11 +21,14 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-// SubjectTripleAddBatch is the NATS request/reply subject the framework's
-// graph-ingest component exposes for batched triple writes. Stage 30 pins
-// semstreams beta.87, which also exposes entity-level mutation subjects;
-// this legacy subject remains until semconnect migrates the write path.
-const SubjectTripleAddBatch = "graph.mutation.triple.add_batch"
+// Entity-level mutation subjects exposed by semstreams graph-ingest.
+// Duplicated locally because the upstream processor package is not a
+// public API surface for gateways.
+const (
+	SubjectEntityCreateWithTriples = "graph.mutation.entity.create_with_triples"
+	SubjectEntityUpdateWithTriples = "graph.mutation.entity.update_with_triples"
+	SubjectEntityDelete            = "graph.mutation.entity.delete"
+)
 
 // PredSystemPosition and PredSystemUID are the framework-owned SensorML
 // predicates semconnect uses for CS API uid / geometry round-trips. They
@@ -54,11 +56,6 @@ func firstSystemUIDObject(triples []message.Triple) (string, bool) {
 }
 
 // handleSystemPost serves POST /systems — CS API §7.6.
-//
-// This still uses `graph.mutation.triple.add_batch`; semstreams beta.87
-// now has entity-level mutation subjects, so swapping to
-// `graph.mutation.entity.create_with_triples` is a semconnect-local
-// follow-up that should also add the duplicate-create 409 path.
 func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
 	// Stage 14: accept SensorML in both spec form (sml+json) and legacy
 	// long form (sensorml+json).
@@ -260,10 +257,10 @@ func uniqueIDToToken(uniqueID string) string {
 	return s
 }
 
-// ingestTriples publishes a batch of triples to
-// graph.mutation.triple.add_batch via NATS request-reply, attaching
-// audit headers from the request identity. Returns a classified error
-// so writeBackendError maps cleanly to HTTP status.
+// ingestTriples creates one entity with its triples through
+// graph.mutation.entity.create_with_triples via NATS request-reply,
+// attaching audit headers from the request identity. Returns a
+// classified error so writeBackendError maps cleanly to HTTP status.
 //
 // Timeout: QueryTimeout, NOT PublishTimeout. This is a request/reply
 // (we wait for a reply), so it lives on the same budget as /systems and
@@ -271,10 +268,18 @@ func uniqueIDToToken(uniqueID string) string {
 // publishes (observations.go); using it here would couple two
 // independently-tuned latency budgets.
 func (c *Component) ingestTriples(ctx context.Context, triples []message.Triple, id Identity) error {
-	req := graph.AddTriplesBatchRequest{Triples: triples}
+	entityID, err := singleSubject(triples)
+	if err != nil {
+		return errs.WrapInvalid(err, "cs-api", "ingestTriples", "invalid triple set")
+	}
+
+	req := graph.CreateEntityWithTriplesRequest{
+		Entity:  &graph.EntityState{ID: entityID, Triples: triples},
+		Triples: triples,
+	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {
-		return errs.Wrap(err, "cs-api", "ingestTriples", "marshal batch request")
+		return errs.Wrap(err, "cs-api", "ingestTriples", "marshal entity create request")
 	}
 
 	// Audit headers + trace context are attached on the request envelope.
@@ -287,7 +292,7 @@ func (c *Component) ingestTriples(ctx context.Context, triples []message.Triple,
 	// RequestWithHeaders applies its own context.WithTimeout from the
 	// timeout argument; we pass ctx through unwrapped so cancellation
 	// from the HTTP request still propagates without double-budgeting.
-	reply, err := c.nats.RequestWithHeaders(ctx, SubjectTripleAddBatch, reqBody, hdrs, c.cfg.QueryTimeout)
+	reply, err := c.nats.RequestWithHeaders(ctx, SubjectEntityCreateWithTriples, reqBody, hdrs, c.cfg.QueryTimeout)
 	if err != nil {
 		switch {
 		case errors.Is(err, nats.ErrNoResponders),
@@ -296,52 +301,56 @@ func (c *Component) ingestTriples(ctx context.Context, triples []message.Triple,
 			errors.Is(err, nats.ErrConnectionClosed):
 			return errs.WrapTransient(err, "cs-api", "ingestTriples", "graph backend unavailable")
 		default:
-			return errs.Wrap(err, "cs-api", "ingestTriples", "add_batch request")
+			return errs.Wrap(err, "cs-api", "ingestTriples", "entity create request")
 		}
 	}
 
-	var resp graph.AddTriplesBatchResponse
+	var resp graph.CreateEntityWithTriplesResponse
 	if err := json.Unmarshal(reply.Data, &resp); err != nil {
-		return errs.Wrap(err, "cs-api", "ingestTriples", "decode batch response")
+		return errs.Wrap(err, "cs-api", "ingestTriples", "decode entity create response")
 	}
 	if resp.Success {
+		if resp.Degraded {
+			c.logger.Warn("entity create committed with degraded read-back", "entity", entityID, "err", resp.Error)
+		}
 		return nil
 	}
-	// Per graph/mutation_responses.go AddTriplesBatchResponse contract:
-	//   - len(FailedSubjects) > 0  → per-entity CAS / validation failure
-	//                                (caller-correctable input → 400)
-	//   - len(FailedSubjects) == 0 → pre-CAS batch-level validation
-	//                                (empty Subject/Predicate, malformed
-	//                                envelope — caller-correctable → 400)
-	// In both cases the framework's Error / per-subject message names a
-	// real input problem; mapping either to 503 would mask client bugs
-	// as infrastructure flake.
-	if len(resp.FailedSubjects) > 0 {
-		c.logger.Warn("ingest partial failure",
-			"failed_subjects", resp.FailedSubjects,
-			"written_count", resp.WrittenCount)
-		pickKey := firstSortedKey(resp.FailedSubjects)
-		return errs.WrapInvalid(
-			fmt.Errorf("entity %s rejected: %s", pickKey, resp.FailedSubjects[pickKey]),
-			"cs-api", "ingestTriples", "graph rejected entity",
-		)
-	}
-	c.logger.Warn("ingest batch-level validation failure", "err", resp.Error)
-	return errs.WrapInvalid(errors.New(resp.Error), "cs-api", "ingestTriples", "graph rejected batch")
+	return mutationFailure("ingestTriples", resp.MutationResponse)
 }
 
-// firstSortedKey picks the lexically-first key of m. Used to surface a
-// deterministic per-Subject failure in the error body — map iteration
-// is non-deterministic and we don't want the error message to flap
-// across retries of the same failing request.
-func firstSortedKey(m map[string]string) string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
+func singleSubject(triples []message.Triple) (string, error) {
+	if len(triples) == 0 {
+		return "", errors.New("no triples to ingest")
 	}
-	slices.Sort(keys)
-	if len(keys) == 0 {
-		return ""
+	subject := triples[0].Subject
+	if subject == "" {
+		return "", errors.New("triple subject is empty")
 	}
-	return keys[0]
+	for i, tr := range triples[1:] {
+		if tr.Subject != subject {
+			return "", fmt.Errorf("triple[%d] subject %q does not match %q", i+1, tr.Subject, subject)
+		}
+	}
+	return subject, nil
+}
+
+func mutationFailure(op string, resp graph.MutationResponse) error {
+	msg := resp.Error
+	if msg == "" {
+		msg = resp.ErrorCode
+	}
+	if msg == "" {
+		msg = "graph mutation rejected"
+	}
+	err := errors.New(msg)
+	switch resp.ErrorCode {
+	case graph.ErrorCodeEntityExists:
+		return fmt.Errorf("%w: %s", errEntityConflict, msg)
+	case graph.ErrorCodeEntityNotFound:
+		return fmt.Errorf("%w: %s", errEntityNotFound, msg)
+	case graph.ErrorCodeInvalidRequest, graph.ErrorCodeRevisionMismatch:
+		return errs.WrapInvalid(err, "cs-api", op, "graph rejected entity mutation")
+	default:
+		return errs.Wrap(err, "cs-api", op, "graph rejected entity mutation")
+	}
 }

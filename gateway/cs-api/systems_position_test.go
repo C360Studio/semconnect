@@ -36,7 +36,7 @@ func sensorMLWithPosition(uniqueID, label string, lon, lat, alt float64) []byte 
 // TestHandleSystemPost_PositionForwardedAsTriple — full POST handler
 // path: a SensorML body with `position` results in a
 // sensorml.process.position triple in the request to
-// graph.mutation.triple.add_batch. The triple's Object preserves the
+// graph.mutation.entity.create_with_triples. The triple's Object preserves the
 // GeoJSON payload from the input.
 func TestHandleSystemPost_PositionForwardedAsTriple(t *testing.T) {
 	fake := &fakeRequester{

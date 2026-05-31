@@ -67,8 +67,8 @@ func existingDatastreamState(id string) graph.EntityState {
 	}
 }
 
-// TestHandleDatastreamPut_GoldenPath — PUT removes existing triples
-// then writes the new batch, returns 204.
+// TestHandleDatastreamPut_GoldenPath — PUT replaces existing triples
+// through entity.update_with_triples, returns 204.
 func TestHandleDatastreamPut_GoldenPath(t *testing.T) {
 	fake := &crdFakeRequester{
 		entityReply: mustMarshal(t, existingDatastreamState(testDatastreamID)),
@@ -88,10 +88,7 @@ func TestHandleDatastreamPut_GoldenPath(t *testing.T) {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
 	if fake.batchCount != 1 {
-		t.Errorf("add_batch calls: got %d want 1", fake.batchCount)
-	}
-	if len(fake.removeCalls) < 1 {
-		t.Errorf("remove calls: got %d, want >= 1", len(fake.removeCalls))
+		t.Errorf("entity update calls: got %d want 1", fake.batchCount)
 	}
 	if got := rr.Header().Get("X-CS-Attempted-ID"); got != testDatastreamID {
 		t.Errorf("X-CS-Attempted-ID: got %q want %q", got, testDatastreamID)
@@ -144,7 +141,7 @@ func TestHandleDatastreamPut_PathBodyIDMismatch(t *testing.T) {
 		t.Errorf("remove must not be called on mismatch; got %d calls", len(fake.removeCalls))
 	}
 	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not be called on mismatch; got %d calls", fake.batchCount)
+		t.Errorf("entity update must not be called on mismatch; got %d calls", fake.batchCount)
 	}
 	if fake.entityQueryCalls != 0 {
 		t.Errorf("entity-query must not be called on mismatch; got %d calls", fake.entityQueryCalls)
@@ -189,13 +186,12 @@ func TestHandleDatastreamPut_WrongContentType(t *testing.T) {
 	}
 }
 
-// TestHandleDatastreamPut_TransientRemove — fan-out fails mid-flight
-// with a NATS sentinel → 503 + X-CS-Partial-Delete: true; add-batch
-// never runs.
-func TestHandleDatastreamPut_TransientRemove(t *testing.T) {
+// TestHandleDatastreamPut_TransientUpdate — entity update fails with a
+// NATS sentinel → 503 without partial erasure.
+func TestHandleDatastreamPut_TransientUpdate(t *testing.T) {
 	fake := &crdFakeRequester{
 		entityReply: mustMarshal(t, existingDatastreamState(testDatastreamID)),
-		removeErr:   nats.ErrNoResponders,
+		batchErr:    nats.ErrNoResponders,
 		batchReply:  encodeBatchOK(t, 5),
 	}
 	c := newComponentWithRequester(t, fake)
@@ -210,13 +206,16 @@ func TestHandleDatastreamPut_TransientRemove(t *testing.T) {
 	if rr.Code != http.StatusServiceUnavailable {
 		t.Fatalf("status: got %d want 503; body=%s", rr.Code, rr.Body.String())
 	}
-	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not be called when remove fails; got %d calls", fake.batchCount)
+	if fake.batchCount != 1 {
+		t.Errorf("entity update calls: got %d want 1", fake.batchCount)
+	}
+	if got := rr.Header().Get("X-CS-Partial-Delete"); got != "" {
+		t.Errorf("X-CS-Partial-Delete: got %q want empty", got)
 	}
 }
 
-// TestHandleDatastreamDelete_GoldenPath — DELETE returns 204 and
-// dedups predicates (5 triples here → 5 unique predicates).
+// TestHandleDatastreamDelete_GoldenPath — DELETE returns 204, deletes
+// the graph entity, and purges the observation subject.
 func TestHandleDatastreamDelete_GoldenPath(t *testing.T) {
 	fake := &crdFakeRequester{
 		entityReply: mustMarshal(t, existingDatastreamState(testDatastreamID)),
@@ -234,9 +233,11 @@ func TestHandleDatastreamDelete_GoldenPath(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
-	// 5 unique predicates (type, label, description, datastream-system, observedProperty).
-	if got, want := len(fake.removeCalls), 5; got != want {
-		t.Errorf("remove call count: got %d want %d (calls=%+v)", got, want, fake.removeCalls)
+	if got, want := len(fake.deleteCalls), 1; got != want {
+		t.Errorf("delete call count: got %d want %d (calls=%+v)", got, want, fake.deleteCalls)
+	}
+	if got := fake.deleteCalls[0].EntityID; got != testDatastreamID {
+		t.Errorf("delete.EntityID: got %q want %q", got, testDatastreamID)
 	}
 	if cleaner.calls != 1 {
 		t.Fatalf("observation purge calls: got %d want 1", cleaner.calls)
@@ -252,7 +253,7 @@ func TestHandleDatastreamDelete_GoldenPath(t *testing.T) {
 // that id.
 func TestHandleDatastreamDelete_NotFound_Idempotent(t *testing.T) {
 	fake := &crdFakeRequester{
-		entityReply: []byte("error: not found: " + testDatastreamID),
+		removeReply: encodeRemoveOK(t),
 	}
 	c := newComponentWithRequester(t, fake)
 	cleaner := &fakeStreamCleaner{}
@@ -266,8 +267,8 @@ func TestHandleDatastreamDelete_NotFound_Idempotent(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204 (idempotent); body=%s", rr.Code, rr.Body.String())
 	}
-	if len(fake.removeCalls) != 0 {
-		t.Errorf("remove should not be called for not-found; got %d calls", len(fake.removeCalls))
+	if len(fake.deleteCalls) != 1 {
+		t.Errorf("delete should still be called for idempotent delete; got %d calls", len(fake.deleteCalls))
 	}
 	if cleaner.calls != 1 {
 		t.Errorf("observation purge calls: got %d want 1", cleaner.calls)
@@ -319,21 +320,20 @@ func TestHandleDatastreamDelete_ObservationPurgeTransient(t *testing.T) {
 	}
 }
 
-// TestDeleteDatastream_AuditHeadersSymmetric — destructive removes
-// for datastream entities carry the same audit headers as POST.
+// TestDeleteDatastream_AuditHeadersSymmetric — destructive deletes for
+// datastream entities carry the same audit headers as POST.
 func TestDeleteDatastream_AuditHeadersSymmetric(t *testing.T) {
 	fake := &crdFakeRequester{
-		entityReply: mustMarshal(t, existingDatastreamState(testDatastreamID)),
 		removeReply: encodeRemoveOK(t),
 	}
 	c := newComponentWithRequester(t, fake)
 
 	identity := Identity{Forwarded: map[string]string{"User": "alice"}}
-	if err := c.deleteAllEntityTriples(context.Background(), testDatastreamID, identity); err != nil {
-		t.Fatalf("deleteAllEntityTriples: %v", err)
+	if err := c.deleteEntity(context.Background(), testDatastreamID, identity); err != nil {
+		t.Fatalf("deleteEntity: %v", err)
 	}
-	if got := fake.removeHeaders["X-CS-Forwarded-User"]; got != "alice" {
-		t.Errorf("X-CS-Forwarded-User on remove: got %q want alice (headers=%+v)", got, fake.removeHeaders)
+	if got := fake.deleteHeaders["X-CS-Forwarded-User"]; got != "alice" {
+		t.Errorf("X-CS-Forwarded-User on delete: got %q want alice (headers=%+v)", got, fake.deleteHeaders)
 	}
 }
 

@@ -1,8 +1,8 @@
 // Stage 16 — CRD (create-replace-delete) handler tests covering
 // POST JSON Feature, PUT replace, DELETE, OPTIONS. The PUT + DELETE
-// paths drive multi-subject NATS traffic (entity-query + N triple-remove
-// + 1 triple-add-batch), so this file ships a dedicated stub instead of
-// extending the Stage 15 multiReplyFakeRequester.
+// paths drive entity-level mutation traffic around an entity-query
+// precondition, so this file ships a dedicated stub instead of extending
+// the Stage 15 multiReplyFakeRequester.
 package csapi
 
 import (
@@ -26,12 +26,11 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-// crdFakeRequester is a 3-subject stub for the CRD flow:
+// crdFakeRequester is a multi-subject stub for the CRD flow:
 //   - subjectEntityQuery → return entityReply (or entityErr)
-//   - SubjectTripleRemove → return removeReply (one per predicate); each call
-//     captures the (subject, predicate) into removeCalls so tests can pin
-//     the per-predicate fanout
-//   - SubjectTripleAddBatch → return batchReply (RequestWithHeaders path)
+//   - SubjectEntityUpdateWithTriples / SubjectEntityCreateWithTriples →
+//     return batchReply and capture batchBody
+//   - SubjectEntityDelete → return removeReply and capture deleteCalls
 type crdFakeRequester struct {
 	mu sync.Mutex
 
@@ -45,6 +44,8 @@ type crdFakeRequester struct {
 	entityQueryCalls int
 	removeCalls      []graph.RemoveTripleRequest
 	removeHeaders    map[string]string
+	deleteCalls      []graph.DeleteEntityRequest
+	deleteHeaders    map[string]string
 	batchCount       int
 	batchBody        []byte
 	headers          map[string]string
@@ -73,7 +74,7 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 			return nil, f.entityErr
 		}
 		return &nats.Msg{Data: f.entityReply}, nil
-	case SubjectTripleAddBatch:
+	case SubjectEntityCreateWithTriples, SubjectEntityUpdateWithTriples:
 		f.batchCount++
 		f.batchBody = append([]byte(nil), data...)
 		if headers != nil {
@@ -86,18 +87,16 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 			return nil, f.batchErr
 		}
 		return &nats.Msg{Data: f.batchReply}, nil
-	case SubjectTripleRemove:
-		var req graph.RemoveTripleRequest
+	case SubjectEntityDelete:
+		var req graph.DeleteEntityRequest
 		if err := json.Unmarshal(data, &req); err != nil {
-			return nil, errors.New("crdFakeRequester: malformed remove body")
+			return nil, errors.New("crdFakeRequester: malformed delete body")
 		}
-		f.removeCalls = append(f.removeCalls, req)
-		// Capture audit headers from the first remove call so tests can
-		// assert anonymous-now-no-debt symmetry with POST.
-		if f.removeHeaders == nil && headers != nil {
-			f.removeHeaders = make(map[string]string, len(headers))
+		f.deleteCalls = append(f.deleteCalls, req)
+		if f.deleteHeaders == nil && headers != nil {
+			f.deleteHeaders = make(map[string]string, len(headers))
 			for k, v := range headers {
-				f.removeHeaders[k] = v
+				f.deleteHeaders[k] = v
 			}
 		}
 		if f.removeErr != nil {
@@ -187,8 +186,8 @@ func TestHandleSystemPost_JSONFeature_GoldenPath(t *testing.T) {
 	if got := rr.Header().Get("Location"); got != wantSuffix {
 		t.Errorf("Location: got %q want %q", got, wantSuffix)
 	}
-	if fake.gotSubject != SubjectTripleAddBatch {
-		t.Errorf("subject: got %q want %q", fake.gotSubject, SubjectTripleAddBatch)
+	if fake.gotSubject != SubjectEntityCreateWithTriples {
+		t.Errorf("subject: got %q want %q", fake.gotSubject, SubjectEntityCreateWithTriples)
 	}
 }
 
@@ -227,8 +226,9 @@ func TestHandleSystemPost_JSONFeature_NotAFeature(t *testing.T) {
 	}
 }
 
-// existingSystemState builds an EntityState with three predicates so the
-// DELETE/PUT path proves the per-predicate fan-out works (deduplicated).
+// existingSystemState builds an EntityState with multiple predicates so
+// replacement paths can prove predicate removal sets are generated from
+// current state.
 func existingSystemState(id string) graph.EntityState {
 	return graph.EntityState{
 		ID: id,
@@ -244,7 +244,7 @@ func existingSystemState(id string) graph.EntityState {
 }
 
 // TestHandleSystemDelete_GoldenPath — DELETE returns 204 and issues one
-// remove per *unique* predicate (4 here: type, label, description, hosts).
+// entity-scoped delete request.
 func TestHandleSystemDelete_GoldenPath(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.099"
 	fake := &crdFakeRequester{
@@ -261,17 +261,11 @@ func TestHandleSystemDelete_GoldenPath(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
-	// 4 unique predicates → 4 remove calls (deduped from 5 triples).
-	if got, want := len(fake.removeCalls), 4; got != want {
-		t.Fatalf("remove call count: got %d want %d (calls=%+v)", got, want, fake.removeCalls)
+	if got, want := len(fake.deleteCalls), 1; got != want {
+		t.Fatalf("delete call count: got %d want %d (calls=%+v)", got, want, fake.deleteCalls)
 	}
-	for _, call := range fake.removeCalls {
-		if call.Subject != pathID {
-			t.Errorf("remove.Subject: got %q want %q", call.Subject, pathID)
-		}
-		if call.Predicate == "" {
-			t.Errorf("remove.Predicate empty: %+v", call)
-		}
+	if got := fake.deleteCalls[0].EntityID; got != pathID {
+		t.Errorf("delete.EntityID: got %q want %q", got, pathID)
 	}
 }
 
@@ -281,9 +275,7 @@ func TestHandleSystemDelete_GoldenPath(t *testing.T) {
 func TestHandleSystemDelete_NotFound_Idempotent(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.404"
 	fake := &crdFakeRequester{
-		// entity-query returns a legacy not-found error envelope;
-		// ClassifyReply fallback + the CS API mapper turn it into 404.
-		entityReply: []byte("error: not found: " + pathID),
+		removeReply: encodeRemoveOK(t),
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -295,8 +287,8 @@ func TestHandleSystemDelete_NotFound_Idempotent(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204 (idempotent); body=%s", rr.Code, rr.Body.String())
 	}
-	if len(fake.removeCalls) != 0 {
-		t.Errorf("remove should not be called for not-found; got %d calls", len(fake.removeCalls))
+	if len(fake.deleteCalls) != 1 {
+		t.Errorf("delete should still be called for idempotent delete; got %d calls", len(fake.deleteCalls))
 	}
 }
 
@@ -317,8 +309,9 @@ func TestHandleSystemDelete_InvalidID(t *testing.T) {
 	}
 }
 
-// TestHandleSystemPut_GoldenPath — PUT removes existing triples then adds
-// the new batch. Requires the body's uid → entity ID to match the path.
+// TestHandleSystemPut_GoldenPath — PUT replaces existing triples with
+// entity.update_with_triples. Requires the body's uid → entity ID to
+// match the path.
 func TestHandleSystemPut_GoldenPath(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.099"
 	// systemFeatureJSON uid is passed through uniqueIDToToken to mint the
@@ -345,10 +338,7 @@ func TestHandleSystemPut_GoldenPath(t *testing.T) {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
 	if fake.batchCount != 1 {
-		t.Errorf("add_batch calls: got %d want 1", fake.batchCount)
-	}
-	if len(fake.removeCalls) < 1 {
-		t.Errorf("remove calls: got %d, expected >= 1", len(fake.removeCalls))
+		t.Errorf("entity update calls: got %d want 1", fake.batchCount)
 	}
 }
 
@@ -380,7 +370,7 @@ func TestHandleSystemPut_PathBodyIDMismatch(t *testing.T) {
 		t.Errorf("remove must not be called on mismatch; got %d calls", len(fake.removeCalls))
 	}
 	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not be called on mismatch; got %d calls", fake.batchCount)
+		t.Errorf("entity update must not be called on mismatch; got %d calls", fake.batchCount)
 	}
 	// And no backend round-trip wasted on a client error.
 	if fake.entityQueryCalls != 0 {
@@ -388,15 +378,13 @@ func TestHandleSystemPut_PathBodyIDMismatch(t *testing.T) {
 	}
 }
 
-// TestHandleSystemPut_TransientRemove exercises the partial-erasure
-// path: remove fan-out fails mid-flight with a NATS sentinel → 503 +
-// X-CS-Partial-Delete: true; add-batch never runs (entity stays in
-// the partial state until the client retries the PUT).
-func TestHandleSystemPut_TransientRemove(t *testing.T) {
+// TestHandleSystemPut_TransientUpdate exercises the entity update
+// request failing with a NATS sentinel → 503 without partial erasure.
+func TestHandleSystemPut_TransientUpdate(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.099"
 	fake := &crdFakeRequester{
 		entityReply: mustMarshal(t, existingSystemState(pathID)),
-		removeErr:   nats.ErrNoResponders,
+		batchErr:    nats.ErrNoResponders,
 		batchReply:  encodeBatchOK(t, 3),
 	}
 	c := newComponentWithRequester(t, fake)
@@ -415,18 +403,20 @@ func TestHandleSystemPut_TransientRemove(t *testing.T) {
 	if got := rr.Header().Get("X-CS-Attempted-ID"); got != pathID {
 		t.Errorf("X-CS-Attempted-ID: got %q want %q", got, pathID)
 	}
-	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not be called when remove fails; got %d calls", fake.batchCount)
+	if fake.batchCount != 1 {
+		t.Errorf("entity update calls: got %d want 1", fake.batchCount)
+	}
+	if got := rr.Header().Get("X-CS-Partial-Delete"); got != "" {
+		t.Errorf("X-CS-Partial-Delete: got %q want empty", got)
 	}
 }
 
-// TestDeleteAllEntityTriples_AuditHeadersSymmetric — destructive
-// removes carry the same audit headers as POST so the audit trail
-// stays uniform across the lifecycle.
-func TestDeleteAllEntityTriples_AuditHeadersSymmetric(t *testing.T) {
+// TestDeleteEntity_AuditHeadersSymmetric — destructive deletes carry
+// the same audit headers as POST so the audit trail stays uniform
+// across the lifecycle.
+func TestDeleteEntity_AuditHeadersSymmetric(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.099"
 	fake := &crdFakeRequester{
-		entityReply: mustMarshal(t, existingSystemState(pathID)),
 		removeReply: encodeRemoveOK(t),
 	}
 	c := newComponentWithRequester(t, fake)
@@ -434,11 +424,11 @@ func TestDeleteAllEntityTriples_AuditHeadersSymmetric(t *testing.T) {
 	identity := Identity{
 		Forwarded: map[string]string{"User": "alice", "Email": "alice@example.com"},
 	}
-	if err := c.deleteAllEntityTriples(context.Background(), pathID, identity); err != nil {
-		t.Fatalf("deleteAllEntityTriples: %v", err)
+	if err := c.deleteEntity(context.Background(), pathID, identity); err != nil {
+		t.Fatalf("deleteEntity: %v", err)
 	}
-	if got := fake.removeHeaders["X-CS-Forwarded-User"]; got != "alice" {
-		t.Errorf("X-CS-Forwarded-User on remove: got %q want alice (headers=%+v)", got, fake.removeHeaders)
+	if got := fake.deleteHeaders["X-CS-Forwarded-User"]; got != "alice" {
+		t.Errorf("X-CS-Forwarded-User on delete: got %q want alice (headers=%+v)", got, fake.deleteHeaders)
 	}
 }
 

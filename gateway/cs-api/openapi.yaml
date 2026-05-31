@@ -308,6 +308,7 @@ paths:
                   id:    {type: string, description: 6-part SemStreams entity ID.}
                   type:  {type: string, enum: [System]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -410,14 +411,8 @@ paths:
             X-CS-Attempted-ID:
               schema: {type: string}
               description: Echoes the entity ID — present on every response so clients can correlate.
-            X-CS-Partial-Delete:
-              schema: {type: string, enum: ["true"]}
-              description: |-
-                Present (with value `true`) on a 5xx if the destructive
-                half of replace succeeded but the add-batch failed —
-                the entity is in a partial/erased state and the client
-                must retry the PUT to recover.
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -459,13 +454,6 @@ paths:
           headers:
             X-CS-Attempted-ID:
               schema: {type: string}
-            X-CS-Partial-Delete:
-              schema: {type: string, enum: ["true"]}
-              description: |-
-                Present (with value `true`) on a 5xx if the
-                destructive half of merge succeeded but the
-                add-batch failed — the entity is in a partial
-                state and the client should retry the PATCH.
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
@@ -476,11 +464,8 @@ paths:
       summary: Delete a system (CS API §7.6 create-replace-delete).
       description: |-
         Idempotent: a delete against a non-existent ID still returns
-        204. Removes every triple associated with the entity. A
-        successful 204 means every per-predicate remove succeeded;
-        a 5xx with `X-CS-Partial-Delete: true` means the loop failed
-        mid-fan-out and the entity is in an intermediate state — the
-        client should retry until 204.
+        204. Deletes the graph entity through the semstreams
+        entity-level delete primitive.
       tags: [Systems]
       responses:
         "204": {description: System deleted (or never existed).}
@@ -657,6 +642,7 @@ paths:
                   id:    {type: string}
                   type:  {type: string, enum: [Datastream]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -727,13 +713,8 @@ paths:
           headers:
             X-CS-Attempted-ID:
               schema: {type: string}
-            X-CS-Partial-Delete:
-              schema: {type: string, enum: ["true"]}
-              description: |-
-                Present (with value `true`) on a 5xx if the destructive
-                half succeeded but the add-batch failed — the entity is
-                in a partial/erased state and the client must retry.
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -767,13 +748,6 @@ paths:
           headers:
             X-CS-Attempted-ID:
               schema: {type: string}
-            X-CS-Partial-Delete:
-              schema: {type: string, enum: ["true"]}
-              description: |-
-                Present (with value `true`) on a 5xx if the destructive
-                half of merge succeeded but the add-batch failed — the
-                entity is in a partial state and the client should retry
-                the PATCH.
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
@@ -784,14 +758,14 @@ paths:
       summary: Delete a datastream (CS API §10.6 create-replace-delete).
       description: |-
         Idempotent: a delete against a non-existent ID still returns
-        204. Removes every triple associated with the entity, then
-        purges messages on the exact observation subject
+        204. Deletes the graph entity, then purges messages on the exact
+        observation subject
         `cs-api.observations.{id}`.
 
         A 5xx with `X-CS-Partial-Delete: true` indicates a destructive
         step succeeded before a later step failed. If
         `X-CS-Observation-Purge-Failed: true` is also present, graph
-        triples were removed but observation stream cleanup did not
+        the graph entity was deleted but observation stream cleanup did not
         complete; retry DELETE to finish the purge.
       tags: [Datastreams]
       responses:
@@ -1125,6 +1099,7 @@ paths:
                   id:    {type: string}
                   type:  {type: string, enum: [Procedure]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -1240,6 +1215,7 @@ paths:
                   id:    {type: string}
                   type:  {type: string, enum: [SamplingFeature]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -1352,6 +1328,7 @@ paths:
                   id:    {type: string}
                   type:  {type: string, enum: [Property]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -1462,6 +1439,7 @@ paths:
                   id:    {type: string}
                   type:  {type: string, enum: [Deployment]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -1566,6 +1544,7 @@ paths:
                   id:    {type: string}
                   type:  {type: string, enum: [ControlStream]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -1729,6 +1708,7 @@ paths:
                   id:    {type: string}
                   type:  {type: string, enum: [SystemEvent]}
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -1805,6 +1785,7 @@ paths:
         "201":
           description: Created.
         "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
@@ -1878,6 +1859,11 @@ components:
           schema: {$ref: "#/components/schemas/ErrorResponse"}
     NotFound:
       description: Entity not present (or present but wrong kind for this URL).
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/ErrorResponse"}
+    Conflict:
+      description: Entity ID already exists where the operation creates a graph entity.
       content:
         application/json:
           schema: {$ref: "#/components/schemas/ErrorResponse"}

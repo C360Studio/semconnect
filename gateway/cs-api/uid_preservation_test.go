@@ -276,7 +276,7 @@ func TestSensorMLReverseMapping_SurfacesUniqueID(t *testing.T) {
 
 // TestHandleSystemPost_JSONFeature_UIDRoundsTripToTriples is the
 // integration-style check: POST a Feature with properties.uid,
-// confirm the publish payload to graph.mutation.triple.add_batch
+// confirm the publish payload to graph.mutation.entity.create_with_triples
 // contains the framework uid triple.
 func TestHandleSystemPost_JSONFeature_UIDRoundsTripToTriples(t *testing.T) {
 	fake := &fakeRequester{

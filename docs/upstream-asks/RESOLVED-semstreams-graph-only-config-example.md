@@ -6,8 +6,8 @@
 
 ## Summary
 
-For a sister-repo (`semconnect`) that publishes mutations directly
-via `graph.mutation.triple.add_batch` request/reply and reads via
+For a sister-repo (`semconnect`) that, at the time, published mutations
+directly via `graph.mutation.triple.add_batch` request/reply and reads via
 `graph.index.query.predicate` / `graph.query.entity` /
 `graph.spatial.query.*`, the minimum framework instance needs five
 processors and nothing else:

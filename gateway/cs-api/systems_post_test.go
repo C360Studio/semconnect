@@ -36,9 +36,9 @@ func minimalSensorML(uniqueID, label string) []byte {
 
 func encodeBatchOK(t *testing.T, written int) []byte {
 	t.Helper()
-	resp := graph.AddTriplesBatchResponse{
+	resp := graph.CreateEntityWithTriplesResponse{
 		MutationResponse: graph.MutationResponse{Success: true},
-		WrittenCount:     written,
+		TriplesAdded:     written,
 	}
 	out, err := json.Marshal(resp)
 	if err != nil {
@@ -47,22 +47,24 @@ func encodeBatchOK(t *testing.T, written int) []byte {
 	return out
 }
 
-func encodeBatchPartialFailure(t *testing.T, failures map[string]string, written int) []byte {
+func encodeEntityMutationFailure(t *testing.T, code, msg string) []byte {
 	t.Helper()
-	resp := graph.AddTriplesBatchResponse{
-		MutationResponse: graph.MutationResponse{Success: false, Error: ""},
-		WrittenCount:     written,
-		FailedSubjects:   failures,
+	resp := graph.CreateEntityWithTriplesResponse{
+		MutationResponse: graph.MutationResponse{
+			Success:   false,
+			Error:     msg,
+			ErrorCode: code,
+		},
 	}
 	out, err := json.Marshal(resp)
 	if err != nil {
-		t.Fatalf("encodeBatchPartialFailure: %v", err)
+		t.Fatalf("encodeEntityMutationFailure: %v", err)
 	}
 	return out
 }
 
 // TestHandleSystemPost_GoldenPath pins the happy-path contract: SensorML in,
-// triples published to graph.mutation.triple.add_batch, 201 Created with
+// triples published to graph.mutation.entity.create_with_triples, 201 Created with
 // Location header pointing at the minted entity ID.
 func TestHandleSystemPost_GoldenPath(t *testing.T) {
 	fake := &fakeRequester{
@@ -80,8 +82,8 @@ func TestHandleSystemPost_GoldenPath(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201 (body=%s)", rr.Code, rr.Body.String())
 	}
-	if fake.gotSubject != SubjectTripleAddBatch {
-		t.Errorf("publish subject: got %q want %q", fake.gotSubject, SubjectTripleAddBatch)
+	if fake.gotSubject != SubjectEntityCreateWithTriples {
+		t.Errorf("publish subject: got %q want %q", fake.gotSubject, SubjectEntityCreateWithTriples)
 	}
 	loc := rr.Header().Get("Location")
 	if !strings.HasPrefix(loc, "/systems/"+c.cfg.SystemIDPrefix+".") {
@@ -110,11 +112,14 @@ func TestHandleSystemPost_GoldenPath(t *testing.T) {
 	}
 
 	// Wire-shape check: the published body decodes as
-	// graph.AddTriplesBatchRequest with all triples sharing the minted
-	// entity ID as Subject.
-	var sent graph.AddTriplesBatchRequest
+	// graph.CreateEntityWithTriplesRequest with all triples sharing the
+	// minted entity ID as Subject.
+	var sent graph.CreateEntityWithTriplesRequest
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode published body: %v", err)
+	}
+	if sent.Entity == nil || sent.Entity.ID != body.ID {
+		t.Fatalf("entity: got %+v want ID %q", sent.Entity, body.ID)
 	}
 	if len(sent.Triples) == 0 {
 		t.Fatal("no triples published")
@@ -219,16 +224,12 @@ func TestHandleSystemPost_TransientBackend(t *testing.T) {
 	}
 }
 
-// TestHandleSystemPost_BatchPartialFailure maps a per-Subject failure from
-// graph-ingest to 400 (the most common cause is entity-ID validation
-// rejection, which is caller-correctable input).
-func TestHandleSystemPost_BatchPartialFailure(t *testing.T) {
-	failures := map[string]string{
-		"c360.semconnect.systems.csapi.system.bad": "entity ID rejected: pattern mismatch",
-	}
+// TestHandleSystemPost_InvalidMutation maps entity mutation validation
+// failures from graph-ingest to 400.
+func TestHandleSystemPost_InvalidMutation(t *testing.T) {
 	fake := &fakeRequester{
 		status: natsclient.StatusConnected,
-		reply:  encodeBatchPartialFailure(t, failures, 0),
+		reply:  encodeEntityMutationFailure(t, graph.ErrorCodeInvalidRequest, "entity ID rejected: pattern mismatch"),
 	}
 	c := newTestComponent(t, fake)
 
@@ -330,24 +331,18 @@ func TestHandleSystemPost_HTTPCounted(t *testing.T) {
 	}
 }
 
-// TestIngestTriples_PreCASValidationIs400 pins B-1 (review): when graph-ingest
-// rejects the batch at the pre-CAS validation stage (Success=false,
-// FailedSubjects empty), we map to 400. The framework's
-// AddTriplesBatchResponse contract (graph/mutation_responses.go) is
-// explicit that this is a caller-correctable input shape, NOT
-// infrastructure unavailability — earlier wiring routed it to 503,
-// which masked client bugs as ops noise.
-func TestHandleSystemPost_PreCASValidation400(t *testing.T) {
-	resp := graph.AddTriplesBatchResponse{
-		MutationResponse: graph.MutationResponse{
-			Success: false,
-			Error:   "triple[0].Predicate empty",
-		},
-		WrittenCount:   0,
-		FailedSubjects: nil,
+// TestHandleSystemPost_DuplicateCreate409 pins the entity mutation
+// create-or-fail contract: POST against an existing entity maps to
+// 409 Conflict instead of silently upserting.
+func TestHandleSystemPost_DuplicateCreate409(t *testing.T) {
+	fake := &fakeRequester{
+		status: natsclient.StatusConnected,
+		reply: encodeEntityMutationFailure(
+			t,
+			graph.ErrorCodeEntityExists,
+			"entity already exists: c360.semconnect.systems.csapi.system.precas",
+		),
 	}
-	respBytes, _ := json.Marshal(resp)
-	fake := &fakeRequester{status: natsclient.StatusConnected, reply: respBytes}
 	c := newTestComponent(t, fake)
 
 	req := httptest.NewRequest(http.MethodPost, "/systems",
@@ -356,10 +351,10 @@ func TestHandleSystemPost_PreCASValidation400(t *testing.T) {
 	rr := httptest.NewRecorder()
 	c.handleSystemPost(rr, req)
 
-	if rr.Code != http.StatusBadRequest {
-		t.Errorf("status: got %d want 400 (body=%s)", rr.Code, rr.Body.String())
+	if rr.Code != http.StatusConflict {
+		t.Errorf("status: got %d want 409 (body=%s)", rr.Code, rr.Body.String())
 	}
-	if !strings.Contains(rr.Body.String(), "triple[0].Predicate empty") {
+	if !strings.Contains(rr.Body.String(), "entity already exists") {
 		t.Errorf("body should forward framework error; got %s", rr.Body.String())
 	}
 }

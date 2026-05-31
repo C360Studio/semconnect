@@ -7,27 +7,19 @@ without making semstreams review stale blockers.
 
 ## Open asks
 
-None currently blocking semconnect's beta.90 pin. The asks filed from
-the CS API gateway work are closed upstream as of semstreams
-`v1.0.0-beta.90`.
-
-- [#182](https://github.com/C360Studio/semstreams/issues/182):
-  beta.90's new `vocabulary/csapi` artifact relationship constants are
-  standard IRIs. SemStreams' internal predicate contract is still
-  three-level dotted notation (`domain.category.property`) with optional
-  IRI mappings at API boundaries. semconnect must not use those IRI
-  constants directly as graph predicate keys; use dotted bridge
-  predicates or wait for semstreams to expose dotted CS API predicate
-  constants registered to the standard IRIs.
+None currently blocking semconnect. The asks filed from the CS API
+gateway work are closed upstream as of semstreams `v1.0.0-beta.91`.
 
 ## Resolved in current pins
 
+- `v1.0.0-beta.91`: #182 split `vocabulary/csapi` relationship
+  predicates into dotted internal constants plus `*IRI` boundary
+  constants. semconnect now writes dotted CS API relationship predicates
+  while retaining read fallbacks for beta.90's IRI-shaped predicate data.
 - `v1.0.0-beta.90`: #171 CS API typed artifact classes and
   first-class artifact-entity guidance, #172 public `graph.query.batch`
   passthrough for batch entity hydration, and #173 natsclient test-client
-  helper documentation for gateway integration tests. The artifact
-  relationship constants are IRIs, so they are not directly usable as
-  internal graph predicates without a dotted bridge.
+  helper documentation for gateway integration tests.
 - `v1.0.0-beta.88`: #116 schema-bound SWE Common JSON/text/binary
   encoders and decoders. semconnect Stage 32 adopts them on the
   observation read path, and Stage 33 binds Datastream schemas locally;
@@ -46,14 +38,9 @@ the CS API gateway work are closed upstream as of semstreams
 ## semconnect-local follow-ups
 
 - Migrate Datastream and ControlStream schema storage from local JSON
-  predicates to typed artifact entities. Preserve three-level dotted
-  graph predicate keys such as `cs-api.datastream.resultSchema` /
-  `cs-api.controlstream.commandSchema`; map those to CS API IRIs only at
-  vocabulary/export boundaries.
-- Audit existing CS API relationship predicates that currently point at
-  `vocabulary/csapi` IRI constants (`ProducedBy`, `ControlsSystem`,
-  `EventForSystem`) and migrate them to dotted internal predicates with
-  legacy read fallbacks.
+  predicates to typed artifact entities using the beta.91 dotted
+  relationship predicates (`csapi.HasResultSchema`,
+  `csapi.HasCommandSchema`) and artifact class (`csapi.SWESchemaDocument`).
 - Adopt `graph.query.batch` for collection endpoints that currently do
   predicate-query plus N entity-query hydrations; chunk around 100 IDs
   per batch per the semstreams guidance.

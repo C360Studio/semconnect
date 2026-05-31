@@ -37,6 +37,19 @@ func systemEventState(t *testing.T) []byte {
 	})
 }
 
+func TestSystemEventFromState_ReadsLegacyIRISystemPredicate(t *testing.T) {
+	got := systemEventFromState(graph.EntityState{
+		ID: testSystemEventID,
+		Triples: []message.Triple{
+			{Subject: testSystemEventID, Predicate: sensorml.PredType, Object: SystemEventTypeIRI},
+			{Subject: testSystemEventID, Predicate: legacyPredSystemEventIRI, Object: testEventSystemID},
+		},
+	})
+	if got.SystemID != testEventSystemID {
+		t.Fatalf("system@id: got %q want %q", got.SystemID, testEventSystemID)
+	}
+}
+
 func TestHandleSystemEvents_GoldenPath(t *testing.T) {
 	fake := &multiReplyFakeRequester{
 		predicateReply: encodeReply(t, []string{testSystemEventID}),

@@ -22,6 +22,7 @@ const (
 	SystemEventTypeIRI = csapivocab.SystemEvent
 
 	PredSystemEventSystem       = csapivocab.EventForSystem
+	legacyPredSystemEventIRI    = csapivocab.EventForSystemIRI
 	legacyPredSystemEventSystem = "cs-api.systemevent.system"
 	predSystemEventTime         = "cs-api.systemevent.time"
 	predSystemEventType         = "cs-api.systemevent.type"
@@ -95,7 +96,7 @@ func systemEventFromState(state graph.EntityState) systemEvent {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		ev.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredSystemEventSystem, legacyPredSystemEventSystem); ok {
+	if v, ok := firstStringObject(state.Triples, PredSystemEventSystem, legacyPredSystemEventIRI, legacyPredSystemEventSystem); ok {
 		ev.SystemID = v
 		ev.SystemLink = &link{Href: "/systems/" + v, Rel: "system", Type: string(MediaJSON), Title: v}
 		ev.Links = append(ev.Links, link{Href: "/systems/" + v + "/events/" + state.ID, Rel: "alternate", Type: string(MediaJSON)})

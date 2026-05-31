@@ -1,11 +1,9 @@
 // Package csapi: this file defines the v0.1 Datastream entity model.
 //
 // Stage 13 — semstreams v1.0.0-beta.75 landed the `vocabulary/csapi`
-// package with native OGC CS API IRIs (`csapi.Datastream`,
-// `csapi.ProducedBy`, etc.). Pre-Stage-13 we minted local HTTPS IRIs
-// under c360studio's own namespace because no canonical IRIs existed;
-// the new constants flip us to the spec-rooted IRI stem and retire the
-// `X-CS-Datastream-Subset: true` deferral header.
+// package with native OGC CS API type IRIs (`csapi.Datastream`) and CS API
+// predicates. Stage 39's beta.91 pin split predicates into dotted internal
+// names (`csapi.ProducedBy`) plus IRI boundary names (`csapi.ProducedByIRI`).
 package csapi
 
 import (
@@ -28,8 +26,12 @@ const DatastreamTypeIRI = csapi.Datastream
 
 // PredDatastreamSystem links a Datastream entity to the 6-part
 // SemStreams entity ID of the System (Sensor) that produces it.
-// Stage 13: aliases csapi.ProducedBy.
+// Stage 39: aliases beta.91's dotted csapi.ProducedBy.
 const PredDatastreamSystem = csapi.ProducedBy
+
+// legacyPredDatastreamSystemIRI is the beta.75-beta.90 value of
+// csapi.ProducedBy, when vocabulary/csapi exposed IRIs as predicate values.
+const legacyPredDatastreamSystemIRI = csapi.ProducedByIRI
 
 // PredDatastreamSchema stores the v0.1 SWE Common DataRecord schema
 // JSON that observation SWE encoders use for this Datastream. semstreams
@@ -94,7 +96,7 @@ func datastreamFromState(state graph.EntityState) Datastream {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		d.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredDatastreamSystem); ok {
+	if v, ok := firstStringObject(state.Triples, PredDatastreamSystem, legacyPredDatastreamSystemIRI); ok {
 		d.System = v
 	}
 	if v, ok := firstStringObject(state.Triples, sosa.ObservedProperty); ok {

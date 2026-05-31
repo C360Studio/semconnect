@@ -1,8 +1,9 @@
 # ADR-S002 - CS API graph and artifact storage pattern
 
-- **Status**: Proposed (2026-05-30)
+- **Status**: Accepted (2026-05-31)
 - **Repo**: `semconnect`
-- **Upstream**: [semstreams #171](https://github.com/C360Studio/semstreams/issues/171)
+- **Upstream**: [semstreams #171](https://github.com/C360Studio/semstreams/issues/171) closed in
+  `v1.0.0-beta.90`
 
 ## Context
 
@@ -52,14 +53,21 @@ This keeps graph state semantic and queryable while keeping object-shaped conten
 
 The target semstreams vocabulary shape from #171 is:
 
-- `csapi:HasSource` from a System, Procedure, Datastream, or related resource to a source document artifact
-- `csapi:HasResultSchema` from a Datastream to a SWE schema artifact
-- `csapi:HasCommandSchema` from a ControlStream to a SWE command schema artifact
-- `csapi:SensorMLDocument` for SensorML source artifacts
-- `csapi:SWESchemaDocument` for SWE Common schema artifacts
+- a dotted internal predicate from a System, Procedure, Datastream, or related resource to a source document
+  artifact, registered to the CS API `hasSource` IRI for RDF/JSON-LD export
+- a dotted internal predicate from a Datastream to a SWE schema artifact, registered to the CS API
+  `hasResultSchema` IRI for RDF/JSON-LD export
+- a dotted internal predicate from a ControlStream to a SWE command schema artifact, registered to the CS API
+  `hasCommandSchema` IRI for RDF/JSON-LD export
+- `csapi:SensorMLDocument` for SensorML source artifact type IRIs
+- `csapi:SWESchemaDocument` for SWE Common schema artifact type IRIs
 
-Until those vocabulary constants land in semstreams, semconnect may keep narrow gateway-local predicates as
-bridges. Those bridges should be treated as migration points, not permanent vocabulary forks.
+Semstreams `v1.0.0-beta.90` landed the CS API artifact classes and IRI constants. Its core vocabulary contract
+still says graph predicates are three-level dotted names (`domain.category.property`) and IRIs are boundary
+mappings, not internal predicate keys. [semstreams #182](https://github.com/C360Studio/semstreams/issues/182)
+tracks dotted CS API predicate constants for direct graph use. Existing semconnect gateway-local schema
+predicates remain temporary bridges until the gateway migrates Datastream and ControlStream schemas to typed
+artifact entities with dotted relationship predicates.
 
 ## Pattern Selection
 
@@ -78,7 +86,7 @@ opaque to graph queries, duplicate reusable schemas, and create two competing wa
 The gateway read path for artifact-backed fields is:
 
 1. Fetch the parent entity from graph.
-2. Read the artifact relationship triple, such as `csapi:HasResultSchema`.
+2. Read the artifact relationship triple, such as `cs-api.datastream.resultSchema`.
 3. Fetch the artifact entity from graph.
 4. Use the artifact entity's `StorageRef` to fetch content from ObjectStore.
 5. Decode the content with the domain parser, such as `pkg/swecommon` or SensorML.
@@ -90,5 +98,6 @@ Current semconnect schema storage remains valid as a temporary bridge:
 - `cs-api.datastream.schema` stores Datastream result schema JSON locally.
 - ControlStream command schema storage follows the same gateway-local pattern.
 
-Once semstreams ships the CS API artifact vocabulary constants, migrate those fields to typed artifact entities
-and retire the local JSON predicates.
+Next local migration: create `csapi:SWESchemaDocument` artifact entities, relate Datastreams with a dotted
+result-schema relationship predicate, relate ControlStreams with a dotted command-schema relationship predicate,
+register those predicates to the CS API IRIs for export, and retire the local JSON predicates.

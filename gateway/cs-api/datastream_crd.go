@@ -11,11 +11,14 @@
 package csapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/c360studio/semstreams/pkg/errs"
 )
 
 // handleDatastreamPut serves PUT /datastreams/{id} — CS API §10.6
@@ -123,13 +126,11 @@ func (c *Component) handleDatastreamPut(w http.ResponseWriter, r *http.Request) 
 // graph.mutation.triple.remove calls. A mid-loop transient failure
 // surfaces as 503 + X-CS-Partial-Delete: true.
 //
-// **Important orphan note:** v0.1 does NOT cascade-delete the
-// observations that reference this datastream. Observations live in
-// the `cs-api.observations.{datastreamID}` JetStream, NOT in the
-// triple graph; the framework's stream lifecycle is operator-managed.
-// A future stage (probably Stage 18+) wires per-datastream JetStream
-// `Consumer` cleanup. Documented in the OAS3 description so a
-// client SDK doesn't ship with the wrong assumption.
+// Stage 36 also purges observations published on the datastream's exact
+// JetStream subject after graph deletion succeeds. If graph deletion
+// succeeds but observation purge fails, the response is 503 with
+// X-CS-Observation-Purge-Failed and X-CS-Partial-Delete so clients and
+// operators know the resource graph is gone but stream state remains.
 func (c *Component) handleDatastreamDelete(w http.ResponseWriter, r *http.Request) {
 	pathID := r.PathValue("id")
 	if err := validateEntityID(pathID); err != nil {
@@ -146,7 +147,31 @@ func (c *Component) handleDatastreamDelete(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if err := c.purgeDatastreamObservations(r.Context(), pathID); err != nil {
+		w.Header().Set("X-CS-Partial-Delete", "true")
+		w.Header().Set("X-CS-Observation-Purge-Failed", "true")
+		c.writeBackendError(w, err)
+		return
+	}
+
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *Component) purgeDatastreamObservations(ctx context.Context, datastreamID string) error {
+	cleanerPtr := c.cleaner.Load()
+	if cleanerPtr == nil {
+		return errs.WrapTransient(errors.New("observation stream cleaner not initialized"),
+			"cs-api", "handleDatastreamDelete", "purge observations")
+	}
+	cleaner := *cleanerPtr
+	cctx, cancel := context.WithTimeout(ctx, c.cfg.PublishTimeout)
+	defer cancel()
+
+	subject := c.cfg.ObservationsSubjectPrefix + "." + datastreamID
+	if err := cleaner.PurgeSubject(cctx, subject); err != nil {
+		return classifyJetStreamErr(err, "handleDatastreamDelete", "purge observations")
+	}
+	return nil
 }
 
 // handleDatastreamsOptions serves OPTIONS /datastreams — advertises

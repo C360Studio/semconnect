@@ -784,22 +784,30 @@ paths:
       summary: Delete a datastream (CS API §10.6 create-replace-delete).
       description: |-
         Idempotent: a delete against a non-existent ID still returns
-        204. Removes every triple associated with the entity. A 5xx
-        with `X-CS-Partial-Delete: true` indicates the fan-out failed
-        mid-loop — client should retry.
+        204. Removes every triple associated with the entity, then
+        purges messages on the exact observation subject
+        `cs-api.observations.{id}`.
 
-        **Observations are NOT cascade-deleted at v0.1.** Observations
-        published via POST /datastreams/{id}/observations live in the
-        `cs-api.observations.{id}` JetStream, which is operator-managed
-        and outside the triple-graph delete loop. Reading
-        /datastreams/{id}/observations after DELETE returns 200 with
-        whatever observations remain on the stream until the operator
-        (or a future stage) purges them.
+        A 5xx with `X-CS-Partial-Delete: true` indicates a destructive
+        step succeeded before a later step failed. If
+        `X-CS-Observation-Purge-Failed: true` is also present, graph
+        triples were removed but observation stream cleanup did not
+        complete; retry DELETE to finish the purge.
       tags: [Datastreams]
       responses:
-        "204": {description: Datastream deleted (or never existed).}
+        "204":
+          description: Datastream deleted (or never existed) and observation subject purged.
+          headers:
+            X-CS-Attempted-ID:
+              schema: {type: string}
         "400": {$ref: "#/components/responses/BadRequest"}
-        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+        "503":
+          description: Transient backend error during graph delete or observation purge.
+          headers:
+            X-CS-Partial-Delete:
+              schema: {type: string, enum: ["true"]}
+            X-CS-Observation-Purge-Failed:
+              schema: {type: string, enum: ["true"]}
     options:
       operationId: optionsDatastream
       summary: Advertise allowed methods on /datastreams/{id}.

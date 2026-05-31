@@ -7,8 +7,19 @@ without making semstreams review stale blockers.
 
 ## Open asks
 
-None. As of semstreams `v1.0.0-beta.88`, every semstreams issue this
-directory tracks is resolved for semconnect.
+- [#171](https://github.com/C360Studio/semstreams/issues/171): CS API
+  typed artifact entities for ObjectStore-backed source documents,
+  Datastream result schemas, and ControlStream command schemas. The
+  upstream recommendation is no new framework primitive: use first-class
+  artifact entities with their own singular `StorageRef`, related from
+  parent resources by CS API vocabulary predicates. See
+  `docs/adr/002-cs-api-artifact-storage.md`.
+- [#172](https://github.com/C360Studio/semstreams/issues/172): graph
+  batch entity hydration or predicate-query projections to reduce N+1
+  gateway collection reads.
+- [#173](https://github.com/C360Studio/semstreams/issues/173):
+  natsclient test-client helper documentation for gateway integration
+  tests.
 
 ## Resolved in current pins
 
@@ -32,7 +43,8 @@ directory tracks is resolved for semconnect.
 - Migrate gateway writes from `graph.mutation.triple.add_batch` plus
   delete fan-out to `graph.mutation.entity.*`. This is no longer an
   upstream ask now that #120 is closed.
-- Revisit Datastream schema storage when semstreams grows the
-  StorageRef primitive documented in the `vocabulary/csapi` scope-cut.
+- Migrate Datastream and ControlStream schema storage from local JSON
+  predicates to typed artifact entities once semstreams ships the CS API
+  vocabulary constants tracked in #171.
 - Keep `conformance/nats.conf` for local server limits; semstreams now
   validates/warns, but the harness still owns the NATS server config.

@@ -906,8 +906,10 @@ Stage 33 makes Datastream result schemas first-class in the gateway:
   `pkg/swecommon` before any graph mutation.
 - The schema is stored on a gateway-local `cs-api.datastream.schema`
   predicate. semstreams beta.88 intentionally keeps Datastream schema
-  storage out of `vocabulary/csapi`; the long-term primitive is a
-  StorageRef rather than an inline vocabulary predicate.
+  storage out of `vocabulary/csapi`; the long-term pattern is a typed
+  artifact entity with its own `StorageRef`, related to the Datastream
+  by a CS API vocabulary predicate. See
+  `docs/adr/002-cs-api-artifact-storage.md`.
 - `GET /datastreams/{id}` returns the schema and a `rel=schema` link
   when one is stored.
 - `GET /datastreams/{id}/schema` returns the stored `DataRecord`
@@ -920,9 +922,9 @@ Stage 33 makes Datastream result schemas first-class in the gateway:
 Remaining local work:
 
 - Add command payload/schema parity for controlstreams.
-- Decide whether a future StorageRef-backed schema primitive in
-  semstreams should replace the gateway-local Datastream schema
-  predicate.
+- Replace the gateway-local Datastream schema predicate with a typed
+  SWE schema artifact entity once semstreams ships the CS API vocabulary
+  constants tracked in upstream #171.
 
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
 2026-05-29). Headline conformance is unchanged from Stage 32; schema
@@ -951,8 +953,9 @@ Remaining local work:
 
 - Implement command execution only when the product scope asks for it;
   the schema/read side is now SWE-backed.
-- Decide whether a future StorageRef-backed schema primitive in
-  semstreams should replace gateway-local schema storage patterns.
+- Replace gateway-local command schema storage with a typed SWE schema
+  artifact entity once semstreams ships the CS API vocabulary constants
+  tracked in upstream #171.
 
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
 2026-05-29). Headline conformance is unchanged from Stage 33; the

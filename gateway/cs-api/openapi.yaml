@@ -823,8 +823,9 @@ paths:
       description: |-
         Returns the stored SWE Common DataRecord JSON schema for
         observation value encodings. v0.1 stores this under a
-        gateway-local predicate because semstreams currently models
-        Datastream schema storage as a future StorageRef primitive.
+        gateway-local predicate; the target semstreams pattern is a
+        first-class SWE schema artifact entity with its own StorageRef,
+        related from the Datastream by a CS API vocabulary predicate.
       tags: [Datastreams]
       parameters:
         - $ref: "#/components/parameters/F"

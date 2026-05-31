@@ -34,8 +34,9 @@ const PredDatastreamSystem = csapi.ProducedBy
 // PredDatastreamSchema stores the v0.1 SWE Common DataRecord schema
 // JSON that observation SWE encoders use for this Datastream. semstreams
 // beta.88 intentionally scope-cuts schema storage from vocabulary/csapi
-// (the long-term primitive is a StorageRef), so this gateway-local
-// predicate is a narrow bridge rather than an upstream vocabulary fork.
+// (the target pattern is a typed SWE schema artifact entity with its own
+// StorageRef), so this gateway-local predicate is a narrow bridge rather
+// than an upstream vocabulary fork.
 const PredDatastreamSchema = "cs-api.datastream.schema"
 
 // Datastream is the v0.1 JSON shape for CS API §10 Datastream resources.

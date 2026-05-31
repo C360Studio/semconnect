@@ -1,12 +1,9 @@
 // Stage 16 — PUT / DELETE / OPTIONS on /systems and /systems/{id}.
 // Closes the CS API §7.6 create-replace-delete conformance class.
 //
-// **Implementation trade-off (re-derivable to know when to retire):**
-// PUT-as-replace and DELETE still use a fetch + per-predicate-remove
-// loop, which is N round-trips per entity. semstreams beta.87 exposes
-// entity-level mutation subjects with read-back semantics, so retiring
-// `deleteAllEntityTriples` in favor of `graph.mutation.entity.delete`
-// is now local semconnect cleanup rather than an upstream blocker.
+// Stage 37 moved the write path onto semstreams entity-level mutation
+// subjects, retiring the prior delete-all + add-batch partial-erasure
+// window.
 package csapi
 
 import (
@@ -16,33 +13,25 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/nats-io/nats.go"
 )
 
-// SubjectTripleRemove is the NATS request/reply subject the framework's
-// graph-ingest component exposes for single-triple removal (mirrors the
-// SubjectTripleAddBatch local const). Duplicated because upstream's
-// `processor/graph-ingest` package isn't importable (lowercased).
-// Exported so tests in this package can pin the subject name without
-// reaching through `c.nats`.
-const SubjectTripleRemove = "graph.mutation.triple.remove"
-
 // handleSystemPut serves PUT /systems/{id} — CS API §7.6
 // create-replace-delete. Replace semantics: existing triples for the
-// entity are removed, then the new body's triples are written. Body
-// must use the GeoJSON Feature shape (application/json or
+// entity are replaced by the new body's triples through
+// graph.mutation.entity.update_with_triples. Body must use the GeoJSON
+// Feature shape (application/json or
 // application/geo+json) — PUT does NOT accept SensorML because the
 // reverse-mapping triple set would mismatch the read-back JSON shape
 // and surprise clients.
 //
-// Upsert: PUT against a never-created entity creates it. fetchEntity's
-// errEntityNotFound is swallowed inside deleteAllEntityTriples, so the
-// add-batch then writes the body's triples fresh. Matches the CS API
-// §7.6 idiomatic upsert behavior.
+// Upsert: PUT against a never-created entity creates it via
+// graph.mutation.entity.create_with_triples. Matches the CS API §7.6
+// idiomatic upsert behavior.
 //
 // Status semantics: 204 No Content on success (CS API §7.6.5).
 func (c *Component) handleSystemPut(w http.ResponseWriter, r *http.Request) {
@@ -93,30 +82,7 @@ func (c *Component) handleSystemPut(w http.ResponseWriter, r *http.Request) {
 
 	id := IdentityFrom(r.Context())
 
-	// Replace = remove-all-then-add-batch. Order matters: if we
-	// add-batch first then remove-all, we'd briefly serve the merged
-	// view; remove-first gives a clean cut.
-	//
-	// **Inconsistency windows clients must be aware of:**
-	//   (a) inter-step: if remove-all succeeds and add-batch then fails
-	//       (e.g. 503), the entity is fully erased. Client must retry
-	//       the PUT to recover. Surface as 503 + X-CS-Attempted-ID.
-	//   (b) intra-loop (partial-erasure): deleteAllEntityTriples does N
-	//       per-predicate removes. If predicates 1..k succeed and k+1
-	//       returns a transient error, the entity is partially erased.
-	//       We extend the X-CS-Partial-Delete: true header on this case
-	//       so a retrying client knows the entity needs replacement,
-	//       not just creation.
-	// Both windows retire when semconnect moves this path onto the
-	// beta.87 entity-level mutation primitives.
-	if err := c.deleteAllEntityTriples(r.Context(), pathID, id); err != nil {
-		c.writeBackendError(w, err)
-		return
-	}
-
-	if err := c.ingestTriples(r.Context(), triples, id); err != nil {
-		// Remove succeeded, add-batch failed → entity fully erased.
-		w.Header().Set("X-CS-Partial-Delete", "true")
+	if err := c.putEntityTriples(r.Context(), pathID, triples, id); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
@@ -125,15 +91,9 @@ func (c *Component) handleSystemPut(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleSystemDelete serves DELETE /systems/{id} — CS API §7.6
-// create-replace-delete. Removes every triple associated with the
-// entity. 204 No Content on success. 404 if the entity didn't exist
-// in the first place is intentionally NOT distinguished from 204
-// (idempotent delete is friendlier; clients can pre-check via GET if
-// they need the distinction).
-//
-// Partial-erasure: if deleteAllEntityTriples fails mid-loop, the
-// entity is in an inconsistent state. Surfaced via 503 +
-// X-CS-Partial-Delete: true so the client knows to retry.
+// create-replace-delete. Deletes the entity via graph.mutation.entity.delete.
+// 204 No Content on success; unknown IDs are still 204 because the
+// framework primitive is idempotent.
 func (c *Component) handleSystemDelete(w http.ResponseWriter, r *http.Request) {
 	pathID := r.PathValue("id")
 	if err := validateEntityID(pathID); err != nil {
@@ -144,13 +104,7 @@ func (c *Component) handleSystemDelete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-CS-Attempted-ID", pathID)
 
 	id := IdentityFrom(r.Context())
-	if err := c.deleteAllEntityTriples(r.Context(), pathID, id); err != nil {
-		// Don't set X-CS-Partial-Delete unconditionally — only the
-		// loop's transient failure path inside deleteAllEntityTriples
-		// sets it (via the partialDelete flag indicator). For DELETE
-		// we propagate it on every backend error since any failure
-		// past the first remove leaves a partial state.
-		w.Header().Set("X-CS-Partial-Delete", "true")
+	if err := c.deleteEntity(r.Context(), pathID, id); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
@@ -158,87 +112,107 @@ func (c *Component) handleSystemDelete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// deleteAllEntityTriples implements entity-level deletion via the
-// framework's triple-level primitives — fetch + per-predicate remove.
-// Stage 16. N round-trips per call; retire now that beta.87 exposes
-// `graph.mutation.entity.delete`.
-//
-// Non-existent entity is a no-op (the entity-query returns "not found",
-// classified as errEntityNotFound, which we swallow here so DELETE is
-// idempotent per CS API §7.6 conventions).
-//
-// Identity threads through so each remove call carries the same
-// audit headers as the matching POST/PUT (anonymous-now-no-debt:
-// the future verification layer needs a trail of "who deleted what").
-//
-// Context budget scales with the predicate fan-out. fetchEntity
-// already consumes one QueryTimeout; we extend the ctx by
-// (N + 1) * QueryTimeout so a tight per-call deadline does not
-// silently abort the loop midway, leaving the entity partially
-// erased without the operator knowing the failure mode.
-func (c *Component) deleteAllEntityTriples(ctx context.Context, entityID string, id Identity) error {
-	state, err := c.fetchEntity(ctx, entityID)
+func (c *Component) putEntityTriples(ctx context.Context, entityID string, triples []message.Triple, id Identity) error {
+	current, err := c.fetchEntity(ctx, entityID)
 	if err != nil {
 		if errors.Is(err, errEntityNotFound) {
-			return nil // idempotent delete
+			return c.ingestTriples(ctx, triples, id)
 		}
 		return err
 	}
+	return c.replaceEntityTriples(ctx, current, triples, id)
+}
 
-	// Deduplicate predicates: the same predicate appearing on multiple
-	// triples of the same entity (e.g. multiple identifiers) needs only
-	// one remove call — graph-ingest's RemoveTriple takes (subject,
-	// predicate) and clears all values.
-	seen := make(map[string]struct{}, len(state.Triples))
-	for _, t := range state.Triples {
-		seen[t.Predicate] = struct{}{}
+func (c *Component) replaceEntityTriples(
+	ctx context.Context,
+	current graph.EntityState,
+	triples []message.Triple,
+	id Identity,
+) error {
+	entityID, err := singleSubject(triples)
+	if err != nil {
+		return errs.WrapInvalid(err, "cs-api", "replaceEntityTriples", "invalid triple set")
+	}
+	if entityID != current.ID {
+		return errs.WrapInvalid(
+			fmt.Errorf("replacement triples target %q, not existing entity %q", entityID, current.ID),
+			"cs-api", "replaceEntityTriples", "entity mismatch")
 	}
 
-	// Scale the loop budget with fan-out so a single tight QueryTimeout
-	// doesn't abort the loop midway. +1 for slack.
-	loopCtx, cancel := context.WithTimeout(ctx, time.Duration(len(seen)+1)*c.cfg.QueryTimeout)
-	defer cancel()
+	req := graph.UpdateEntityWithTriplesRequest{
+		Entity:        &current,
+		AddTriples:    triples,
+		RemoveTriples: uniquePredicates(current.Triples),
+	}
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return errs.Wrap(err, "cs-api", "replaceEntityTriples", "marshal entity update request")
+	}
 
-	hdrs := id.AuditHeaders()
-	for predicate := range seen {
-		reqBody, mErr := json.Marshal(graph.RemoveTripleRequest{
-			Subject:   entityID,
-			Predicate: predicate,
-		})
-		if mErr != nil {
-			return errs.Wrap(mErr, "cs-api", "deleteAllEntityTriples", "marshal remove request")
-		}
-		// RequestWithHeaders attaches audit headers symmetric with
-		// POST /systems. graph-ingest doesn't persist them today; the
-		// trail will be load-bearing when verification ships.
-		reply, rErr := c.nats.RequestWithHeaders(loopCtx, SubjectTripleRemove, reqBody, hdrs, c.cfg.QueryTimeout)
-		if rErr != nil {
-			switch {
-			case errors.Is(rErr, nats.ErrNoResponders),
-				errors.Is(rErr, nats.ErrTimeout),
-				errors.Is(rErr, context.DeadlineExceeded),
-				errors.Is(rErr, context.Canceled),
-				errors.Is(rErr, nats.ErrConnectionClosed):
-				return errs.WrapTransient(rErr, "cs-api", "deleteAllEntityTriples", "graph backend unavailable")
-			default:
-				return errs.Wrap(rErr, "cs-api", "deleteAllEntityTriples", "remove triple request")
-			}
-		}
-		var resp graph.RemoveTripleResponse
-		if uErr := json.Unmarshal(reply.Data, &resp); uErr != nil {
-			return errs.Wrap(uErr, "cs-api", "deleteAllEntityTriples", "decode remove response")
-		}
-		if !resp.Success {
-			// Log the predicate-scoped reject so an operator triaging
-			// "why did my idempotent DELETE return 400?" has the data.
-			c.logger.Warn("remove triple rejected by graph-ingest",
-				"subject", entityID, "predicate", predicate, "err", resp.Error)
-			return errs.WrapInvalid(errors.New(resp.Error),
-				"cs-api", "deleteAllEntityTriples",
-				fmt.Sprintf("subject=%s predicate=%s rejected", entityID, predicate))
+	reply, err := c.nats.RequestWithHeaders(ctx, SubjectEntityUpdateWithTriples, reqBody, id.AuditHeaders(), c.cfg.QueryTimeout)
+	if err != nil {
+		switch {
+		case errors.Is(err, nats.ErrNoResponders),
+			errors.Is(err, nats.ErrTimeout),
+			errors.Is(err, context.DeadlineExceeded),
+			errors.Is(err, nats.ErrConnectionClosed):
+			return errs.WrapTransient(err, "cs-api", "replaceEntityTriples", "graph backend unavailable")
+		default:
+			return errs.Wrap(err, "cs-api", "replaceEntityTriples", "entity update request")
 		}
 	}
-	return nil
+
+	var resp graph.UpdateEntityWithTriplesResponse
+	if err := json.Unmarshal(reply.Data, &resp); err != nil {
+		return errs.Wrap(err, "cs-api", "replaceEntityTriples", "decode entity update response")
+	}
+	if resp.Success {
+		if resp.Degraded {
+			c.logger.Warn("entity update committed with degraded read-back", "entity", current.ID, "err", resp.Error)
+		}
+		return nil
+	}
+	return mutationFailure("replaceEntityTriples", resp.MutationResponse)
+}
+
+func (c *Component) deleteEntity(ctx context.Context, entityID string, id Identity) error {
+	reqBody, err := json.Marshal(graph.DeleteEntityRequest{EntityID: entityID})
+	if err != nil {
+		return errs.Wrap(err, "cs-api", "deleteEntity", "marshal entity delete request")
+	}
+	reply, err := c.nats.RequestWithHeaders(ctx, SubjectEntityDelete, reqBody, id.AuditHeaders(), c.cfg.QueryTimeout)
+	if err != nil {
+		switch {
+		case errors.Is(err, nats.ErrNoResponders),
+			errors.Is(err, nats.ErrTimeout),
+			errors.Is(err, context.DeadlineExceeded),
+			errors.Is(err, nats.ErrConnectionClosed):
+			return errs.WrapTransient(err, "cs-api", "deleteEntity", "graph backend unavailable")
+		default:
+			return errs.Wrap(err, "cs-api", "deleteEntity", "entity delete request")
+		}
+	}
+	var resp graph.DeleteEntityResponse
+	if err := json.Unmarshal(reply.Data, &resp); err != nil {
+		return errs.Wrap(err, "cs-api", "deleteEntity", "decode entity delete response")
+	}
+	if resp.Success {
+		return nil
+	}
+	return mutationFailure("deleteEntity", resp.MutationResponse)
+}
+
+func uniquePredicates(triples []message.Triple) []string {
+	seen := make(map[string]struct{}, len(triples))
+	out := make([]string, 0, len(triples))
+	for _, tr := range triples {
+		if _, ok := seen[tr.Predicate]; ok {
+			continue
+		}
+		seen[tr.Predicate] = struct{}{}
+		out = append(out, tr.Predicate)
+	}
+	return out
 }
 
 // handleSystemsOptions serves OPTIONS /systems — CS API §7.6

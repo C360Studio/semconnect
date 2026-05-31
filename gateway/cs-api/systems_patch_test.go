@@ -1,7 +1,6 @@
 // Stage 19 — PATCH /systems/{id} tests. Re-uses the crdFakeRequester
-// stub from systems_crd_test.go (same package) since PATCH shares
-// the same NATS-subject fan-out as PUT: entity-query → per-predicate
-// removes → add_batch.
+// stub from systems_crd_test.go (same package) since PATCH shares the
+// same entity-query → entity.update_with_triples flow as PUT.
 //
 // Mirrors the ETS UpdateTests.systemPatchLifecycle scenario:
 // POST a Feature with uid+name → PATCH with `properties:
@@ -54,6 +53,15 @@ func patchFeatureJSON(t *testing.T, props map[string]any) []byte {
 	return out
 }
 
+func updateTriplesFromBody(t *testing.T, body []byte) []message.Triple {
+	t.Helper()
+	var req graph.UpdateEntityWithTriplesRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		t.Fatalf("decode update body: %v", err)
+	}
+	return req.AddTriples
+}
+
 // TestHandleSystemPatch_NameOnly — PATCH a single `properties.name`
 // field. Description + geometry + uid triples must survive untouched.
 func TestHandleSystemPatch_NameOnly(t *testing.T) {
@@ -78,17 +86,13 @@ func TestHandleSystemPatch_NameOnly(t *testing.T) {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
 	if fake.batchCount != 1 {
-		t.Fatalf("add_batch calls: got %d want 1", fake.batchCount)
+		t.Fatalf("entity update calls: got %d want 1", fake.batchCount)
 	}
 
 	// Decode the published merged batch. The label triple should be the
 	// PATCHED name; description, uid, position, type triples should
 	// match the existing entity's values.
-	var batch graph.AddTriplesBatchRequest
-	if err := json.Unmarshal(fake.batchBody, &batch); err != nil {
-		t.Fatalf("decode batch body: %v", err)
-	}
-	got := tripleObjectByPredicate(batch.Triples)
+	got := tripleObjectByPredicate(updateTriplesFromBody(t, fake.batchBody))
 	if got[sensorml.PredLabel] != "PATCHED name" {
 		t.Errorf("label triple: got %q want %q", got[sensorml.PredLabel], "PATCHED name")
 	}
@@ -134,9 +138,7 @@ func TestHandleSystemPatch_AddsAbsentField(t *testing.T) {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
 
-	var batch graph.AddTriplesBatchRequest
-	_ = json.Unmarshal(fake.batchBody, &batch)
-	got := tripleObjectByPredicate(batch.Triples)
+	got := tripleObjectByPredicate(updateTriplesFromBody(t, fake.batchBody))
 	if got[sensorml.PredDescription] != "Added by PATCH" {
 		t.Errorf("description: got %q want %q", got[sensorml.PredDescription], "Added by PATCH")
 	}
@@ -167,9 +169,7 @@ func TestHandleSystemPatch_EmptyBodyIsNoOp(t *testing.T) {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
 
-	var batch graph.AddTriplesBatchRequest
-	_ = json.Unmarshal(fake.batchBody, &batch)
-	got := tripleObjectByPredicate(batch.Triples)
+	got := tripleObjectByPredicate(updateTriplesFromBody(t, fake.batchBody))
 	if got[sensorml.PredLabel] != "Original name" {
 		t.Errorf("label: got %q want %q", got[sensorml.PredLabel], "Original name")
 	}
@@ -200,7 +200,7 @@ func TestHandleSystemPatch_UIDMismatch_400(t *testing.T) {
 		t.Errorf("remove must not be called on uid mismatch; got %d calls", len(fake.removeCalls))
 	}
 	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not be called on uid mismatch; got %d calls", fake.batchCount)
+		t.Errorf("entity update must not be called on uid mismatch; got %d calls", fake.batchCount)
 	}
 	// Pin the ordering invariant: entity-query DID happen (mismatch
 	// is detected from fetched state, unlike PUT's pre-fetch
@@ -269,9 +269,7 @@ func TestHandleSystemPatch_GeometryNullIsNoOp(t *testing.T) {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
 
-	var batch graph.AddTriplesBatchRequest
-	_ = json.Unmarshal(fake.batchBody, &batch)
-	got := tripleObjectByPredicate(batch.Triples)
+	got := tripleObjectByPredicate(updateTriplesFromBody(t, fake.batchBody))
 	if got[PredSystemPosition] != `{"type":"Point","coordinates":[10,20]}` {
 		t.Errorf("position triple must survive geometry:null; got %q", got[PredSystemPosition])
 	}

@@ -975,11 +975,6 @@ Stage 35 extends the `conf/update` surface from systems to datastreams:
 - `OPTIONS /datastreams/{id}` now advertises
   `GET, HEAD, PUT, PATCH, DELETE, OPTIONS`.
 
-The implementation intentionally reuses the existing
-`deleteAllEntityTriples` + `ingestTriples` path, so it has the same
-partial-erasure window as PUT until the gateway migrates to semstreams'
-entity mutation subjects.
-
 Remaining local work:
 
 - Command execution only if v0.1 scope expands beyond read-side
@@ -994,8 +989,9 @@ and Datastream PATCH parity does not unlock a new ETS branch.
 
 Stage 36 closes the observation orphan note on Datastream DELETE:
 
-- `DELETE /datastreams/{id}` still removes graph triples first and keeps
-  the same idempotent 204 behavior when the graph entity is missing.
+- `DELETE /datastreams/{id}` still deletes the graph entity first and
+  keeps the same idempotent 204 behavior when the graph entity is
+  missing.
 - After graph deletion succeeds, the gateway purges messages on the exact
   JetStream subject `cs-api.observations.{id}`.
 - The purge is subject-scoped; it does not touch observations for any
@@ -1017,6 +1013,36 @@ Remaining local work:
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
 2026-05-29). Headline conformance is unchanged from Stage 35; the
 pinned ETS does not seed or assert observation cleanup.
+
+### Stage 37 — Entity mutation write path
+
+Stage 37 retires the legacy write-path shims now that semstreams'
+entity mutation subjects are available in the pinned beta:
+
+- POST resource creates use `graph.mutation.entity.create_with_triples`
+  through `ingestTriples`. Duplicate creates now map to 409 Conflict
+  instead of silently upserting through `add_batch`.
+- PUT create-or-replace paths fetch the current entity, then use
+  `graph.mutation.entity.update_with_triples` for replacements or
+  `create_with_triples` when the entity is missing.
+- PATCH paths keep their existing precondition checks, merge into a
+  full desired triple set, then use `update_with_triples`.
+- DELETE paths use `graph.mutation.entity.delete`, which is idempotent
+  for missing entities.
+- The old delete-all + add-batch partial-erasure window is gone from
+  Systems and Datastreams. Datastream DELETE still reports
+  `X-CS-Partial-Delete: true` when observation stream purge fails after
+  graph deletion, because that split-brain state is still real.
+
+Remaining local work:
+
+- Command execution only if v0.1 scope expands beyond read-side
+  ControlStream metadata.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-31). Headline conformance is unchanged from Stage 36; this
+stage retires local write-path debt rather than unlocking a new ETS
+branch.
 
 ### Stage 37+ — Continue OSH-bar resource buildout
 

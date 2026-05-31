@@ -31,10 +31,7 @@ import (
 // gate) but not required (the path is authoritative).
 //
 // Implementation: read the existing entity, merge body fields onto
-// its triple set, then route through the same delete-all + add-batch
-// path PUT uses. N round-trips per call (entity-query + N
-// per-predicate removes + 1 add-batch); retire alongside PUT when
-// semconnect moves onto the beta.87 entity-level mutation subjects.
+// its triple set, then replace through graph.mutation.entity.update_with_triples.
 //
 // **No `properties.geometry: null` support** — RFC 7396 says null
 // removes the field, but CS API spec doesn't explicitly require
@@ -131,15 +128,7 @@ func (c *Component) handleSystemPatch(w http.ResponseWriter, r *http.Request) {
 
 	merged := mergePatchSystemTriples(pathID, existing.Triples, feat)
 
-	// Same two-step replace as PUT: delete-all-then-add-batch on the
-	// merged triple set. Carries the same partial-erasure window —
-	// surfaced via X-CS-Partial-Delete on the add-batch failure path.
-	if err := c.deleteAllEntityTriples(r.Context(), pathID, identity); err != nil {
-		c.writeBackendError(w, err)
-		return
-	}
-	if err := c.ingestTriples(r.Context(), merged, identity); err != nil {
-		w.Header().Set("X-CS-Partial-Delete", "true")
+	if err := c.replaceEntityTriples(r.Context(), existing, merged, identity); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}

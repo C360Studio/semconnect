@@ -231,7 +231,7 @@ func TestHandleDatastream_NotDatastreamKind(t *testing.T) {
 }
 
 // TestHandleDatastreamPost_GoldenPath: POST → 201 with Location pointing
-// at the minted entity ID + triples published to add_batch.
+// at the minted entity ID + triples published to create_with_triples.
 func TestHandleDatastreamPost_GoldenPath(t *testing.T) {
 	fake := &fakeRequester{status: natsclient.StatusConnected, reply: encodeBatchOK(t, 4)}
 	c := newTestComponent(t, fake)

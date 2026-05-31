@@ -3,11 +3,8 @@
 // (Stage 16) so the `create-replace-delete` conformance class
 // claim is honest across both resource types the IUT implements.
 //
-// Implementation re-uses deleteAllEntityTriples + ingestTriples
-// from the Stage 16 fan-out path (same per-predicate N round-trips
-// + same partial-erasure window + same audit-headers symmetry).
-// Retires alongside Stage 16 when semconnect migrates to the
-// beta.87 entity-level mutation subjects.
+// Implementation re-uses the entity mutation helpers from the systems
+// write path so write semantics and audit headers stay symmetric.
 package csapi
 
 import (
@@ -101,17 +98,7 @@ func (c *Component) handleDatastreamPut(w http.ResponseWriter, r *http.Request) 
 
 	identity := IdentityFrom(r.Context())
 
-	// Same two-step replace as Stage 16's PUT /systems/{id}: remove
-	// all triples, then add the new batch. Same X-CS-Partial-Delete
-	// signal when the add-batch fails after a successful remove.
-	if err := c.deleteAllEntityTriples(r.Context(), pathID, identity); err != nil {
-		c.writeBackendError(w, err)
-		return
-	}
-
-	if err := c.ingestTriples(r.Context(), triples, identity); err != nil {
-		// Remove succeeded, add-batch failed → entity fully erased.
-		w.Header().Set("X-CS-Partial-Delete", "true")
+	if err := c.putEntityTriples(r.Context(), pathID, triples, identity); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
@@ -120,11 +107,8 @@ func (c *Component) handleDatastreamPut(w http.ResponseWriter, r *http.Request) 
 }
 
 // handleDatastreamDelete serves DELETE /datastreams/{id} — CS API
-// §10.6. Idempotent (errEntityNotFound swallowed inside
-// deleteAllEntityTriples → returns 204 even if the entity never
-// existed). Removes every triple via per-predicate
-// graph.mutation.triple.remove calls. A mid-loop transient failure
-// surfaces as 503 + X-CS-Partial-Delete: true.
+// §10.6. Idempotent (graph.mutation.entity.delete returns success even
+// when the entity never existed).
 //
 // Stage 36 also purges observations published on the datastream's exact
 // JetStream subject after graph deletion succeeds. If graph deletion
@@ -141,8 +125,7 @@ func (c *Component) handleDatastreamDelete(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("X-CS-Attempted-ID", pathID)
 
 	identity := IdentityFrom(r.Context())
-	if err := c.deleteAllEntityTriples(r.Context(), pathID, identity); err != nil {
-		w.Header().Set("X-CS-Partial-Delete", "true")
+	if err := c.deleteEntity(r.Context(), pathID, identity); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}

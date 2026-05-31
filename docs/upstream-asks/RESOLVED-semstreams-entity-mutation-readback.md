@@ -8,10 +8,10 @@ and PR #137. Entity-level mutation subjects are wired, and
 `graph.MutationResponse.Degraded` now distinguishes "write committed,
 post-write read-back failed" from "write did not commit".
 
-**semconnect follow-up:** migrate the gateway write path from
-`graph.mutation.triple.add_batch` plus delete fan-out to
-`graph.mutation.entity.*`. That migration is local semconnect work now;
-it is no longer blocked on semstreams.
+**semconnect follow-up:** completed in semconnect Stage 37. The gateway
+write path now uses `graph.mutation.entity.create_with_triples`,
+`graph.mutation.entity.update_with_triples`, and
+`graph.mutation.entity.delete`.
 
 ## 2026-05-29 update
 
@@ -38,17 +38,19 @@ the entity-level mutation request types but `processor/graph-ingest/`
 only wired triple-level subjects. semconnect had to write new entities
 through `graph.mutation.triple.add_batch`, which has upsert semantics.
 
-For the CS API gateway specifically:
+Before semconnect Stage 37, the CS API gateway specifically had these
+local consequences:
 
 - `POST /systems` and `POST /datastreams` in semconnect (Stage 8) issue `AddTriplesBatchRequest` to write a new entity. Works because `AddTriple`'s CAS path creates the entity if it doesn't exist.
-- Lost: `CreateEntityRequest` would let us distinguish "create new" from "update existing" — important for CS API §7.6 (POST is strictly create; 409 Conflict when the entity already exists). Today the gateway can't return 409, because `add_batch` happily upserts.
+- Lost: `CreateEntityRequest` would let us distinguish "create new" from "update existing" — important for CS API §7.6 (POST is strictly create; 409 Conflict when the entity already exists). The gateway could not return 409, because `add_batch` happily upserts.
 - Lost: `CreateEntityWithTriplesRequest` would carry the full `EntityState` shape (including `MessageType`, `Version`, `StorageRef`) — fields `AddTriple` synthesizes with defaults. Operators that want to capture provenance (e.g. "this entity was created from SensorML version X stored at S3 key K") have no way to express it through `add_batch`.
 
-Those are now semconnect implementation gaps, not semstreams gaps.
+Those were semconnect implementation gaps, not semstreams gaps; Stage 37
+closed them on the gateway side.
 
 ## Local migration target
 
-The next semconnect write-path cleanup should:
+Implemented in Stage 37:
 
 - Use `graph.mutation.entity.create_with_triples` for POST creates and
   map `ErrorCodeEntityExists` to `409 Conflict`.

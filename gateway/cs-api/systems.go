@@ -570,6 +570,7 @@ func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntitySta
 // rather than overload Invalid → 400 to also mean "missing entity → 404",
 // we keep a local sentinel here and have writeBackendError detect it.
 var errEntityNotFound = errors.New("cs-api: entity not found")
+var errEntityConflict = errors.New("cs-api: entity already exists")
 
 // classifyEntityQueryFailure maps semstreams' header-classified
 // graph.query.entity handler errors into CS API HTTP semantics. beta.87
@@ -688,6 +689,9 @@ func (c *Component) writeBackendError(w http.ResponseWriter, err error) {
 	case errors.Is(err, errEntityNotFound):
 		status = http.StatusNotFound
 		body = err.Error() // safe to echo: the message is just "not found: <id>"
+	case errors.Is(err, errEntityConflict):
+		status = http.StatusConflict
+		body = err.Error() // safe to echo: duplicate entity ID
 	case errs.IsInvalid(err):
 		status = http.StatusBadRequest
 		body = err.Error() // safe to echo: caller-supplied input was malformed

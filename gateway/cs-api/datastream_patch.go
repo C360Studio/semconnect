@@ -128,12 +128,7 @@ func (c *Component) handleDatastreamPatch(w http.ResponseWriter, r *http.Request
 	merged := mergePatchDatastreamTriples(pathID, existing.Triples, in, hasSchema)
 
 	identity := IdentityFrom(r.Context())
-	if err := c.deleteAllEntityTriples(r.Context(), pathID, identity); err != nil {
-		c.writeBackendError(w, err)
-		return
-	}
-	if err := c.ingestTriples(r.Context(), merged, identity); err != nil {
-		w.Header().Set("X-CS-Partial-Delete", "true")
+	if err := c.replaceEntityTriples(r.Context(), existing, merged, identity); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}

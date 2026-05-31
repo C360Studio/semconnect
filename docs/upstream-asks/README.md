@@ -40,9 +40,6 @@ without making semstreams review stale blockers.
 
 ## semconnect-local follow-ups
 
-- Migrate gateway writes from `graph.mutation.triple.add_batch` plus
-  delete fan-out to `graph.mutation.entity.*`. This is no longer an
-  upstream ask now that #120 is closed.
 - Migrate Datastream and ControlStream schema storage from local JSON
   predicates to typed artifact entities once semstreams ships the CS API
   vocabulary constants tracked in #171.

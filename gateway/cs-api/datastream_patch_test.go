@@ -1,6 +1,6 @@
 // Stage 35 — PATCH /datastreams/{id} tests. Shares the CRD fake with
-// PUT/DELETE because PATCH uses the same entity-query → remove fan-out
-// → add-batch write path.
+// PUT/DELETE because PATCH uses the same entity-query →
+// entity.update_with_triples write path.
 package csapi
 
 import (
@@ -10,7 +10,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
@@ -37,17 +36,11 @@ func TestHandleDatastreamPatch_NameAndSchema(t *testing.T) {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
 	if fake.batchCount != 1 {
-		t.Fatalf("add_batch calls: got %d want 1", fake.batchCount)
-	}
-	if len(fake.removeCalls) == 0 {
-		t.Fatalf("remove calls: got 0 want >0")
+		t.Fatalf("entity update calls: got %d want 1", fake.batchCount)
 	}
 
-	var batch graph.AddTriplesBatchRequest
-	if err := json.Unmarshal(fake.batchBody, &batch); err != nil {
-		t.Fatalf("decode batch body: %v", err)
-	}
-	got := tripleObjectByPredicate(batch.Triples)
+	triples := updateTriplesFromBody(t, fake.batchBody)
+	got := tripleObjectByPredicate(triples)
 	if got[sensorml.PredLabel] != "PATCHED flow stream" {
 		t.Errorf("label triple: got %q", got[sensorml.PredLabel])
 	}
@@ -61,7 +54,7 @@ func TestHandleDatastreamPatch_NameAndSchema(t *testing.T) {
 		t.Errorf("observedProperty preserved: got %q", got[sosa.ObservedProperty])
 	}
 	if got[PredDatastreamSchema] == "" {
-		t.Fatalf("schema triple missing: %+v", batch.Triples)
+		t.Fatalf("schema triple missing: %+v", triples)
 	}
 	if !json.Valid([]byte(got[PredDatastreamSchema])) {
 		t.Fatalf("schema triple not JSON: %s", got[PredDatastreamSchema])
@@ -93,7 +86,7 @@ func TestHandleDatastreamPatch_IDMismatch_400BeforeFetch(t *testing.T) {
 		t.Errorf("remove must not run on mismatch; got %d", len(fake.removeCalls))
 	}
 	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not run on mismatch; got %d", fake.batchCount)
+		t.Errorf("entity update must not run on mismatch; got %d", fake.batchCount)
 	}
 }
 
@@ -119,7 +112,7 @@ func TestHandleDatastreamPatch_NotFoundNoUpsert(t *testing.T) {
 		t.Errorf("remove must not run on not-found PATCH; got %d", len(fake.removeCalls))
 	}
 	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not run on not-found PATCH; got %d", fake.batchCount)
+		t.Errorf("entity update must not run on not-found PATCH; got %d", fake.batchCount)
 	}
 }
 
@@ -141,7 +134,7 @@ func TestHandleDatastreamPatch_InvalidSchemaBeforeFetch(t *testing.T) {
 		t.Errorf("entity-query must not run on invalid schema; got %d", fake.entityQueryCalls)
 	}
 	if fake.batchCount != 0 {
-		t.Errorf("add_batch must not run on invalid schema; got %d", fake.batchCount)
+		t.Errorf("entity update must not run on invalid schema; got %d", fake.batchCount)
 	}
 }
 

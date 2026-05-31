@@ -29,10 +29,6 @@ const DatastreamTypeIRI = csapi.Datastream
 // Stage 39: aliases beta.91's dotted csapi.ProducedBy.
 const PredDatastreamSystem = csapi.ProducedBy
 
-// legacyPredDatastreamSystemIRI is the beta.75-beta.90 value of
-// csapi.ProducedBy, when vocabulary/csapi exposed IRIs as predicate values.
-const legacyPredDatastreamSystemIRI = csapi.ProducedByIRI
-
 // PredDatastreamSchema stores the v0.1 SWE Common DataRecord schema
 // JSON that observation SWE encoders use for this Datastream. semstreams
 // beta.88 intentionally scope-cuts schema storage from vocabulary/csapi
@@ -96,7 +92,7 @@ func datastreamFromState(state graph.EntityState) Datastream {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		d.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredDatastreamSystem, legacyPredDatastreamSystemIRI); ok {
+	if v, ok := firstStringObject(state.Triples, PredDatastreamSystem); ok {
 		d.System = v
 	}
 	if v, ok := firstStringObject(state.Triples, sosa.ObservedProperty); ok {

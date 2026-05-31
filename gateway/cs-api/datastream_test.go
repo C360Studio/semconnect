@@ -54,21 +54,6 @@ func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsPr
 
 const testSWEDataRecordSchema = `{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}`
 
-func TestDatastreamFromState_ReadsLegacyIRISystemPredicate(t *testing.T) {
-	id := "c360.semconnect.systems.csapi.datastream.legacy"
-	system := "c360.semconnect.systems.csapi.system.legacy"
-	got := datastreamFromState(graph.EntityState{
-		ID: id,
-		Triples: []message.Triple{
-			{Subject: id, Predicate: sensorml.PredType, Object: DatastreamTypeIRI},
-			{Subject: id, Predicate: legacyPredDatastreamSystemIRI, Object: system},
-		},
-	})
-	if got.System != system {
-		t.Fatalf("system: got %q want %q", got.System, system)
-	}
-}
-
 // TestHandleDatastreams_GoldenPath pins the list shape for a populated
 // datastream graph.
 func TestHandleDatastreams_GoldenPath(t *testing.T) {

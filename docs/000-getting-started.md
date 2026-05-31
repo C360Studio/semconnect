@@ -1070,9 +1070,6 @@ local adoption:
 - Migrate Datastream result schemas and ControlStream command schemas
   from gateway-local JSON predicates to `csapi:SWESchemaDocument`
   artifact entities with dotted relationship predicates.
-- Audit the existing CS API relationship predicates that currently use
-  `vocabulary/csapi` IRI constants internally and migrate them to dotted
-  predicates with legacy read fallbacks.
 - Adopt `graph.query.batch` on collection endpoints that hydrate full
   resources after predicate queries.
 - Use `natsclient.TestClient` when a real NATS-backed integration test
@@ -1100,9 +1097,9 @@ Local cleanup in this stage:
 - New writes for Datastream system links, ControlStream system links,
   and SystemEvent system links now use beta.91's dotted CS API predicate
   constants automatically.
-- Read paths keep explicit legacy fallbacks for beta.75-beta.90 data
-  written with IRI-shaped CS API predicates, plus the older gateway-local
-  ControlStream/SystemEvent relationship predicates.
+- Because semconnect is greenfield, relationship reads use the same
+  dotted beta.91 predicates directly rather than carrying beta.90
+  compatibility fallbacks.
 - The upstream ask queue now has no open semstreams blocker for the CS
   API gateway.
 

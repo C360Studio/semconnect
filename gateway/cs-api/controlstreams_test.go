@@ -55,19 +55,6 @@ func controlStreamState(t *testing.T) []byte {
 	})
 }
 
-func TestControlStreamFromState_ReadsLegacyIRISystemPredicate(t *testing.T) {
-	got := controlStreamFromState(graph.EntityState{
-		ID: testControlStreamID,
-		Triples: []message.Triple{
-			{Subject: testControlStreamID, Predicate: sensorml.PredType, Object: ControlStreamTypeIRI},
-			{Subject: testControlStreamID, Predicate: legacyPredControlStreamSystemIRI, Object: testControlSystemID},
-		},
-	})
-	if got.SystemID != testControlSystemID {
-		t.Fatalf("system@id: got %q want %q", got.SystemID, testControlSystemID)
-	}
-}
-
 func TestHandleControlStreams_GoldenPath(t *testing.T) {
 	fake := &multiReplyFakeRequester{
 		predicateReply: encodeReply(t, []string{testControlStreamID}),

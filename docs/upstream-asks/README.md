@@ -15,7 +15,8 @@ gateway work are closed upstream as of semstreams `v1.0.0-beta.91`.
 - `v1.0.0-beta.91`: #182 split `vocabulary/csapi` relationship
   predicates into dotted internal constants plus `*IRI` boundary
   constants. semconnect now writes dotted CS API relationship predicates
-  while retaining read fallbacks for beta.90's IRI-shaped predicate data.
+  and reads that same dotted shape directly because the gateway is
+  greenfield.
 - `v1.0.0-beta.90`: #171 CS API typed artifact classes and
   first-class artifact-entity guidance, #172 public `graph.query.batch`
   passthrough for batch entity hydration, and #173 natsclient test-client

@@ -1044,10 +1044,53 @@ Remaining local work:
 stage retires local write-path debt rather than unlocking a new ETS
 branch.
 
-### Stage 37+ — Continue OSH-bar resource buildout
+### Stage 38 — semstreams pin bump to v1.0.0-beta.90 + upstream ask closure
+
+Stage 38 pins semconnect to semstreams `v1.0.0-beta.90`, which closes
+the three semstreams asks filed from the CS API graph/store fit pass:
+
+- #171 ships `vocabulary/csapi` artifact classes and CS API IRI
+  constants for `hasSource`, `hasResultSchema`, and
+  `hasCommandSchema`. The accepted pattern is first-class artifact
+  entities with their own singular `StorageRef`, related from parent CS
+  API entities by vocabulary predicates. semconnect must still preserve
+  SemStreams' internal three-level dotted predicate contract and map to
+  CS API IRIs only at export/import boundaries; follow-up #182 tracks
+  dotted CS API predicate constants for direct graph use.
+- #172 exposes public `graph.query.batch`, so collection reads can move
+  from predicate-query plus N entity-query hydrations to predicate-query
+  plus one or more chunked batch queries. Semstreams recommends chunking
+  around 100 entity IDs when payload sizes are not tightly bounded.
+- #173 documents the existing `natsclient.TestClient` helper patterns
+  for gateway-style integration tests.
+
+No semstreams ask currently blocks semconnect. The remaining work is
+local adoption:
+
+- Migrate Datastream result schemas and ControlStream command schemas
+  from gateway-local JSON predicates to `csapi:SWESchemaDocument`
+  artifact entities with dotted relationship predicates.
+- Audit the existing CS API relationship predicates that currently use
+  `vocabulary/csapi` IRI constants internally and migrate them to dotted
+  predicates with legacy read fallbacks.
+- Adopt `graph.query.batch` on collection endpoints that hydrate full
+  resources after predicate queries.
+- Use `natsclient.TestClient` when a real NATS-backed integration test
+  is more valuable than the current in-memory fakes.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-31). Headline conformance is unchanged from Stage 37; the beta.90
+pin closes upstream ask triage and unlocks local follow-up work rather
+than claiming new ETS branches.
+
+### Stage 38+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
+- Typed artifact entity migration for Datastream and ControlStream
+  schema storage, preserving three-level dotted graph predicates.
+- Batch entity hydration for collection reads that currently use N+1
+  entity queries.
 - Command execution, if/when v0.1 scope expands beyond read-side
   ControlStream metadata.
 

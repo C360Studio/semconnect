@@ -384,7 +384,7 @@ EOF
     depl_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
         curlimages/curl:8.10.1 \
-        -sS -w '\nHTTP %{http_code}\n' \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
         -X POST -H 'Content-Type: application/json' \
         --data-binary "$depl_body" \
         "${cs_api_url}/deployments" 2>&1)" || true
@@ -394,7 +394,53 @@ EOF
     if [[ "$depl_code" != "201" ]]; then
         die "POST /deployments failed: $depl_code (see $SEED_LOG)"
     fi
-    log "  seeded deployment (HTTP $depl_code)"
+    local depl_loc
+    depl_loc="$(echo "$depl_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    local depl_id="${depl_loc##*/}"
+    if [[ -z "$depl_id" ]]; then
+        die "POST /deployments returned 201 but Location header was empty or missing (see $SEED_LOG)"
+    fi
+    if ! [[ "$depl_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
+        die "POST /deployments returned 201 with malformed id '$depl_id' (see $SEED_LOG)"
+    fi
+    log "  seeded deployment: id=$depl_id"
+
+    # Stage 50 — seed a child Deployment so the optional
+    # Subdeployments conformance group has concrete composition
+    # evidence. The temporary gateway-local relationship predicate is
+    # cs-api.deployment.parent until semstreams grows a canonical CS API
+    # deployment-composition vocabulary term.
+    log "  POST /deployments with child subdeployment referencing parent=$depl_id"
+    local subdepl_body
+    subdepl_body=$(cat <<EOF
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-122.4196,37.7751]},"properties":{"uid":"urn:ets:deploy:weather:subdeployment:child01","name":"Conformance seed subdeployment","description":"Stage 50 seed fixture — child deployment","parent@id":"${depl_id}","deployedSystems@link":[{"href":"/systems/${sys_id}","rel":"deployedSystem","type":"application/json"}]}}
+EOF
+)
+    local subdepl_resp
+    subdepl_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$subdepl_body" \
+        "${cs_api_url}/deployments" 2>&1)" || true
+    echo "$subdepl_resp" >>"$SEED_LOG"
+    local subdepl_code
+    subdepl_code="$(echo "$subdepl_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$subdepl_code" != "201" ]]; then
+        die "POST /deployments child subdeployment failed: $subdepl_code (see $SEED_LOG)"
+    fi
+    local subdepl_loc
+    subdepl_loc="$(echo "$subdepl_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    local subdepl_id="${subdepl_loc##*/}"
+    if [[ -z "$subdepl_id" ]]; then
+        die "POST /deployments child subdeployment returned 201 but Location header was empty or missing (see $SEED_LOG)"
+    fi
+    if ! [[ "$subdepl_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
+        die "POST /deployments child subdeployment returned 201 with malformed id '$subdepl_id' (see $SEED_LOG)"
+    fi
+    log "  seeded subdeployment: id=$subdepl_id"
+    wait_for_seeded_collection "$cs_api_url" "/deployments/${depl_id}/subdeployments" "subdeployment"
 
     # Stage 22 — seed a SamplingFeature so the ETS sampling-features
     # group has non-empty /samplingFeatures. Polygon geometry exercises

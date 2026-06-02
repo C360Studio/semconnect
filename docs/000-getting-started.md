@@ -1379,6 +1379,39 @@ and can follow once a client or newer suite asks for them.
 `subsystemsCollectionReturns200`, `subsystemItemHasIdTypeLinks`,
 `subsystemItemHasCanonicalLink`, and `subsystemHasParentSystemLink`.
 
+### Stage 50 — Part 1 Subdeployments read side
+
+Stage 50 declares the Part 1 Subdeployments conformance class and implements
+the parent-scoped read surface the pinned ETS exercises:
+
+- `POST /deployments` Feature bodies now accept optional
+  `properties.parent@id` or `properties.parent@link`. The gateway stores
+  the relation on the child Deployment using the three-part gateway-local
+  dotted predicate `cs-api.deployment.parent`.
+- `GET /deployments/{id}/subdeployments` validates the parent Deployment,
+  lists Deployments via the existing predicate index, batch-hydrates entity
+  state, and filters children whose `cs-api.deployment.parent` points to
+  the parent.
+- Collection items are normal Deployment resources with canonical
+  `/deployments/{childID}` links; no nested item alias is required by the
+  pinned ETS for this group.
+- The conformance fixture seed now creates a child Deployment linked to the
+  primary seeded Deployment and waits for `/deployments/{id}/subdeployments`
+  to become non-empty before Team Engine starts.
+
+`cs-api.deployment.parent` exists because semstreams currently has SOSA/SSN
+deployment vocabulary for deployed systems, but no canonical CS API
+deployment-composition predicate. The shim is one constant plus the
+Deployment write/read call sites; once semstreams adds a canonical term, the
+replacement should be a small predicate swap rather than a structural
+rewrite.
+
+**Outcome:** `total=137 passed=114 failed=0 skipped=23` (confirmed
+2026-06-02). Newly passing checks are
+`subdeploymentsDependencyCascadeRuntime`,
+`subdeploymentsCollectionReturns200`, `subdeploymentItemHasIdTypeLinks`,
+and `subdeploymentItemHasCanonicalLink`.
+
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.
 

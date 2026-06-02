@@ -68,6 +68,12 @@ var stageConformanceClasses = []string{
 	// stored on child System entities via semstreams'
 	// sensorml.PredIsHostedBy predicate.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/subsystem",
+	// Stage 50 — CS API Part 1 Subdeployments read-side:
+	// parent-scoped /deployments/{id}/subdeployments collection over
+	// Deployment children. The temporary gateway-local predicate is
+	// cs-api.deployment.parent until semstreams grows a canonical CS API
+	// deployment-composition term.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/subdeployment",
 	// Stage 25 — CS API Part 2 API Common read-only prerequisite:
 	// landing-page discovery of Part 2 resource collections plus
 	// JSON collection shapes with items[] and links[].

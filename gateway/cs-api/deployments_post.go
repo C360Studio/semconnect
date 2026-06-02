@@ -74,7 +74,11 @@ func (c *Component) mintDeploymentEntityID(uniqueID string) string {
 }
 
 // buildDeploymentTriplesFromFeature mirrors the /systems Feature
-// builder. Same uid preservation + position handling.
+// builder. Same uid preservation + position handling. Optional
+// parent@id / parent@link stores the child-side subdeployment
+// relationship under the gateway-local dotted predicate
+// cs-api.deployment.parent until semstreams grows a canonical CS API
+// deployment-composition term.
 func (c *Component) buildDeploymentTriplesFromFeature(body []byte) (string, []message.Triple, error) {
 	var feat systemFeatureBody
 	if err := json.Unmarshal(body, &feat); err != nil {
@@ -102,6 +106,14 @@ func (c *Component) buildDeploymentTriplesFromFeature(body []byte) (string, []me
 		})
 	}
 	triples = append(triples, triplesFromLinks(entityID, predDeploymentDeployedSystems, feat.Properties.DeployedSystemsLinks)...)
+	if parentID := parentIDFromDeploymentFeature(feat); parentID != "" {
+		if err := validateEntityID(parentID); err != nil {
+			return "", nil, fmt.Errorf("properties.parent@id invalid: %w", err)
+		}
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: predDeploymentParent, Object: parentID,
+		})
+	}
 	if posTriple, ok := positionTripleFromGeometry(entityID, feat.Geometry); ok {
 		triples = append(triples, posTriple)
 	}

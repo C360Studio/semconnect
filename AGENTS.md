@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Repository status
 
-**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
+**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
@@ -34,14 +34,15 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `GET /datastreams/{datastreamID}/observations` (Stage 11; Stage 27 added SWE value encodings; Stage 32 routes them through semstreams `pkg/swecommon`; Stage 33 uses stored Datastream schemas; Stage 45 adds `datastream@id` on JSON resources) — reads back via the same JetStream stream the POST writes to. Spins a one-shot ordered consumer filtered on `cs-api.observations.{datastreamID}`, fetches up to `?limit=N` messages with `FetchNoWait` (so an empty stream returns immediately rather than burning the QueryTimeout budget), unwraps each `BaseMessage` to its inner OMS payload, returns CS API §11.3 `ObservationCollection` for `application/json`, a bare JSON array of OMS observations for `application/om+json`, or SWE Common observation-value rows for `application/swe+json`, `application/swe+csv`, and `application/swe+binary`. Schema-backed Datastreams omit `X-CS-SWE-Subset`; legacy Datastreams without schema fall back to inferred `{time,result}` and carry `X-CS-SWE-Subset: observation-values`. Paging via opaque `?after=<stream-seq>` cursor; when the page fills and a sequence was seen, a `next` link is added on the JSON wrapper (`truncated` is a heuristic — proper "remaining count" needs `consumer.Info().NumPending`, deferred follow-up; failure modes documented in `observations_get.go`). Malformed envelopes are skipped (logged) rather than 500-ing the whole request. Structured access log line on success carries the resolved `Identity` forwarded-user/email for read-side audit, mirroring the publish path's NATS-header audit. New `streamReader` interface on `Component` (production: `jetstreamObservationReader` wrapping `OrderedConsumer + FetchNoWait`; tests: fake).
   - `GET /systems/{id}/datastreams` (Stage 44) — system-scoped Datastream collection, filtered by beta.91's dotted `vocabulary/csapi.ProducedBy`.
   - `GET /areas` — spatial filtering via `?bbox=minLon,minLat,maxLon,maxLat` or `?polygon=<GeoJSON Polygon>` (exactly one required). Optional `?limit`. Returns a GeoJSON `FeatureCollection`; Features carry real Point geometry (Stage 13: framework v1.0.0-beta.75 added Lat/Lon/Alt echo to `SpatialResult`). `X-CS-Geometry-Available: false` header retired at Stage 13.
-  - `GET /conformance` — declares the full v0.1 set: Common Part 1 core + json + **oas30** (Stage 12), CS API core + json + oms + sensorml + json-ld + geojson + **system** (Stage 47) + **advanced-filtering** (Stage 48, `/systems` id/q/geom slice) + **subsystem** (Stage 49, parent-scoped `/systems/{id}/subsystems`) + **create-replace-delete** (Stage 16/17) + **update** (Stage 19) + **procedure** (Stage 20) + **deployment** (Stage 21) + **sampling feature** (Stage 22) + **property** (Stage 23) + Part 2 **api-common** + **controlstream** (Stage 24) + **system-event** (Stage 25) + **datastream** (Stage 44). Stages 20+25 begin closing the OSH-bar resource-type gap (sponsor 2026-05-17 set OSH compliance as the new bar; OSH declares 34 classes).
+  - `GET /conformance` — declares the full v0.1 set: Common Part 1 core + json + **oas30** (Stage 12), CS API core + json + oms + sensorml + json-ld + geojson + **system** (Stage 47) + **advanced-filtering** (Stage 48, `/systems` id/q/geom slice) + **subsystem** (Stage 49, parent-scoped `/systems/{id}/subsystems`) + **subdeployment** (Stage 50, parent-scoped `/deployments/{id}/subdeployments`) + **create-replace-delete** (Stage 16/17) + **update** (Stage 19) + **procedure** (Stage 20) + **deployment** (Stage 21) + **sampling feature** (Stage 22) + **property** (Stage 23) + Part 2 **api-common** + **controlstream** (Stage 24) + **system-event** (Stage 25) + **datastream** (Stage 44). Stages 20+25 begin closing the OSH-bar resource-type gap (sponsor 2026-05-17 set OSH compliance as the new bar; OSH declares 34 classes).
   - `GET /procedures` (Stage 20) — CS API §6 collection. Predicate-query for `rdf:type = sosa.Procedure`. JSON-only ProcedureCollection.
   - `GET /procedures/{id}` (Stage 20) — JSON Procedure subset. NO `geometry` field per `/req/procedure/location` (procedures are methods, not physical things). Same `X-CS-Reconstructed-Lossy: true` header as /systems/{id}.
   - `POST /procedures` (Stage 20) — accepts the same four media types POST /systems does (sml+json / sensorml+json / json / geo+json). NO position triple appended (procedures forbid location). rdf:type triple object is OVERRIDDEN to `sosa.Procedure` on the SensorML path so a PhysicalSystem mistakenly POSTed to /procedures still lands under the Procedure class for predicate-query collection.
   - `OPTIONS /procedures` + `OPTIONS /procedures/{id}` (Stage 20) — `GET, HEAD, POST, OPTIONS` on collection; `GET, HEAD, OPTIONS` on item. PUT/DELETE/PATCH intentionally absent at v0.1 (ETS CRD/update test groups only target /systems).
   - `GET /deployments` (Stage 21; Stage 46 adds association evidence) — CS API §8 collection. Predicate-query on `rdf:type = sosa.SSNDeployment`. JSON `DeploymentCollection` (default) or `application/geo+json` FeatureCollection with per-deployment geometry recovered from the shared `sensorml.process.position` triple via Stage 40 batch hydration. GeoJSON Feature `properties.deployedSystems@link` is emitted when the entity carries `cs-api.deployment.deployedSystems`.
   - `GET /deployments/{id}` (Stage 21; Stage 46 adds association evidence) — JSON Deployment subset; includes geometry field from the position triple when present, `properties.deployedSystems@link` when stored, and allowlisted links-member association rels (`samplingFeatures`, `datastreams`) for GeoJSON relation-type checks.
-  - `POST /deployments` (Stage 21; Stage 46 accepts association evidence) — accepts `application/json` / `application/geo+json` Feature body only. NO SensorML — no spec encoding pairs SensorML with Deployment. Optional `properties.deployedSystems@link[]` hrefs are stored under gateway-local dotted predicate `cs-api.deployment.deployedSystems`.
+  - `POST /deployments` (Stage 21; Stage 46 accepts association evidence; Stage 50 accepts subdeployment parent evidence) — accepts `application/json` / `application/geo+json` Feature body only. NO SensorML — no spec encoding pairs SensorML with Deployment. Optional `properties.deployedSystems@link[]` hrefs are stored under gateway-local dotted predicate `cs-api.deployment.deployedSystems`. Optional `properties.parent@id` / `parent@link` stores the child-side subdeployment relation under gateway-local dotted predicate `cs-api.deployment.parent` until semstreams grows a canonical CS API deployment-composition vocabulary term.
+  - `GET /deployments/{id}/subdeployments` (Stage 50) — CS API Part 1 Subdeployments collection. Validates the parent Deployment, predicate-queries all Deployments, batch-hydrates entity state, then filters child Deployments whose `cs-api.deployment.parent` object equals the parent ID. JSON `DeploymentCollection`; child items link to canonical `/deployments/{childID}`.
   - `OPTIONS /deployments` + `OPTIONS /deployments/{id}` (Stage 21) — same shape as /procedures: collection accepts POST, item is read-only.
   - `GET /samplingFeatures` (Stage 22; Stage 46 adds association evidence) — CS API sampling-features collection. Predicate-query on `rdf:type = sosa:Sample`; JSON `SamplingFeatureCollection` (default) or `application/geo+json` FeatureCollection with per-feature geometry recovered from the shared `sensorml.process.position` triple. GeoJSON Feature `properties` include `featureType`, `uid`, `name`, `description`, and `hostedProcedure@link` when the entity state carries those triples.
   - `GET /samplingFeatures/{id}` (Stage 22; Stage 46 adds association evidence) — JSON SamplingFeature subset with uid/uniqueId/properties.uid, optional `properties.hostedProcedure@link`, geometry when present, and allowlisted links-member association rels (`datastreams`, `controlstreams`) for GeoJSON relation-type checks.
@@ -86,7 +87,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   `main`, on `workflow_dispatch`, and on PRs labelled `conformance` — **not a PR-blocking
   gate** at this stage.
 
-  **Current outcome (Stage 49, 2026-06-02): `total=137 passed=110 failed=0 skipped=27`.**
+  **Current outcome (Stage 50, 2026-06-02): `total=137 passed=114 failed=0 skipped=23`.**
   Zero failures against our claimed conformance set. Stage 44 declares Part 2
   Datastreams/Observations and verifies the read-only surface: full Datastream collection
   items, canonical item reads, schema wrapper, global/nested Observation collections, and
@@ -105,7 +106,12 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   evidence, and WKT `geom` point-in-polygon filtering. Stage 49 declares Part 1
   Subsystems and seeds/serves a child System linked to its parent with semstreams'
   `sensorml.PredIsHostedBy` predicate, closing the collection, item-shape,
-  canonical-link, and parent-link Subsystems assertions.
+  canonical-link, and parent-link Subsystems assertions. Stage 50 declares Part 1
+  Subdeployments and seeds/serves a child Deployment linked to its parent by the
+  three-part gateway-local predicate `cs-api.deployment.parent`, closing the
+  parent-scoped collection and canonical child item assertions. That predicate is
+  isolated behind one constant so a future semstreams CS API deployment-composition
+  vocabulary term can replace it without broad churn.
 
   Trajectory: Stage 12 (20/0/117) → Stage 14 (29/1/107) → Stage 15 (32/0/105) →
   Stage 16+17+conformance-fix (38/2/97) → Stage 18 (40/0/97) → Stage 22 (58/0/79) →
@@ -116,9 +122,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   Stage 39 (79/0/58) → Stage 40 (79/0/58) → Stage 41 (79/0/58) → Stage 42 (79/0/58) →
   Stage 43 (80/0/57) → Stage 44 (89/0/48) → Stage 45 (91/0/46) →
   Stage 46 (97/0/40) → Stage 47 (100/0/37) → Stage 48 (106/0/31) →
-  Stage 49 (110/0/27).
+  Stage 49 (110/0/27) → Stage 50 (114/0/23).
   Eventual-consistency seed-then-query lag is handled by `run.sh` poll-until-visible
-  checks after seed (systems, datastreams, observations, controlstreams, systemEvents);
+  checks after seed (systems, subsystems, datastreams, observations, subdeployments,
+  controlstreams, systemEvents);
   TeamEngine host readiness is actively polled because
   Tomcat can briefly reset connections after Docker starts the container.
 - **`Dockerfile`** (repo root) — multi-stage build of cs-api-server into a distroless/static-debian12 image. Used by the conformance harness and eventual operator deploys.
@@ -179,7 +186,8 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `OPTIONS /procedures` / `OPTIONS /procedures/{id}` | Static `Allow` header. 204 No Content. Stage 20. |
 | `GET /deployments` | `graph.index.query.predicate` (rdf:type = `sosa.SSNDeployment`) → JSON DeploymentCollection (default) OR `graph.query.batch` hydration → `geojson.FeatureCollection` with per-deployment geometry from `sensorml.process.position` and optional `properties.deployedSystems@link` from `cs-api.deployment.deployedSystems` (on Accept `application/geo+json`). Stage 21; batch hydration Stage 40; association evidence Stage 46. |
 | `GET /deployments/{id}` | `graph.query.entity` → `deploymentFromState` (JSON subset with geometry from position triple, optional `properties.deployedSystems@link`, and allowlisted association links). Stage 21; association evidence Stage 46. |
-| `POST /deployments` | `buildDeploymentTriplesFromFeature` (json / geo+json) → `ingestTriples`. Optional geometry → `sensorml.process.position` triple; optional `properties.deployedSystems@link[]` hrefs → `cs-api.deployment.deployedSystems`. 201 Created + Location. Stage 21; association evidence Stage 46. |
+| `GET /deployments/{id}/subdeployments` | Parent `graph.query.entity` kind check → predicate-query all Deployments → `graph.query.batch` hydration → filter child Deployments whose gateway-local `cs-api.deployment.parent` relation points at the parent. Stage 50. |
+| `POST /deployments` | `buildDeploymentTriplesFromFeature` (json / geo+json) → `ingestTriples`. Optional geometry → `sensorml.process.position` triple; optional `properties.deployedSystems@link[]` hrefs → `cs-api.deployment.deployedSystems`; optional `parent@id` / `parent@link` → gateway-local `cs-api.deployment.parent`. 201 Created + Location. Stage 21; association evidence Stage 46; subdeployment parent evidence Stage 50. |
 | `OPTIONS /deployments` / `OPTIONS /deployments/{id}` | Static `Allow` header. 204 No Content. Stage 21. |
 | `GET /samplingFeatures` | `graph.index.query.predicate` (rdf:type = sosa:Sample) → JSON SamplingFeatureCollection (default) OR GeoJSON FeatureCollection with per-feature geometry from `sensorml.process.position` and hydrated `uid` / `name` / `description` / optional `hostedProcedure@link` Feature properties. Stage 22; association evidence Stage 46. |
 | `GET /samplingFeatures/{id}` | `graph.query.entity` → `samplingFeatureFromState` (JSON subset with geometry from position triple, optional `properties.hostedProcedure@link`, and allowlisted association links). Stage 22; association evidence Stage 46. |

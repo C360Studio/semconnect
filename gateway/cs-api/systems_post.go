@@ -240,6 +240,14 @@ func (c *Component) buildSystemTriplesFromFeature(body []byte) (string, []messag
 }
 
 func parentIDFromSystemFeature(feat systemFeatureBody) string {
+	return parentIDFromFeature(feat, "/systems/")
+}
+
+func parentIDFromDeploymentFeature(feat systemFeatureBody) string {
+	return parentIDFromFeature(feat, "/deployments/")
+}
+
+func parentIDFromFeature(feat systemFeatureBody, pathMarkers ...string) string {
 	if feat.Properties.ParentID != "" {
 		return strings.TrimSpace(feat.Properties.ParentID)
 	}
@@ -247,8 +255,11 @@ func parentIDFromSystemFeature(feat systemFeatureBody) string {
 		return ""
 	}
 	href := strings.TrimSpace(feat.Properties.ParentLink.Href)
-	if i := strings.Index(href, "/systems/"); i >= 0 {
-		href = href[i+len("/systems/"):]
+	for _, marker := range pathMarkers {
+		if i := strings.Index(href, marker); i >= 0 {
+			href = href[i+len(marker):]
+			break
+		}
 	}
 	for _, sep := range []string{"?", "#", "/"} {
 		if i := strings.Index(href, sep); i >= 0 {

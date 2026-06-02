@@ -141,7 +141,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 	paths, _ := doc["paths"].(map[string]any)
 	wantImpl := []string{
 		"/", "/api", "/conformance", "/health",
-		"/systems", "/systems/{id}",
+		"/systems", "/systems/{id}", "/systems/{id}/subsystems", "/systems/{id}/subsystems/{subsystemID}",
 		"/datastreams", "/datastreams/{id}",
 		"/datastreams/{id}/schema",
 		"/datastreams/{datastreamID}/observations",
@@ -152,7 +152,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		// Stage 20 — /procedures + /procedures/{id} now implemented.
 		"/procedures", "/procedures/{id}",
 		// Stage 21 — /deployments + /deployments/{id} now implemented.
-		"/deployments", "/deployments/{id}",
+		"/deployments", "/deployments/{id}", "/deployments/{id}/subdeployments",
 		// Stage 22 — /samplingFeatures + /samplingFeatures/{id} now implemented.
 		"/samplingFeatures", "/samplingFeatures/{id}",
 		// Stage 23 — /properties + /properties/{id} now implemented.

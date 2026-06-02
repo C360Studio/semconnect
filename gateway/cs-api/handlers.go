@@ -64,6 +64,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	procedureItemPath := join("procedures/{id}")
 	deploymentsPath := join("deployments")
 	deploymentItemPath := join("deployments/{id}")
+	deploymentSubdeploymentsPath := join("deployments/{id}/subdeployments")
 	samplingFeaturesPath := join("samplingFeatures")
 	samplingFeatureItemPath := join("samplingFeatures/{id}")
 	propertiesPath := join("properties")
@@ -158,6 +159,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("GET "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeployment)))
 	mux.Handle("HEAD "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeployment)))
 	mux.Handle("OPTIONS "+deploymentItemPath, c.middleware(http.HandlerFunc(c.handleDeploymentOptions)))
+	mux.Handle("GET "+deploymentSubdeploymentsPath, c.middleware(http.HandlerFunc(c.handleDeploymentSubdeployments)))
+	mux.Handle("HEAD "+deploymentSubdeploymentsPath, c.middleware(http.HandlerFunc(c.handleDeploymentSubdeployments)))
 	// Stage 22 — /samplingFeatures.
 	mux.Handle("GET "+samplingFeaturesPath, c.middleware(http.HandlerFunc(c.handleSamplingFeatures)))
 	mux.Handle("HEAD "+samplingFeaturesPath, c.middleware(http.HandlerFunc(c.handleSamplingFeatures)))
@@ -236,6 +239,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"procedure_item", procedureItemPath,
 		"deployments", deploymentsPath,
 		"deployment_item", deploymentItemPath,
+		"deployment_subdeployments", deploymentSubdeploymentsPath,
 		"sampling_features", samplingFeaturesPath,
 		"sampling_feature_item", samplingFeatureItemPath,
 		"properties", propertiesPath,

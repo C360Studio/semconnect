@@ -132,6 +132,25 @@ func TestObservationsGet_EmptyStream(t *testing.T) {
 	}
 }
 
+func TestGlobalObservationsGet_Empty(t *testing.T) {
+	c := newTestComponent(t, &fakeRequester{})
+
+	req := httptest.NewRequest(http.MethodGet, "/observations?limit=2", nil)
+	rr := httptest.NewRecorder()
+	c.handleGlobalObservations(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll observationCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if coll.Type != "ObservationCollection" || len(coll.Items) != 0 {
+		t.Fatalf("collection: %+v", coll)
+	}
+}
+
 // TestObservationsGet_GoldenPath — two observations stored; both come
 // back in stream-sequence order, with the inner payload bytes preserved.
 func TestObservationsGet_GoldenPath(t *testing.T) {

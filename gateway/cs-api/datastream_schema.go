@@ -1,6 +1,7 @@
 package csapi
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -49,13 +50,22 @@ func (c *Component) handleDatastreamSchema(w http.ResponseWriter, r *http.Reques
 		c.writeBackendError(w, errs.Wrap(err, "cs-api", "handleDatastreamSchema", "encode schema"))
 		return
 	}
+	var resultSchema map[string]any
+	if err := json.Unmarshal(body, &resultSchema); err != nil {
+		c.writeBackendError(w, errs.Wrap(err, "cs-api", "handleDatastreamSchema", "decode canonical schema"))
+		return
+	}
+	resp := datastreamObservationSchema{
+		ObsFormat:    string(MediaJSON),
+		ResultSchema: resultSchema,
+	}
 
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
 	}
-	if _, err := w.Write(body); err != nil {
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		c.errs.Add(1)
 		c.logger.Error("write datastream schema response", "id", id, "err", err)
 	}

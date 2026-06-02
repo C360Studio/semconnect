@@ -785,6 +785,8 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
+		// Stage 25 — Part 2 API Common resource collection discovery.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/api-common",
 		// Stage 16 — create-replace-delete claim is honest once PUT/DELETE
 		// + JSON POST + OPTIONS land.
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/create-replace-delete",
@@ -796,6 +798,14 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/deployment",
 		// Stage 22 — conf/sf: /samplingFeatures resource (read + POST + OPTIONS).
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sf",
+		// Stage 23 — conf/property: /properties resource (read + POST + OPTIONS).
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/property",
+		// Stage 24 — Part 2 Control Streams and Commands read-side.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/controlstream",
+		// Stage 25 — Part 2 System Events read-side.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/system-event",
+		// Stage 44 — Part 2 Datastreams and Observations read-side.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/datastream",
 	}
 	if len(decl.ConformsTo) != len(stageConformanceClasses) {
 		t.Errorf("ConformsTo count: got %d want %d (declared classes drift from stageConformanceClasses)",

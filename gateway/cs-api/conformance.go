@@ -128,6 +128,11 @@ var stageConformanceClasses = []string{
 	// POST helper: /systemEvents, /systemEvents/{id}, and
 	// /systems/{id}/events.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/system-event",
+	// Stage 44 — CS API Part 2 Datastreams and Observations read-only
+	// subset: full Datastream resources in /datastreams, item GET,
+	// schema wrapper, /systems/{id}/datastreams, empty global
+	// /observations, and populated /datastreams/{id}/observations.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/datastream",
 }
 
 type conformanceDeclaration struct {

@@ -1208,6 +1208,31 @@ readable empty Command collection:
 check; Advanced Filtering command tests still SKIP because `/commands`
 is empty and semconnect does not claim Advanced Filtering.
 
+### Stage 44 — Part 2 Datastream read-side closure
+
+Stage 44 declares the CS API Part 2 Datastreams/Observations conformance
+class and wires the read-only surface the pinned ETS checks:
+
+- `/datastreams` now batch-hydrates full Datastream resources in
+  `items[]` instead of lightweight refs.
+- Datastream JSON includes Part 2 members: `system@id`,
+  `system@link`, `outputName`, `observedProperties`, `formats`, and
+  `resultType`.
+- `/datastreams/{id}/schema` wraps the stored SWE Common DataRecord as
+  `{obsFormat,resultSchema}`.
+- `/systems/{id}/datastreams` filters Datastreams by the stored
+  `csapi.ProducedBy` relationship.
+- `/observations` is a readable empty global Observation collection;
+  populated observation reads remain Datastream-scoped at
+  `/datastreams/{id}/observations`.
+- `conformance/run.sh` now seeds a schema-backed Datastream and actively
+  polls `/datastreams` so Team Engine does not race the predicate index.
+
+**Outcome:** `total=137 passed=89 failed=0 skipped=48` (confirmed
+2026-06-02). The remaining Part 2 Datastream SKIPs are observation item
+and reference checks that require populated global/canonical Observation
+resources, which remain intentionally out of scope at v0.1.
+
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.
 

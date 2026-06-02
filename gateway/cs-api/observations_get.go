@@ -44,6 +44,41 @@ type observationCollection struct {
 	Links          []link            `json:"links"`
 }
 
+func (c *Component) handleGlobalObservations(w http.ResponseWriter, r *http.Request) {
+	media, ok := NegotiateRequest(r, FamilyDatastreamCollection)
+	if !ok || media != MediaJSON {
+		WriteNotAcceptable(w, FamilyDatastreamCollection)
+		return
+	}
+	if _, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit); err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	coll := observationCollection{
+		Type:           "ObservationCollection",
+		NumberMatched:  0,
+		NumberReturned: 0,
+		Items:          []json.RawMessage{},
+		Links: []link{
+			{Href: "/observations", Rel: "self", Type: string(MediaJSON)},
+		},
+	}
+	w.Header().Set("Content-Type", string(MediaJSON))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if err := json.NewEncoder(w).Encode(coll); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("encode global observations response", "err", err)
+	}
+}
+
+func (c *Component) handleGlobalObservationsOptions(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Allow", "GET, HEAD, OPTIONS")
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // envelopeProbe is the minimal slice of message.BaseMessage we need at
 // the read seam — just the inner OMS payload. We don't go through
 // message.Decoder + payloadregistry because (a) the registry would need

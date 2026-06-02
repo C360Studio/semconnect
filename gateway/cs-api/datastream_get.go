@@ -9,8 +9,9 @@ import (
 
 // handleDatastreams serves GET /datastreams — CS API §10.5. Mirrors
 // handleSystems: predicate-query for rdf:type = DatastreamTypeIRI,
-// returns IDs in a DatastreamCollection. JSON-only at v0.1 (no SensorML
-// wrapper for datastream collections, same as system collections).
+// returns full Datastream resources in a DatastreamCollection. JSON-only
+// at v0.1 (no SensorML wrapper for datastream collections, same as system
+// collections).
 func (c *Component) handleDatastreams(w http.ResponseWriter, r *http.Request) {
 	if _, ok := NegotiateRequest(r, FamilyDatastreamCollection); !ok {
 		WriteNotAcceptable(w, FamilyDatastreamCollection)
@@ -29,25 +30,67 @@ func (c *Component) handleDatastreams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.writeDatastreamCollection(w, r, entities, "", limit)
+}
+
+func (c *Component) handleSystemDatastreams(w http.ResponseWriter, r *http.Request) {
+	if _, ok := NegotiateRequest(r, FamilyDatastreamCollection); !ok {
+		WriteNotAcceptable(w, FamilyDatastreamCollection)
+		return
+	}
+	systemID := r.PathValue("id")
+	if err := validateEntityID(systemID); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid system id: "+err.Error())
+		return
+	}
+	limit, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	entities, err := c.listEntitiesByType(r.Context(), DatastreamTypeIRI, limit, "listSystemDatastreamEntities")
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+
+	c.writeDatastreamCollection(w, r, entities, systemID, limit)
+}
+
+func (c *Component) writeDatastreamCollection(w http.ResponseWriter, r *http.Request, ids []string, systemFilter string, limit int) {
 	coll := datastreamCollection{
 		Type:           "DatastreamCollection",
-		NumberMatched:  len(entities),
-		NumberReturned: len(entities),
-		Truncated:      len(entities) == limit, // see systems.go systemCollection.NumberMatched comment
-		Items:          make([]datastreamRef, 0, len(entities)),
+		NumberMatched:  len(ids),
+		NumberReturned: len(ids),
+		Items:          make([]Datastream, 0, len(ids)),
 		Links: []link{
 			{Href: "/datastreams", Rel: "self", Type: string(MediaJSON)},
 		},
 	}
-	for _, id := range entities {
-		coll.Items = append(coll.Items, datastreamRef{
-			ID:   id,
-			Type: "Datastream",
-			Links: []link{
-				{Href: "/datastreams/" + id, Rel: "self", Type: string(MediaJSON)},
-			},
-		})
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), ids)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
 	}
+	for _, id := range ids {
+		state, ok := statesByID[id]
+		if !ok {
+			c.logger.Warn("batch entity fetch for Datastream collection missed entity; skipping",
+				"entity", id)
+			continue
+		}
+		if !isDatastreamKind(state.Triples) {
+			continue
+		}
+		d := datastreamFromState(state)
+		if systemFilter != "" && d.SystemID != systemFilter {
+			continue
+		}
+		coll.Items = append(coll.Items, d)
+	}
+	coll.NumberReturned = len(coll.Items)
+	coll.NumberMatched = len(coll.Items)
+	coll.Truncated = len(ids) == limit
 
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)

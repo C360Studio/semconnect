@@ -14,6 +14,7 @@ import (
 // (processor/graph-ingest/component.go) but it is unexported, so we
 // duplicate the per-token rule here for prefix validation.
 var entityIDTokenRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)
+var objectStoreBucketRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 // Config tunes the cs-api gateway component. Defaults satisfy a development
 // deployment; production deployments override via the JSON config file.
@@ -81,6 +82,19 @@ type Config struct {
 	// single-node dev/test; production HA uses 3.
 	ObservationsReplicas int `json:"observations_replicas"`
 
+	// SchemaArtifactsBucket is the NATS ObjectStore bucket that holds
+	// canonical SWE schema documents referenced by first-class graph artifact
+	// entities. The bucket is ensured during Start().
+	SchemaArtifactsBucket string `json:"schema_artifacts_bucket"`
+
+	// SchemaArtifactsMaxBytes is the bucket-level storage cap for schema
+	// artifacts. 0 means unlimited, matching JetStream ObjectStore defaults.
+	SchemaArtifactsMaxBytes int64 `json:"schema_artifacts_max_bytes"`
+
+	// SchemaArtifactsReplicas controls ObjectStore replica count. Keep aligned
+	// with the NATS cluster topology; dev/test defaults to 1.
+	SchemaArtifactsReplicas int `json:"schema_artifacts_replicas"`
+
 	// SystemIDPrefix is the 5-part SemStreams entity ID prefix the gateway
 	// uses when minting IDs for POST /systems. The 6th token is derived
 	// from the SensorML uniqueId (or a UUID if uniqueId is absent).
@@ -125,6 +139,11 @@ type Config struct {
 	// SystemEventIDPrefix is the 5-part prefix for POST /systemEvents and
 	// /systems/{id}/events. Stage 25.
 	SystemEventIDPrefix string `json:"system_event_id_prefix"`
+
+	// SchemaArtifactIDPrefix is the 5-part prefix for SWE schema artifact
+	// entities. Datastreams relate to these via csapi.HasResultSchema and
+	// ControlStreams via csapi.HasCommandSchema.
+	SchemaArtifactIDPrefix string `json:"schema_artifact_id_prefix"`
 }
 
 // DefaultConfig returns a fully-populated Config. Stage 2 binaries call this
@@ -147,6 +166,9 @@ func DefaultConfig() Config {
 		ObservationsMaxAge:        30 * 24 * time.Hour,
 		ObservationsMaxBytes:      0, // unlimited; set in prod
 		ObservationsReplicas:      1,
+		SchemaArtifactsBucket:     "CS_API_ARTIFACTS",
+		SchemaArtifactsMaxBytes:   0, // unlimited; set in prod
+		SchemaArtifactsReplicas:   1,
 		SystemIDPrefix:            "c360.semconnect.systems.csapi.system",
 		DatastreamIDPrefix:        "c360.semconnect.systems.csapi.datastream",
 		ProcedureIDPrefix:         "c360.semconnect.systems.csapi.procedure",
@@ -155,6 +177,7 @@ func DefaultConfig() Config {
 		PropertyIDPrefix:          "c360.semconnect.systems.csapi.property",
 		ControlStreamIDPrefix:     "c360.semconnect.systems.csapi.controlstream",
 		SystemEventIDPrefix:       "c360.semconnect.systems.csapi.systemevent",
+		SchemaArtifactIDPrefix:    "c360.semconnect.systems.csapi.schema",
 	}
 }
 
@@ -205,6 +228,12 @@ func (c *Config) ApplyDefaults() {
 	if c.ObservationsReplicas == 0 {
 		c.ObservationsReplicas = d.ObservationsReplicas
 	}
+	if c.SchemaArtifactsBucket == "" {
+		c.SchemaArtifactsBucket = d.SchemaArtifactsBucket
+	}
+	if c.SchemaArtifactsReplicas == 0 {
+		c.SchemaArtifactsReplicas = d.SchemaArtifactsReplicas
+	}
 	if c.SystemIDPrefix == "" {
 		c.SystemIDPrefix = d.SystemIDPrefix
 	}
@@ -229,8 +258,11 @@ func (c *Config) ApplyDefaults() {
 	if c.SystemEventIDPrefix == "" {
 		c.SystemEventIDPrefix = d.SystemEventIDPrefix
 	}
-	// ObservationsMaxBytes: 0 is a meaningful value (unlimited); do not
-	// overwrite with the default.
+	if c.SchemaArtifactIDPrefix == "" {
+		c.SchemaArtifactIDPrefix = d.SchemaArtifactIDPrefix
+	}
+	// ObservationsMaxBytes / SchemaArtifactsMaxBytes: 0 is a meaningful
+	// value (unlimited); do not overwrite with the default.
 }
 
 // Validate rejects nonsensical combinations. Called after ApplyDefaults.
@@ -274,6 +306,18 @@ func (c *Config) Validate() error {
 	if c.ObservationsReplicas < 1 || c.ObservationsReplicas > 5 {
 		return errors.New("observations_replicas must be between 1 and 5")
 	}
+	if c.SchemaArtifactsBucket == "" {
+		return errors.New("schema_artifacts_bucket required")
+	}
+	if !objectStoreBucketRegex.MatchString(c.SchemaArtifactsBucket) {
+		return errors.New("schema_artifacts_bucket may contain only letters, numbers, dash, and underscore")
+	}
+	if c.SchemaArtifactsMaxBytes < 0 {
+		return errors.New("schema_artifacts_max_bytes must be ≥ 0")
+	}
+	if c.SchemaArtifactsReplicas < 1 || c.SchemaArtifactsReplicas > 5 {
+		return errors.New("schema_artifacts_replicas must be between 1 and 5")
+	}
 	if err := validateEntityIDPrefix(c.SystemIDPrefix, "system_id_prefix"); err != nil {
 		return err
 	}
@@ -296,6 +340,9 @@ func (c *Config) Validate() error {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.DatastreamIDPrefix, "datastream_id_prefix"); err != nil {
+		return err
+	}
+	if err := validateEntityIDPrefix(c.SchemaArtifactIDPrefix, "schema_artifact_id_prefix"); err != nil {
 		return err
 	}
 	return nil

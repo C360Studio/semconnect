@@ -272,14 +272,32 @@ func (c *Component) ingestTriples(ctx context.Context, triples []message.Triple,
 	if err != nil {
 		return errs.WrapInvalid(err, "cs-api", "ingestTriples", "invalid triple set")
 	}
+	return c.createEntityWithTriples(ctx, &graph.EntityState{
+		ID:      entityID,
+		Triples: triples,
+	}, triples, id, "ingestTriples")
+}
 
+func (c *Component) createEntityWithTriples(
+	ctx context.Context,
+	entity *graph.EntityState,
+	triples []message.Triple,
+	id Identity,
+	op string,
+) error {
+	if entity == nil {
+		return errs.WrapInvalid(errors.New("entity state required"), "cs-api", op, "build entity")
+	}
+	if len(entity.Triples) == 0 {
+		entity.Triples = triples
+	}
 	req := graph.CreateEntityWithTriplesRequest{
-		Entity:  &graph.EntityState{ID: entityID, Triples: triples},
+		Entity:  entity,
 		Triples: triples,
 	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {
-		return errs.Wrap(err, "cs-api", "ingestTriples", "marshal entity create request")
+		return errs.Wrap(err, "cs-api", op, "marshal entity create request")
 	}
 
 	// Audit headers + trace context are attached on the request envelope.
@@ -299,23 +317,23 @@ func (c *Component) ingestTriples(ctx context.Context, triples []message.Triple,
 			errors.Is(err, nats.ErrTimeout),
 			errors.Is(err, context.DeadlineExceeded),
 			errors.Is(err, nats.ErrConnectionClosed):
-			return errs.WrapTransient(err, "cs-api", "ingestTriples", "graph backend unavailable")
+			return errs.WrapTransient(err, "cs-api", op, "graph backend unavailable")
 		default:
-			return errs.Wrap(err, "cs-api", "ingestTriples", "entity create request")
+			return errs.Wrap(err, "cs-api", op, "entity create request")
 		}
 	}
 
 	var resp graph.CreateEntityWithTriplesResponse
 	if err := json.Unmarshal(reply.Data, &resp); err != nil {
-		return errs.Wrap(err, "cs-api", "ingestTriples", "decode entity create response")
+		return errs.Wrap(err, "cs-api", op, "decode entity create response")
 	}
 	if resp.Success {
 		if resp.Degraded {
-			c.logger.Warn("entity create committed with degraded read-back", "entity", entityID, "err", resp.Error)
+			c.logger.Warn("entity create committed with degraded read-back", "entity", entity.ID, "err", resp.Error)
 		}
 		return nil
 	}
-	return mutationFailure("ingestTriples", resp.MutationResponse)
+	return mutationFailure(op, resp.MutationResponse)
 }
 
 func singleSubject(triples []message.Triple) (string, error) {

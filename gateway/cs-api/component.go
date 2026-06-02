@@ -68,6 +68,13 @@ type streamCleaner interface {
 	PurgeSubject(ctx context.Context, subject string) error
 }
 
+// schemaObjectStore is the ObjectStore surface CS API schema artifacts need.
+// Production uses a JetStream ObjectStore; tests provide an in-memory fake.
+type schemaObjectStore interface {
+	PutBytes(ctx context.Context, name string, data []byte) (*jetstream.ObjectInfo, error)
+	GetBytes(ctx context.Context, name string, opts ...jetstream.GetObjectOpt) ([]byte, error)
+}
+
 // observationMsg is the minimal per-message tuple FetchSubject returns.
 // Data is the raw BaseMessage envelope bytes (the handler unwraps); Sequence
 // is the JetStream stream sequence so the gateway can mint a next-link cursor.
@@ -173,6 +180,10 @@ type Component struct {
 	// to purge observations scoped to that datastream's subject.
 	cleaner atomic.Pointer[streamCleaner]
 
+	// schemaArtifacts is the JetStream ObjectStore used by first-class SWE
+	// schema artifact entities. Set during Start() after JetStream is healthy.
+	schemaArtifacts atomic.Pointer[schemaObjectStore]
+
 	errs         atomic.Int64
 	requests     atomic.Int64
 	lastActivity atomic.Pointer[time.Time]
@@ -237,6 +248,7 @@ func (c *Component) OutputPorts() []component.Port {
 		{Name: "spatial-bounds-query", Type: "nats-request", Subject: "graph.spatial.query.bounds", Description: "bbox-filtered entity list for GET /areas?bbox"},
 		{Name: "spatial-polygon-query", Type: "nats-request", Subject: "graph.spatial.query.polygon", Description: "polygon-contained entity list for GET /areas?polygon"},
 		{Name: "observations", Type: "jetstream", Subject: c.cfg.ObservationsSubjectPrefix + ".>", StreamName: c.cfg.ObservationsStream, Description: "OMS observations from POST /datastreams/{id}/observations"},
+		{Name: "schema-artifacts", Type: "objectstore", Subject: c.cfg.SchemaArtifactsBucket, Description: "SWE schema artifacts referenced by Datastream and ControlStream entities"},
 	}
 	out := make([]component.Port, len(defs))
 	for i, d := range defs {
@@ -363,6 +375,17 @@ func (c *Component) Start(ctx context.Context) error {
 		c.mu.Unlock()
 		return fmt.Errorf("cs-api: Start: jetstream handle: %w", err)
 	}
+	schemaStore, err := js.CreateOrUpdateObjectStore(ctx, jetstream.ObjectStoreConfig{
+		Bucket:      c.cfg.SchemaArtifactsBucket,
+		Description: "cs-api canonical SWE schema artifacts",
+		Storage:     jetstream.FileStorage,
+		MaxBytes:    c.cfg.SchemaArtifactsMaxBytes,
+		Replicas:    c.cfg.SchemaArtifactsReplicas,
+	})
+	if err != nil {
+		c.mu.Unlock()
+		return fmt.Errorf("cs-api: Start: ensure object store %s: %w", c.cfg.SchemaArtifactsBucket, err)
+	}
 	// EnsureStream + the publisher/reader handles are intentionally not
 	// torn down when a later Start() step fails. EnsureStream is
 	// idempotent on its JetStream side, and leaving the handles pre-set
@@ -375,6 +398,8 @@ func (c *Component) Start(ctx context.Context) error {
 	c.reader.Store(&rd)
 	var cleaner streamCleaner = &jetstreamObservationCleaner{stream: stream}
 	c.cleaner.Store(&cleaner)
+	var artifacts schemaObjectStore = schemaStore
+	c.schemaArtifacts.Store(&artifacts)
 
 	if c.cfg.StandaloneServer {
 		// Bind synchronously so a port conflict / permission error

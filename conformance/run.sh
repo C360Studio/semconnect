@@ -499,7 +499,7 @@ EOF
     ctrl_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
         curlimages/curl:8.10.1 \
-        -sS -w '\nHTTP %{http_code}\n' \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
         -X POST -H 'Content-Type: application/json' \
         --data-binary "$ctrl_body" \
         "${cs_api_url}/controlstreams" 2>&1)" || true
@@ -509,8 +509,39 @@ EOF
     if [[ "$ctrl_code" != "201" ]]; then
         die "POST /controlstreams failed: $ctrl_code (see $SEED_LOG)"
     fi
-    log "  seeded controlstream (HTTP $ctrl_code)"
+    local ctrl_loc
+    ctrl_loc="$(echo "$ctrl_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    local ctrl_id="${ctrl_loc##*/}"
+    if [[ -z "$ctrl_id" ]]; then
+        die "POST /controlstreams returned 201 but Location header was empty or missing (see $SEED_LOG)"
+    fi
+    if ! [[ "$ctrl_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
+        die "POST /controlstreams returned 201 with malformed id '$ctrl_id' (see $SEED_LOG)"
+    fi
+    log "  seeded controlstream: id=$ctrl_id"
     wait_for_seeded_collection "$cs_api_url" "/controlstreams" "controlstream" "items"
+
+    # Stage 51 — seed one read-side Command resource for the selected
+    # ControlStream. This is reference metadata only; command execution
+    # and device side effects remain out of scope at v0.1.
+    log "  POST /commands with seed command metadata referencing controlstream=$ctrl_id"
+    local cmd_body='{"id":"c360.semconnect.systems.csapi.command.ets-ptz-001","controlstream@id":"'"${ctrl_id}"'","issueTime":"2026-05-19T12:00:00Z","status":"accepted","sender":"ets","params":{"pan":10,"tilt":5}}'
+    local cmd_resp
+    cmd_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$cmd_body" \
+        "${cs_api_url}/commands" 2>&1)" || true
+    echo "$cmd_resp" >>"$SEED_LOG"
+    local cmd_code
+    cmd_code="$(echo "$cmd_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$cmd_code" != "201" ]]; then
+        die "POST /commands failed: $cmd_code (see $SEED_LOG)"
+    fi
+    log "  seeded command metadata (HTTP $cmd_code)"
+    wait_for_seeded_collection "$cs_api_url" "/controlstreams/${ctrl_id}/commands" "command" "items"
 
     # Stage 25 — seed a SystemEvent so the Part 2 system-event group
     # can exercise /systemEvents, /systemEvents/{id}, and the

@@ -159,7 +159,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"/properties", "/properties/{id}",
 		// Stage 24 — Part 2 /controlstreams read-side.
 		"/controlstreams", "/controlstreams/{id}", "/controls/{id}",
-		"/systems/{id}/controlstreams", "/commands",
+		"/systems/{id}/controlstreams", "/commands", "/commands/{id}",
 		// Stage 25 — Part 2 /systemEvents read-side.
 		"/systemEvents", "/systemEvents/{id}",
 		"/systems/{id}/events", "/systems/{id}/events/{eventID}",

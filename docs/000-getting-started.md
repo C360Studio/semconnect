@@ -641,7 +641,8 @@ Stage 24 ships the ControlStream read subset:
 - `GET /controlstreams/{id}/schema` — stored command schema subset
   with `commandFormat` and `parametersSchema`.
 - `GET /controlstreams/{id}/commands` — readable empty Command
-  collection. Command execution remains out of scope at v0.1.
+  collection at Stage 24. Stage 51 later populates it from read-side
+  Command metadata while keeping command execution out of scope at v0.1.
 - `GET /systems/{id}/controlstreams` — system-scoped collection,
   filtered by `vocabulary/csapi.ControlsSystem`.
 - `POST /controlstreams` — JSON fixture helper for the conformance
@@ -947,9 +948,9 @@ Stage 34 makes ControlStream command schemas use the same semstreams
 - `controlledProperties` are still derived from the schema fields when
   omitted, but now from a validated DataRecord.
 - `ControlStream.formats` reflects the stored `commandFormat`.
-- Command execution remains intentionally out of scope at v0.1;
-  `/controlstreams/{id}/commands` still returns a readable empty
-  collection.
+- Command execution remains intentionally out of scope at v0.1; Stage 51
+  later lets `/controlstreams/{id}/commands` return read-side Command
+  metadata when graph evidence exists.
 
 Remaining local work:
 
@@ -1206,6 +1207,9 @@ readable empty Command collection:
   Command lifecycle or execution semantics are introduced at v0.1.
 - `gateway/cs-api/openapi.yaml` no longer carries any
   `x-not-implemented-at-v01` paths.
+- Stage 51 later populates `/commands` from graph-backed
+  `csapi.Command` metadata and adds the conformance fixture `POST`
+  helper; execution remains out of scope.
 
 **Outcome:** `total=137 passed=80 failed=0 skipped=57` (confirmed
 2026-06-02). The ETS now passes the optional canonical Commands endpoint
@@ -1411,6 +1415,36 @@ rewrite.
 `subdeploymentsDependencyCascadeRuntime`,
 `subdeploymentsCollectionReturns200`, `subdeploymentItemHasIdTypeLinks`,
 and `subdeploymentItemHasCanonicalLink`.
+
+### Stage 51 — ControlStream command reference evidence
+
+Stage 51 closes the remaining ControlStream command-reference skip without
+expanding into command execution:
+
+- `GET /commands` now lists graph-backed `csapi.Command` entities instead
+  of always returning an empty collection.
+- `GET /controlstreams/{id}/commands` validates the parent ControlStream,
+  lists Command entities through the existing predicate index,
+  batch-hydrates entity state, and filters Commands whose semstreams
+  `csapi.PartOfControlStream` predicate points at the selected
+  ControlStream.
+- `GET /commands/{id}` serves the canonical read-only Command metadata
+  item so collection links resolve to a real resource.
+- `POST /commands` is a JSON fixture helper for the conformance harness.
+  It writes Command metadata triples only: required `controlstream@id`
+  plus optional issue/execution time, status, sender, and params.
+- The conformance seed now creates one Command metadata resource for the
+  seeded ControlStream and waits for the nested command collection to
+  become non-empty before Team Engine starts.
+
+This stage uses semstreams' framework vocabulary (`csapi.Command` and
+`csapi.PartOfControlStream`), so no gateway-local predicate shim is added.
+Command execution, device interaction, asynchronous status transitions, and
+actuation side effects remain out of v0.1 scope.
+
+**Outcome:** `total=137 passed=115 failed=0 skipped=22` (confirmed
+2026-06-02). Newly passing check:
+`commandsReferenceSelectedControlStreamWhenNestedCollectionPopulated`.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

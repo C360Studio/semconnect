@@ -1875,15 +1875,19 @@ paths:
       operationId: getControlStreamCommands
       tags: [ControlStreams]
       summary: List commands for a control stream.
-      description: Command execution is not implemented at v0.1, so this returns an empty collection.
+      description: Stage 51 — lists read-side Command metadata associated with the selected ControlStream. Command execution is not implemented at v0.1.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Empty Command collection.
+          description: Command collection.
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/ItemsOnlyCollection"}
+              schema: {$ref: "#/components/schemas/CommandCollection"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
 
   /systems/{id}/controlstreams:
@@ -1913,18 +1917,37 @@ paths:
       operationId: getCommands
       tags: [Commands]
       summary: List Commands.
-      description: Command execution is not implemented at v0.1, so this returns an empty collection.
+      description: Stage 51 — lists read-side Command metadata. Command execution and status transitions are not implemented at v0.1.
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
       responses:
         "200":
-          description: Empty Command collection.
+          description: Command collection.
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/ItemsOnlyCollection"}
+              schema: {$ref: "#/components/schemas/CommandCollection"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    post:
+      operationId: postCommand
+      tags: [Commands]
+      summary: Create read-side command metadata.
+      description: v0.1 fixture helper used by the conformance harness. This records Command metadata only; it does not execute a command or contact a device.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CommandPost"}
+      responses:
+        "201":
+          description: Created.
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
     options:
       operationId: optionsCommands
       tags: [Commands]
@@ -1932,6 +1955,33 @@ paths:
       responses:
         "204":
           description: No Content.
+
+  /commands/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getCommand
+      tags: [Commands]
+      summary: Get a Command metadata resource.
+      description: Stage 51 — read-only Command metadata item. This does not execute or mutate command state.
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Command resource.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Command"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headCommand
+      tags: [Commands]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
 
   /systemEvents:
     x-cs-upstream-source: api/upstream/part2/paths/systemEvents.yaml
@@ -2713,6 +2763,53 @@ components:
           description: Command payload media type. v0.1 stores and returns the declared value; command execution remains out of scope.
         parametersSchema:
           $ref: "#/components/schemas/SWEDataRecordSchema"
+
+    CommandCollection:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/Command"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    Command:
+      type: object
+      required: [id, type]
+      properties:
+        id:              {type: string}
+        type:            {type: string, enum: [Command]}
+        controlstream@id:
+          type: string
+          description: ControlStream ID stored via semstreams `csapi.PartOfControlStream`.
+        controlstream@link:
+          $ref: "#/components/schemas/Link"
+        issueTime:       {type: string}
+        executionTime:   {type: string}
+        status:          {type: string}
+        sender:          {type: string}
+        params:
+          type: object
+          additionalProperties: true
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    CommandPost:
+      type: object
+      required: [controlstream@id]
+      properties:
+        id:              {type: string, description: Optional client-supplied 6-part SemStreams ID.}
+        controlstream@id: {type: string}
+        issueTime:       {type: string}
+        executionTime:   {type: string}
+        status:          {type: string}
+        sender:          {type: string}
+        params:
+          type: object
+          additionalProperties: true
 
     ControlStreamPost:
       type: object

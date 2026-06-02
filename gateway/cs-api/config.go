@@ -136,6 +136,10 @@ type Config struct {
 	// Stage 24.
 	ControlStreamIDPrefix string `json:"controlstream_id_prefix"`
 
+	// CommandIDPrefix is the 5-part prefix for POST /commands.
+	// Stage 51.
+	CommandIDPrefix string `json:"command_id_prefix"`
+
 	// SystemEventIDPrefix is the 5-part prefix for POST /systemEvents and
 	// /systems/{id}/events. Stage 25.
 	SystemEventIDPrefix string `json:"system_event_id_prefix"`
@@ -176,6 +180,7 @@ func DefaultConfig() Config {
 		SamplingFeatureIDPrefix:   "c360.semconnect.systems.csapi.samplingfeature",
 		PropertyIDPrefix:          "c360.semconnect.systems.csapi.property",
 		ControlStreamIDPrefix:     "c360.semconnect.systems.csapi.controlstream",
+		CommandIDPrefix:           "c360.semconnect.systems.csapi.command",
 		SystemEventIDPrefix:       "c360.semconnect.systems.csapi.systemevent",
 		SchemaArtifactIDPrefix:    "c360.semconnect.systems.csapi.schema",
 	}
@@ -254,6 +259,9 @@ func (c *Config) ApplyDefaults() {
 	}
 	if c.ControlStreamIDPrefix == "" {
 		c.ControlStreamIDPrefix = d.ControlStreamIDPrefix
+	}
+	if c.CommandIDPrefix == "" {
+		c.CommandIDPrefix = d.CommandIDPrefix
 	}
 	if c.SystemEventIDPrefix == "" {
 		c.SystemEventIDPrefix = d.SystemEventIDPrefix
@@ -334,6 +342,9 @@ func (c *Config) Validate() error {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.ControlStreamIDPrefix, "controlstream_id_prefix"); err != nil {
+		return err
+	}
+	if err := validateEntityIDPrefix(c.CommandIDPrefix, "command_id_prefix"); err != nil {
 		return err
 	}
 	if err := validateEntityIDPrefix(c.SystemEventIDPrefix, "system_event_id_prefix"); err != nil {

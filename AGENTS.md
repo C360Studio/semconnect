@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Repository status
 
-**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
+**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 + 51 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
@@ -55,8 +55,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `GET /controlstreams` (Stage 24) — CS API Part 2 control-stream collection. Predicate-query on `vocabulary/csapi.ControlStream`, then Stage 40 batch hydration so collection `items` are full ControlStream resources.
   - `GET /controlstreams/{id}` (Stage 24; Stage 34 makes schema SWE-backed) — JSON ControlStream subset with system reference, inputName, controlledProperties, formats, live/async flags, and command links. Stage 47 adds canonical Part 2 alias `GET /controls/{id}` to the same handler.
   - `GET /controlstreams/{id}/schema` (Stage 24; Stage 34 validates/canonicalizes schema) — returns the stored command schema (`commandFormat`, `parametersSchema` as SWE Common DataRecord).
-  - `GET /controlstreams/{id}/commands` (Stage 24) — readable empty Command collection; command execution is intentionally out of scope at v0.1.
-  - `GET /commands` (Stage 43) — readable empty global Command collection; command execution/status lifecycle remains intentionally out of scope at v0.1.
+  - `GET /controlstreams/{id}/commands` (Stage 24; Stage 51 adds read-side Command metadata) — validates the parent ControlStream, predicate-queries `vocabulary/csapi.Command`, batch-hydrates entity state, and returns Commands whose semstreams `csapi.PartOfControlStream` predicate points at the parent. Command execution is intentionally out of scope at v0.1.
+  - `GET /commands` (Stage 43; Stage 51 adds read-side Command metadata) — global Command collection backed by graph `csapi.Command` entities. Command execution/status lifecycle remains intentionally out of scope at v0.1.
+  - `GET /commands/{id}` (Stage 51) — read-only canonical Command metadata item. Fetches the graph entity, verifies `csapi.Command`, and renders the same JSON Command shape as collection items.
+  - `POST /commands` (Stage 51) — JSON fixture helper used by the conformance harness to create read-side Command metadata linked to a ControlStream via semstreams `csapi.PartOfControlStream`. It does not execute commands, publish to devices, or model status transitions.
   - `GET /systems/{id}/controlstreams` (Stage 24) — system-scoped ControlStream collection, filtered by beta.91's dotted `vocabulary/csapi.ControlsSystem`.
   - `POST /controlstreams` (Stage 24; Stage 34 validates command schema with `pkg/swecommon`) — JSON fixture helper used by the conformance harness to create read-side ControlStreams; not a command execution path.
   - `GET /systemEvents` (Stage 25) — CS API Part 2 SystemEvent collection. Predicate-query on `vocabulary/csapi.SystemEvent`, then Stage 40 batch hydration so collection `items` are full SystemEvent resources. Stage 47 also exposes this collection at `/collections/all_system_events/items` for the ETS Part 2 collection-discovery path.
@@ -87,7 +89,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   `main`, on `workflow_dispatch`, and on PRs labelled `conformance` — **not a PR-blocking
   gate** at this stage.
 
-  **Current outcome (Stage 50, 2026-06-02): `total=137 passed=114 failed=0 skipped=23`.**
+  **Current outcome (Stage 51, 2026-06-02): `total=137 passed=115 failed=0 skipped=22`.**
   Zero failures against our claimed conformance set. Stage 44 declares Part 2
   Datastreams/Observations and verifies the read-only surface: full Datastream collection
   items, canonical item reads, schema wrapper, global/nested Observation collections, and
@@ -111,7 +113,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   three-part gateway-local predicate `cs-api.deployment.parent`, closing the
   parent-scoped collection and canonical child item assertions. That predicate is
   isolated behind one constant so a future semstreams CS API deployment-composition
-  vocabulary term can replace it without broad churn.
+  vocabulary term can replace it without broad churn. Stage 51 adds read-side
+  Command metadata resources using semstreams `csapi.Command` and
+  `csapi.PartOfControlStream`, closing the remaining ControlStream command-reference
+  assertion without adding execution semantics.
 
   Trajectory: Stage 12 (20/0/117) → Stage 14 (29/1/107) → Stage 15 (32/0/105) →
   Stage 16+17+conformance-fix (38/2/97) → Stage 18 (40/0/97) → Stage 22 (58/0/79) →
@@ -122,10 +127,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   Stage 39 (79/0/58) → Stage 40 (79/0/58) → Stage 41 (79/0/58) → Stage 42 (79/0/58) →
   Stage 43 (80/0/57) → Stage 44 (89/0/48) → Stage 45 (91/0/46) →
   Stage 46 (97/0/40) → Stage 47 (100/0/37) → Stage 48 (106/0/31) →
-  Stage 49 (110/0/27) → Stage 50 (114/0/23).
+  Stage 49 (110/0/27) → Stage 50 (114/0/23) → Stage 51 (115/0/22).
   Eventual-consistency seed-then-query lag is handled by `run.sh` poll-until-visible
   checks after seed (systems, subsystems, datastreams, observations, subdeployments,
-  controlstreams, systemEvents);
+  controlstreams, commands, systemEvents);
   TeamEngine host readiness is actively polled because
   Tomcat can briefly reset connections after Docker starts the container.
 - **`Dockerfile`** (repo root) — multi-stage build of cs-api-server into a distroless/static-debian12 image. Used by the conformance harness and eventual operator deploys.
@@ -200,8 +205,10 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `GET /controlstreams` | `graph.index.query.predicate` (rdf:type = `vocabulary/csapi.ControlStream`) → `graph.query.batch` hydration → JSON ControlStreamCollection. Stage 24; batch hydration Stage 40. |
 | `GET /controlstreams/{id}` / `GET /controls/{id}` | `graph.query.entity` → `controlStreamFromState` (JSON subset with schema/commands links; command format is a scalar parent triple). Stage 24; schema artifact storage Stage 42; canonical `/controls/{id}` alias Stage 47. |
 | `GET /controlstreams/{id}/schema` | `graph.query.entity` → `csapi.HasCommandSchema` → typed `csapi:SWESchemaDocument` artifact entity → ObjectStore bytes via `StorageRef` → command schema with SWE Common DataRecord `parametersSchema`. Stage 34 validates/canonicalizes new schemas with `pkg/swecommon`; artifact storage Stage 42. |
-| `GET /controlstreams/{id}/commands` | `graph.query.entity` kind check → empty Command collection. Stage 24. |
-| `GET /commands` | Empty global Command collection. Stage 43; command execution/status lifecycle remains out of scope at v0.1. |
+| `GET /controlstreams/{id}/commands` | Parent `graph.query.entity` kind check → predicate-query all `csapi.Command` entities → `graph.query.batch` hydration → filter Commands whose semstreams `csapi.PartOfControlStream` relation points at the parent. Stage 24; populated read-side metadata Stage 51. |
+| `GET /commands` | `graph.index.query.predicate` (rdf:type = `csapi.Command`) → `graph.query.batch` hydration → JSON Command collection. Stage 43; populated read-side metadata Stage 51. Command execution/status lifecycle remains out of scope at v0.1. |
+| `GET /commands/{id}` | `graph.query.entity` → Command kind check → JSON Command metadata resource. Stage 51. |
+| `POST /commands` | `buildCommandTriples` (json fixture helper) → `ingestTriples`. Required `controlstream@id` → semstreams `csapi.PartOfControlStream`; optional issue/execution time, status, sender, and params are metadata triples. Stage 51. No command execution side effect. |
 | `GET /observations` | Wildcard JetStream read over `cs-api.observations.>` → JSON ObservationCollection with `datastream@id` recovered from subject. Stage 44 endpoint; populated Stage 45. |
 | `GET /observations/{obsID}` | Wildcard JetStream scan → first matching JSON Observation resource. Stage 45; no graph index at v0.1. |
 | `GET /systems/{id}/datastreams` | Predicate-query all Datastreams, hydrate, filter by dotted `vocabulary/csapi.ProducedBy`. Stage 44. |

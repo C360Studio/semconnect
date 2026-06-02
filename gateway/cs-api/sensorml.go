@@ -1,6 +1,7 @@
 package csapi
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -219,10 +220,10 @@ func allStringObjects(triples []message.Triple, pred string) []string {
 	return out
 }
 
-// systemReconstructionFromState wraps reconstructProcessFromTriples with a
+// processReconstructionFromState wraps reconstructProcessFromTriples with a
 // state-shaped input. Pulled out so the handler doesn't have to thread
 // triples + entityID separately.
-func systemReconstructionFromState(state graph.EntityState) (sensorml.Process, error) {
+func processReconstructionFromState(state graph.EntityState) (sensorml.Process, error) {
 	if state.ID == "" {
 		return nil, errors.New("entity state missing ID")
 	}
@@ -230,4 +231,24 @@ func systemReconstructionFromState(state graph.EntityState) (sensorml.Process, e
 		return nil, errors.New("entity state has no triples")
 	}
 	return reconstructProcessFromTriples(state.Triples, state.ID)
+}
+
+func systemReconstructionFromState(state graph.EntityState) (sensorml.Process, error) {
+	return processReconstructionFromState(state)
+}
+
+func marshalSensorMLResource(proc sensorml.Process, links []link) ([]byte, error) {
+	body, err := json.Marshal(proc)
+	if err != nil {
+		return nil, err
+	}
+	if len(links) == 0 {
+		return body, nil
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return nil, err
+	}
+	doc["links"] = links
+	return json.Marshal(doc)
 }

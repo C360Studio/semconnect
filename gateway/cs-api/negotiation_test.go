@@ -32,6 +32,7 @@ func TestNegotiate(t *testing.T) {
 		// long-form legacy alias kept for backward compat.
 		{"SensorML spec form (sml+json) wired at Stage 14", "application/sml+json", FamilySystemItem, MediaSensorML, true},
 		{"SensorML legacy long form still wired", "application/sensorml+json", FamilySystemItem, MediaSensorMLLegacy, true},
+		{"SensorML spec form wired on procedure item", "application/sml+json", FamilyProcedureItem, MediaSensorML, true},
 		{"SensorML NOT wired on collection — 406 (sml+json)", "application/sml+json", FamilySystemCollection, "", false},
 		{"SensorML NOT wired on collection — 406 (long form)", "application/sensorml+json", FamilySystemCollection, "", false},
 		{"JSON-LD wired at Stage 4 for system items", "application/ld+json", FamilySystemItem, MediaJSONLD, true},
@@ -63,17 +64,19 @@ func TestNegotiateRequest_FParameterOverridesAccept(t *testing.T) {
 	// names not in fam.supported() 406 instead of silently falling through —
 	// the override is a deliberate client signal.
 	tests := []struct {
-		name      string
-		url       string
-		accept    string
-		fam       ResourceFamily
-		want      MediaType
-		wantOK    bool
+		name   string
+		url    string
+		accept string
+		fam    ResourceFamily
+		want   MediaType
+		wantOK bool
 	}{
 		{"f=json picks JSON regardless of Accept",
 			"/systems?f=json", "application/sensorml+json", FamilySystemItem, MediaJSON, true},
 		{"f=sensorml on system item",
 			"/systems/x?f=sensorml", "", FamilySystemItem, MediaSensorML, true},
+		{"f=sensorml on procedure item",
+			"/procedures/x?f=sensorml", "", FamilyProcedureItem, MediaSensorML, true},
 		{"f=jsonld on system item",
 			"/systems/x?f=jsonld", "", FamilySystemItem, MediaJSONLD, true},
 		{"f=geojson on spatial",

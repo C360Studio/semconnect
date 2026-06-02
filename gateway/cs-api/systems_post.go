@@ -166,6 +166,7 @@ type systemFeatureBody struct {
 		UID                  string `json:"uid"`
 		Name                 string `json:"name,omitempty"`
 		Description          string `json:"description,omitempty"`
+		Definition           string `json:"definition,omitempty"`
 		DeployedSystemsLinks []link `json:"deployedSystems@link,omitempty"`
 		HostedProcedureLink  *link  `json:"hostedProcedure@link,omitempty"`
 		ParentID             string `json:"parent@id,omitempty"`

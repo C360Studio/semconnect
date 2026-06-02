@@ -487,6 +487,21 @@ func TestHandleSystem_SensorML(t *testing.T) {
 	if proc.Type() != sensorml.TypePhysicalSystem {
 		t.Errorf("type: got %q want %q", proc.Type(), sensorml.TypePhysicalSystem)
 	}
+	var doc struct {
+		Links []link `json:"links"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &doc); err != nil {
+		t.Fatalf("decode links: %v", err)
+	}
+	var hasDatastreams bool
+	for _, l := range doc.Links {
+		if l.Rel == "datastreams" {
+			hasDatastreams = true
+		}
+	}
+	if !hasDatastreams {
+		t.Errorf("SensorML links missing datastreams association: %+v", doc.Links)
+	}
 }
 
 func TestHandleSystem_JSONLD(t *testing.T) {

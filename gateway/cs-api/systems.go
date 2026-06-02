@@ -722,7 +722,7 @@ func (c *Component) writeSystemSensorML(w http.ResponseWriter, r *http.Request, 
 		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeSystemSensorML", "reverse mapping"))
 		return
 	}
-	body, err := json.Marshal(proc)
+	body, err := marshalSensorMLResource(proc, systemFromState(state).Links)
 	if err != nil {
 		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeSystemSensorML", "marshal sensorml"))
 		return

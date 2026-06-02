@@ -344,7 +344,7 @@ EOF
     # has non-empty /procedures to exercise. Same Feature shape POST
     # /procedures accepts (no SensorML required for a fixture).
     log "  POST /procedures with seed Feature"
-    local proc_body='{"type":"Feature","properties":{"uid":"urn:ets:proc:calibration:01","name":"Conformance seed procedure","description":"Stage 20 seed fixture — daily calibration"}}'
+    local proc_body='{"type":"Feature","properties":{"uid":"urn:ets:proc:calibration:01","name":"Conformance seed procedure","description":"Stage 20 seed fixture — daily calibration","definition":"http://www.opengis.net/def/procedure/OGC/0/calibration"}}'
     local proc_resp
     proc_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \

@@ -1321,9 +1321,10 @@ paths:
       operationId: getProcedure
       summary: Fetch a procedure by ID.
       description: |-
-        Returns the Procedure resource as `application/json`. Per
-        CS API §6 `/req/procedure/location`, procedures MUST NOT
-        carry geometry — the response shape omits the field entirely.
+        Returns the Procedure resource as `application/json` or
+        `application/sml+json`. Per CS API §6 `/req/procedure/location`,
+        procedures MUST NOT carry geometry — the JSON response shape
+        omits the field entirely.
       tags: [Procedures]
       parameters:
         - $ref: "#/components/parameters/F"
@@ -1336,6 +1337,14 @@ paths:
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Procedure"}
+            application/sml+json:
+              schema:
+                type: object
+                description: SensorML SimpleProcess or AggregateProcess reconstructed from triples.
+            application/sensorml+json:
+              schema:
+                type: object
+                description: Alias for application/sml+json.
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "406": {$ref: "#/components/responses/NotAcceptable"}
@@ -2469,6 +2478,7 @@ components:
             uid:         {type: string, description: SensorML uniqueId — feeds the 6-part entity ID mint.}
             name:        {type: string}
             description: {type: string}
+            definition:  {type: string, format: uri, description: Optional Procedure definition; preserved as `sensorml.PredDefinition` on /procedures Feature POST.}
             "deployedSystems@link":
               type: array
               description: Optional Stage 46 Deployment association mapping; hrefs are stored on `cs-api.deployment.deployedSystems`.

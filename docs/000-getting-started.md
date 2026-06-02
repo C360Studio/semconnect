@@ -1501,7 +1501,7 @@ predicate is added for this stage.
 `sensorMlDeploymentLinksMemberAssociationRelsUseResourceSpecificNames`.
 The remaining skips are Part 2 feasibility checks and Part 2 advanced
 filtering checks. Stage 54 later closes the Part 2 advanced-filtering
-block while leaving feasibility deferred.
+block; Stage 55 later closes the Feasibility block.
 
 ### Stage 54 — Part 2 Advanced Filtering read side
 
@@ -1532,10 +1532,10 @@ stored predicates are small gateway-local scalar time values for Datastream
 and ControlStream fixtures (`cs-api.datastream.*`,
 `cs-api.controlstream.*`), using the existing three-part dotted convention.
 
-Part 2 Command Feasibility remains deferred. The ETS feasibility group is
-now the only remaining skipped family, and it would require an explicit
-product decision to model feasibility resources rather than another read
-filter pass.
+At Stage 54, Part 2 Command Feasibility remained deferred as the only
+skipped family; it required the explicit product decision to model
+Feasibility resources rather than treating feasibility as another read filter
+pass. Stage 55 closes that block.
 
 **Outcome:** `total=137 passed=130 failed=0 skipped=7` (confirmed
 2026-06-02). Newly passing checks:
@@ -1548,6 +1548,48 @@ filter pass.
 `controlStreamControlledPropertyFilterVerifiesReturnedPredicates`,
 `commandFiltersVerifyReturnedPredicatesWhenEndpointAvailable`, and
 `systemEventTypeFilterVerifiesReturnedPredicatesWhenEndpointAvailable`.
+
+### Stage 55 — Part 2 Command Feasibility read side
+
+Stage 55 declares CS API Part 2 `conf/feasibility` and adds the read-side
+Feasibility surface exercised by the pinned ETS:
+
+- `GET /feasibility` lists Feasibility resources from graph state.
+- `GET /feasibility/{id}` returns the canonical Feasibility resource with
+  `status`, `params` / `parameters`, optional `result`, and ControlStream
+  reference evidence.
+- `GET /feasibility/{id}/status` and `/result` return readable `items[]`
+  collections for status and result metadata.
+- `GET /controlstream/{id}/feasibility` implements the normative singular
+  ControlStream-scoped Feasibility path and filters resources by
+  `controlstream@id`.
+- `GET /collections/all_feasibility/items` backs the advertised
+  `itemType=Feasibility` collection metadata.
+- `POST /feasibility` is a fixture helper for the conformance harness only.
+  It records metadata and does not evaluate feasibility or execute commands.
+
+semstreams does not yet expose canonical CS API Feasibility vocabulary terms,
+so Stage 55 uses a single gateway-local Feasibility type IRI plus
+three-part dotted predicates:
+
+- `cs-api.feasibility.controlstream`
+- `cs-api.feasibility.status`
+- `cs-api.feasibility.params`
+- `cs-api.feasibility.result`
+
+This should be retired when semstreams grows canonical Feasibility vocabulary
+terms; the gateway-local predicates are isolated behind constants in
+`gateway/cs-api/feasibility.go`.
+
+**Outcome:** `total=137 passed=137 failed=0 skipped=0` (confirmed
+2026-06-02). Newly passing checks:
+`feasibilityConformanceDeclared`,
+`feasibilityControlStreamPrerequisiteVisibleForFullClosure`,
+`controlStreamScopedFeasibilityEndpointUsesNormativeSingularPath`,
+`feasibilityCanonicalResourceReadableWhenAvailable`,
+`feasibilityStatusEndpointReadableWhenResourceAvailable`,
+`feasibilityResultEndpointReadableWhenResourceAvailable`, and
+`feasibilityCollectionsCheckedWhenAdvertised`.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

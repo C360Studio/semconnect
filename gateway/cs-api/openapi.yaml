@@ -2024,6 +2024,171 @@ paths:
         "200": {description: OK (no body)}
         "404": {description: Not Found}
 
+  /controlstream/{id}/feasibility:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getControlStreamFeasibility
+      tags: [Feasibility]
+      summary: List feasibility resources for a control stream.
+      description: |-
+        Stage 55 — normative singular CS API Part 2 path for
+        ControlStream-scoped command feasibility resources. This is
+        read-side metadata only; command execution remains out of scope.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Feasibility collection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/FeasibilityCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headControlStreamFeasibility
+      tags: [Feasibility]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
+  /feasibility:
+    get:
+      operationId: getFeasibilities
+      tags: [Feasibility]
+      summary: List feasibility resources.
+      description: Stage 55 — lists read-side Command Feasibility metadata.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Feasibility collection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/FeasibilityCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headFeasibilities
+      tags: [Feasibility]
+      responses:
+        "200": {description: OK (no body)}
+    post:
+      operationId: postFeasibility
+      tags: [Feasibility]
+      summary: Create read-side feasibility metadata.
+      description: v0.1 fixture helper used by the conformance harness. This records feasibility metadata only; it does not evaluate or execute a command.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/FeasibilityPost"}
+      responses:
+        "201":
+          description: Created.
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "413": {$ref: "#/components/responses/PayloadTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedMediaType"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    options:
+      operationId: optionsFeasibilities
+      tags: [Feasibility]
+      responses:
+        "204":
+          description: No Content.
+
+  /feasibility/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getFeasibility
+      tags: [Feasibility]
+      summary: Get a feasibility resource.
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Feasibility resource.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Feasibility"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headFeasibility
+      tags: [Feasibility]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+    options:
+      operationId: optionsFeasibility
+      tags: [Feasibility]
+      responses:
+        "204":
+          description: No Content.
+
+  /feasibility/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getFeasibilityStatus
+      tags: [Feasibility]
+      summary: Get feasibility status resources.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Status collection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/FeasibilityStatusCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headFeasibilityStatus
+      tags: [Feasibility]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
+  /feasibility/{id}/result:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getFeasibilityResult
+      tags: [Feasibility]
+      summary: Get feasibility result resources.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Result collection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/FeasibilityResultCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headFeasibilityResult
+      tags: [Feasibility]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
   /systemEvents:
     x-cs-upstream-source: api/upstream/part2/paths/systemEvents.yaml
     get:
@@ -2917,6 +3082,87 @@ components:
         params:
           type: object
           additionalProperties: true
+
+    FeasibilityCollection:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: "#/components/schemas/Feasibility"}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    Feasibility:
+      type: object
+      required: [id, type]
+      properties:
+        id:              {type: string}
+        type:            {type: string, enum: [Feasibility]}
+        controlstream@id:
+          type: string
+          description: ControlStream ID stored via gateway-local `cs-api.feasibility.controlstream`.
+        controlstream@link:
+          $ref: "#/components/schemas/Link"
+        status:          {type: string}
+        params:
+          type: object
+          additionalProperties: true
+        parameters:
+          type: object
+          additionalProperties: true
+        result:
+          type: object
+          additionalProperties: true
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    FeasibilityPost:
+      type: object
+      required: [controlstream@id]
+      properties:
+        id:              {type: string, description: Optional client-supplied 6-part SemStreams ID.}
+        controlstream@id: {type: string}
+        status:          {type: string}
+        params:
+          type: object
+          additionalProperties: true
+        parameters:
+          type: object
+          additionalProperties: true
+        result:
+          type: object
+          additionalProperties: true
+
+    FeasibilityStatusCollection:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [status]
+            properties:
+              status: {type: string}
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
+
+    FeasibilityResultCollection:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        links:
+          type: array
+          items: {$ref: "#/components/schemas/Link"}
 
     ControlStreamPost:
       type: object

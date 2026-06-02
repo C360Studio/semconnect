@@ -74,8 +74,13 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	controlItemPath := join("controls/{id}")
 	controlStreamSchemaPath := join("controlstreams/{id}/schema")
 	controlStreamCommandsPath := join("controlstreams/{id}/commands")
+	controlStreamFeasibilityPath := join("controlstream/{id}/feasibility")
 	commandsPath := join("commands")
 	commandPath := join("commands/{id}")
+	feasibilityPath := join("feasibility")
+	feasibilityItemPath := join("feasibility/{id}")
+	feasibilityStatusPath := join("feasibility/{id}/status")
+	feasibilityResultPath := join("feasibility/{id}/result")
 	systemControlStreamsPath := join("systems/{id}/controlstreams")
 	systemHistoryPath := join("systems/{id}/history")
 	systemHistoryItemPath := join("systems/{id}/history/{revID}")
@@ -198,6 +203,19 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("OPTIONS "+commandsPath, c.middleware(http.HandlerFunc(c.handleCommandsOptions)))
 	mux.Handle("GET "+commandPath, c.middleware(http.HandlerFunc(c.handleCommand)))
 	mux.Handle("HEAD "+commandPath, c.middleware(http.HandlerFunc(c.handleCommand)))
+	mux.Handle("GET "+feasibilityPath, c.middleware(http.HandlerFunc(c.handleFeasibilities)))
+	mux.Handle("HEAD "+feasibilityPath, c.middleware(http.HandlerFunc(c.handleFeasibilities)))
+	mux.Handle("POST "+feasibilityPath, c.middleware(http.HandlerFunc(c.handleFeasibilityPost)))
+	mux.Handle("OPTIONS "+feasibilityPath, c.middleware(http.HandlerFunc(c.handleFeasibilitiesOptions)))
+	mux.Handle("GET "+feasibilityItemPath, c.middleware(http.HandlerFunc(c.handleFeasibility)))
+	mux.Handle("HEAD "+feasibilityItemPath, c.middleware(http.HandlerFunc(c.handleFeasibility)))
+	mux.Handle("OPTIONS "+feasibilityItemPath, c.middleware(http.HandlerFunc(c.handleFeasibilityOptions)))
+	mux.Handle("GET "+feasibilityStatusPath, c.middleware(http.HandlerFunc(c.handleFeasibilityStatus)))
+	mux.Handle("HEAD "+feasibilityStatusPath, c.middleware(http.HandlerFunc(c.handleFeasibilityStatus)))
+	mux.Handle("GET "+feasibilityResultPath, c.middleware(http.HandlerFunc(c.handleFeasibilityResult)))
+	mux.Handle("HEAD "+feasibilityResultPath, c.middleware(http.HandlerFunc(c.handleFeasibilityResult)))
+	mux.Handle("GET "+controlStreamFeasibilityPath, c.middleware(http.HandlerFunc(c.handleControlStreamFeasibility)))
+	mux.Handle("HEAD "+controlStreamFeasibilityPath, c.middleware(http.HandlerFunc(c.handleControlStreamFeasibility)))
 	mux.Handle("GET "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
 	mux.Handle("HEAD "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
 	// Stage 26 — OSH-bar System History read-side vendor extension.
@@ -253,8 +271,13 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"control_item", controlItemPath,
 		"controlstream_schema", controlStreamSchemaPath,
 		"controlstream_commands", controlStreamCommandsPath,
+		"controlstream_feasibility", controlStreamFeasibilityPath,
 		"commands", commandsPath,
 		"command", commandPath,
+		"feasibility", feasibilityPath,
+		"feasibility_item", feasibilityItemPath,
+		"feasibility_status", feasibilityStatusPath,
+		"feasibility_result", feasibilityResultPath,
 		"system_controlstreams", systemControlStreamsPath,
 		"system_history", systemHistoryPath,
 		"system_history_item", systemHistoryItemPath,

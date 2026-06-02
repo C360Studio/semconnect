@@ -152,6 +152,10 @@ var stageConformanceClasses = []string{
 	// ControlStream controlledProperty/time filters, Command status/sender/time
 	// filters, and SystemEvent eventType filters over hydrated resource shapes.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/advanced-filtering",
+	// Stage 55 — CS API Part 2 Command Feasibility read-only slice:
+	// /feasibility collection/item, status/result subresources, and the
+	// normative singular /controlstream/{id}/feasibility scoped endpoint.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/feasibility",
 }
 
 type conformanceDeclaration struct {

@@ -1113,7 +1113,9 @@ Subsequent stages from the OSH-bar memory:
 
 - Typed artifact entity migration for Datastream and ControlStream
   schema storage using `csapi.HasResultSchema` /
-  `csapi.HasCommandSchema`.
+  `csapi.HasCommandSchema`. Stage 41 wires the ObjectStore and helper;
+  the remaining work is switching the Datastream / ControlStream call
+  sites from gateway-local JSON predicates to that helper.
 - Command execution, if/when v0.1 scope expands beyond read-side
   ControlStream metadata.
 
@@ -1142,6 +1144,33 @@ degrading a GeoJSON Feature to null geometry / minimal properties.
 2026-06-02). Headline conformance is unchanged from Stage 39; this is a
 read-path performance/shape cleanup that adopts the semstreams #172
 primitive rather than unlocking a new ETS branch.
+
+### Stage 41 — Schema artifact ObjectStore substrate
+
+Stage 41 prepares the typed schema artifact migration unlocked by
+semstreams beta.91:
+
+- `Start()` now ensures a dedicated JetStream ObjectStore bucket for CS
+  API schema artifacts (`schema_artifacts_bucket`, default
+  `CS_API_ARTIFACTS`) alongside the observations stream.
+- `schema_artifact_id_prefix` gives SWE schema artifact entities their
+  own 5-part SemStreams namespace.
+- A shared helper canonicalizes SWE Common schema JSON through
+  `pkg/swecommon`, writes the bytes to ObjectStore, creates a typed
+  `csapi:SWESchemaDocument` graph entity with `StorageRef`, and returns
+  the parent relationship triple using the dotted beta.91 predicates
+  (`csapi.HasResultSchema` or `csapi.HasCommandSchema`).
+
+The Datastream and ControlStream HTTP handlers still read/write the
+gateway-local JSON predicates in this stage. That keeps the migration
+small enough to verify independently; the next local stage can switch
+those call sites onto the artifact helper and retire the bridge
+predicates.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-06-02). Headline conformance is unchanged from Stage 40; this stage
+adds storage substrate for the schema artifact migration rather than
+claiming a new ETS branch.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

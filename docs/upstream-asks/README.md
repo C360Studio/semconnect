@@ -38,10 +38,12 @@ gateway work are closed upstream as of semstreams `v1.0.0-beta.91`.
 
 ## semconnect-local follow-ups
 
-- Migrate Datastream and ControlStream schema storage from local JSON
-  predicates to typed artifact entities using the beta.91 dotted
-  relationship predicates (`csapi.HasResultSchema`,
-  `csapi.HasCommandSchema`) and artifact class (`csapi.SWESchemaDocument`).
+- Switch Datastream and ControlStream schema call sites from local JSON
+  predicates to the Stage 41 schema artifact helper. The helper already
+  stores canonical SWE schema bytes in ObjectStore, creates
+  `csapi.SWESchemaDocument` entities with `StorageRef`, and returns
+  beta.91 dotted relationship triples (`csapi.HasResultSchema`,
+  `csapi.HasCommandSchema`).
 - Use the documented `natsclient.TestClient` helpers for gateway
   integration tests when we next replace in-memory request fakes with a
   real NATS-backed harness.

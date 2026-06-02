@@ -156,6 +156,10 @@ func datastreamToTriples(entityID string, d *Datastream) []message.Triple {
 }
 
 func normalizeDatastreamSchema(raw json.RawMessage) (json.RawMessage, error) {
+	return normalizeSWESchema(raw)
+}
+
+func normalizeSWESchema(raw json.RawMessage) (json.RawMessage, error) {
 	raw = bytes.TrimSpace(raw)
 	if len(raw) == 0 {
 		return nil, nil

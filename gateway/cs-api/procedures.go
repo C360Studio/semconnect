@@ -76,6 +76,7 @@ func procedureFromState(state graph.EntityState) procedure {
 		Links: []link{
 			{Href: "/procedures/" + state.ID, Rel: "self", Type: string(MediaJSON)},
 			{Href: "/procedures/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
+			{Href: "/systems", Rel: "implementingSystems", Type: string(MediaJSON)},
 		},
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {

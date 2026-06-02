@@ -1254,6 +1254,38 @@ pinned ETS. Remaining skips are outside the Datastream read-side slice
 (for example richer relation-type mapping, command execution/status, and
 Advanced Filtering).
 
+### Stage 46 — GeoJSON association evidence
+
+Stage 46 closes the GeoJSON relation-type and non-system mapping skips
+that were waiting for concrete association evidence:
+
+- System JSON items now expose allowlisted `links[]` association rels for
+  `datastreams` and `controlstreams`, pointing at existing system-scoped
+  resources.
+- Procedure JSON items expose an allowlisted `implementingSystems` link.
+- Deployment JSON items expose allowlisted `samplingFeatures` and
+  `datastreams` links, and Deployment Feature POST/GET round-trips
+  `properties.deployedSystems@link[]` hrefs through gateway-local dotted
+  predicate `cs-api.deployment.deployedSystems`.
+- SamplingFeature JSON items expose allowlisted `datastreams` and
+  `controlstreams` links, and SamplingFeature Feature POST/GET
+  round-trips `properties.hostedProcedure@link.href` through
+  gateway-local dotted predicate `cs-api.samplingfeature.hostedProcedure`.
+- `conformance/run.sh` now seeds those two property-level `@link`
+  mappings using the concrete System and Procedure IDs minted earlier in
+  the fixture sequence.
+
+This stage does not claim new conformance classes and does not add
+SensorML representations for Deployments, Procedures, or Properties. The
+remaining SensorML skips stay honest until those encodings are in scope.
+
+**Outcome:** `total=137 passed=97 failed=0 skipped=40` (confirmed
+2026-06-02). Newly passing checks are
+`deploymentFeatureHasGeoJsonSchemaAndMapping`,
+`samplingFeatureHasGeoJsonSchemaAndMapping`, and the four GeoJSON
+links-member relation-type checks for system, deployment, procedure, and
+samplingFeature.
+
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.
 

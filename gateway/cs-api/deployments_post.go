@@ -101,6 +101,7 @@ func (c *Component) buildDeploymentTriplesFromFeature(body []byte) (string, []me
 			Subject: entityID, Predicate: sensorml.PredDescription, Object: feat.Properties.Description,
 		})
 	}
+	triples = append(triples, triplesFromLinks(entityID, predDeploymentDeployedSystems, feat.Properties.DeployedSystemsLinks)...)
 	if posTriple, ok := positionTripleFromGeometry(entityID, feat.Geometry); ok {
 		triples = append(triples, posTriple)
 	}

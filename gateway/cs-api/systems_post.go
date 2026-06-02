@@ -163,9 +163,11 @@ type systemFeatureBody struct {
 	ID         string          `json:"id,omitempty"`
 	Geometry   json.RawMessage `json:"geometry,omitempty"`
 	Properties struct {
-		UID         string `json:"uid"`
-		Name        string `json:"name,omitempty"`
-		Description string `json:"description,omitempty"`
+		UID                  string `json:"uid"`
+		Name                 string `json:"name,omitempty"`
+		Description          string `json:"description,omitempty"`
+		DeployedSystemsLinks []link `json:"deployedSystems@link,omitempty"`
+		HostedProcedureLink  *link  `json:"hostedProcedure@link,omitempty"`
 	} `json:"properties"`
 }
 

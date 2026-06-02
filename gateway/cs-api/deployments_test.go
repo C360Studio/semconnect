@@ -55,6 +55,7 @@ func TestHandleDeployment_JSON(t *testing.T) {
 			{Subject: testDeploymentID, Predicate: sensorml.PredType, Object: ssnDeployment},
 			{Subject: testDeploymentID, Predicate: sensorml.PredLabel, Object: "Weather station deploy"},
 			{Subject: testDeploymentID, Predicate: PredSystemUID, Object: "urn:example:deploy:1"},
+			{Subject: testDeploymentID, Predicate: predDeploymentDeployedSystems, Object: "/systems/c360.semconnect.systems.csapi.system.alpha"},
 			{Subject: testDeploymentID, Predicate: PredSystemPosition, Object: `{"type":"Point","coordinates":[5,10]}`},
 		},
 	}
@@ -89,15 +90,27 @@ func TestHandleDeployment_JSON(t *testing.T) {
 	if string(d.Geometry) != `{"type":"Point","coordinates":[5,10]}` {
 		t.Errorf("Geometry: got %q", string(d.Geometry))
 	}
+	if d.FeatureProperties == nil || len(d.FeatureProperties.DeployedSystemsLinks) != 1 {
+		t.Fatalf("properties.deployedSystems@link missing: %+v", d.FeatureProperties)
+	}
+	if got := d.FeatureProperties.DeployedSystemsLinks[0].Href; got != "/systems/c360.semconnect.systems.csapi.system.alpha" {
+		t.Errorf("deployedSystems@link href: got %q", got)
+	}
 	// Canonical link required.
-	var hasCanonical bool
+	var hasCanonical, hasAssociation bool
 	for _, l := range d.Links {
 		if l.Rel == "canonical" {
 			hasCanonical = true
 		}
+		if l.Rel == "samplingFeatures" || l.Rel == "datastreams" {
+			hasAssociation = true
+		}
 	}
 	if !hasCanonical {
 		t.Errorf("links missing rel=canonical: %+v", d.Links)
+	}
+	if !hasAssociation {
+		t.Errorf("links missing deployment association rel: %+v", d.Links)
 	}
 }
 
@@ -131,7 +144,7 @@ func TestHandleDeploymentPost_Feature(t *testing.T) {
 	}
 	c := newTestComponent(t, fake)
 
-	body := []byte(`{"type":"Feature","geometry":{"type":"Point","coordinates":[5,10]},"properties":{"uid":"urn:example:deploy:2","name":"D2"}}`)
+	body := []byte(`{"type":"Feature","geometry":{"type":"Point","coordinates":[5,10]},"properties":{"uid":"urn:example:deploy:2","name":"D2","deployedSystems@link":[{"href":"/systems/c360.semconnect.systems.csapi.system.alpha"}]}}`)
 	req := httptest.NewRequest(http.MethodPost, "/deployments", bytes.NewReader(body))
 	req.Header.Set("Content-Type", string(MediaJSON))
 	rr := httptest.NewRecorder()
@@ -149,7 +162,7 @@ func TestHandleDeploymentPost_Feature(t *testing.T) {
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}
-	var sawDeploymentType, sawUID, sawPosition bool
+	var sawDeploymentType, sawUID, sawPosition, sawDeployedSystems bool
 	for _, tr := range batch.Triples {
 		if tr.Predicate == sensorml.PredType {
 			if s, ok := tr.Object.(string); ok && s == ssnDeployment {
@@ -162,6 +175,9 @@ func TestHandleDeploymentPost_Feature(t *testing.T) {
 		if tr.Predicate == PredSystemPosition {
 			sawPosition = true
 		}
+		if tr.Predicate == predDeploymentDeployedSystems {
+			sawDeployedSystems = true
+		}
 	}
 	if !sawDeploymentType {
 		t.Errorf("rdf:type should be ssnDeployment; batch=%+v", batch.Triples)
@@ -171,6 +187,9 @@ func TestHandleDeploymentPost_Feature(t *testing.T) {
 	}
 	if !sawPosition {
 		t.Errorf("position triple missing — deployments DO carry geometry; batch=%+v", batch.Triples)
+	}
+	if !sawDeployedSystems {
+		t.Errorf("deployedSystems@link triple missing; batch=%+v", batch.Triples)
 	}
 }
 
@@ -232,6 +251,16 @@ func TestHandleDeployments_GeoJSON(t *testing.T) {
 	// omits that entity, so the geo+json path degrades to null geometry.
 	fake := &multiReplyFakeRequester{
 		predicateReply: encodeReply(t, []string{testDeploymentID}),
+		entityRepliesByID: map[string][]byte{
+			testDeploymentID: encodeEntityState(t, graph.EntityState{
+				ID: testDeploymentID,
+				Triples: []message.Triple{
+					{Subject: testDeploymentID, Predicate: sensorml.PredType, Object: ssnDeployment},
+					{Subject: testDeploymentID, Predicate: PredSystemUID, Object: "urn:example:deploy:1"},
+					{Subject: testDeploymentID, Predicate: predDeploymentDeployedSystems, Object: "/systems/c360.semconnect.systems.csapi.system.alpha"},
+				},
+			}),
+		},
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -265,5 +294,8 @@ func TestHandleDeployments_GeoJSON(t *testing.T) {
 	}
 	if fc.Features[0].Properties["featureType"] != "Deployment" {
 		t.Errorf("featureType: got %v want Deployment", fc.Features[0].Properties["featureType"])
+	}
+	if links, ok := fc.Features[0].Properties["deployedSystems@link"].([]any); !ok || len(links) != 1 {
+		t.Errorf("deployedSystems@link: got %#v want one link", fc.Features[0].Properties["deployedSystems@link"])
 	}
 }

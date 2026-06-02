@@ -2203,6 +2203,14 @@ components:
             uid:         {type: string, description: SensorML uniqueId — feeds the 6-part entity ID mint.}
             name:        {type: string}
             description: {type: string}
+            "deployedSystems@link":
+              type: array
+              description: Optional Stage 46 Deployment association mapping; hrefs are stored on `cs-api.deployment.deployedSystems`.
+              items: {$ref: "#/components/schemas/Link"}
+            "hostedProcedure@link":
+              allOf:
+                - {$ref: "#/components/schemas/Link"}
+              description: Optional Stage 46 SamplingFeature association mapping; href is stored on `cs-api.samplingfeature.hostedProcedure`.
       description: |-
         Stage 16 — CS API §7.6 GeoJSON Feature body for POST and PUT
         on /systems. Distinct from the read-side `System` resource:
@@ -2300,6 +2308,10 @@ components:
             uid:         {type: string}
             name:        {type: string}
             description: {type: string}
+            "deployedSystems@link":
+              type: array
+              items: {$ref: "#/components/schemas/Link"}
+              description: Stage 46 property-level association mapping recovered from `cs-api.deployment.deployedSystems`.
         geometry:
           type: object
           description: GeoJSON geometry — deploy site location, round-tripped via `sensorml.process.position`.
@@ -2351,6 +2363,10 @@ components:
             uid:         {type: string}
             name:        {type: string}
             description: {type: string}
+            "hostedProcedure@link":
+              allOf:
+                - {$ref: "#/components/schemas/Link"}
+              description: Stage 46 property-level association mapping recovered from `cs-api.samplingfeature.hostedProcedure`.
         geometry:
           type: object
           description: GeoJSON geometry for the sampled feature or site.

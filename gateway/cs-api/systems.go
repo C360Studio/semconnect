@@ -153,9 +153,11 @@ type system struct {
 // re-added in symmetry; future fields land here when the ETS or a
 // real client asks for them.
 type featureProperties struct {
-	UID         string `json:"uid,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
+	UID                  string `json:"uid,omitempty"`
+	Name                 string `json:"name,omitempty"`
+	Description          string `json:"description,omitempty"`
+	DeployedSystemsLinks []link `json:"deployedSystems@link,omitempty"`
+	HostedProcedureLink  *link  `json:"hostedProcedure@link,omitempty"`
 }
 
 // systemFromState collapses an EntityState into the v0.1 JSON shape. Mirrors
@@ -177,6 +179,8 @@ func systemFromState(state graph.EntityState) system {
 			{Href: "/systems/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
 			{Href: "/systems/" + state.ID, Rel: "alternate", Type: string(MediaSensorML)},
 			{Href: "/systems/" + state.ID, Rel: "alternate", Type: string(MediaJSONLD)},
+			{Href: "/systems/" + state.ID + "/datastreams", Rel: "datastreams", Type: string(MediaJSON)},
+			{Href: "/systems/" + state.ID + "/controlstreams", Rel: "controlstreams", Type: string(MediaJSON)},
 		},
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {

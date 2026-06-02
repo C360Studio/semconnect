@@ -313,7 +313,7 @@ EOF
     proc_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
         curlimages/curl:8.10.1 \
-        -sS -w '\nHTTP %{http_code}\n' \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
         -X POST -H 'Content-Type: application/json' \
         --data-binary "$proc_body" \
         "${cs_api_url}/procedures" 2>&1)" || true
@@ -323,14 +323,27 @@ EOF
     if [[ "$proc_code" != "201" ]]; then
         die "POST /procedures failed: $proc_code (see $SEED_LOG)"
     fi
-    log "  seeded procedure (HTTP $proc_code)"
+    local proc_loc
+    proc_loc="$(echo "$proc_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    local proc_id="${proc_loc##*/}"
+    if [[ -z "$proc_id" ]]; then
+        die "POST /procedures returned 201 but Location header was empty or missing (see $SEED_LOG)"
+    fi
+    if ! [[ "$proc_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
+        die "POST /procedures returned 201 with malformed id '$proc_id' (see $SEED_LOG)"
+    fi
+    log "  seeded procedure: id=$proc_id"
 
     # Stage 21 — seed a Deployment so the ETS deployments group has
     # non-empty /deployments. Geometry included so the geojson group's
     # deploymentFeatureHasGeoJsonSchemaAndMapping test has a real
-    # point to verify.
+    # point and deployedSystems@link mapping to verify.
     log "  POST /deployments with seed Feature"
-    local depl_body='{"type":"Feature","geometry":{"type":"Point","coordinates":[-122.4194,37.7749]},"properties":{"uid":"urn:ets:deploy:weather:01","name":"Conformance seed deployment","description":"Stage 21 seed fixture — weather station deploy"}}'
+    local depl_body
+    depl_body=$(cat <<EOF
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-122.4194,37.7749]},"properties":{"uid":"urn:ets:deploy:weather:01","name":"Conformance seed deployment","description":"Stage 21 seed fixture — weather station deploy","deployedSystems@link":[{"href":"/systems/${sys_id}","rel":"deployedSystem","type":"application/json"}]}}
+EOF
+)
     local depl_resp
     depl_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
@@ -349,9 +362,14 @@ EOF
 
     # Stage 22 — seed a SamplingFeature so the ETS sampling-features
     # group has non-empty /samplingFeatures. Polygon geometry exercises
-    # the first-class GeoJSON path.
+    # the first-class GeoJSON path; hostedProcedure@link gives the
+    # GeoJSON mapping assertion a concrete sampling-feature association.
     log "  POST /samplingFeatures with seed Feature"
-    local sf_body='{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-122.42,37.77],[-122.41,37.77],[-122.41,37.78],[-122.42,37.77]]]},"properties":{"uid":"urn:ets:sf:site:01","name":"Conformance seed sampling feature","description":"Stage 22 seed fixture — sampled site area"}}'
+    local sf_body
+    sf_body=$(cat <<EOF
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[-122.42,37.77],[-122.41,37.77],[-122.41,37.78],[-122.42,37.77]]]},"properties":{"uid":"urn:ets:sf:site:01","name":"Conformance seed sampling feature","description":"Stage 22 seed fixture — sampled site area","hostedProcedure@link":{"href":"/procedures/${proc_id}","rel":"hostedProcedure","type":"application/json"}}}
+EOF
+)
     local sf_resp
     sf_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \

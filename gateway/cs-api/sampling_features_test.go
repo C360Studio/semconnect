@@ -52,6 +52,7 @@ func TestHandleSamplingFeature_JSON(t *testing.T) {
 			{Subject: testSamplingFeatureID, Predicate: sensorml.PredType, Object: sosa.Sample},
 			{Subject: testSamplingFeatureID, Predicate: sensorml.PredLabel, Object: "Station footprint"},
 			{Subject: testSamplingFeatureID, Predicate: PredSystemUID, Object: "urn:example:sf:1"},
+			{Subject: testSamplingFeatureID, Predicate: predSamplingFeatureHostedProcedure, Object: "/procedures/c360.semconnect.systems.csapi.procedure.alpha"},
 			{Subject: testSamplingFeatureID, Predicate: PredSystemPosition, Object: `{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,0]]]}`},
 		},
 	}
@@ -86,6 +87,21 @@ func TestHandleSamplingFeature_JSON(t *testing.T) {
 	if string(sf.Geometry) != `{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,0]]]}` {
 		t.Errorf("Geometry: got %q", string(sf.Geometry))
 	}
+	if sf.FeatureProperties == nil || sf.FeatureProperties.HostedProcedureLink == nil {
+		t.Fatalf("properties.hostedProcedure@link missing: %+v", sf.FeatureProperties)
+	}
+	if got := sf.FeatureProperties.HostedProcedureLink.Href; got != "/procedures/c360.semconnect.systems.csapi.procedure.alpha" {
+		t.Errorf("hostedProcedure@link href: got %q", got)
+	}
+	var hasAssociation bool
+	for _, l := range sf.Links {
+		if l.Rel == "datastreams" || l.Rel == "controlstreams" {
+			hasAssociation = true
+		}
+	}
+	if !hasAssociation {
+		t.Errorf("links missing samplingFeature association rel: %+v", sf.Links)
+	}
 }
 
 func TestHandleSamplingFeature_NotASamplingFeatureKind(t *testing.T) {
@@ -118,7 +134,7 @@ func TestHandleSamplingFeaturePost_Feature(t *testing.T) {
 	}
 	c := newTestComponent(t, fake)
 
-	body := []byte(`{"type":"Feature","geometry":{"type":"Point","coordinates":[5,10]},"properties":{"uid":"urn:example:sf:2","name":"SF2"}}`)
+	body := []byte(`{"type":"Feature","geometry":{"type":"Point","coordinates":[5,10]},"properties":{"uid":"urn:example:sf:2","name":"SF2","hostedProcedure@link":{"href":"/procedures/c360.semconnect.systems.csapi.procedure.alpha"}}}`)
 	req := httptest.NewRequest(http.MethodPost, "/samplingFeatures", bytes.NewReader(body))
 	req.Header.Set("Content-Type", string(MediaGeoJSON))
 	rr := httptest.NewRecorder()
@@ -136,7 +152,7 @@ func TestHandleSamplingFeaturePost_Feature(t *testing.T) {
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}
-	var sawSampleType, sawUID, sawPosition bool
+	var sawSampleType, sawUID, sawPosition, sawHostedProcedure bool
 	for _, tr := range batch.Triples {
 		if tr.Predicate == sensorml.PredType {
 			if s, ok := tr.Object.(string); ok && s == sosa.Sample {
@@ -149,6 +165,9 @@ func TestHandleSamplingFeaturePost_Feature(t *testing.T) {
 		if tr.Predicate == PredSystemPosition {
 			sawPosition = true
 		}
+		if tr.Predicate == predSamplingFeatureHostedProcedure {
+			sawHostedProcedure = true
+		}
 	}
 	if !sawSampleType {
 		t.Errorf("rdf:type should be sosa.Sample; batch=%+v", batch.Triples)
@@ -159,11 +178,24 @@ func TestHandleSamplingFeaturePost_Feature(t *testing.T) {
 	if !sawPosition {
 		t.Errorf("position triple missing; batch=%+v", batch.Triples)
 	}
+	if !sawHostedProcedure {
+		t.Errorf("hostedProcedure@link triple missing; batch=%+v", batch.Triples)
+	}
 }
 
 func TestHandleSamplingFeatures_GeoJSON(t *testing.T) {
 	fake := &multiReplyFakeRequester{
 		predicateReply: encodeReply(t, []string{testSamplingFeatureID}),
+		entityRepliesByID: map[string][]byte{
+			testSamplingFeatureID: encodeEntityState(t, graph.EntityState{
+				ID: testSamplingFeatureID,
+				Triples: []message.Triple{
+					{Subject: testSamplingFeatureID, Predicate: sensorml.PredType, Object: sosa.Sample},
+					{Subject: testSamplingFeatureID, Predicate: PredSystemUID, Object: "urn:example:sf:1"},
+					{Subject: testSamplingFeatureID, Predicate: predSamplingFeatureHostedProcedure, Object: "/procedures/c360.semconnect.systems.csapi.procedure.alpha"},
+				},
+			}),
+		},
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -197,6 +229,9 @@ func TestHandleSamplingFeatures_GeoJSON(t *testing.T) {
 	}
 	if fc.Features[0].Properties["featureType"] != "SamplingFeature" {
 		t.Errorf("featureType: got %v want SamplingFeature", fc.Features[0].Properties["featureType"])
+	}
+	if linkObj, ok := fc.Features[0].Properties["hostedProcedure@link"].(map[string]any); !ok || linkObj["href"] == "" {
+		t.Errorf("hostedProcedure@link: got %#v want link object with href", fc.Features[0].Properties["hostedProcedure@link"])
 	}
 }
 

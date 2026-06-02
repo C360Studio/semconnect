@@ -1070,9 +1070,6 @@ local adoption:
 - Migrate Datastream result schemas and ControlStream command schemas
   from gateway-local JSON predicates to `csapi:SWESchemaDocument`
   artifact entities with dotted relationship predicates.
-- Audit the existing CS API relationship predicates that currently use
-  `vocabulary/csapi` IRI constants internally and migrate them to dotted
-  predicates with legacy read fallbacks.
 - Adopt `graph.query.batch` on collection endpoints that hydrate full
   resources after predicate queries.
 - Use `natsclient.TestClient` when a real NATS-backed integration test
@@ -1083,12 +1080,41 @@ local adoption:
 pin closes upstream ask triage and unlocks local follow-up work rather
 than claiming new ETS branches.
 
-### Stage 38+ — Continue OSH-bar resource buildout
+### Stage 39 — semstreams pin bump to v1.0.0-beta.91 + CS API dotted predicates
+
+Stage 39 pins semconnect to semstreams `v1.0.0-beta.91`, which closes
+#182. `vocabulary/csapi` relationship predicates are now split into the
+two shapes semconnect needs:
+
+- dotted internal graph predicate constants, such as
+  `csapi.ProducedBy`, `csapi.ControlsSystem`, `csapi.EventForSystem`,
+  `csapi.HasResultSchema`, and `csapi.HasCommandSchema`
+- `*IRI` boundary constants for JSON-LD/RDF export, such as
+  `csapi.ProducedByIRI` and `csapi.HasResultSchemaIRI`
+
+Local cleanup in this stage:
+
+- New writes for Datastream system links, ControlStream system links,
+  and SystemEvent system links now use beta.91's dotted CS API predicate
+  constants automatically.
+- Because semconnect is greenfield, relationship reads use the same
+  dotted beta.91 predicates directly rather than carrying beta.90
+  compatibility fallbacks.
+- The upstream ask queue now has no open semstreams blocker for the CS
+  API gateway.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-05-31). Headline conformance is unchanged from Stage 38; the beta.91
+pin repairs the CS API predicate contract and retires the upstream
+dotted-predicate blocker rather than unlocking a new ETS branch.
+
+### Stage 39+ — Continue OSH-bar resource buildout
 
 Subsequent stages from the OSH-bar memory:
 
 - Typed artifact entity migration for Datastream and ControlStream
-  schema storage, preserving three-level dotted graph predicates.
+  schema storage using `csapi.HasResultSchema` /
+  `csapi.HasCommandSchema`.
 - Batch entity hydration for collection reads that currently use N+1
   entity queries.
 - Command execution, if/when v0.1 scope expands beyond read-side

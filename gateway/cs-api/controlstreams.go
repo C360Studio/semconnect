@@ -22,7 +22,6 @@ const (
 	ControlStreamTypeIRI = csapivocab.ControlStream
 
 	PredControlStreamSystem               = csapivocab.ControlsSystem
-	legacyPredControlStreamSystem         = "cs-api.controlstream.system"
 	predControlStreamInputName            = "cs-api.controlstream.inputName"
 	predControlStreamAsync                = "cs-api.controlstream.async"
 	predControlStreamSchema               = "cs-api.controlstream.schema"
@@ -94,7 +93,7 @@ func controlStreamFromState(state graph.EntityState) controlStream {
 	if v, ok := firstStringObject(state.Triples, sensorml.PredDescription); ok {
 		cs.Description = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredControlStreamSystem, legacyPredControlStreamSystem); ok {
+	if v, ok := firstStringObject(state.Triples, PredControlStreamSystem); ok {
 		cs.SystemID = v
 		cs.SystemLink = &link{Href: "/systems/" + v, Rel: "system", Type: string(MediaJSON), Title: v}
 	}

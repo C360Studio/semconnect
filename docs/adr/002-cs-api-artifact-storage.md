@@ -3,7 +3,8 @@
 - **Status**: Accepted (2026-05-31)
 - **Repo**: `semconnect`
 - **Upstream**: [semstreams #171](https://github.com/C360Studio/semstreams/issues/171) closed in
-  `v1.0.0-beta.90`
+  `v1.0.0-beta.90`; predicate contract follow-up
+  [semstreams #182](https://github.com/C360Studio/semstreams/issues/182) closed in `v1.0.0-beta.91`
 
 ## Context
 
@@ -62,12 +63,10 @@ The target semstreams vocabulary shape from #171 is:
 - `csapi:SensorMLDocument` for SensorML source artifact type IRIs
 - `csapi:SWESchemaDocument` for SWE Common schema artifact type IRIs
 
-Semstreams `v1.0.0-beta.90` landed the CS API artifact classes and IRI constants. Its core vocabulary contract
-still says graph predicates are three-level dotted names (`domain.category.property`) and IRIs are boundary
-mappings, not internal predicate keys. [semstreams #182](https://github.com/C360Studio/semstreams/issues/182)
-tracks dotted CS API predicate constants for direct graph use. Existing semconnect gateway-local schema
-predicates remain temporary bridges until the gateway migrates Datastream and ControlStream schemas to typed
-artifact entities with dotted relationship predicates.
+Semstreams `v1.0.0-beta.90` landed the CS API artifact classes, and `v1.0.0-beta.91` split CS API relationship
+predicates into dotted internal constants plus `*IRI` boundary constants. Existing semconnect gateway-local
+schema predicates remain temporary bridges until the gateway migrates Datastream and ControlStream schemas to
+typed artifact entities with dotted relationship predicates.
 
 ## Pattern Selection
 
@@ -98,6 +97,6 @@ Current semconnect schema storage remains valid as a temporary bridge:
 - `cs-api.datastream.schema` stores Datastream result schema JSON locally.
 - ControlStream command schema storage follows the same gateway-local pattern.
 
-Next local migration: create `csapi:SWESchemaDocument` artifact entities, relate Datastreams with a dotted
-result-schema relationship predicate, relate ControlStreams with a dotted command-schema relationship predicate,
-register those predicates to the CS API IRIs for export, and retire the local JSON predicates.
+Next local migration: create `csapi:SWESchemaDocument` artifact entities, relate Datastreams with
+`csapi.HasResultSchema`, relate ControlStreams with `csapi.HasCommandSchema`, and retire the local JSON
+predicates. The `*IRI` siblings remain boundary/export-only values.

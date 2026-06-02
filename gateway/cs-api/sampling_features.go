@@ -51,6 +51,8 @@ func samplingFeatureFromState(state graph.EntityState) samplingFeature {
 		Links: []link{
 			{Href: "/samplingFeatures/" + state.ID, Rel: "self", Type: string(MediaJSON)},
 			{Href: "/samplingFeatures/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
+			{Href: "/datastreams", Rel: "datastreams", Type: string(MediaJSON)},
+			{Href: "/controlstreams", Rel: "controlstreams", Type: string(MediaJSON)},
 		},
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {
@@ -67,6 +69,12 @@ func samplingFeatureFromState(state graph.EntityState) samplingFeature {
 			Name:        sf.Label,
 			Description: sf.Description,
 		}
+	}
+	if href, ok := firstStringObject(state.Triples, predSamplingFeatureHostedProcedure); ok {
+		if sf.FeatureProperties == nil {
+			sf.FeatureProperties = &featureProperties{}
+		}
+		sf.FeatureProperties.HostedProcedureLink = firstLinkFromHref(href, "hostedProcedure")
 	}
 	if v, ok := firstSystemPositionObject(state.Triples); ok {
 		sf.Geometry = json.RawMessage(v)
@@ -188,6 +196,9 @@ func (c *Component) writeSamplingFeaturesGeoJSON(w http.ResponseWriter, r *http.
 		props := map[string]any{"featureType": "SamplingFeature"}
 		if state, ok := statesByID[id]; ok {
 			props = geoJSONFeaturePropertiesFromState("SamplingFeature", state)
+			if href, ok := firstStringObject(state.Triples, predSamplingFeatureHostedProcedure); ok {
+				props["hostedProcedure@link"] = firstLinkFromHref(href, "hostedProcedure")
+			}
 			if v, ok := firstSystemPositionObject(state.Triples); ok && v != "" {
 				geom = json.RawMessage(v)
 			}

@@ -92,6 +92,13 @@ func (c *Component) buildSamplingFeatureTriplesFromFeature(body []byte) (string,
 			Subject: entityID, Predicate: sensorml.PredDescription, Object: feat.Properties.Description,
 		})
 	}
+	if feat.Properties.HostedProcedureLink != nil && feat.Properties.HostedProcedureLink.Href != "" {
+		triples = append(triples, message.Triple{
+			Subject:   entityID,
+			Predicate: predSamplingFeatureHostedProcedure,
+			Object:    feat.Properties.HostedProcedureLink.Href,
+		})
+	}
 	if posTriple, ok := positionTripleFromGeometry(entityID, feat.Geometry); ok {
 		triples = append(triples, posTriple)
 	}

@@ -451,6 +451,15 @@ func TestHandleSystem_JSON(t *testing.T) {
 	if len(sys.Hosts) != 1 || sys.Hosts[0] != "acme.ops.robotics.gcs.drone.001.camera" {
 		t.Errorf("Hosts: got %+v", sys.Hosts)
 	}
+	var hasAssociation bool
+	for _, l := range sys.Links {
+		if l.Rel == "datastreams" || l.Rel == "controlstreams" {
+			hasAssociation = true
+		}
+	}
+	if !hasAssociation {
+		t.Errorf("links missing system association rel: %+v", sys.Links)
+	}
 
 	// fetchEntity must have hit graph.query.entity with the right ID.
 	if fake.gotSubject != subjectEntityQuery {

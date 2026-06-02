@@ -177,14 +177,20 @@ func TestHandleProcedure_JSON(t *testing.T) {
 		t.Errorf("procedure JSON must not contain geometry; got %s", rr.Body.String())
 	}
 	// Canonical link required by CS API §6.
-	var hasCanonical bool
+	var hasCanonical, hasAssociation bool
 	for _, l := range p.Links {
 		if l.Rel == "canonical" {
 			hasCanonical = true
 		}
+		if l.Rel == "implementingSystems" {
+			hasAssociation = true
+		}
 	}
 	if !hasCanonical {
 		t.Errorf("links missing rel=canonical: %+v", p.Links)
+	}
+	if !hasAssociation {
+		t.Errorf("links missing rel=implementingSystems: %+v", p.Links)
 	}
 }
 

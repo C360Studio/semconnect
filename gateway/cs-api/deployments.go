@@ -66,6 +66,8 @@ func deploymentFromState(state graph.EntityState) deployment {
 		Links: []link{
 			{Href: "/deployments/" + state.ID, Rel: "self", Type: string(MediaJSON)},
 			{Href: "/deployments/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
+			{Href: "/samplingFeatures", Rel: "samplingFeatures", Type: string(MediaJSON)},
+			{Href: "/datastreams", Rel: "datastreams", Type: string(MediaJSON)},
 		},
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {
@@ -82,6 +84,12 @@ func deploymentFromState(state graph.EntityState) deployment {
 			Name:        d.Label,
 			Description: d.Description,
 		}
+	}
+	if hrefs := allStringObjects(state.Triples, predDeploymentDeployedSystems); len(hrefs) > 0 {
+		if d.FeatureProperties == nil {
+			d.FeatureProperties = &featureProperties{}
+		}
+		d.FeatureProperties.DeployedSystemsLinks = linksFromHrefs(hrefs, "deployedSystem")
 	}
 	if v, ok := firstSystemPositionObject(state.Triples); ok {
 		d.Geometry = json.RawMessage(v)
@@ -195,6 +203,9 @@ func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Reque
 		props := map[string]any{"featureType": "Deployment"}
 		if state, ok := statesByID[id]; ok {
 			props = geoJSONFeaturePropertiesFromState("Deployment", state)
+			if hrefs := allStringObjects(state.Triples, predDeploymentDeployedSystems); len(hrefs) > 0 {
+				props["deployedSystems@link"] = linksFromHrefs(hrefs, "deployedSystem")
+			}
 			if v, ok := firstSystemPositionObject(state.Triples); ok && v != "" {
 				geom = json.RawMessage(v)
 			}

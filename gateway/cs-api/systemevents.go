@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/c360studio/semstreams/graph"
@@ -138,12 +139,17 @@ func (c *Component) handleSystemEvents(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	ids, err := c.listEntitiesByType(r.Context(), SystemEventTypeIRI, limit, "listSystemEventEntities")
+	filters := systemEventCollectionFiltersFromQuery(r.URL.Query())
+	listLimit := limit
+	if filters.active() {
+		listLimit = c.cfg.MaxListLimit
+	}
+	ids, err := c.listEntitiesByType(r.Context(), SystemEventTypeIRI, listLimit, "listSystemEventEntities")
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
-	c.writeSystemEventCollection(w, r, ids, "")
+	c.writeSystemEventCollection(w, r, ids, "", filters, limit)
 }
 
 func (c *Component) handleSystemScopedEvents(w http.ResponseWriter, r *http.Request) {
@@ -166,10 +172,26 @@ func (c *Component) handleSystemScopedEvents(w http.ResponseWriter, r *http.Requ
 		c.writeBackendError(w, err)
 		return
 	}
-	c.writeSystemEventCollection(w, r, ids, systemID)
+	c.writeSystemEventCollection(w, r, ids, systemID, systemEventCollectionFilters{}, limit)
 }
 
-func (c *Component) writeSystemEventCollection(w http.ResponseWriter, r *http.Request, ids []string, systemFilter string) {
+type systemEventCollectionFilters struct {
+	eventType string
+}
+
+func systemEventCollectionFiltersFromQuery(query url.Values) systemEventCollectionFilters {
+	return systemEventCollectionFilters{eventType: queryString(query, "eventType")}
+}
+
+func (f systemEventCollectionFilters) active() bool {
+	return f.eventType != ""
+}
+
+func systemEventMatchesFilters(ev systemEvent, filters systemEventCollectionFilters) bool {
+	return filters.eventType == "" || ev.EventType == filters.eventType
+}
+
+func (c *Component) writeSystemEventCollection(w http.ResponseWriter, r *http.Request, ids []string, systemFilter string, filters systemEventCollectionFilters, limit int) {
 	coll := systemEventCollection{
 		Items: make([]systemEvent, 0, len(ids)),
 		Links: []link{{Href: "/systemEvents", Rel: "self", Type: string(MediaJSON)}},
@@ -193,7 +215,13 @@ func (c *Component) writeSystemEventCollection(w http.ResponseWriter, r *http.Re
 		if systemFilter != "" && ev.SystemID != systemFilter {
 			continue
 		}
+		if !systemEventMatchesFilters(ev, filters) {
+			continue
+		}
 		coll.Items = append(coll.Items, ev)
+		if len(coll.Items) == limit {
+			break
+		}
 	}
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)

@@ -275,7 +275,7 @@ EOF
     # regex-validated above; no shell-quoting risk.
     local ds_body
     ds_body=$(cat <<EOF
-{"name":"Conformance temperature stream","description":"Stage 9 seed fixture — sensor observations for the weather station.","system":"${sys_id}","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","schema":{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}}
+{"name":"Conformance temperature stream","description":"Stage 9 seed fixture — sensor observations for the weather station.","system":"${sys_id}","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","phenomenonTime":"2026-06-02T18:00:00Z","resultTime":"2026-06-02T18:00:00Z","schema":{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}}
 EOF
 )
     log "  POST /datastreams referencing system=$sys_id"
@@ -494,7 +494,7 @@ EOF
     # controlstream group can exercise /controlstreams, item GET,
     # /schema, /commands, and /systems/{id}/controlstreams.
     log "  POST /controlstreams with seed command schema"
-    local ctrl_body='{"name":"Conformance seed PTZ control","system@id":"'"${sys_id}"'","inputName":"ptz","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"},{"name":"tilt","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/TiltAngle","label":"Tilt Angle"}]}}}'
+    local ctrl_body='{"name":"Conformance seed PTZ control","system@id":"'"${sys_id}"'","inputName":"ptz","issueTime":"2026-06-02T18:00:00Z","executionTime":"2026-06-02T18:05:00Z","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"},{"name":"tilt","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/TiltAngle","label":"Tilt Angle"}]}}}'
     local ctrl_resp
     ctrl_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
@@ -525,7 +525,7 @@ EOF
     # ControlStream. This is reference metadata only; command execution
     # and device side effects remain out of scope at v0.1.
     log "  POST /commands with seed command metadata referencing controlstream=$ctrl_id"
-    local cmd_body='{"id":"c360.semconnect.systems.csapi.command.ets-ptz-001","controlstream@id":"'"${ctrl_id}"'","issueTime":"2026-05-19T12:00:00Z","status":"accepted","sender":"ets","params":{"pan":10,"tilt":5}}'
+    local cmd_body='{"id":"c360.semconnect.systems.csapi.command.ets-ptz-001","controlstream@id":"'"${ctrl_id}"'","issueTime":"2026-05-19T12:00:00Z","executionTime":"2026-05-19T12:01:00Z","status":"accepted","sender":"ets","params":{"pan":10,"tilt":5}}'
     local cmd_resp
     cmd_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \

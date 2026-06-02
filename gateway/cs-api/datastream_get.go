@@ -3,6 +3,7 @@ package csapi
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 
 	"github.com/c360studio/semstreams/pkg/errs"
 )
@@ -23,14 +24,19 @@ func (c *Component) handleDatastreams(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	filters := datastreamCollectionFiltersFromQuery(r.URL.Query())
 
-	entities, err := c.listEntitiesByType(r.Context(), DatastreamTypeIRI, limit, "listDatastreamEntities")
+	listLimit := limit
+	if filters.active() {
+		listLimit = c.cfg.MaxListLimit
+	}
+	entities, err := c.listEntitiesByType(r.Context(), DatastreamTypeIRI, listLimit, "listDatastreamEntities")
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
 
-	c.writeDatastreamCollection(w, r, entities, "", limit)
+	c.writeDatastreamCollection(w, r, entities, "", filters, limit)
 }
 
 func (c *Component) handleSystemDatastreams(w http.ResponseWriter, r *http.Request) {
@@ -54,10 +60,41 @@ func (c *Component) handleSystemDatastreams(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	c.writeDatastreamCollection(w, r, entities, systemID, limit)
+	c.writeDatastreamCollection(w, r, entities, systemID, datastreamCollectionFilters{}, limit)
 }
 
-func (c *Component) writeDatastreamCollection(w http.ResponseWriter, r *http.Request, ids []string, systemFilter string, limit int) {
+type datastreamCollectionFilters struct {
+	observedProperty string
+	phenomenonTime   string
+	resultTime       string
+}
+
+func datastreamCollectionFiltersFromQuery(query url.Values) datastreamCollectionFilters {
+	return datastreamCollectionFilters{
+		observedProperty: queryString(query, "observedProperty"),
+		phenomenonTime:   queryString(query, "phenomenonTime"),
+		resultTime:       queryString(query, "resultTime"),
+	}
+}
+
+func (f datastreamCollectionFilters) active() bool {
+	return f.observedProperty != "" || f.phenomenonTime != "" || f.resultTime != ""
+}
+
+func datastreamMatchesFilters(d Datastream, filters datastreamCollectionFilters) bool {
+	if filters.observedProperty != "" && !propertyDefinitionsContain(d.ObservedProps, filters.observedProperty) {
+		return false
+	}
+	if filters.phenomenonTime != "" && !resourceTimeIntersects(d.PhenomenonTime, filters.phenomenonTime) {
+		return false
+	}
+	if filters.resultTime != "" && !resourceTimeIntersects(d.ResultTime, filters.resultTime) {
+		return false
+	}
+	return true
+}
+
+func (c *Component) writeDatastreamCollection(w http.ResponseWriter, r *http.Request, ids []string, systemFilter string, filters datastreamCollectionFilters, limit int) {
 	coll := datastreamCollection{
 		Type:           "DatastreamCollection",
 		NumberMatched:  len(ids),
@@ -86,7 +123,13 @@ func (c *Component) writeDatastreamCollection(w http.ResponseWriter, r *http.Req
 		if systemFilter != "" && d.SystemID != systemFilter {
 			continue
 		}
+		if !datastreamMatchesFilters(d, filters) {
+			continue
+		}
 		coll.Items = append(coll.Items, d)
+		if len(coll.Items) == limit {
+			break
+		}
 	}
 	coll.NumberReturned = len(coll.Items)
 	coll.NumberMatched = len(coll.Items)

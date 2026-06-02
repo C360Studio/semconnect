@@ -147,6 +147,11 @@ var stageConformanceClasses = []string{
 	// schema wrapper, /systems/{id}/datastreams, empty global
 	// /observations, and populated /datastreams/{id}/observations.
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/datastream",
+	// Stage 54 — CS API Part 2 Advanced Filtering read-only slice:
+	// Datastream observedProperty/time filters, Observation time filters,
+	// ControlStream controlledProperty/time filters, Command status/sender/time
+	// filters, and SystemEvent eventType filters over hydrated resource shapes.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/advanced-filtering",
 }
 
 type conformanceDeclaration struct {

@@ -198,6 +198,53 @@ func TestGlobalObservationsGet_Populated(t *testing.T) {
 	}
 }
 
+func TestGlobalObservationsGet_AdvancedTimeFilters(t *testing.T) {
+	const datastreamID = "c360.semconnect.systems.csapi.datastream.001"
+	matching := &oms.Observation{
+		ID: "obs-global-001", Procedure: "http://example.org/proc",
+		ObservedProperty: "http://example.org/prop",
+		PhenomenonTime:   "2026-05-15T14:30:00Z",
+		ResultTime:       "2026-05-15T14:30:00Z",
+		Result:           12.4,
+	}
+	other := &oms.Observation{
+		ID: "obs-global-002", Procedure: "http://example.org/proc",
+		ObservedProperty: "http://example.org/prop",
+		PhenomenonTime:   "2026-05-15T15:30:00Z",
+		ResultTime:       "2026-05-15T15:30:00Z",
+		Result:           13.4,
+	}
+	rd := &fakeReader{
+		msgs: []observationMsg{
+			{Data: encodeBaseMessage(t, matching), Sequence: 9, Subject: "cs-api.observations." + datastreamID},
+			{Data: encodeBaseMessage(t, other), Sequence: 10, Subject: "cs-api.observations." + datastreamID},
+		},
+	}
+	c := wireObservationsReadComponent(t, rd)
+
+	req := httptest.NewRequest(http.MethodGet, "/observations?phenomenonTime=2026-05-15T14%3A30%3A00Z&resultTime=2026-05-15T14%3A30%3A00Z", nil)
+	rr := httptest.NewRecorder()
+	c.handleGlobalObservations(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll observationCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 {
+		t.Fatalf("items: got %d want 1", len(coll.Items))
+	}
+	var got map[string]any
+	if err := json.Unmarshal(coll.Items[0], &got); err != nil {
+		t.Fatalf("decode item: %v", err)
+	}
+	if got["id"] != "obs-global-001" {
+		t.Fatalf("id: got %v", got["id"])
+	}
+}
+
 func TestObservationGet_GoldenPath(t *testing.T) {
 	const datastreamID = "c360.semconnect.systems.csapi.datastream.001"
 	obs := &oms.Observation{

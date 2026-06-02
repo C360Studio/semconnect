@@ -71,6 +71,42 @@ func TestHandleSystemEvents_GoldenPath(t *testing.T) {
 	}
 }
 
+func TestHandleSystemEvents_AdvancedFilterByEventType(t *testing.T) {
+	otherID := "c360.semconnect.systems.csapi.systemevent.other"
+	otherState := encodeEntityState(t, graph.EntityState{
+		ID: otherID,
+		Triples: []message.Triple{
+			{Subject: otherID, Predicate: sensorml.PredType, Object: SystemEventTypeIRI},
+			{Subject: otherID, Predicate: PredSystemEventSystem, Object: testEventSystemID},
+			{Subject: otherID, Predicate: predSystemEventTime, Object: "2026-05-19T12:01:00Z"},
+			{Subject: otherID, Predicate: predSystemEventType, Object: "Maintenance"},
+		},
+	})
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testSystemEventID, otherID}),
+		entityRepliesByID: map[string][]byte{
+			testSystemEventID: systemEventState(t),
+			otherID:           otherState,
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/systemEvents?eventType=SystemChanged", nil)
+	rr := httptest.NewRecorder()
+	c.handleSystemEvents(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll systemEventCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != testSystemEventID {
+		t.Fatalf("items: %+v", coll.Items)
+	}
+}
+
 func TestHandleSystemEvent_JSON(t *testing.T) {
 	fake := &fakeRequester{
 		reply:  systemEventState(t),

@@ -42,9 +42,6 @@ gateway work are closed upstream as of semstreams `v1.0.0-beta.91`.
   predicates to typed artifact entities using the beta.91 dotted
   relationship predicates (`csapi.HasResultSchema`,
   `csapi.HasCommandSchema`) and artifact class (`csapi.SWESchemaDocument`).
-- Adopt `graph.query.batch` for collection endpoints that currently do
-  predicate-query plus N entity-query hydrations; chunk around 100 IDs
-  per batch per the semstreams guidance.
 - Use the documented `natsclient.TestClient` helpers for gateway
   integration tests when we next replace in-memory request fakes with a
   real NATS-backed harness.

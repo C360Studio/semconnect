@@ -156,9 +156,8 @@ func (c *Component) handleDeployments(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(coll)
 }
 
-// writeDeploymentsGeoJSON emits FeatureCollection with per-entity
-// geometry recovered from the framework position triple. N+1
-// entity-query, same as /systems Stage 15.
+// writeDeploymentsGeoJSON emits FeatureCollection with geometry recovered
+// from batch-hydrated entity states.
 func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Request, ids []string, limit int) {
 	type deploymentFeature struct {
 		Type       string          `json:"type"`
@@ -186,21 +185,22 @@ func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Reque
 			{Href: "/deployments", Rel: "self", Type: string(MediaGeoJSON)},
 		},
 	}
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), ids)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	for _, id := range ids {
 		geom := nullGeom
 		props := map[string]any{"featureType": "Deployment"}
-		state, ferr := c.fetchEntity(r.Context(), id)
-		if ferr == nil {
+		if state, ok := statesByID[id]; ok {
 			props = geoJSONFeaturePropertiesFromState("Deployment", state)
 			if v, ok := firstSystemPositionObject(state.Triples); ok && v != "" {
 				geom = json.RawMessage(v)
 			}
 		} else {
-			// Per-entity backend failure → degrade to null geometry.
-			// One bad row shouldn't poison the page; mirrors the
-			// Stage 15 /systems geo+json pattern.
-			c.logger.Warn("fetch entity for FeatureCollection failed; degrading to null geometry",
-				"entity", id, "err", ferr.Error())
+			c.logger.Warn("batch entity fetch for FeatureCollection missed entity; degrading to null geometry",
+				"entity", id)
 		}
 		fc.Features = append(fc.Features, deploymentFeature{
 			Type:       "Feature",

@@ -313,11 +313,12 @@ The 9 newly-passing tests: `systemItemHasGeometryOrValidTime` (the chokepoint) +
 
 ### Stage 15 — GeoJSON FeatureCollection on `/systems` collection
 
-Closes the lone Stage 14 failure (`geoJsonMediaTypeRead`). `FamilySystemCollection.supported()` extended with `MediaGeoJSON`; new `writeSystemsGeoJSON` branch in `handleSystems` fetches each entity's state (N+1 per-item entity-query) to recover the `cs-api.system.position` triple (Stage 14), builds a Feature with that as `geometry` and the System's reconstructed fields as `properties`, returns an RFC 7946 FeatureCollection.
+Closes the lone Stage 14 failure (`geoJsonMediaTypeRead`). `FamilySystemCollection.supported()` extended with `MediaGeoJSON`; new `writeSystemsGeoJSON` branch in `handleSystems` fetches each entity's state to recover the `cs-api.system.position` triple (Stage 14), builds a Feature with that as `geometry` and the System's reconstructed fields as `properties`, returns an RFC 7946 FeatureCollection.
 
-Per-entity failure mode: transient backend errors on the FIRST entity → 503 (subsequent entities would fail identically); transient errors after the first → log + degrade to null-geometry Feature (one bad row doesn't poison the page). Malformed position triples in storage → log + null geometry.
+Failure mode at Stage 15: transient backend errors on the FIRST entity → 503 (subsequent entities would fail identically); transient errors after the first → log + degrade to null-geometry Feature (one bad row doesn't poison the page). Stage 40 later replaces per-entity requests with batch hydration; malformed position triples still log + null geometry.
 
-N+1 is documented inline. Two future-optimization paths (in `handleSystems` doc comment): (a) extend graph-index to return entity properties alongside IDs; (b) add a batched entity-query subject to the framework. v0.1 list sizes don't motivate the optimization.
+Implementation note: Stage 40 later moves hydrated collection reads to
+`graph.query.batch`.
 
 **Outcome:** `total=137 passed=32 failed=0 skipped=105`. From Stage 14 (29/1/107): +3 newly passing (`geoJsonMediaTypeRead`, `systemFeatureHasGeoJsonShapeAndProperties`, `systemsCollectionIsGeoJsonFeatureCollection`), -1 failure, -2 SKIPs.
 
@@ -629,8 +630,9 @@ properties-group tests, -4 SKIPs, zero failures.
 Stage 24 ships the ControlStream read subset:
 
 - `GET /controlstreams` — predicate-query on
-  `vocabulary/csapi.ControlStream`, then N+1 entity hydration so collection
-  `items` are full ControlStream resources.
+  `vocabulary/csapi.ControlStream`, then entity hydration so collection
+  `items` are full ControlStream resources. Stage 40 later moves this to
+  `graph.query.batch`.
 - `GET /controlstreams/{id}` — JSON ControlStream subset with system
   reference, inputName, controlledProperties, issue/execution time
   placeholders, formats, live/async flags, and command links.
@@ -661,8 +663,9 @@ without changing headline counts.
 Stage 25 ships the SystemEvent read subset:
 
 - `GET /systemEvents` — predicate-query on
-  `vocabulary/csapi.SystemEvent`, then N+1 entity hydration so collection
-  `items` are full SystemEvent resources.
+  `vocabulary/csapi.SystemEvent`, then entity hydration so collection
+  `items` are full SystemEvent resources. Stage 40 later moves this to
+  `graph.query.batch`.
 - `GET /systemEvents/{id}` — JSON SystemEvent subset with
   `time` / `eventTime`, `eventType`, message, system reference,
   source, severity, keywords, optional payload, and links.
@@ -1057,10 +1060,8 @@ the three semstreams asks filed from the CS API graph/store fit pass:
   SemStreams' internal three-level dotted predicate contract and map to
   CS API IRIs only at export/import boundaries; follow-up #182 tracks
   dotted CS API predicate constants for direct graph use.
-- #172 exposes public `graph.query.batch`, so collection reads can move
-  from predicate-query plus N entity-query hydrations to predicate-query
-  plus one or more chunked batch queries. Semstreams recommends chunking
-  around 100 entity IDs when payload sizes are not tightly bounded.
+- #172 exposes public `graph.query.batch`; semconnect adopts it for
+  hydrated collection reads in Stage 40.
 - #173 documents the existing `natsclient.TestClient` helper patterns
   for gateway-style integration tests.
 
@@ -1070,8 +1071,6 @@ local adoption:
 - Migrate Datastream result schemas and ControlStream command schemas
   from gateway-local JSON predicates to `csapi:SWESchemaDocument`
   artifact entities with dotted relationship predicates.
-- Adopt `graph.query.batch` on collection endpoints that hydrate full
-  resources after predicate queries.
 - Use `natsclient.TestClient` when a real NATS-backed integration test
   is more valuable than the current in-memory fakes.
 
@@ -1115,10 +1114,34 @@ Subsequent stages from the OSH-bar memory:
 - Typed artifact entity migration for Datastream and ControlStream
   schema storage using `csapi.HasResultSchema` /
   `csapi.HasCommandSchema`.
-- Batch entity hydration for collection reads that currently use N+1
-  entity queries.
 - Command execution, if/when v0.1 scope expands beyond read-side
   ControlStream metadata.
+
+### Stage 40 — Batch entity hydration for collection reads
+
+Stage 40 adopts semstreams #172's public `graph.query.batch` passthrough
+for collection handlers that predicate-query IDs and then hydrate entity
+state for response rendering:
+
+- `/systems?f=geojson`
+- `/procedures?f=geojson`
+- `/deployments?f=geojson`
+- `/samplingFeatures?f=geojson`
+- `/controlstreams`
+- `/systems/{id}/controlstreams`
+- `/systemEvents`
+- `/systems/{id}/events`
+
+Hydration is chunked at 100 IDs per semstreams guidance to avoid oversized
+NATS replies. Batch-level transport/classification failures still map to
+gateway backend errors; partial-success replies that omit one entity keep
+the existing collection behavior by skipping the full-resource item or
+degrading a GeoJSON Feature to null geometry / minimal properties.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-06-02). Headline conformance is unchanged from Stage 39; this is a
+read-path performance/shape cleanup that adopts the semstreams #172
+primitive rather than unlocking a new ETS branch.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

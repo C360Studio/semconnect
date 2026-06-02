@@ -233,6 +233,7 @@ func (c *Component) OutputPorts() []component.Port {
 	defs := []component.PortDefinition{
 		{Name: "predicate-query", Type: "nats-request", Subject: "graph.index.query.predicate", Description: "list entities by rdf:type"},
 		{Name: "entity-query", Type: "nats-request", Subject: "graph.query.entity", Description: "fetch entity state by ID for GET /systems/{id}"},
+		{Name: "batch-query", Type: "nats-request", Subject: "graph.query.batch", Description: "hydrate collection entity states in chunks"},
 		{Name: "spatial-bounds-query", Type: "nats-request", Subject: "graph.spatial.query.bounds", Description: "bbox-filtered entity list for GET /areas?bbox"},
 		{Name: "spatial-polygon-query", Type: "nats-request", Subject: "graph.spatial.query.polygon", Description: "polygon-contained entity list for GET /areas?polygon"},
 		{Name: "observations", Type: "jetstream", Subject: c.cfg.ObservationsSubjectPrefix + ".>", StreamName: c.cfg.ObservationsStream, Description: "OMS observations from POST /datastreams/{id}/observations"},

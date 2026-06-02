@@ -162,11 +162,10 @@ func TestHandleSamplingFeaturePost_Feature(t *testing.T) {
 }
 
 func TestHandleSamplingFeatures_GeoJSON(t *testing.T) {
-	fake := &fakeRequester{
-		reply:  encodeReply(t, []string{testSamplingFeatureID}),
-		status: natsclient.StatusConnected,
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testSamplingFeatureID}),
 	}
-	c := newTestComponent(t, fake)
+	c := newComponentWithRequester(t, fake)
 
 	req := httptest.NewRequest(http.MethodGet, "/samplingFeatures", nil)
 	req.Header.Set("Accept", string(MediaGeoJSON))

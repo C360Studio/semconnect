@@ -18,8 +18,8 @@ import (
 )
 
 // multiReplyFakeRequester returns different replies per subject —
-// needed for the GeoJSON path on /systems which makes N+1 requests:
-// one predicate-query, then one entity-query per matching system.
+// needed for collection paths that predicate-query first, then hydrate
+// matching entities through graph.query.batch or graph.query.entity.
 //
 // Per-entity replies are looked up by the entity ID extracted from the
 // entity-query request body. The predicate-query reply is the
@@ -31,7 +31,8 @@ type multiReplyFakeRequester struct {
 	entityRepliesByID map[string][]byte
 	entityErrorsByID  map[string]error
 	predicateErr      error
-	calls             int // request count for assertions about N+1
+	batchErr          error
+	calls             int // request count for assertions about backend shape
 }
 
 func (f *multiReplyFakeRequester) Request(_ context.Context, subj string, data []byte, _ time.Duration) ([]byte, error) {
@@ -56,6 +57,38 @@ func (f *multiReplyFakeRequester) Request(_ context.Context, subj string, data [
 			return r, nil
 		}
 		return nil, errors.New("multiReplyFakeRequester: no reply seeded for entity " + req.ID)
+	case subjectBatchQuery:
+		if f.batchErr != nil {
+			return nil, f.batchErr
+		}
+		var req struct {
+			IDs []string `json:"ids"`
+		}
+		if err := json.Unmarshal(data, &req); err != nil {
+			return nil, errors.New("multiReplyFakeRequester: malformed batch-query body")
+		}
+		var states []graph.EntityState
+		for _, id := range req.IDs {
+			if _, ok := f.entityErrorsByID[id]; ok {
+				continue
+			}
+			reply, ok := f.entityRepliesByID[id]
+			if !ok {
+				continue
+			}
+			var state graph.EntityState
+			if err := json.Unmarshal(reply, &state); err != nil {
+				return nil, errors.New("multiReplyFakeRequester: malformed entity state for " + id)
+			}
+			states = append(states, state)
+		}
+		out, err := json.Marshal(struct {
+			Entities []graph.EntityState `json:"entities"`
+		}{Entities: states})
+		if err != nil {
+			return nil, err
+		}
+		return out, nil
 	}
 	return nil, errors.New("multiReplyFakeRequester: unexpected subject " + subj)
 }
@@ -176,9 +209,9 @@ func TestHandleSystems_GeoJSONFeatureCollection(t *testing.T) {
 		t.Errorf("feature[1].Geometry: got %+v want nil (no position triple)", fc.Features[1].Geometry)
 	}
 
-	// N+1 request shape: 1 predicate query + 2 entity queries.
-	if fake.calls != 3 {
-		t.Errorf("requests: got %d want 3 (1 predicate + 2 entity for N+1)", fake.calls)
+	// Batched request shape: 1 predicate query + 1 batch entity query.
+	if fake.calls != 2 {
+		t.Errorf("requests: got %d want 2 (1 predicate + 1 batch)", fake.calls)
 	}
 }
 
@@ -238,22 +271,18 @@ func TestHandleSystems_JSONUnchangedAfterStage15(t *testing.T) {
 	// JSON path does NOT do the per-entity entity-query — only one
 	// request (the predicate query) reaches the backend.
 	if fake.calls != 1 {
-		t.Errorf("requests: got %d want 1 (JSON path is NOT N+1)", fake.calls)
+		t.Errorf("requests: got %d want 1 (JSON path does not hydrate entities)", fake.calls)
 	}
 }
 
 // TestHandleSystems_GeoJSONFirstEntityTransientFails503 — when the
-// FIRST entity-query fails transiently, the whole request 503s
-// (subsequent entities would fail identically — no point degrading).
-func TestHandleSystems_GeoJSONFirstEntityTransientFails503(t *testing.T) {
+// batch entity-query fails transiently, the whole request 503s.
+func TestHandleSystems_GeoJSONBatchTransientFails503(t *testing.T) {
 	id1 := "c360.semconnect.systems.csapi.system.first"
 	id2 := "c360.semconnect.systems.csapi.system.second"
 	fake := &multiReplyFakeRequester{
 		predicateReply: encodeReply(t, []string{id1, id2}),
-		entityErrorsByID: map[string]error{
-			id1: nats.ErrNoResponders,
-			id2: nats.ErrNoResponders,
-		},
+		batchErr:       nats.ErrNoResponders,
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -267,11 +296,10 @@ func TestHandleSystems_GeoJSONFirstEntityTransientFails503(t *testing.T) {
 	}
 }
 
-// TestHandleSystems_GeoJSONLaterEntityFailDegradesToNullGeometry —
-// a per-entity backend error AFTER the first successful fetch logs
-// the failure and emits a null-geometry Feature. The page is partial
-// but the request still 200s — one bad row doesn't poison the page.
-func TestHandleSystems_GeoJSONLaterEntityFailDegradesToNullGeometry(t *testing.T) {
+// TestHandleSystems_GeoJSONMissingBatchEntityDegradesToNullGeometry —
+// a partial-success batch that omits one entity emits a null-geometry
+// Feature for that row. The page is partial but the request still 200s.
+func TestHandleSystems_GeoJSONMissingBatchEntityDegradesToNullGeometry(t *testing.T) {
 	id1 := "c360.semconnect.systems.csapi.system.ok"
 	id2 := "c360.semconnect.systems.csapi.system.broken"
 	fake := &multiReplyFakeRequester{
@@ -305,7 +333,7 @@ func TestHandleSystems_GeoJSONLaterEntityFailDegradesToNullGeometry(t *testing.T
 		t.Error("feature[0].Geometry: got nil want Point (this one fetched OK)")
 	}
 	if fc.Features[1].Geometry != nil {
-		t.Errorf("feature[1].Geometry: got %+v want nil (this one's entity-query failed)", fc.Features[1].Geometry)
+		t.Errorf("feature[1].Geometry: got %+v want nil (this one was omitted from batch reply)", fc.Features[1].Geometry)
 	}
 }
 

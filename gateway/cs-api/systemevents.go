@@ -174,11 +174,16 @@ func (c *Component) writeSystemEventCollection(w http.ResponseWriter, r *http.Re
 		Items: make([]systemEvent, 0, len(ids)),
 		Links: []link{{Href: "/systemEvents", Rel: "self", Type: string(MediaJSON)}},
 	}
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), ids)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	for _, id := range ids {
-		state, err := c.fetchEntity(r.Context(), id)
-		if err != nil {
-			c.logger.Warn("fetch entity for SystemEvent collection failed; skipping",
-				"entity", id, "err", err.Error())
+		state, ok := statesByID[id]
+		if !ok {
+			c.logger.Warn("batch entity fetch for SystemEvent collection missed entity; skipping",
+				"entity", id)
 			continue
 		}
 		if !isSystemEventKind(state.Triples) {

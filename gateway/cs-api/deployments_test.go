@@ -228,17 +228,12 @@ func TestHandleDeploymentsOptions(t *testing.T) {
 }
 
 func TestHandleDeployments_GeoJSON(t *testing.T) {
-	// Predicate-query reply: 1 deployment ID. The N+1 entity-query
-	// path will then call back to fetch its position triple. The
-	// fakeRequester only replies once; second call returns the same
-	// bytes which won't decode as EntityState cleanly. The geo+json
-	// path degrades to null geometry on per-entity failures — so
-	// test that path here.
-	fake := &fakeRequester{
-		reply:  encodeReply(t, []string{testDeploymentID}),
-		status: natsclient.StatusConnected,
+	// Predicate-query reply: 1 deployment ID. The batch hydration reply
+	// omits that entity, so the geo+json path degrades to null geometry.
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testDeploymentID}),
 	}
-	c := newTestComponent(t, fake)
+	c := newComponentWithRequester(t, fake)
 
 	req := httptest.NewRequest(http.MethodGet, "/deployments", nil)
 	req.Header.Set("Accept", string(MediaGeoJSON))

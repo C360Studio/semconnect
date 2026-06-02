@@ -83,6 +83,15 @@ func (c *Component) handleDatastreamPost(w http.ResponseWriter, r *http.Request)
 	triples := datastreamToTriples(entityID, &in)
 
 	id := IdentityFrom(r.Context())
+	if len(in.Schema) > 0 {
+		rel, err := c.createSchemaArtifact(r.Context(), entityID, PredDatastreamSchema, in.Schema, id)
+		if err != nil {
+			w.Header().Set("X-CS-Attempted-ID", entityID)
+			c.writeBackendError(w, err)
+			return
+		}
+		triples = append(triples, rel)
+	}
 	if err := c.ingestTriples(r.Context(), triples, id); err != nil {
 		w.Header().Set("X-CS-Attempted-ID", entityID)
 		c.writeBackendError(w, err)

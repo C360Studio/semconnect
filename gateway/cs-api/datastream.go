@@ -29,13 +29,11 @@ const DatastreamTypeIRI = csapi.Datastream
 // Stage 39: aliases beta.91's dotted csapi.ProducedBy.
 const PredDatastreamSystem = csapi.ProducedBy
 
-// PredDatastreamSchema stores the v0.1 SWE Common DataRecord schema
-// JSON that observation SWE encoders use for this Datastream. semstreams
-// beta.88 intentionally scope-cuts schema storage from vocabulary/csapi
-// (the target pattern is a typed SWE schema artifact entity with its own
-// StorageRef), so this gateway-local predicate is a narrow bridge rather
-// than an upstream vocabulary fork.
-const PredDatastreamSchema = "cs-api.datastream.schema"
+// PredDatastreamSchema links a Datastream to the first-class
+// csapi:SWESchemaDocument artifact entity that stores the canonical SWE
+// Common result schema bytes. Stage 42 retires the previous gateway-local
+// JSON predicate bridge and aliases beta.91's dotted relationship predicate.
+const PredDatastreamSchema = csapi.HasResultSchema
 
 // Datastream is the v0.1 JSON shape for CS API §10 Datastream resources.
 // Fields are the subset semstreams' vocabulary can losslessly round-trip
@@ -98,8 +96,7 @@ func datastreamFromState(state graph.EntityState) Datastream {
 	if v, ok := firstStringObject(state.Triples, sosa.ObservedProperty); ok {
 		d.ObservedProperty = v
 	}
-	if v, ok := firstStringObject(state.Triples, PredDatastreamSchema); ok && json.Valid([]byte(v)) {
-		d.Schema = json.RawMessage(v)
+	if _, ok := firstStringObject(state.Triples, PredDatastreamSchema); ok {
 		d.Links = append(d.Links, link{
 			Href: "/datastreams/" + state.ID + "/schema",
 			Rel:  "schema",
@@ -148,9 +145,6 @@ func datastreamToTriples(entityID string, d *Datastream) []message.Triple {
 	}
 	if d.ObservedProperty != "" {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: sosa.ObservedProperty, Object: d.ObservedProperty})
-	}
-	if len(d.Schema) > 0 {
-		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredDatastreamSchema, Object: string(d.Schema)})
 	}
 	return triples
 }

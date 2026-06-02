@@ -804,10 +804,10 @@ paths:
       summary: Fetch the SWE Common schema for a datastream.
       description: |-
         Returns the stored SWE Common DataRecord JSON schema for
-        observation value encodings. v0.1 stores this under a
-        gateway-local predicate; the target semstreams pattern is a
-        first-class SWE schema artifact entity with its own StorageRef,
-        related from the Datastream by a CS API vocabulary predicate.
+        observation value encodings. The Datastream graph entity stores
+        a `csapi.HasResultSchema` relationship to a first-class
+        `csapi:SWESchemaDocument` artifact entity; the artifact's
+        `StorageRef` points at the canonical schema bytes in ObjectStore.
       tags: [Datastreams]
       parameters:
         - $ref: "#/components/parameters/F"

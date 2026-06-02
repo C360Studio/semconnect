@@ -22,21 +22,7 @@ const (
 
 func controlStreamState(t *testing.T) []byte {
 	t.Helper()
-	schema := commandSchema{
-		CommandFormat: string(MediaJSON),
-		ParametersSchema: map[string]any{
-			"type": "DataRecord",
-			"fields": []any{
-				map[string]any{
-					"name":       "pan",
-					"type":       "Quantity",
-					"definition": "http://sensorml.com/ont/swe/property/PanAngle",
-					"label":      "Pan Angle",
-				},
-			},
-		},
-	}
-	schemaBytes, _ := json.Marshal(schema)
+	artifactID := "c360.semconnect.systems.csapi.schema." + uniqueIDToToken(testControlStreamID+"-commandSchema")
 	propsBytes, _ := json.Marshal([]controlledProperty{{
 		Definition: "http://sensorml.com/ont/swe/property/PanAngle",
 		Label:      "Pan Angle",
@@ -49,10 +35,15 @@ func controlStreamState(t *testing.T) []byte {
 			{Subject: testControlStreamID, Predicate: PredControlStreamSystem, Object: testControlSystemID},
 			{Subject: testControlStreamID, Predicate: predControlStreamInputName, Object: "ptz"},
 			{Subject: testControlStreamID, Predicate: predControlStreamAsync, Object: "false"},
-			{Subject: testControlStreamID, Predicate: predControlStreamSchema, Object: string(schemaBytes)},
+			{Subject: testControlStreamID, Predicate: predControlStreamCommandFormat, Object: string(MediaJSON)},
+			{Subject: testControlStreamID, Predicate: predControlStreamSchema, Object: artifactID},
 			{Subject: testControlStreamID, Predicate: predControlStreamControlledProperties, Object: string(propsBytes)},
 		},
 	})
+}
+
+func testCommandParametersSchema() json.RawMessage {
+	return json.RawMessage(`{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"}]}`)
 }
 
 func TestHandleControlStreams_GoldenPath(t *testing.T) {
@@ -117,11 +108,13 @@ func TestHandleControlStream_JSON(t *testing.T) {
 }
 
 func TestHandleControlStreamSchema(t *testing.T) {
-	fake := &fakeRequester{
-		reply:  controlStreamState(t),
-		status: natsclient.StatusConnected,
-	}
-	c := newTestComponent(t, fake)
+	fake := &multiReplyFakeRequester{entityRepliesByID: map[string][]byte{}}
+	c := newComponentWithRequester(t, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
+	artifactID := schemaArtifactIDForTest(c, testControlStreamID, predControlStreamSchema)
+	fake.entityRepliesByID[testControlStreamID] = controlStreamState(t)
+	fake.entityRepliesByID[artifactID] = seedSchemaArtifact(t, c, store, artifactID, testCommandParametersSchema())
 
 	req := httptest.NewRequest(http.MethodGet, "/controlstreams/"+testControlStreamID+"/schema", nil)
 	req.SetPathValue("id", testControlStreamID)
@@ -169,6 +162,8 @@ func TestHandleControlStreamPost_JSON(t *testing.T) {
 		reply:  encodeBatchOK(t, 7),
 	}
 	c := newTestComponent(t, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
 
 	body := []byte(`{"name":"PTZ Control","system@id":"` + testControlSystemID + `","inputName":"ptz","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"}]}}}`)
 	req := httptest.NewRequest(http.MethodPost, "/controlstreams", bytes.NewReader(body))
@@ -186,29 +181,33 @@ func TestHandleControlStreamPost_JSON(t *testing.T) {
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}
-	var sawType, sawSystem, sawSchema bool
-	var schema commandSchema
+	var sawType, sawSystem, sawSchema, sawFormat bool
+	var artifactID string
 	for _, tr := range batch.Triples {
 		switch tr.Predicate {
 		case sensorml.PredType:
 			sawType = tr.Object == ControlStreamTypeIRI
 		case PredControlStreamSystem:
 			sawSystem = true
+		case predControlStreamCommandFormat:
+			sawFormat = tr.Object == string(MediaJSON)
 		case predControlStreamSchema:
 			sawSchema = true
-			raw, _ := tr.Object.(string)
-			if err := json.Unmarshal([]byte(raw), &schema); err != nil {
-				t.Fatalf("decode schema triple: %v", err)
-			}
+			artifactID, _ = tr.Object.(string)
 		}
 	}
-	if !sawType || !sawSystem || !sawSchema {
-		t.Errorf("batch missing triples: type=%v system=%v schema=%v batch=%+v",
-			sawType, sawSystem, sawSchema, batch.Triples)
+	if !sawType || !sawSystem || !sawFormat || !sawSchema {
+		t.Errorf("batch missing triples: type=%v system=%v format=%v schema=%v batch=%+v",
+			sawType, sawSystem, sawFormat, sawSchema, batch.Triples)
 	}
-	fields, _ := schema.ParametersSchema["fields"].([]any)
+	stored := store.puts[schemaArtifactObjectKey(artifactID)]
+	var params map[string]any
+	if err := json.Unmarshal(stored, &params); err != nil {
+		t.Fatalf("decode schema artifact bytes: %v", err)
+	}
+	fields, _ := params["fields"].([]any)
 	if len(fields) != 1 {
-		t.Fatalf("canonical schema fields: %+v", schema.ParametersSchema)
+		t.Fatalf("canonical schema fields: %+v", params)
 	}
 	field, _ := fields[0].(map[string]any)
 	if field["type"] != "Quantity" {

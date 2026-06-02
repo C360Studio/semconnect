@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
@@ -35,14 +37,14 @@ func encodeDatastreamEntityState(t *testing.T, id, name, system, obsProp string)
 	return out
 }
 
-func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsProp, schema string) []byte {
+func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsProp, artifactID string) []byte {
 	t.Helper()
 	triples := []message.Triple{
 		{Subject: id, Predicate: sensorml.PredType, Object: DatastreamTypeIRI},
 		{Subject: id, Predicate: sensorml.PredLabel, Object: name},
 		{Subject: id, Predicate: PredDatastreamSystem, Object: system},
 		{Subject: id, Predicate: sosa.ObservedProperty, Object: obsProp},
-		{Subject: id, Predicate: PredDatastreamSchema, Object: schema},
+		{Subject: id, Predicate: PredDatastreamSchema, Object: artifactID},
 	}
 	state := graph.EntityState{ID: id, Triples: triples}
 	out, err := json.Marshal(state)
@@ -53,6 +55,49 @@ func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsPr
 }
 
 const testSWEDataRecordSchema = `{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}`
+
+func wireSchemaStore(c *Component, store *fakeSchemaObjectStore) {
+	var schemaStore schemaObjectStore = store
+	c.schemaArtifacts.Store(&schemaStore)
+}
+
+func seedSchemaArtifact(t *testing.T, c *Component, store *fakeSchemaObjectStore, artifactID string, raw json.RawMessage) []byte {
+	t.Helper()
+	canonical, err := normalizeSWESchema(raw)
+	if err != nil {
+		t.Fatalf("normalize schema artifact: %v", err)
+	}
+	key := schemaArtifactObjectKey(artifactID)
+	if store.puts == nil {
+		store.puts = make(map[string][]byte)
+	}
+	store.puts[key] = append([]byte(nil), canonical...)
+	state := graph.EntityState{
+		ID: artifactID,
+		Triples: []message.Triple{
+			{Subject: artifactID, Predicate: sensorml.PredType, Object: csapivocab.SWESchemaDocument},
+		},
+		StorageRef: &message.StorageReference{
+			StorageInstance: c.cfg.SchemaArtifactsBucket,
+			Key:             key,
+			ContentType:     schemaArtifactContentType,
+			Size:            int64(len(canonical)),
+		},
+	}
+	out, err := json.Marshal(state)
+	if err != nil {
+		t.Fatalf("encode schema artifact entity state: %v", err)
+	}
+	return out
+}
+
+func schemaArtifactIDForTest(c *Component, parentID, relationshipPredicate string) string {
+	role, err := schemaArtifactRole(relationshipPredicate)
+	if err != nil {
+		panic(fmt.Sprintf("test schema relationship: %v", err))
+	}
+	return c.mintSchemaArtifactEntityID(parentID, role)
+}
 
 // TestHandleDatastreams_GoldenPath pins the list shape for a populated
 // datastream graph.
@@ -139,15 +184,17 @@ func TestHandleDatastream_GoldenPath(t *testing.T) {
 
 func TestHandleDatastream_IncludesSchemaLinkWhenStored(t *testing.T) {
 	id := "c360.semconnect.systems.csapi.datastream.001"
-	fake := &fakeRequester{
-		status: natsclient.StatusConnected,
-		reply: encodeDatastreamEntityStateWithSchema(t, id,
-			"Temperature feed",
-			"c360.semconnect.systems.csapi.system.sensor1",
-			"http://example.org/properties/temperature",
-			testSWEDataRecordSchema),
-	}
-	c := newTestComponent(t, fake)
+	fake := &multiReplyFakeRequester{entityRepliesByID: map[string][]byte{}}
+	c := newComponentWithRequester(t, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
+	artifactID := schemaArtifactIDForTest(c, id, PredDatastreamSchema)
+	fake.entityRepliesByID[id] = encodeDatastreamEntityStateWithSchema(t, id,
+		"Temperature feed",
+		"c360.semconnect.systems.csapi.system.sensor1",
+		"http://example.org/properties/temperature",
+		artifactID)
+	fake.entityRepliesByID[artifactID] = seedSchemaArtifact(t, c, store, artifactID, json.RawMessage(testSWEDataRecordSchema))
 
 	req := httptest.NewRequest(http.MethodGet, "/datastreams/"+id, nil)
 	req.SetPathValue("id", id)
@@ -177,15 +224,17 @@ func TestHandleDatastream_IncludesSchemaLinkWhenStored(t *testing.T) {
 
 func TestHandleDatastreamSchema_GoldenPath(t *testing.T) {
 	id := "c360.semconnect.systems.csapi.datastream.001"
-	fake := &fakeRequester{
-		status: natsclient.StatusConnected,
-		reply: encodeDatastreamEntityStateWithSchema(t, id,
-			"Temperature feed",
-			"c360.semconnect.systems.csapi.system.sensor1",
-			"http://example.org/properties/temperature",
-			testSWEDataRecordSchema),
-	}
-	c := newTestComponent(t, fake)
+	fake := &multiReplyFakeRequester{entityRepliesByID: map[string][]byte{}}
+	c := newComponentWithRequester(t, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
+	artifactID := schemaArtifactIDForTest(c, id, PredDatastreamSchema)
+	fake.entityRepliesByID[id] = encodeDatastreamEntityStateWithSchema(t, id,
+		"Temperature feed",
+		"c360.semconnect.systems.csapi.system.sensor1",
+		"http://example.org/properties/temperature",
+		artifactID)
+	fake.entityRepliesByID[artifactID] = seedSchemaArtifact(t, c, store, artifactID, json.RawMessage(testSWEDataRecordSchema))
 
 	req := httptest.NewRequest(http.MethodGet, "/datastreams/"+id+"/schema", nil)
 	req.SetPathValue("id", id)
@@ -280,6 +329,8 @@ func TestHandleDatastreamPost_GoldenPath(t *testing.T) {
 func TestHandleDatastreamPost_StoresSchema(t *testing.T) {
 	fake := &fakeRequester{status: natsclient.StatusConnected, reply: encodeBatchOK(t, 5)}
 	c := newTestComponent(t, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
 
 	body, _ := json.Marshal(map[string]any{
 		"id":               "tenantA.proj.feeds.csapi.datastream.temp",
@@ -300,17 +351,20 @@ func TestHandleDatastreamPost_StoresSchema(t *testing.T) {
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode published body: %v", err)
 	}
-	var schemaTriple string
+	var artifactID string
 	for _, tr := range sent.Triples {
 		if tr.Predicate == PredDatastreamSchema {
-			schemaTriple, _ = tr.Object.(string)
+			artifactID, _ = tr.Object.(string)
 		}
 	}
-	if schemaTriple == "" {
-		t.Fatalf("missing schema triple: %+v", sent.Triples)
+	if artifactID == "" {
+		t.Fatalf("missing schema artifact relationship: %+v", sent.Triples)
 	}
-	if !json.Valid([]byte(schemaTriple)) {
-		t.Fatalf("schema triple is not JSON: %s", schemaTriple)
+	if !strings.HasPrefix(artifactID, c.cfg.SchemaArtifactIDPrefix+".") {
+		t.Fatalf("schema artifact ID: got %q want prefix %q", artifactID, c.cfg.SchemaArtifactIDPrefix)
+	}
+	if stored := store.puts[schemaArtifactObjectKey(artifactID)]; !json.Valid(stored) {
+		t.Fatalf("schema artifact bytes are not JSON: %s", stored)
 	}
 }
 

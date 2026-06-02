@@ -5,6 +5,7 @@
 package csapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,7 +25,8 @@ const (
 	PredControlStreamSystem               = csapivocab.ControlsSystem
 	predControlStreamInputName            = "cs-api.controlstream.inputName"
 	predControlStreamAsync                = "cs-api.controlstream.async"
-	predControlStreamSchema               = "cs-api.controlstream.schema"
+	predControlStreamCommandFormat        = "cs-api.controlstream.commandFormat"
+	predControlStreamSchema               = csapivocab.HasCommandSchema
 	predControlStreamControlledProperties = "cs-api.controlstream.controlledProperties"
 )
 
@@ -103,8 +105,8 @@ func controlStreamFromState(state graph.EntityState) controlStream {
 	if v, ok := firstStringObject(state.Triples, predControlStreamAsync); ok && v == "true" {
 		cs.Async = true
 	}
-	if schema := controlStreamSchemaFromTriples(state.Triples); schema.CommandFormat != "" {
-		cs.Formats = []string{schema.CommandFormat}
+	if v, ok := firstStringObject(state.Triples, predControlStreamCommandFormat); ok && v != "" {
+		cs.Formats = []string{v}
 	}
 	cs.ControlledProperties = controlledPropertiesFromTriples(state.Triples)
 	return cs
@@ -215,12 +217,20 @@ func (c *Component) handleControlStreamSchema(w http.ResponseWriter, r *http.Req
 		writeJSONError(w, http.StatusNotFound, "entity is not a ControlStream")
 		return
 	}
+	var schema commandSchema
+	if r.Method != http.MethodHead {
+		schema, err = c.controlStreamSchemaFromState(r.Context(), state)
+		if err != nil {
+			c.writeBackendError(w, err)
+			return
+		}
+	}
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
 	}
-	_ = json.NewEncoder(w).Encode(controlStreamSchemaFromTriples(state.Triples))
+	_ = json.NewEncoder(w).Encode(schema)
 }
 
 func (c *Component) handleControlStreamCommands(w http.ResponseWriter, r *http.Request) {
@@ -292,12 +302,25 @@ func (c *Component) handleControlStreamPost(w http.ResponseWriter, r *http.Reque
 		writeJSONError(w, http.StatusBadRequest, "could not read request body")
 		return
 	}
-	entityID, triples, buildErr := c.buildControlStreamTriples(body)
+	entityID, triples, schema, buildErr := c.buildControlStreamTriples(body)
 	if buildErr != nil {
 		writeJSONError(w, http.StatusBadRequest, buildErr.Error())
 		return
 	}
-	if err := c.ingestTriples(r.Context(), triples, IdentityFrom(r.Context())); err != nil {
+	identity := IdentityFrom(r.Context())
+	rawSchema, err := commandParametersSchemaRaw(schema)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "schema invalid: "+err.Error())
+		return
+	}
+	rel, err := c.createSchemaArtifact(r.Context(), entityID, predControlStreamSchema, rawSchema, identity)
+	if err != nil {
+		w.Header().Set("X-CS-Attempted-ID", entityID)
+		c.writeBackendError(w, err)
+		return
+	}
+	triples = append(triples, rel)
+	if err := c.ingestTriples(r.Context(), triples, identity); err != nil {
 		w.Header().Set("X-CS-Attempted-ID", entityID)
 		c.writeBackendError(w, err)
 		return
@@ -316,20 +339,20 @@ func (c *Component) mintControlStreamEntityID(uniqueID string) string {
 	return c.cfg.ControlStreamIDPrefix + "." + uniqueIDToToken(uniqueID)
 }
 
-func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Triple, error) {
+func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Triple, commandSchema, error) {
 	var in controlStreamPostBody
 	if err := json.Unmarshal(body, &in); err != nil {
-		return "", nil, fmt.Errorf("invalid control stream JSON: %w", err)
+		return "", nil, commandSchema{}, fmt.Errorf("invalid control stream JSON: %w", err)
 	}
 	if in.Name == "" {
-		return "", nil, errors.New("name required")
+		return "", nil, commandSchema{}, errors.New("name required")
 	}
 	if in.InputName == "" {
-		return "", nil, errors.New("inputName required")
+		return "", nil, commandSchema{}, errors.New("inputName required")
 	}
 	if in.SystemID != "" {
 		if err := validateEntityID(in.SystemID); err != nil {
-			return "", nil, fmt.Errorf("system@id invalid: %w", err)
+			return "", nil, commandSchema{}, fmt.Errorf("system@id invalid: %w", err)
 		}
 	}
 	entityID := in.ID
@@ -337,27 +360,26 @@ func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Tr
 		entityID = c.mintControlStreamEntityID(in.Name + "-" + in.InputName)
 	}
 	if err := validateEntityID(entityID); err != nil {
-		return "", nil, fmt.Errorf("id invalid: %w", err)
+		return "", nil, commandSchema{}, fmt.Errorf("id invalid: %w", err)
 	}
 	if in.Schema.CommandFormat == "" {
 		in.Schema.CommandFormat = string(MediaJSON)
 	}
 	schema, err := normalizeCommandSchema(in.Schema)
 	if err != nil {
-		return "", nil, fmt.Errorf("schema invalid: %w", err)
+		return "", nil, commandSchema{}, fmt.Errorf("schema invalid: %w", err)
 	}
 	in.Schema = schema
 	if len(in.ControlledProperties) == 0 {
 		in.ControlledProperties = controlledPropertiesFromSchema(in.Schema)
 	}
-	schemaBytes, _ := json.Marshal(in.Schema)
 	propsBytes, _ := json.Marshal(in.ControlledProperties)
 	triples := []message.Triple{
 		{Subject: entityID, Predicate: sensorml.PredType, Object: ControlStreamTypeIRI},
 		{Subject: entityID, Predicate: sensorml.PredLabel, Object: in.Name},
 		{Subject: entityID, Predicate: predControlStreamInputName, Object: in.InputName},
 		{Subject: entityID, Predicate: predControlStreamAsync, Object: fmt.Sprintf("%t", in.Async)},
-		{Subject: entityID, Predicate: predControlStreamSchema, Object: string(schemaBytes)},
+		{Subject: entityID, Predicate: predControlStreamCommandFormat, Object: in.Schema.CommandFormat},
 		{Subject: entityID, Predicate: predControlStreamControlledProperties, Object: string(propsBytes)},
 	}
 	if in.Description != "" {
@@ -366,7 +388,7 @@ func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Tr
 	if in.SystemID != "" {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredControlStreamSystem, Object: in.SystemID})
 	}
-	return entityID, triples, nil
+	return entityID, triples, in.Schema, nil
 }
 
 func controlledPropertiesFromTriples(triples []message.Triple) []controlledProperty {
@@ -379,20 +401,30 @@ func controlledPropertiesFromTriples(triples []message.Triple) []controlledPrope
 	return []controlledProperty{}
 }
 
-func controlStreamSchemaFromTriples(triples []message.Triple) commandSchema {
-	if v, ok := firstStringObject(triples, predControlStreamSchema); ok && v != "" {
-		var schema commandSchema
-		if err := json.Unmarshal([]byte(v), &schema); err == nil && schema.CommandFormat != "" {
-			if normalized, err := normalizeCommandSchema(schema); err == nil {
-				return normalized
-			}
-			return schema
-		}
+func (c *Component) controlStreamSchemaFromState(ctx context.Context, state graph.EntityState) (commandSchema, error) {
+	format := string(MediaJSON)
+	if v, ok := firstStringObject(state.Triples, predControlStreamCommandFormat); ok && v != "" {
+		format = v
 	}
-	return commandSchema{
-		CommandFormat:    string(MediaJSON),
-		ParametersSchema: map[string]any{"type": "DataRecord", "fields": []any{}},
+	raw, ok, err := c.readSchemaArtifact(ctx, state.Triples, predControlStreamSchema)
+	if err != nil {
+		return commandSchema{}, err
 	}
+	if !ok {
+		return commandSchema{
+			CommandFormat:    format,
+			ParametersSchema: map[string]any{"type": "DataRecord", "fields": []any{}},
+		}, nil
+	}
+	var params map[string]any
+	if err := json.Unmarshal(raw, &params); err != nil {
+		return commandSchema{}, fmt.Errorf("decode command schema artifact: %w", err)
+	}
+	schema, err := normalizeCommandSchema(commandSchema{CommandFormat: format, ParametersSchema: params})
+	if err != nil {
+		return commandSchema{}, err
+	}
+	return schema, nil
 }
 
 func normalizeCommandSchema(schema commandSchema) (commandSchema, error) {
@@ -420,6 +452,14 @@ func normalizeCommandSchema(schema commandSchema) (commandSchema, error) {
 	}
 	schema.ParametersSchema = params
 	return schema, nil
+}
+
+func commandParametersSchemaRaw(schema commandSchema) (json.RawMessage, error) {
+	raw, err := json.Marshal(schema.ParametersSchema)
+	if err != nil {
+		return nil, fmt.Errorf("marshal parametersSchema: %w", err)
+	}
+	return json.RawMessage(raw), nil
 }
 
 func controlledPropertiesFromSchema(schema commandSchema) []controlledProperty {

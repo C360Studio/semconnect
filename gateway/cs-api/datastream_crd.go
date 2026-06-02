@@ -97,6 +97,14 @@ func (c *Component) handleDatastreamPut(w http.ResponseWriter, r *http.Request) 
 	triples := datastreamToTriples(pathID, &in)
 
 	identity := IdentityFrom(r.Context())
+	if len(in.Schema) > 0 {
+		rel, err := c.createSchemaArtifact(r.Context(), pathID, PredDatastreamSchema, in.Schema, identity)
+		if err != nil {
+			c.writeBackendError(w, err)
+			return
+		}
+		triples = append(triples, rel)
+	}
 
 	if err := c.putEntityTriples(r.Context(), pathID, triples, identity); err != nil {
 		c.writeBackendError(w, err)

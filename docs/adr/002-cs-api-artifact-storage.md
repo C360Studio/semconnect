@@ -92,12 +92,13 @@ The gateway read path for artifact-backed fields is:
 
 ## Migration Implications
 
-Current semconnect schema storage remains valid as a temporary bridge:
-
-- `cs-api.datastream.schema` stores Datastream result schema JSON locally.
-- ControlStream command schema storage follows the same gateway-local pattern.
-
 Stage 41 wires the local ObjectStore and helper for this pattern: canonical SWE schema bytes are stored in
 ObjectStore, typed `csapi:SWESchemaDocument` entities carry `StorageRef`, and callers receive the parent
-relationship triple. Next local migration: move Datastream and ControlStream call sites onto that helper and
-retire the local JSON predicates. The `*IRI` siblings remain boundary/export-only values.
+relationship triple.
+
+Stage 42 moves Datastream result schemas and ControlStream command schemas onto that helper:
+
+- Datastream entities relate to schema artifacts with `csapi.HasResultSchema`.
+- ControlStream entities relate to schema artifacts with `csapi.HasCommandSchema`.
+- The former gateway-local JSON schema predicates are retired. The `*IRI` siblings remain
+  boundary/export-only values.

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/c360studio/semstreams/parser/sensorml"
@@ -21,6 +22,8 @@ func TestHandleDatastreamPatch_NameAndSchema(t *testing.T) {
 		batchReply:  encodeBatchOK(t, 6),
 	}
 	c := newComponentWithRequester(t, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
 
 	body, _ := json.Marshal(map[string]any{
 		"name":   "PATCHED flow stream",
@@ -35,8 +38,8 @@ func TestHandleDatastreamPatch_NameAndSchema(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204; body=%s", rr.Code, rr.Body.String())
 	}
-	if fake.batchCount != 1 {
-		t.Fatalf("entity update calls: got %d want 1", fake.batchCount)
+	if fake.batchCount != 2 {
+		t.Fatalf("entity mutation calls: got %d want 2 (schema artifact + parent update)", fake.batchCount)
 	}
 
 	triples := updateTriplesFromBody(t, fake.batchBody)
@@ -53,11 +56,15 @@ func TestHandleDatastreamPatch_NameAndSchema(t *testing.T) {
 	if got[sosa.ObservedProperty] != "http://www.w3.org/ns/sosa/Property/Temperature" {
 		t.Errorf("observedProperty preserved: got %q", got[sosa.ObservedProperty])
 	}
-	if got[PredDatastreamSchema] == "" {
-		t.Fatalf("schema triple missing: %+v", triples)
+	artifactID := got[PredDatastreamSchema]
+	if artifactID == "" {
+		t.Fatalf("schema artifact relationship missing: %+v", triples)
 	}
-	if !json.Valid([]byte(got[PredDatastreamSchema])) {
-		t.Fatalf("schema triple not JSON: %s", got[PredDatastreamSchema])
+	if !strings.HasPrefix(artifactID, c.cfg.SchemaArtifactIDPrefix+".") {
+		t.Fatalf("schema artifact ID: got %q want prefix %q", artifactID, c.cfg.SchemaArtifactIDPrefix)
+	}
+	if stored := store.puts[schemaArtifactObjectKey(artifactID)]; !json.Valid(stored) {
+		t.Fatalf("schema artifact bytes are not JSON: %s", stored)
 	}
 }
 

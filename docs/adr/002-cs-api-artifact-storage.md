@@ -64,9 +64,9 @@ The target semstreams vocabulary shape from #171 is:
 - `csapi:SWESchemaDocument` for SWE Common schema artifact type IRIs
 
 Semstreams `v1.0.0-beta.90` landed the CS API artifact classes, and `v1.0.0-beta.91` split CS API relationship
-predicates into dotted internal constants plus `*IRI` boundary constants. Existing semconnect gateway-local
-schema predicates remain temporary bridges until the gateway migrates Datastream and ControlStream schemas to
-typed artifact entities with dotted relationship predicates.
+predicates into dotted internal constants plus `*IRI` boundary constants. Semconnect Stage 42 migrated Datastream
+and ControlStream schemas to typed `csapi:SWESchemaDocument` artifact entities related by the canonical dotted
+relationship predicates.
 
 ## Pattern Selection
 

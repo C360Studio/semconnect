@@ -1,68 +1,49 @@
-# Stages 6 + 9 — Conformance harness
+# Conformance Harness
 
-This directory wires the [OGC Team Engine] conformance suite into local +
-CI workflows for `semconnect`. The harness boots NATS + `semstreams-backend`
-+ `cs-api-server` + Team Engine (with the CS API ETS baked in) on a
-shared Docker network, seeds a minimum fixture set via cs-api-server's
-write endpoints, invokes the suite via Team Engine's REST API, and
-archives the TestNG XML report alongside container logs from every
-service.
+This directory wires the [OGC Team Engine] conformance suite into local and CI
+workflows for `semconnect`.
 
-ADR-S001 §4 is the binding decision-set; read it for *why* this looks the
-way it does. The short version: pin the ETS by commit SHA, never check
-its source into this repo, materialise it into a gitignored
-`.vendor/ets/` directory at run time, then build the image fresh on each
-cold run.
+The harness boots NATS, `semstreams-backend`, `cs-api-server`, and Team Engine
+on a shared Docker network; seeds CS API fixtures through the gateway's HTTP
+write endpoints; invokes the CS API ETS through Team Engine's REST API; and
+archives the TestNG XML report plus logs from every service.
 
 [OGC Team Engine]: https://github.com/opengeospatial/teamengine
 
-## Calibration reality (Stage 9 cut)
+## Current Picture
 
-Stage 9 wired a real graph backend (`semstreams-backend`) under
-`cs-api-server` and added a pre-suite fixture-seed step. The harness now
-**exercises real CS API behavior** — read paths go through
-`graph.index.query.predicate` / `graph.query.entity` /
-`graph.spatial.query.*` to a live framework instance, write paths go
-through `graph.mutation.triple.add_batch`. Pre-Stage 9 every read 503'd
-with `nats.ErrNoResponders`, so failures were infrastructure-shaped and
-hid the real spec picture.
+As of Stage 55, the pinned suite is green:
 
-Current numbers (`v1.0.0-beta.73` framework pin + Botts ETS `0.1-SNAPSHOT`
-@ `d9caf33`): `total=137 passed=13 failed=2 skipped=122`. The headline
-counts didn't move post-Stage 9 because the cascade-blockers are
-upstream:
+```text
+total=137 passed=137 failed=0 skipped=0
+```
 
-- 2 upstream-ETS bugs fail in the `core` group
-  (`landingPageHasApiDefinitionLink` + `apiDefinitionResourceReturnsContent`,
-  both filed in `docs/upstream-asks/botts-ets-api-definition-unconditional.md`).
-  Every `systemfeatures`-dependent test SKIPs through this gate.
-- 1 net-new CS API spec gap surfaced by the seed working:
-  `fetchGeoJsonInputs` now reports *"`/systems` response has no CS API
-  'items' array"*. Our `systemCollection.Systems` field needs to be named
-  `items` per OGC Common collection conventions. Tracked separately.
+The current pins are:
 
-**What changed across Stage 9:** `fetchSensorMlInputs` flipped from
-503 to PASS; `fetchGeoJsonInputs` flipped from 503 to a real spec
-assertion. Real conformance work begins when the upstream ETS bugs
-unblock the systemfeatures cascade.
+- Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
+- TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
+- semstreams backend `v1.0.0-beta.91` at `ac5a24eaccc916abb50991c4ed230bd219381efd`.
 
-The two known sister-side deferrals (`X-CS-Reconstructed-Lossy` on
-`GET /systems/{id}`; `X-CS-Geometry-Available: false` on `GET /areas`)
-will surface as assertion failures when the corresponding ETS tests
-run. Track them upstream on `semstreams` per ADR-S001 §9.
+The run exercises real gateway/framework behavior:
 
-## Running locally
+- graph reads through `graph.query.entity`, `graph.query.batch`,
+  `graph.index.query.predicate`, and `graph.spatial.query.*`
+- graph writes through `graph.mutation.entity.create_with_triples`,
+  `graph.mutation.entity.update_with_triples`, and
+  `graph.mutation.entity.delete`
+- observation publish/readback through JetStream
+- schema artifact storage through NATS ObjectStore and typed artifact entities
+- OGC Common discovery, OpenAPI, content negotiation, and all claimed CS API
+  conformance classes
 
-Prerequisites: Docker 20.10+ with BuildKit, `git`, `python3` (TestNG XML
-parsing + ephemeral-port allocation), `curl`. No host JDK / Maven
-required — the Botts ETS Dockerfile bakes the full Maven lifecycle into
-its builder stage.
+## Running Locally
+
+Prerequisites: Docker 20.10+ with BuildKit, `git`, `python3`, and `curl`. No
+host JDK or Maven is required because the ETS Dockerfile builds Team Engine and
+the test suite inside Docker.
 
 ```bash
-# end-to-end run (cold: ~6-8 min ETS build + framework build + suite run)
-./conformance/run.sh
-
-# warm runs reuse Docker BuildKit cache; ~1-2 min
+# end-to-end run
 ./conformance/run.sh
 
 # tear down a wedged stack
@@ -71,41 +52,56 @@ its builder stage.
 # override host ports when 4222 / 8081 / 8222 are busy locally
 TE_HOST_PORT=8181 NATS_HOST_PORT=14222 NATS_MON_HOST_PORT=18222 ./conformance/run.sh
 
-# force teardown on success (default is KEEP_STACK=1 so you can triage afterward)
+# force teardown on success; default keeps the stack for triage
 KEEP_STACK=0 ./conformance/run.sh
 ```
 
+Cold runs build the ETS and framework images. Warm runs reuse Docker BuildKit
+cache.
+
 Outputs land in `conformance/output/` (gitignored):
 
-- `testng-report-<UTC>.xml` — TestNG XML; the conformance picture.
-- `teamengine-container-<UTC>.log` — `docker compose logs teamengine`.
-- `cs-api-server-container-<UTC>.log` — gateway logs (Stage 9).
-- `semstreams-backend-container-<UTC>.log` — framework backend logs (Stage 9).
-- `nats-container-<UTC>.log` — captured on failure only (Stage 9).
-- `seed-<UTC>.log` — fixture POST responses for systems, datastreams,
-  observations, and the later read-side resource seeds.
-- `compose-build-<UTC>.log` — full build log (all three buildable services).
-- `summary.txt` — human-readable summary with TestNG attribute counts.
-
-Container logs from every service are captured both on success (after
-suite invocation) and on failure (before teardown), so triaging a 503
-or healthcheck timeout doesn't require reading framework or ETS Java
-source.
+- `testng-report-<UTC>.xml` - TestNG XML; the conformance source of truth.
+- `summary.txt` - human-readable TestNG counts.
+- `compose-build-<UTC>.log` - image build logs.
+- `seed-<UTC>.log` - fixture POST responses and readiness probes.
+- `teamengine-container-<UTC>.log` - Team Engine logs.
+- `cs-api-server-container-<UTC>.log` - gateway logs.
+- `semstreams-backend-container-<UTC>.log` - framework backend logs.
+- `nats-container-<UTC>.log` - NATS logs.
 
 Exit codes:
 
 | Code | Meaning |
 |------|---------|
-| 0 | Harness ran end-to-end; read the TestNG XML for pass/fail. |
-| 1 | Infrastructure failure (Docker, build, network, healthcheck). |
+| 0 | Harness ran end to end; read the TestNG XML for pass/fail counts. |
+| 1 | Infrastructure failure: Docker, build, network, or healthcheck. |
 | 2 | Team Engine REST API returned non-2xx on suite invocation. |
 
-## Bumping pins
+## Fixtures And Seed Step
+
+`fixtures/` carries small CS-API-shaped documents used by `run.sh`.
+The seed phase creates the resource graph that the ETS reads back:
+
+- Systems and subsystem relationships.
+- Datastreams, stored SWE result schemas, and one OMS observation.
+- Procedures.
+- Deployments and subdeployment relationships.
+- Sampling Features.
+- Properties.
+- ControlStreams, command schemas, Commands, and Command Feasibility metadata.
+- SystemEvents.
+
+The seed phase is intentionally fatal: if a fixture cannot be created or
+cannot be observed through the corresponding read endpoint, the suite does not
+start. That keeps failures shaped like gateway/framework regressions instead
+of cascading Team Engine skips.
+
+## Bumping Pins
 
 `.ets-pin` carries upstream pins for both the ETS and the framework:
 
 ```ini
-# Botts CS API ETS (Stage 6)
 ETS_GIT_URL=https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10.git
 ETS_COMMIT=d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4
 ETS_COMMIT_DATE=2026-05-13
@@ -113,96 +109,61 @@ ETS_VERSION=0.1-SNAPSHOT
 ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
-# semstreams framework backend (Stage 9)
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_COMMIT=bea1407b81f3d47b806e4e1600da9c033048af64
-SEMSTREAMS_COMMIT_DATE=2026-05-15
-SEMSTREAMS_VERSION=v1.0.0-beta.73
+SEMSTREAMS_COMMIT=ac5a24eaccc916abb50991c4ed230bd219381efd
+SEMSTREAMS_COMMIT_DATE=2026-05-31
+SEMSTREAMS_VERSION=v1.0.0-beta.91
 ```
 
 Bumping is intentional, not auto-pulled.
 
-### ETS bump procedure
+### ETS Bump Procedure
 
-1. Pick the new commit SHA (`gh api repos/Botts-Innovative-Research/ets-ogcapi-connectedsystems10/commits/main --jq .sha`).
-2. Edit `ETS_COMMIT` + `ETS_COMMIT_DATE`. Update `TEAMENGINE_VERSION` if the
-   upstream `Dockerfile`'s `ARG TEAMENGINE_VERSION` changed.
-3. Run `./conformance/run.sh` locally and inspect the TestNG delta — new
-   tests at this stage mean new assertion failures to triage.
-4. Open the PR with the TestNG delta in the description so the reviewer
-   can see what conformance picture moved.
+1. Pick the new commit SHA, for example with
+   `gh api repos/Botts-Innovative-Research/ets-ogcapi-connectedsystems10/commits/main --jq .sha`.
+2. Edit `ETS_COMMIT` and `ETS_COMMIT_DATE`. Update `TEAMENGINE_VERSION` if
+   the upstream Dockerfile changes its Team Engine version.
+3. Run `./conformance/run.sh` locally and inspect the TestNG delta.
+4. Include the TestNG delta in the PR description.
 
-### Framework bump procedure
+### Framework Bump Procedure
 
-Pin order matters: **bump the Go module first, the conformance pin second**
-so the gateway's wire-protocol expectations match the running backend.
+Pin order matters: bump the Go module first, then the conformance pin, so the
+gateway's compiled wire expectations match the running backend.
 
-1. Bump `go.mod`: `go get github.com/c360studio/semstreams@v1.0.0-beta.NN && go mod tidy`.
-2. Re-resolve the commit SHA: `gh api repos/C360Studio/semstreams/git/tags/<tag-obj-sha> --jq .object.sha` (tags are annotated, so the ref SHA is the *tag object*, not the commit — `git rev-parse HEAD` returns the commit, so the pin file needs the commit SHA or `ensure_semstreams_vendor` re-clones every run).
-3. Edit `SEMSTREAMS_COMMIT` + `SEMSTREAMS_COMMIT_DATE` + `SEMSTREAMS_VERSION`.
-4. Run `./conformance/run.sh` locally. Watch for changes in handler-registration
-   logs (`semstreams-backend-container-*.log`) — a new framework release may
-   add or rename NATS subjects the gateway depends on.
-5. Run `go test ./... -race` to confirm gateway compatibility.
-6. Open the PR with the framework delta in the description.
+1. Bump `go.mod`: `go get github.com/c360studio/semstreams@v1.0.0-beta.NN`.
+2. Run `go mod tidy`.
+3. Resolve the tag commit SHA. Tags are annotated, so distinguish the tag
+   object SHA from the commit SHA.
+4. Edit `SEMSTREAMS_COMMIT`, `SEMSTREAMS_COMMIT_DATE`, and
+   `SEMSTREAMS_VERSION`.
+5. Run `go test ./...`, `go build ./...`, and `./conformance/run.sh`.
+6. Include the framework delta and conformance result in the PR description.
 
-## Migrating off the Botts pin
+## NATS Config
 
-When the OGC org adopts the ETS into `opengeospatial/ets-ogcapi-connectedsystems10`
-and publishes a tagged image to a registry (GHCR or Docker Hub):
+`nats.conf` pins JetStream `max_file_store` and `max_memory_store`.
+nats-server 2.10's CLI does not expose those flags, and Docker defaults can be
+too small for the framework baseline streams plus the CS API observation and
+artifact stores. The harness owns the server-side limits; semstreams validates
+and warns against the connected account's observed limits.
 
-1. Replace `ETS_GIT_URL` + `ETS_COMMIT` in `.ets-pin` with `ETS_IMAGE` (e.g.
-   `ghcr.io/opengeospatial/ets-ogcapi-connectedsystems10:1.0.0`).
+## Migrating Off Source Builds
+
+When the OGC org adopts the ETS into
+`opengeospatial/ets-ogcapi-connectedsystems10` and publishes a tagged image:
+
+1. Replace `ETS_GIT_URL` and `ETS_COMMIT` in `.ets-pin` with `ETS_IMAGE`, for
+   example `ghcr.io/opengeospatial/ets-ogcapi-connectedsystems10:1.0.0`.
 2. Update `compose.yml`'s `teamengine` service from `build:` to `image:`.
-3. Drop `ensure_ets_vendor` and the `.vendor/ets` clone step from
-   `run.sh` — pulling a registry image needs nothing more than `compose
-   pull` (which `compose up` does on its own).
+3. Drop the `.vendor/ets` clone/build path from `run.sh`.
 
-The harness shape (NATS + semstreams-backend + cs-api-server + TE on a
-shared network, REST invocation, TestNG capture) is unchanged across
-the migration; only the image source moves.
-
-A symmetric migration applies when the framework publishes a registry
-image (`ghcr.io/c360studio/semstreams:vX.Y.Z`): replace the
-`semstreams-backend.build:` block with `image:`, drop `ensure_semstreams_vendor`
-+ `.vendor/semstreams` from `run.sh`.
-
-## Fixtures + seed step (Stage 9)
-
-`fixtures/` carries small CS-API-shaped inputs (`system.sml.json`,
-`observations.om.json`, `area.geojson.json`). `run.sh`'s
-`seed_fixtures` step POSTs `system.sml.json` to `/systems` and a
-generated Datastream body (referencing the just-seeded System) to
-`/datastreams` after readiness gates and before suite invocation.
-Both responses are captured in `output/seed-<UTC>.log`; a non-201
-on either is fatal.
-
-The Botts ETS `@BeforeClass` fixture loaders (`fetchSensorMlInputs`,
-`fetchGeoJsonInputs`) read these via `GET /systems` to drive
-SensorML + GeoJSON test groups. Without the seed step, the loaders
-see an empty collection and either SkipException or assert-fail,
-cascading SKIP through ~120 dependent tests.
-
-Stage 45 seeds one OMS observation through
-`POST /datastreams/{id}/observations` after the Datastream fixture is
-created, then polls both `/observations` and
-`/datastreams/{id}/observations` before Team Engine starts.
-
-## NATS config (Stage 9)
-
-`nats.conf` pins JetStream `max_file_store` + `max_memory_store`
-explicitly. nats-server 2.10's CLI doesn't expose those flags
-(config-file only), and the framework's `nats.jetstream` schema
-declares them but doesn't apply them to the connected server. Auto-sizing
-on Docker for Mac under image-cache pressure can compute a limit too
-small for the framework's baseline streams (`LOGS`, `HEALTH`, `METRICS`,
-`FLOWS`), surfacing as `nats: API error: code=500 err_code=10047
-description=insufficient storage resources available` at boot. 10GB/1GB
-is ample for a conformance run.
+A symmetric migration applies when semstreams publishes a registry image:
+replace the `semstreams-backend.build:` block with `image:` and drop the
+`.vendor/semstreams` clone/build path.
 
 ## CI
 
-`.github/workflows/conformance.yml` runs this same harness on push to
-`main` and on PRs labelled `conformance`. It is **not** a PR-blocking
-gate at this stage — see the calibration reality above. The TestNG XML
-report is uploaded as a workflow artifact for triage.
+`.github/workflows/conformance.yml` runs this harness on push to `main`, on
+manual dispatch, and on PRs labelled `conformance`. The TestNG XML report is
+uploaded as a workflow artifact for triage.

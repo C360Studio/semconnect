@@ -1,9 +1,12 @@
 # Getting Started — semconnect Bootstrap Playbook
 
-You are working in a freshly-initialized repository (`.git`,
-`LICENSE`, `.gitignore`, `README.md`, this playbook). This
-document walks the sister-repo agent through the bootstrap
-sequence — what to scaffold first, in what order, and why.
+This is the historical bootstrap playbook and stage log for `semconnect`.
+The repository is no longer freshly initialized: Stages 2 through 55 have
+landed, and the pinned conformance harness is green at
+`total=137 passed=137 failed=0 skipped=0`. Keep this file as the narrative of
+how the gateway was built; use [README.md](../README.md),
+[AGENTS.md](../AGENTS.md), and [conformance/README.md](../conformance/README.md)
+for the current operating picture.
 
 The framework half of [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
 (Phases 2-6) is complete and merged on `semstreams` main.
@@ -145,16 +148,11 @@ report. The ETS is pinned by commit SHA in `conformance/.ets-pin` per
 ADR-S001 §4. `.github/workflows/conformance.yml` runs the same harness
 on push to `main` and on PRs labelled `conformance`.
 
-**Calibration reality at v0.1**: the pinned Botts ETS is `0.1-SNAPSHOT`
-— scaffold only, real CS API conformance test classes deferred to
-follow-up sprints upstream. A green TestNG report today validates
-**harness wiring**, not spec coverage. When upstream lands real tests
-(or the OGC org publishes an official ETS image), re-running
-`conformance/run.sh` lights up the conformance picture without further
-plumbing. The two known sister-side deferrals (`X-CS-Reconstructed-Lossy`
-on `GET /systems/{id}`; `X-CS-Geometry-Available: false` on `GET /areas`)
-will surface as Team Engine assertion failures once tests for those
-resources land — track upstream on `semstreams` per ADR-S001 §9.
+**Historical calibration note:** at Stage 6, the Botts ETS was still a
+scaffold and a green TestNG report validated harness wiring rather than full
+spec coverage. Subsequent stages closed that gap. As of Stage 55, the same
+pinned ETS reports `total=137 passed=137 failed=0 skipped=0`; see
+`conformance/README.md` for the current harness picture.
 
 ### Stage 9 — Conformance backend + fixture seed
 

@@ -1,6 +1,6 @@
 // cs-api-server is the reference deployment binary for semconnect — the OGC
-// API Connected Systems v1.0 HTTP gateway. v0.1 ships GET /systems +
-// /conformance + /health.
+// API Connected Systems v1.0 HTTP gateway. The v0.1 surface covers the pinned
+// CS API Part 1/Part 2 conformance set used by the local Team Engine harness.
 //
 // Usage:
 //
@@ -16,10 +16,9 @@
 //	  "max_list_limit":   1000
 //	}
 //
-// The binary intentionally avoids the full semstreams service.ServiceManager
-// at v0.1 — it constructs the cs-api Component directly and runs its standalone
-// HTTP server. Embedding under ServiceManager is a follow-up once the surface
-// stabilizes past Stage 5.
+// The binary constructs the cs-api Component directly and runs its standalone
+// HTTP server. Embedding under semstreams service management remains a future
+// deployment option.
 package main
 
 import (

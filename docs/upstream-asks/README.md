@@ -7,14 +7,23 @@ without making semstreams review stale blockers.
 
 ## Open asks
 
-None currently blocking semconnect. The asks filed from the CS API
-gateway work are closed upstream as of semstreams `v1.0.0-beta.91`.
-Non-blocking vocabulary follow-up: Stage 46 introduced two gateway-local
-dotted predicates for CS API GeoJSON association mappings,
-`cs-api.deployment.deployedSystems` and
-`cs-api.samplingfeature.hostedProcedure`. semconnect can keep using
-them, but once semstreams exports matching `vocabulary/csapi` constants
-we should replace the local bridge constants with framework-owned names.
+None currently blocking semconnect. As of Stage 55, the CS API gateway is
+green against the pinned ETS (`total=137 passed=137 failed=0 skipped=0`).
+
+Non-blocking vocabulary asks now filed upstream:
+
+- [C360Studio/semstreams#200](https://github.com/C360Studio/semstreams/issues/200)
+  — add CS API Command Feasibility class/predicates so semconnect can
+  retire `FeasibilityTypeIRI` and the `cs-api.feasibility.*` local
+  predicates introduced in Stage 55.
+- [C360Studio/semstreams#201](https://github.com/C360Studio/semstreams/issues/201)
+  — add CS API association/composition predicates for Deployment
+  deployed-systems evidence, Subdeployment parent composition, and
+  SamplingFeature hosted-procedure evidence.
+- [C360Studio/semstreams#202](https://github.com/C360Studio/semstreams/issues/202)
+  — proposal to decide which CS API scalar metadata predicates belong in
+  `vocabulary/csapi` versus remaining gateway-local representation
+  details.
 
 ## Resolved in current pins
 

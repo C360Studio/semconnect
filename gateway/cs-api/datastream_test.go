@@ -23,11 +23,22 @@ import (
 // property), JSON-encoded as the framework's graph.query.entity replies.
 func encodeDatastreamEntityState(t *testing.T, id, name, system, obsProp string) []byte {
 	t.Helper()
+	return encodeDatastreamEntityStateWithTimes(t, id, name, system, obsProp, "", "")
+}
+
+func encodeDatastreamEntityStateWithTimes(t *testing.T, id, name, system, obsProp, phenomenonTime, resultTime string) []byte {
+	t.Helper()
 	triples := []message.Triple{
 		{Subject: id, Predicate: sensorml.PredType, Object: DatastreamTypeIRI},
 		{Subject: id, Predicate: sensorml.PredLabel, Object: name},
 		{Subject: id, Predicate: PredDatastreamSystem, Object: system},
 		{Subject: id, Predicate: sosa.ObservedProperty, Object: obsProp},
+	}
+	if phenomenonTime != "" {
+		triples = append(triples, message.Triple{Subject: id, Predicate: predDatastreamPhenomenonTime, Object: phenomenonTime})
+	}
+	if resultTime != "" {
+		triples = append(triples, message.Triple{Subject: id, Predicate: predDatastreamResultTime, Object: resultTime})
 	}
 	state := graph.EntityState{ID: id, Triples: triples}
 	out, err := json.Marshal(state)
@@ -144,6 +155,40 @@ func TestHandleDatastreams_GoldenPath(t *testing.T) {
 	}
 	if coll.Items[0].SystemID != systemID || coll.Items[0].OutputName == "" || len(coll.Items[0].ObservedProps) != 1 || len(coll.Items[0].Formats) == 0 || coll.Items[0].ResultType == "" {
 		t.Fatalf("collection item missing Part 2 datastream shape: %+v", coll.Items[0])
+	}
+	if coll.Items[0].ObservedProps[0].Definition != "http://example.org/properties/temperature" {
+		t.Fatalf("observedProperties definition: %+v", coll.Items[0].ObservedProps)
+	}
+}
+
+func TestHandleDatastreams_AdvancedFilters(t *testing.T) {
+	ids := []string{
+		"c360.semconnect.systems.csapi.datastream.alpha",
+		"c360.semconnect.systems.csapi.datastream.beta",
+	}
+	systemID := "c360.semconnect.systems.csapi.system.sensor1"
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, ids),
+		entityRepliesByID: map[string][]byte{
+			ids[0]: encodeDatastreamEntityStateWithTimes(t, ids[0], "Temperature", systemID, "http://example.org/properties/temperature", "2026-06-02T18:00:00Z", "2026-06-02T18:00:00Z"),
+			ids[1]: encodeDatastreamEntityStateWithTimes(t, ids[1], "Humidity", systemID, "http://example.org/properties/humidity", "2026-06-02T19:00:00Z", "2026-06-02T19:00:00Z"),
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/datastreams?observedProperty=http%3A%2F%2Fexample.org%2Fproperties%2Ftemperature&phenomenonTime=2026-06-02T18%3A00%3A00Z&resultTime=2026-06-02T18%3A00%3A00Z", nil)
+	rr := httptest.NewRecorder()
+	c.handleDatastreams(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll datastreamCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != ids[0] {
+		t.Fatalf("items: %+v", coll.Items)
 	}
 }
 

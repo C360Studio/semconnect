@@ -35,25 +35,40 @@ const PredDatastreamSystem = csapi.ProducedBy
 // JSON predicate bridge and aliases beta.91's dotted relationship predicate.
 const PredDatastreamSchema = csapi.HasResultSchema
 
+const (
+	predDatastreamPhenomenonTime = "cs-api.datastream.phenomenonTime"
+	predDatastreamResultTime     = "cs-api.datastream.resultTime"
+)
+
 // Datastream is the v0.1 JSON shape for CS API §10 Datastream resources.
 // Fields are the subset semstreams' vocabulary can losslessly round-trip
 // today; deferred fields are listed in the package doc comment above.
 type Datastream struct {
-	ID               string          `json:"id"`
-	Type             string          `json:"type"` // "Datastream"
-	Name             string          `json:"name,omitempty"`
-	Description      string          `json:"description,omitempty"`
-	System           string          `json:"system,omitempty"`           // 6-part entity ID
-	SystemID         string          `json:"system@id,omitempty"`        // CS API Part 2 shape
-	SystemLink       *link           `json:"system@link,omitempty"`      // CS API Part 2 shape
-	OutputName       string          `json:"outputName,omitempty"`       // CS API Part 2 shape
-	ObservedProperty string          `json:"observedProperty,omitempty"` // IRI
-	ObservedProps    []string        `json:"observedProperties,omitempty"`
-	Formats          []string        `json:"formats,omitempty"`
-	ResultType       string          `json:"resultType,omitempty"`
-	Schema           json.RawMessage `json:"schema,omitempty"` // SWE Common DataRecord JSON
-	Links            []link          `json:"links"`
+	ID               string             `json:"id"`
+	Type             string             `json:"type"` // "Datastream"
+	Name             string             `json:"name,omitempty"`
+	Description      string             `json:"description,omitempty"`
+	System           string             `json:"system,omitempty"`           // 6-part entity ID
+	SystemID         string             `json:"system@id,omitempty"`        // CS API Part 2 shape
+	SystemLink       *link              `json:"system@link,omitempty"`      // CS API Part 2 shape
+	OutputName       string             `json:"outputName,omitempty"`       // CS API Part 2 shape
+	ObservedProperty string             `json:"observedProperty,omitempty"` // IRI
+	ObservedProps    []observedProperty `json:"observedProperties,omitempty"`
+	PhenomenonTime   string             `json:"phenomenonTime,omitempty"`
+	ResultTime       string             `json:"resultTime,omitempty"`
+	Formats          []string           `json:"formats,omitempty"`
+	ResultType       string             `json:"resultType,omitempty"`
+	Schema           json.RawMessage    `json:"schema,omitempty"` // SWE Common DataRecord JSON
+	Links            []link             `json:"links"`
 }
+
+type observedProperty struct {
+	Definition  string `json:"definition,omitempty"`
+	Label       string `json:"label,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+func (p observedProperty) getDefinition() string { return p.Definition }
 
 type datastreamCollection struct {
 	Type           string `json:"type"` // "DatastreamCollection"
@@ -100,7 +115,13 @@ func datastreamFromState(state graph.EntityState) Datastream {
 	}
 	if v, ok := firstStringObject(state.Triples, sosa.ObservedProperty); ok {
 		d.ObservedProperty = v
-		d.ObservedProps = []string{v}
+		d.ObservedProps = []observedProperty{{Definition: v}}
+	}
+	if v, ok := firstStringObject(state.Triples, predDatastreamPhenomenonTime); ok {
+		d.PhenomenonTime = v
+	}
+	if v, ok := firstStringObject(state.Triples, predDatastreamResultTime); ok {
+		d.ResultTime = v
 	}
 	d.OutputName = "result"
 	d.Formats = []string{string(MediaJSON), string(MediaOMS)}
@@ -159,6 +180,12 @@ func datastreamToTriples(entityID string, d *Datastream) []message.Triple {
 	}
 	if d.ObservedProperty != "" {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: sosa.ObservedProperty, Object: d.ObservedProperty})
+	}
+	if d.PhenomenonTime != "" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predDatastreamPhenomenonTime, Object: d.PhenomenonTime})
+	}
+	if d.ResultTime != "" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predDatastreamResultTime, Object: d.ResultTime})
 	}
 	return triples
 }

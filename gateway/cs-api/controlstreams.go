@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
@@ -30,6 +31,8 @@ const (
 	predControlStreamCommandFormat        = "cs-api.controlstream.commandFormat"
 	predControlStreamSchema               = csapivocab.HasCommandSchema
 	predControlStreamControlledProperties = "cs-api.controlstream.controlledProperties"
+	predControlStreamIssueTime            = "cs-api.controlstream.issueTime"
+	predControlStreamExecutionTime        = "cs-api.controlstream.executionTime"
 	predCommandIssueTime                  = "cs-api.command.issueTime"
 	predCommandExecutionTime              = "cs-api.command.executionTime"
 	predCommandStatus                     = "cs-api.command.status"
@@ -64,6 +67,8 @@ type controlledProperty struct {
 	Description string `json:"description,omitempty"`
 }
 
+func (p controlledProperty) getDefinition() string { return p.Definition }
+
 type commandSchema struct {
 	CommandFormat    string         `json:"commandFormat"`
 	ParametersSchema map[string]any `json:"parametersSchema"`
@@ -82,6 +87,7 @@ type command struct {
 	IssueTime       string          `json:"issueTime,omitempty"`
 	ExecutionTime   string          `json:"executionTime,omitempty"`
 	Status          string          `json:"status,omitempty"`
+	CurrentStatus   string          `json:"currentStatus,omitempty"`
 	Sender          string          `json:"sender,omitempty"`
 	Params          json.RawMessage `json:"params,omitempty"`
 	Links           []link          `json:"links,omitempty"`
@@ -94,6 +100,8 @@ type controlStreamPostBody struct {
 	SystemID             string               `json:"system@id,omitempty"`
 	InputName            string               `json:"inputName"`
 	ControlledProperties []controlledProperty `json:"controlledProperties,omitempty"`
+	IssueTime            string               `json:"issueTime,omitempty"`
+	ExecutionTime        string               `json:"executionTime,omitempty"`
 	Async                bool                 `json:"async"`
 	Schema               commandSchema        `json:"schema"`
 }
@@ -143,6 +151,12 @@ func controlStreamFromState(state graph.EntityState) controlStream {
 	if v, ok := firstStringObject(state.Triples, predControlStreamCommandFormat); ok && v != "" {
 		cs.Formats = []string{v}
 	}
+	if v, ok := firstStringObject(state.Triples, predControlStreamIssueTime); ok {
+		cs.IssueTime = v
+	}
+	if v, ok := firstStringObject(state.Triples, predControlStreamExecutionTime); ok {
+		cs.ExecutionTime = v
+	}
 	cs.ControlledProperties = controlledPropertiesFromTriples(state.Triples)
 	return cs
 }
@@ -175,6 +189,7 @@ func commandFromState(state graph.EntityState) command {
 	if v, ok := firstStringObject(state.Triples, predCommandStatus); ok {
 		cmd.Status = v
 	}
+	cmd.CurrentStatus = cmd.Status
 	if v, ok := firstStringObject(state.Triples, predCommandSender); ok {
 		cmd.Sender = v
 	}
@@ -201,15 +216,57 @@ func (c *Component) handleControlStreams(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	ids, err := c.listEntitiesByType(r.Context(), ControlStreamTypeIRI, limit, "listControlStreamEntities")
+	filters := controlStreamCollectionFiltersFromQuery(r.URL.Query())
+	listLimit := limit
+	if filters.active() {
+		listLimit = c.cfg.MaxListLimit
+	}
+	ids, err := c.listEntitiesByType(r.Context(), ControlStreamTypeIRI, listLimit, "listControlStreamEntities")
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
-	c.writeControlStreamCollection(w, r, ids, "")
+	c.writeControlStreamCollection(w, r, ids, "", filters, limit)
 }
 
-func (c *Component) writeControlStreamCollection(w http.ResponseWriter, r *http.Request, ids []string, systemFilter string) {
+type controlStreamCollectionFilters struct {
+	controlledProperty string
+	issueTime          string
+	executionTime      string
+}
+
+func controlStreamCollectionFiltersFromQuery(query url.Values) controlStreamCollectionFilters {
+	return controlStreamCollectionFilters{
+		controlledProperty: queryString(query, "controlledProperty"),
+		issueTime:          queryString(query, "issueTime"),
+		executionTime:      queryString(query, "executionTime"),
+	}
+}
+
+func (f controlStreamCollectionFilters) active() bool {
+	return f.controlledProperty != "" || f.issueTime != "" || f.executionTime != ""
+}
+
+func controlStreamMatchesFilters(cs controlStream, filters controlStreamCollectionFilters) bool {
+	if filters.controlledProperty != "" && !propertyDefinitionsContain(cs.ControlledProperties, filters.controlledProperty) {
+		return false
+	}
+	if filters.issueTime != "" {
+		value, _ := cs.IssueTime.(string)
+		if !resourceTimeIntersects(value, filters.issueTime) {
+			return false
+		}
+	}
+	if filters.executionTime != "" {
+		value, _ := cs.ExecutionTime.(string)
+		if !resourceTimeIntersects(value, filters.executionTime) {
+			return false
+		}
+	}
+	return true
+}
+
+func (c *Component) writeControlStreamCollection(w http.ResponseWriter, r *http.Request, ids []string, systemFilter string, filters controlStreamCollectionFilters, limit int) {
 	coll := controlStreamCollection{
 		Items: make([]controlStream, 0, len(ids)),
 		Links: []link{
@@ -235,7 +292,13 @@ func (c *Component) writeControlStreamCollection(w http.ResponseWriter, r *http.
 		if systemFilter != "" && cs.SystemID != systemFilter {
 			continue
 		}
+		if !controlStreamMatchesFilters(cs, filters) {
+			continue
+		}
 		coll.Items = append(coll.Items, cs)
+		if len(coll.Items) == limit {
+			break
+		}
 	}
 
 	w.Header().Set("Content-Type", string(MediaJSON))
@@ -335,7 +398,7 @@ func (c *Component) handleControlStreamCommands(w http.ResponseWriter, r *http.R
 		c.writeBackendError(w, err)
 		return
 	}
-	c.writeCommandCollection(w, r, ids, id, "/controlstreams/"+id+"/commands", limit)
+	c.writeCommandCollection(w, r, ids, id, "/controlstreams/"+id+"/commands", commandCollectionFilters{}, limit)
 }
 
 func (c *Component) handleCommands(w http.ResponseWriter, r *http.Request) {
@@ -348,12 +411,17 @@ func (c *Component) handleCommands(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	ids, err := c.listEntitiesByType(r.Context(), CommandTypeIRI, limit, "listCommandEntities")
+	filters := commandCollectionFiltersFromQuery(r.URL.Query())
+	listLimit := limit
+	if filters.active() {
+		listLimit = c.cfg.MaxListLimit
+	}
+	ids, err := c.listEntitiesByType(r.Context(), CommandTypeIRI, listLimit, "listCommandEntities")
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
-	c.writeCommandCollection(w, r, ids, "", "/commands", limit)
+	c.writeCommandCollection(w, r, ids, "", "/commands", filters, limit)
 }
 
 func (c *Component) handleCommand(w http.ResponseWriter, r *http.Request) {
@@ -383,7 +451,43 @@ func (c *Component) handleCommand(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(commandFromState(state))
 }
 
-func (c *Component) writeCommandCollection(w http.ResponseWriter, r *http.Request, ids []string, controlStreamFilter string, selfHref string, limit int) {
+type commandCollectionFilters struct {
+	issueTime     string
+	executionTime string
+	statusCode    string
+	sender        string
+}
+
+func commandCollectionFiltersFromQuery(query url.Values) commandCollectionFilters {
+	return commandCollectionFilters{
+		issueTime:     queryString(query, "issueTime"),
+		executionTime: queryString(query, "executionTime"),
+		statusCode:    queryString(query, "statusCode"),
+		sender:        queryString(query, "sender"),
+	}
+}
+
+func (f commandCollectionFilters) active() bool {
+	return f.issueTime != "" || f.executionTime != "" || f.statusCode != "" || f.sender != ""
+}
+
+func commandMatchesFilters(cmd command, filters commandCollectionFilters) bool {
+	if filters.issueTime != "" && !resourceTimeIntersects(cmd.IssueTime, filters.issueTime) {
+		return false
+	}
+	if filters.executionTime != "" && !resourceTimeIntersects(cmd.ExecutionTime, filters.executionTime) {
+		return false
+	}
+	if filters.statusCode != "" && cmd.Status != filters.statusCode && cmd.CurrentStatus != filters.statusCode {
+		return false
+	}
+	if filters.sender != "" && cmd.Sender != filters.sender {
+		return false
+	}
+	return true
+}
+
+func (c *Component) writeCommandCollection(w http.ResponseWriter, r *http.Request, ids []string, controlStreamFilter string, selfHref string, filters commandCollectionFilters, limit int) {
 	coll := commandCollection{
 		Items: make([]command, 0, len(ids)),
 		Links: []link{{Href: selfHref, Rel: "self", Type: string(MediaJSON)}},
@@ -405,6 +509,9 @@ func (c *Component) writeCommandCollection(w http.ResponseWriter, r *http.Reques
 		}
 		cmd := commandFromState(state)
 		if controlStreamFilter != "" && cmd.ControlStreamID != controlStreamFilter {
+			continue
+		}
+		if !commandMatchesFilters(cmd, filters) {
 			continue
 		}
 		coll.Items = append(coll.Items, cmd)
@@ -440,7 +547,7 @@ func (c *Component) handleSystemControlStreams(w http.ResponseWriter, r *http.Re
 		c.writeBackendError(w, err)
 		return
 	}
-	c.writeControlStreamCollection(w, r, ids, systemID)
+	c.writeControlStreamCollection(w, r, ids, systemID, controlStreamCollectionFilters{}, limit)
 }
 
 func (c *Component) handleControlStreamPost(w http.ResponseWriter, r *http.Request) {
@@ -586,6 +693,12 @@ func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Tr
 	}
 	if in.SystemID != "" {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredControlStreamSystem, Object: in.SystemID})
+	}
+	if in.IssueTime != "" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predControlStreamIssueTime, Object: in.IssueTime})
+	}
+	if in.ExecutionTime != "" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predControlStreamExecutionTime, Object: in.ExecutionTime})
 	}
 	return entityID, triples, in.Schema, nil
 }

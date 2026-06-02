@@ -663,6 +663,9 @@ paths:
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/ObservedPropertyFilter"
+        - $ref: "#/components/parameters/PhenomenonTime"
+        - $ref: "#/components/parameters/ResultTime"
       responses:
         "200":
           description: DatastreamCollection.
@@ -965,6 +968,8 @@ paths:
             Opaque cursor — a JetStream stream sequence number. Returns
             observations strictly after this sequence (JetStream's
             inclusive `OptStartSeq` is bumped by 1 server-side).
+        - $ref: "#/components/parameters/PhenomenonTime"
+        - $ref: "#/components/parameters/ResultTime"
       responses:
         "200":
           description: ObservationCollection (JSON) or bare OMS array.
@@ -1051,6 +1056,8 @@ paths:
           required: false
           schema: {type: integer, format: int64, minimum: 1}
           description: Opaque JetStream stream sequence cursor.
+        - $ref: "#/components/parameters/PhenomenonTime"
+        - $ref: "#/components/parameters/ResultTime"
       responses:
         "200":
           description: Global ObservationCollection.
@@ -1761,6 +1768,9 @@ paths:
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/ControlledPropertyFilter"
+        - $ref: "#/components/parameters/IssueTime"
+        - $ref: "#/components/parameters/ExecutionTime"
       responses:
         "200":
           description: ControlStreamCollection.
@@ -1948,6 +1958,10 @@ paths:
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/IssueTime"
+        - $ref: "#/components/parameters/ExecutionTime"
+        - $ref: "#/components/parameters/StatusCode"
+        - $ref: "#/components/parameters/Sender"
       responses:
         "200":
           description: Command collection.
@@ -2020,6 +2034,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/EventType"
       responses:
         "200":
           description: SystemEventCollection.
@@ -2221,6 +2236,69 @@ components:
       description: |-
         WKT POLYGON filter. v0.1 matches Systems whose stored GeoJSON
         Point position is inside the polygon.
+
+    ObservedPropertyFilter:
+      in: query
+      name: observedProperty
+      required: false
+      schema: {type: string, format: uri}
+      description: Filters Datastreams by `observedProperties[].definition`.
+
+    ControlledPropertyFilter:
+      in: query
+      name: controlledProperty
+      required: false
+      schema: {type: string, format: uri}
+      description: Filters ControlStreams by `controlledProperties[].definition`.
+
+    PhenomenonTime:
+      in: query
+      name: phenomenonTime
+      required: false
+      schema: {type: string}
+      description: RFC 3339 instant or `start/end` interval filter.
+
+    ResultTime:
+      in: query
+      name: resultTime
+      required: false
+      schema: {type: string}
+      description: RFC 3339 instant or `start/end` interval filter.
+
+    IssueTime:
+      in: query
+      name: issueTime
+      required: false
+      schema: {type: string}
+      description: RFC 3339 instant or `start/end` interval filter.
+
+    ExecutionTime:
+      in: query
+      name: executionTime
+      required: false
+      schema: {type: string}
+      description: RFC 3339 instant or `start/end` interval filter.
+
+    StatusCode:
+      in: query
+      name: statusCode
+      required: false
+      schema: {type: string}
+      description: Filters Commands by `currentStatus` / stored status code.
+
+    Sender:
+      in: query
+      name: sender
+      required: false
+      schema: {type: string}
+      description: Filters Commands by sender.
+
+    EventType:
+      in: query
+      name: eventType
+      required: false
+      schema: {type: string}
+      description: Filters SystemEvents by `eventType`.
 
     EntityID:
       in: path
@@ -2817,6 +2895,7 @@ components:
         issueTime:       {type: string}
         executionTime:   {type: string}
         status:          {type: string}
+        currentStatus:   {type: string}
         sender:          {type: string}
         params:
           type: object
@@ -2848,6 +2927,8 @@ components:
         description: {type: string}
         system@id:   {type: string}
         inputName:   {type: string}
+        issueTime:   {type: string}
+        executionTime: {type: string}
         async:       {type: boolean}
         controlledProperties:
           type: array
@@ -2952,7 +3033,14 @@ components:
         observedProperty: {type: string, format: uri}
         observedProperties:
           type: array
-          items: {type: string, format: uri}
+          items:
+            type: object
+            properties:
+              definition:  {type: string, format: uri}
+              label:       {type: string}
+              description: {type: string}
+        phenomenonTime:   {type: string}
+        resultTime:       {type: string}
         formats:
           type: array
           items: {type: string}
@@ -2980,6 +3068,8 @@ components:
         description:      {type: string}
         system:           {type: string, description: 6-part SemStreams system ID (strict).}
         observedProperty: {type: string, format: uri}
+        phenomenonTime:   {type: string}
+        resultTime:       {type: string}
         schema:
           $ref: "#/components/schemas/SWEDataRecordSchema"
 
@@ -2992,6 +3082,8 @@ components:
         description:      {type: string}
         system:           {type: string, description: 6-part SemStreams system ID (strict).}
         observedProperty: {type: string, format: uri}
+        phenomenonTime:   {type: string}
+        resultTime:       {type: string}
         schema:
           $ref: "#/components/schemas/SWEDataRecordSchema"
 

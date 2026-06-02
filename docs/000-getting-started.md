@@ -1347,8 +1347,9 @@ implements the `/systems` filter slice exercised by the pinned ETS:
   `graph.query.batch`; no new graph index subject is introduced.
 
 This is intentionally a Part 1 Systems slice, not the full Part 2
-Advanced Filtering surface. Datastream, ControlStream, Observation,
-Command, and SystemEvent filter checks remain deferred.
+Advanced Filtering surface. Stage 54 later adds the Part 2 read-only
+filter checks for Datastream, Observation, ControlStream, Command, and
+SystemEvent collections.
 
 **Outcome:** `total=137 passed=106 failed=0 skipped=31` (confirmed
 2026-06-02). Newly passing checks are
@@ -1499,7 +1500,54 @@ predicate is added for this stage.
 `propertySensorMlHasSchemaAndMapping`, and
 `sensorMlDeploymentLinksMemberAssociationRelsUseResourceSpecificNames`.
 The remaining skips are Part 2 feasibility checks and Part 2 advanced
-filtering checks.
+filtering checks. Stage 54 later closes the Part 2 advanced-filtering
+block while leaving feasibility deferred.
+
+### Stage 54 — Part 2 Advanced Filtering read side
+
+Stage 54 declares CS API Part 2 `conf/advanced-filtering` and implements
+the read-only filter slice exercised by the pinned ETS:
+
+- `GET /datastreams?observedProperty=...` filters over
+  `observedProperties[].definition`. `observedProperties` now emits the
+  Part 2 object shape while preserving the scalar `observedProperty`
+  breadcrumb.
+- `GET /datastreams?phenomenonTime=...` and `?resultTime=...` filter
+  over optional Datastream time evidence stored as small scalar triples.
+- `GET /observations?phenomenonTime=...` and `?resultTime=...` filter
+  normalized JSON Observation resources after BaseMessage unwrap; no graph
+  observation index is introduced.
+- `GET /controlstreams?controlledProperty=...`, `?issueTime=...`, and
+  `?executionTime=...` filter over hydrated ControlStream resources.
+- `GET /commands?issueTime=...`, `?executionTime=...`, `?statusCode=...`,
+  and `?sender=...` filter read-side Command metadata. `currentStatus`
+  mirrors the stored status code for Part 2 clients.
+- `GET /systemEvents?eventType=...` filters hydrated SystemEvent
+  resources.
+
+The implementation deliberately keeps filtering at the HTTP resource layer:
+predicate-query finds candidate entities, batch hydration builds the public
+resource shape, then the filter is applied against that shape. The only new
+stored predicates are small gateway-local scalar time values for Datastream
+and ControlStream fixtures (`cs-api.datastream.*`,
+`cs-api.controlstream.*`), using the existing three-part dotted convention.
+
+Part 2 Command Feasibility remains deferred. The ETS feasibility group is
+now the only remaining skipped family, and it would require an explicit
+product decision to model feasibility resources rather than another read
+filter pass.
+
+**Outcome:** `total=137 passed=130 failed=0 skipped=7` (confirmed
+2026-06-02). Newly passing checks:
+`part2AdvancedFilteringConformanceDeclared`,
+`advancedFilteringPrerequisitesVisibleForFullClosure`,
+`datastreamTimeFiltersVerifyReturnedPredicates`,
+`datastreamObservedPropertyFilterVerifiesReturnedPredicates`,
+`observationTimeFiltersVerifyReturnedPredicates`,
+`controlStreamTimeFiltersVerifyReturnedPredicates`,
+`controlStreamControlledPropertyFilterVerifiesReturnedPredicates`,
+`commandFiltersVerifyReturnedPredicatesWhenEndpointAvailable`, and
+`systemEventTypeFilterVerifiesReturnedPredicatesWhenEndpointAvailable`.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

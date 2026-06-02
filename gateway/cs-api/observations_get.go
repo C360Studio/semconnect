@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -56,17 +57,25 @@ func (c *Component) handleGlobalObservations(w http.ResponseWriter, r *http.Requ
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	filters := observationCollectionFiltersFromQuery(r.URL.Query())
 	startSeq, err := parseObservationAfter(r.URL.Query().Get("after"))
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	msgs, lastSeq, err := c.fetchObservationMessages(r.Context(), c.cfg.ObservationsSubjectPrefix+".>", limit, startSeq)
+	fetchLimit := limit
+	if filters.active() {
+		fetchLimit = c.cfg.MaxListLimit
+	}
+	msgs, lastSeq, err := c.fetchObservationMessages(r.Context(), c.cfg.ObservationsSubjectPrefix+".>", fetchLimit, startSeq)
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
 	items := c.observationResourcesFromMessages(msgs, "")
+	if filters.active() {
+		items = filterObservationResources(items, filters, limit)
+	}
 	links := []link{
 		{Href: observationsCollectionSelfLink(r.URL.RawQuery), Rel: "self", Type: string(MediaJSON)},
 	}
@@ -191,6 +200,7 @@ func (c *Component) handleObservationsGet(w http.ResponseWriter, r *http.Request
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	filters := observationCollectionFiltersFromQuery(r.URL.Query())
 
 	// ?after=<sequence> — opaque cursor; we document it as a stream
 	// sequence number so operators triaging a paging request can match
@@ -216,7 +226,11 @@ func (c *Component) handleObservationsGet(w http.ResponseWriter, r *http.Request
 	}
 	rd := *rdPtr
 
-	items, lastSeq, err := c.fetchObservations(r.Context(), rd, datastreamID, limit, startSeq)
+	fetchLimit := limit
+	if media == MediaJSON && filters.active() {
+		fetchLimit = c.cfg.MaxListLimit
+	}
+	items, lastSeq, err := c.fetchObservations(r.Context(), rd, datastreamID, fetchLimit, startSeq)
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
@@ -251,6 +265,11 @@ func (c *Component) handleObservationsGet(w http.ResponseWriter, r *http.Request
 	case MediaSWEBinary:
 		c.writeObservationsSWEBinary(w, r, datastreamID, items)
 	default:
+		if filters.active() {
+			resources := observationResourcesFromPayloads(items, datastreamID)
+			c.writeObservationResourcesWrapped(w, r, datastreamID, filterObservationResources(resources, filters, limit), lastSeq, limit)
+			return
+		}
 		c.writeObservationsWrapped(w, r, datastreamID, items, lastSeq, limit)
 	}
 }
@@ -368,6 +387,45 @@ func (c *Component) writeObservationsWrapped(
 		Links:          links,
 	}
 
+	w.Header().Set("Content-Type", string(MediaJSON))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if encErr := json.NewEncoder(w).Encode(coll); encErr != nil {
+		c.errs.Add(1)
+		c.logger.Error("encode observations response", "err", encErr)
+	}
+}
+
+func (c *Component) writeObservationResourcesWrapped(
+	w http.ResponseWriter,
+	r *http.Request,
+	datastreamID string,
+	items []json.RawMessage,
+	lastSeq uint64,
+	limit int,
+) {
+	links := []link{
+		{Href: c.observationsSelfLink(datastreamID, r.URL.RawQuery), Rel: "self", Type: string(MediaJSON)},
+	}
+	truncated := len(items) == limit && lastSeq > 0
+	if truncated {
+		links = append(links, link{
+			Href: fmt.Sprintf("/datastreams/%s/observations?limit=%d&after=%d",
+				datastreamID, limit, lastSeq),
+			Rel:  "next",
+			Type: string(MediaJSON),
+		})
+	}
+	coll := observationCollection{
+		Type:           "ObservationCollection",
+		NumberMatched:  len(items),
+		NumberReturned: len(items),
+		Truncated:      truncated,
+		Items:          items,
+		Links:          links,
+	}
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
@@ -754,6 +812,51 @@ func observationResourceFromPayload(payload json.RawMessage, datastreamID string
 		return nil, false
 	}
 	return out, true
+}
+
+type observationCollectionFilters struct {
+	phenomenonTime string
+	resultTime     string
+}
+
+func observationCollectionFiltersFromQuery(query url.Values) observationCollectionFilters {
+	return observationCollectionFilters{
+		phenomenonTime: queryString(query, "phenomenonTime"),
+		resultTime:     queryString(query, "resultTime"),
+	}
+}
+
+func (f observationCollectionFilters) active() bool {
+	return f.phenomenonTime != "" || f.resultTime != ""
+}
+
+func filterObservationResources(items []json.RawMessage, filters observationCollectionFilters, limit int) []json.RawMessage {
+	if !filters.active() {
+		if len(items) > limit {
+			return items[:limit]
+		}
+		return items
+	}
+	filtered := make([]json.RawMessage, 0, len(items))
+	for _, item := range items {
+		if observationResourceMatchesFilters(item, filters) {
+			filtered = append(filtered, item)
+			if len(filtered) == limit {
+				break
+			}
+		}
+	}
+	return filtered
+}
+
+func observationResourceMatchesFilters(item json.RawMessage, filters observationCollectionFilters) bool {
+	if filters.phenomenonTime != "" && !resourceTimeIntersects(jsonResourceString(item, "phenomenonTime"), filters.phenomenonTime) {
+		return false
+	}
+	if filters.resultTime != "" && !resourceTimeIntersects(jsonResourceString(item, "resultTime"), filters.resultTime) {
+		return false
+	}
+	return true
 }
 
 func observationResourceID(resource json.RawMessage) string {

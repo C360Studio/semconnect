@@ -39,6 +39,8 @@ func controlStreamState(t *testing.T) []byte {
 			{Subject: testControlStreamID, Predicate: predControlStreamCommandFormat, Object: string(MediaJSON)},
 			{Subject: testControlStreamID, Predicate: predControlStreamSchema, Object: artifactID},
 			{Subject: testControlStreamID, Predicate: predControlStreamControlledProperties, Object: string(propsBytes)},
+			{Subject: testControlStreamID, Predicate: predControlStreamIssueTime, Object: "2026-06-02T18:00:00Z"},
+			{Subject: testControlStreamID, Predicate: predControlStreamExecutionTime, Object: "2026-06-02T18:05:00Z"},
 		},
 	})
 }
@@ -55,6 +57,8 @@ func commandState(t *testing.T) []byte {
 			{Subject: testCommandID, Predicate: sensorml.PredType, Object: CommandTypeIRI},
 			{Subject: testCommandID, Predicate: PredCommandControlStream, Object: testControlStreamID},
 			{Subject: testCommandID, Predicate: predCommandStatus, Object: "accepted"},
+			{Subject: testCommandID, Predicate: predCommandIssueTime, Object: "2026-05-19T12:00:00Z"},
+			{Subject: testCommandID, Predicate: predCommandExecutionTime, Object: "2026-05-19T12:01:00Z"},
 			{Subject: testCommandID, Predicate: predCommandSender, Object: "ets"},
 			{Subject: testCommandID, Predicate: predCommandParams, Object: `{"pan":10}`},
 		},
@@ -119,6 +123,48 @@ func TestHandleControlStream_JSON(t *testing.T) {
 	}
 	if len(cs.ControlledProperties) != 1 {
 		t.Errorf("controlledProperties: %+v", cs.ControlledProperties)
+	}
+	if cs.IssueTime != "2026-06-02T18:00:00Z" || cs.ExecutionTime != "2026-06-02T18:05:00Z" {
+		t.Errorf("times: issue=%v execution=%v", cs.IssueTime, cs.ExecutionTime)
+	}
+}
+
+func TestHandleControlStreams_AdvancedFilters(t *testing.T) {
+	otherID := "c360.semconnect.systems.csapi.controlstream.other"
+	propsBytes, _ := json.Marshal([]controlledProperty{{Definition: "http://example.org/control/zoom"}})
+	otherState := encodeEntityState(t, graph.EntityState{
+		ID: otherID,
+		Triples: []message.Triple{
+			{Subject: otherID, Predicate: sensorml.PredType, Object: ControlStreamTypeIRI},
+			{Subject: otherID, Predicate: sensorml.PredLabel, Object: "Other Control"},
+			{Subject: otherID, Predicate: predControlStreamInputName, Object: "other"},
+			{Subject: otherID, Predicate: predControlStreamControlledProperties, Object: string(propsBytes)},
+			{Subject: otherID, Predicate: predControlStreamIssueTime, Object: "2026-06-02T19:00:00Z"},
+			{Subject: otherID, Predicate: predControlStreamExecutionTime, Object: "2026-06-02T19:05:00Z"},
+		},
+	})
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testControlStreamID, otherID}),
+		entityRepliesByID: map[string][]byte{
+			testControlStreamID: controlStreamState(t),
+			otherID:             otherState,
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/controlstreams?controlledProperty=http%3A%2F%2Fsensorml.com%2Font%2Fswe%2Fproperty%2FPanAngle&issueTime=2026-06-02T18%3A00%3A00Z&executionTime=2026-06-02T18%3A05%3A00Z", nil)
+	rr := httptest.NewRecorder()
+	c.handleControlStreams(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll controlStreamCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != testControlStreamID {
+		t.Fatalf("items: %+v", coll.Items)
 	}
 }
 
@@ -255,6 +301,47 @@ func TestHandleCommand_JSON(t *testing.T) {
 	}
 	if cmd.ID != testCommandID || cmd.ControlStreamID != testControlStreamID {
 		t.Fatalf("command: %+v", cmd)
+	}
+	if cmd.CurrentStatus != "accepted" {
+		t.Fatalf("currentStatus: got %q", cmd.CurrentStatus)
+	}
+}
+
+func TestHandleCommands_AdvancedFilters(t *testing.T) {
+	otherID := "c360.semconnect.systems.csapi.command.other"
+	otherState := encodeEntityState(t, graph.EntityState{
+		ID: otherID,
+		Triples: []message.Triple{
+			{Subject: otherID, Predicate: sensorml.PredType, Object: CommandTypeIRI},
+			{Subject: otherID, Predicate: PredCommandControlStream, Object: testControlStreamID},
+			{Subject: otherID, Predicate: predCommandStatus, Object: "failed"},
+			{Subject: otherID, Predicate: predCommandIssueTime, Object: "2026-05-19T13:00:00Z"},
+			{Subject: otherID, Predicate: predCommandExecutionTime, Object: "2026-05-19T13:01:00Z"},
+			{Subject: otherID, Predicate: predCommandSender, Object: "other"},
+		},
+	})
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testCommandID, otherID}),
+		entityRepliesByID: map[string][]byte{
+			testCommandID: commandState(t),
+			otherID:       otherState,
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/commands?issueTime=2026-05-19T12%3A00%3A00Z&executionTime=2026-05-19T12%3A01%3A00Z&statusCode=accepted&sender=ets", nil)
+	rr := httptest.NewRecorder()
+	c.handleCommands(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll commandCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != testCommandID {
+		t.Fatalf("items: %+v", coll.Items)
 	}
 }
 

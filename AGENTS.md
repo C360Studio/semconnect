@@ -4,13 +4,13 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Repository status
 
-**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
+**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
 - Endpoints:
   - `GET /` — OGC API Common Part 1 §7.2 landing page (Stage 7). JSON with `self`, `conformance`, `service-desc` (`/api`), `data` links, resource-specific `systems` / `datastreams` links, and Stage 25 Part 2 discovery links for `controlstreams` and `systemevents`. Uses Go 1.22 `GET /{$}` end-of-path anchor so it doesn't shadow sibling routes.
-  - `GET /collections` (Stage 28) — OGC API Common Part 2 collection metadata. Static discovery document with `collections[]` entries for the resource families semconnect already reads (`all_systems`, `all_procedures`, `all_deployments`, `all_sampling_features`, `all_properties`, `all_datastreams`). `items` links point at the canonical CS API endpoints (for example `/systems?f=geojson`) rather than a `/collections/{id}/items` facade at v0.1. No new Common Part 2 conformance class is claimed.
+  - `GET /collections` (Stage 28; Stage 47 adds Part 2 discovery aliases) — OGC API Common Part 2 collection metadata. Static discovery document with `collections[]` entries for the resource families semconnect already reads (`all_systems`, `all_procedures`, `all_deployments`, `all_sampling_features`, `all_properties`, `all_datastreams`, `all_system_events`). Stage 47 also mirrors the same array under `items[]` for the ETS Part 2 discovery shape. `items` links point at canonical CS API endpoints such as `/systems?f=geojson`; the narrow `/collections/all_system_events/items` facade is backed by `GET /systemEvents`.
   - `GET /systems` — lists `ssn:System` entities via NATS `graph.index.query.predicate`. Default `application/json` returns CS API SystemCollection wrapper; Stage 15 added `application/geo+json` content negotiation that returns an RFC 7946 FeatureCollection with per-system geometry recovered from the `sensorml.process.position` triple (legacy read fallback: `cs-api.system.position`; Stage 40 batch-hydrates entity states; partial misses degrade to null-geometry Features). Still no SensorML "SystemCollection" wrapper — that 406s honestly.
   - `POST /systems` (Stage 8; Stage 14 added position preservation; Stage 16 added JSON Feature body; Stage 18 added uid preservation; Stage 29 moved uid/position to semstreams beta.79 native predicates; Stage 37 moved creates to entity mutations) — accepts four request media types: `application/sml+json` / `application/sensorml+json` (SensorML path; semstreams emits `uniqueId` and `position` triples natively) and `application/json` / `application/geo+json` (CS API §7.6 GeoJSON Feature body — Stage 16; entity ID minted from `properties.uid`, the uid is preserved on `sensorml.process.uid`, optional `geometry` round-trips via `sensorml.process.position`). `Content-Type` selects the branch (`buildSystemTriplesFromSensorML` vs `buildSystemTriplesFromFeature`); both feed the shared `ingestTriples` path, which now calls `graph.mutation.entity.create_with_triples`. Returns 201 Created with Location; duplicate entity creates map to 409 Conflict.
   - `PUT /systems/{id}` (Stage 16; Stage 37 moved replacement to entity mutations) — CS API §7.6 create-replace-delete replace semantics. Accepts `application/json` / `application/geo+json` only (no SensorML on PUT — the lossy reverse-mapping would surprise clients on read-back). Verifies the body's `properties.uid` mints to the same entity ID as the path; mismatch yields 400 before any backend mutation. Existing entities are replaced via `graph.mutation.entity.update_with_triples`; missing entities are created via `graph.mutation.entity.create_with_triples`. Returns 204 No Content.
@@ -32,7 +32,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `GET /datastreams/{datastreamID}/observations` (Stage 11; Stage 27 added SWE value encodings; Stage 32 routes them through semstreams `pkg/swecommon`; Stage 33 uses stored Datastream schemas; Stage 45 adds `datastream@id` on JSON resources) — reads back via the same JetStream stream the POST writes to. Spins a one-shot ordered consumer filtered on `cs-api.observations.{datastreamID}`, fetches up to `?limit=N` messages with `FetchNoWait` (so an empty stream returns immediately rather than burning the QueryTimeout budget), unwraps each `BaseMessage` to its inner OMS payload, returns CS API §11.3 `ObservationCollection` for `application/json`, a bare JSON array of OMS observations for `application/om+json`, or SWE Common observation-value rows for `application/swe+json`, `application/swe+csv`, and `application/swe+binary`. Schema-backed Datastreams omit `X-CS-SWE-Subset`; legacy Datastreams without schema fall back to inferred `{time,result}` and carry `X-CS-SWE-Subset: observation-values`. Paging via opaque `?after=<stream-seq>` cursor; when the page fills and a sequence was seen, a `next` link is added on the JSON wrapper (`truncated` is a heuristic — proper "remaining count" needs `consumer.Info().NumPending`, deferred follow-up; failure modes documented in `observations_get.go`). Malformed envelopes are skipped (logged) rather than 500-ing the whole request. Structured access log line on success carries the resolved `Identity` forwarded-user/email for read-side audit, mirroring the publish path's NATS-header audit. New `streamReader` interface on `Component` (production: `jetstreamObservationReader` wrapping `OrderedConsumer + FetchNoWait`; tests: fake).
   - `GET /systems/{id}/datastreams` (Stage 44) — system-scoped Datastream collection, filtered by beta.91's dotted `vocabulary/csapi.ProducedBy`.
   - `GET /areas` — spatial filtering via `?bbox=minLon,minLat,maxLon,maxLat` or `?polygon=<GeoJSON Polygon>` (exactly one required). Optional `?limit`. Returns a GeoJSON `FeatureCollection`; Features carry real Point geometry (Stage 13: framework v1.0.0-beta.75 added Lat/Lon/Alt echo to `SpatialResult`). `X-CS-Geometry-Available: false` header retired at Stage 13.
-  - `GET /conformance` — declares the full v0.1 set: Common Part 1 core + json + **oas30** (Stage 12), CS API core + json + oms + sensorml + json-ld + geojson + **create-replace-delete** (Stage 16/17) + **update** (Stage 19) + **procedure** (Stage 20) + **deployment** (Stage 21) + **sampling feature** (Stage 22) + **property** (Stage 23) + Part 2 **api-common** + **controlstream** (Stage 24) + **system-event** (Stage 25) + **datastream** (Stage 44). Stages 20+25 begin closing the OSH-bar resource-type gap (sponsor 2026-05-17 set OSH compliance as the new bar; OSH declares 34 classes).
+  - `GET /conformance` — declares the full v0.1 set: Common Part 1 core + json + **oas30** (Stage 12), CS API core + json + oms + sensorml + json-ld + geojson + **system** (Stage 47) + **create-replace-delete** (Stage 16/17) + **update** (Stage 19) + **procedure** (Stage 20) + **deployment** (Stage 21) + **sampling feature** (Stage 22) + **property** (Stage 23) + Part 2 **api-common** + **controlstream** (Stage 24) + **system-event** (Stage 25) + **datastream** (Stage 44). Stages 20+25 begin closing the OSH-bar resource-type gap (sponsor 2026-05-17 set OSH compliance as the new bar; OSH declares 34 classes).
   - `GET /procedures` (Stage 20) — CS API §6 collection. Predicate-query for `rdf:type = sosa.Procedure`. JSON-only ProcedureCollection.
   - `GET /procedures/{id}` (Stage 20) — JSON Procedure subset. NO `geometry` field per `/req/procedure/location` (procedures are methods, not physical things). Same `X-CS-Reconstructed-Lossy: true` header as /systems/{id}.
   - `POST /procedures` (Stage 20) — accepts the same four media types POST /systems does (sml+json / sensorml+json / json / geo+json). NO position triple appended (procedures forbid location). rdf:type triple object is OVERRIDDEN to `sosa.Procedure` on the SensorML path so a PhysicalSystem mistakenly POSTed to /procedures still lands under the Procedure class for predicate-query collection.
@@ -50,13 +50,13 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `POST /properties` (Stage 23) — accepts `application/sml+json`, `application/sensorml+json`, or `application/json` SensorML DerivedProperty-shaped JSON. Entity ID minted from `uniqueId` (or `uid` alias); representable subset lands as triples.
   - `OPTIONS /properties` + `OPTIONS /properties/{id}` (Stage 23) — same shape as /procedures: collection accepts POST, item is read-only.
   - `GET /controlstreams` (Stage 24) — CS API Part 2 control-stream collection. Predicate-query on `vocabulary/csapi.ControlStream`, then Stage 40 batch hydration so collection `items` are full ControlStream resources.
-  - `GET /controlstreams/{id}` (Stage 24; Stage 34 makes schema SWE-backed) — JSON ControlStream subset with system reference, inputName, controlledProperties, formats, live/async flags, and command links.
+  - `GET /controlstreams/{id}` (Stage 24; Stage 34 makes schema SWE-backed) — JSON ControlStream subset with system reference, inputName, controlledProperties, formats, live/async flags, and command links. Stage 47 adds canonical Part 2 alias `GET /controls/{id}` to the same handler.
   - `GET /controlstreams/{id}/schema` (Stage 24; Stage 34 validates/canonicalizes schema) — returns the stored command schema (`commandFormat`, `parametersSchema` as SWE Common DataRecord).
   - `GET /controlstreams/{id}/commands` (Stage 24) — readable empty Command collection; command execution is intentionally out of scope at v0.1.
   - `GET /commands` (Stage 43) — readable empty global Command collection; command execution/status lifecycle remains intentionally out of scope at v0.1.
   - `GET /systems/{id}/controlstreams` (Stage 24) — system-scoped ControlStream collection, filtered by beta.91's dotted `vocabulary/csapi.ControlsSystem`.
   - `POST /controlstreams` (Stage 24; Stage 34 validates command schema with `pkg/swecommon`) — JSON fixture helper used by the conformance harness to create read-side ControlStreams; not a command execution path.
-  - `GET /systemEvents` (Stage 25) — CS API Part 2 SystemEvent collection. Predicate-query on `vocabulary/csapi.SystemEvent`, then Stage 40 batch hydration so collection `items` are full SystemEvent resources.
+  - `GET /systemEvents` (Stage 25) — CS API Part 2 SystemEvent collection. Predicate-query on `vocabulary/csapi.SystemEvent`, then Stage 40 batch hydration so collection `items` are full SystemEvent resources. Stage 47 also exposes this collection at `/collections/all_system_events/items` for the ETS Part 2 collection-discovery path.
   - `GET /systemEvents/{id}` (Stage 25) — JSON SystemEvent subset with time/eventTime, eventType, message, system reference, source/severity, optional payload, and links.
   - `GET /systems/{id}/events` (Stage 25) — normative Requirement 43 system-scoped SystemEvent collection, filtered by beta.91's dotted `vocabulary/csapi.EventForSystem`.
   - `GET /systems/{id}/events/{eventID}` (Stage 25) — system-scoped SystemEvent item alias; 404 if the event is not associated with the path system.
@@ -84,7 +84,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   `main`, on `workflow_dispatch`, and on PRs labelled `conformance` — **not a PR-blocking
   gate** at this stage.
 
-  **Current outcome (Stage 46, 2026-06-02): `total=137 passed=97 failed=0 skipped=40`.**
+  **Current outcome (Stage 47, 2026-06-02): `total=137 passed=100 failed=0 skipped=37`.**
   Zero failures against our claimed conformance set. Stage 44 declares Part 2
   Datastreams/Observations and verifies the read-only surface: full Datastream collection
   items, canonical item reads, schema wrapper, global/nested Observation collections, and
@@ -94,6 +94,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   association evidence for relation-type and non-system mapping checks: systems, procedures,
   deployments, and sampling features now expose allowlisted links-member association rels;
   deployments and sampling features also round-trip concrete property-level `@link` mappings.
+  Stage 47 adds the explicit CS API `conf/system` URI, the canonical `/controls/{id}`
+  ControlStream item alias, and the SystemEvent collection discovery bridge required by
+  the Part 2 ETS (`items[]` alias on `/collections` plus
+  `/collections/all_system_events/items`).
 
   Trajectory: Stage 12 (20/0/117) → Stage 14 (29/1/107) → Stage 15 (32/0/105) →
   Stage 16+17+conformance-fix (38/2/97) → Stage 18 (40/0/97) → Stage 22 (58/0/79) →
@@ -103,7 +107,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   Stage 35 (79/0/58) → Stage 36 (79/0/58) → Stage 37 (79/0/58) → Stage 38 (79/0/58) →
   Stage 39 (79/0/58) → Stage 40 (79/0/58) → Stage 41 (79/0/58) → Stage 42 (79/0/58) →
   Stage 43 (80/0/57) → Stage 44 (89/0/48) → Stage 45 (91/0/46) →
-  Stage 46 (97/0/40).
+  Stage 46 (97/0/40) → Stage 47 (100/0/37).
   Eventual-consistency seed-then-query lag is handled by `run.sh` poll-until-visible
   checks after seed (systems, datastreams, observations, controlstreams, systemEvents);
   TeamEngine host readiness is actively polled because
@@ -150,7 +154,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 
 | Endpoint | Framework primitive |
 |---|---|
-| `GET /collections` | Static OGC API Common Part 2 metadata over the canonical CS API resource endpoints. No semstreams call; `items` links target `/systems?f=geojson`, `/procedures?f=geojson`, `/deployments?f=geojson`, `/samplingFeatures?f=geojson`, `/properties`, and `/datastreams`. Stage 28. |
+| `GET /collections` | Static OGC API Common Part 2 metadata over the canonical CS API resource endpoints. No semstreams call; `items` links target `/systems?f=geojson`, `/procedures?f=geojson`, `/deployments?f=geojson`, `/samplingFeatures?f=geojson`, `/properties`, `/datastreams`, and `/collections/all_system_events/items`; Stage 47 mirrors the collection list under `items[]` for ETS Part 2 discovery. Stage 28; SystemEvent bridge Stage 47. |
 | `GET /systems` | `graph.index.query.predicate` (rdf:type = ssn:System) → JSON SystemCollection (default) OR `graph.query.batch` hydration → `geojson.FeatureCollection` with per-system geometry (Stage 15; batch hydration Stage 40). |
 | `GET /systems/{id}` | `graph.query.entity` → `EntityState` → `reconstructProcessFromTriples` (JSON / SensorML) or `export.Serialize(JSONLD)`. Lossy fields documented via `X-CS-Reconstructed-Lossy: true`. |
 | `POST /systems` | `parser/sensorml.UnmarshalProcess` (sml+json) **or** `buildSystemTriplesFromFeature` (json / geo+json, Stage 16) → `graph.mutation.entity.create_with_triples` via `ingestTriples`. 201 Created + Location; duplicate ID → 409. |
@@ -175,7 +179,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `POST /properties` | `buildPropertyTriples` (sml+json / sensorml+json / json DerivedProperty subset) → `ingestTriples`. 201 Created + Location. Stage 23. |
 | `OPTIONS /properties` / `OPTIONS /properties/{id}` | Static `Allow` header. 204 No Content. Stage 23. |
 | `GET /controlstreams` | `graph.index.query.predicate` (rdf:type = `vocabulary/csapi.ControlStream`) → `graph.query.batch` hydration → JSON ControlStreamCollection. Stage 24; batch hydration Stage 40. |
-| `GET /controlstreams/{id}` | `graph.query.entity` → `controlStreamFromState` (JSON subset with schema/commands links; command format is a scalar parent triple). Stage 24; schema artifact storage Stage 42. |
+| `GET /controlstreams/{id}` / `GET /controls/{id}` | `graph.query.entity` → `controlStreamFromState` (JSON subset with schema/commands links; command format is a scalar parent triple). Stage 24; schema artifact storage Stage 42; canonical `/controls/{id}` alias Stage 47. |
 | `GET /controlstreams/{id}/schema` | `graph.query.entity` → `csapi.HasCommandSchema` → typed `csapi:SWESchemaDocument` artifact entity → ObjectStore bytes via `StorageRef` → command schema with SWE Common DataRecord `parametersSchema`. Stage 34 validates/canonicalizes new schemas with `pkg/swecommon`; artifact storage Stage 42. |
 | `GET /controlstreams/{id}/commands` | `graph.query.entity` kind check → empty Command collection. Stage 24. |
 | `GET /commands` | Empty global Command collection. Stage 43; command execution/status lifecycle remains out of scope at v0.1. |
@@ -183,7 +187,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `GET /observations/{obsID}` | Wildcard JetStream scan → first matching JSON Observation resource. Stage 45; no graph index at v0.1. |
 | `GET /systems/{id}/datastreams` | Predicate-query all Datastreams, hydrate, filter by dotted `vocabulary/csapi.ProducedBy`. Stage 44. |
 | `GET /systems/{id}/controlstreams` | Predicate-query all ControlStreams, hydrate, filter by dotted `vocabulary/csapi.ControlsSystem`. Stage 24; beta.91 dotted predicate migration Stage 39. |
-| `GET /systemEvents` | `graph.index.query.predicate` (rdf:type = `vocabulary/csapi.SystemEvent`) → `graph.query.batch` hydration → JSON SystemEventCollection. Stage 25; batch hydration Stage 40. |
+| `GET /systemEvents` / `GET /collections/all_system_events/items` | `graph.index.query.predicate` (rdf:type = `vocabulary/csapi.SystemEvent`) → `graph.query.batch` hydration → JSON SystemEventCollection. Stage 25; batch hydration Stage 40; collection-items bridge Stage 47. |
 | `GET /systemEvents/{id}` | `graph.query.entity` → `systemEventFromState` (JSON subset with system reference and event metadata). Stage 25. |
 | `GET /systems/{id}/events` | Predicate-query all SystemEvents, hydrate, filter by dotted `vocabulary/csapi.EventForSystem`. Stage 25; beta.91 dotted predicate migration Stage 39. |
 | `GET /systems/{id}/events/{eventID}` | `graph.query.entity` → kind check + system-reference check → JSON SystemEvent. Stage 25. |

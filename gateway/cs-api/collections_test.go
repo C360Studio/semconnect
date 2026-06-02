@@ -29,6 +29,9 @@ func TestHandleCollections(t *testing.T) {
 	if len(body.Collections) == 0 {
 		t.Fatal("collections empty")
 	}
+	if len(body.Items) != len(body.Collections) {
+		t.Fatalf("items alias: got %d want %d", len(body.Items), len(body.Collections))
+	}
 	if len(body.Links) == 0 || body.Links[0].Rel != "self" {
 		t.Fatalf("self link missing: %+v", body.Links)
 	}
@@ -51,6 +54,7 @@ func TestHandleCollections(t *testing.T) {
 		"all_deployments":       {"feature", "sosa:Deployment"},
 		"all_sampling_features": {"feature", "sosa:Sample"},
 		"all_properties":        {"sosa:Property", ""},
+		"all_system_events":     {"SystemEvent", ""},
 	}
 	for id, want := range check {
 		got, ok := byID[id]
@@ -61,6 +65,32 @@ func TestHandleCollections(t *testing.T) {
 			t.Errorf("%s markers: got itemType=%q featureType=%q want itemType=%q featureType=%q",
 				id, got.ItemType, got.FeatureType, want.itemType, want.featureType)
 		}
+	}
+}
+
+func TestHandleCollectionItems_SystemEvents(t *testing.T) {
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testSystemEventID}),
+		entityRepliesByID: map[string][]byte{
+			testSystemEventID: systemEventState(t),
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/collections/all_system_events/items", nil)
+	req.SetPathValue("id", "all_system_events")
+	rr := httptest.NewRecorder()
+	c.handleCollectionItems(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll systemEventCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != testSystemEventID {
+		t.Fatalf("items: %+v", coll.Items)
 	}
 }
 

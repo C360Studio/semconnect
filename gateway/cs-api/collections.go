@@ -2,8 +2,9 @@
 //
 // This is discovery only: collection entries point at the canonical CS API
 // resource endpoints already implemented by semconnect. We intentionally do
-// not add the full OGC API Features facade (/collections/{id}/items) in this
-// stage; that would be a separate read-side compatibility layer.
+// Stage 47 adds the first narrow /collections/{id}/items facade for the
+// SystemEvent resource collection because CS API Part 2 tests exercise that
+// collection advertisement explicitly.
 package csapi
 
 import (
@@ -13,6 +14,7 @@ import (
 
 type collectionsDocument struct {
 	Collections []collectionMetadata `json:"collections"`
+	Items       []collectionMetadata `json:"items,omitempty"`
 	Links       []link               `json:"links"`
 }
 
@@ -32,8 +34,10 @@ func (c *Component) handleCollections(w http.ResponseWriter, r *http.Request) {
 	}
 
 	base := absoluteBase(r)
+	collections := buildCollectionsMetadata(base)
 	body := collectionsDocument{
-		Collections: buildCollectionsMetadata(base),
+		Collections: collections,
+		Items:       collections,
 		Links: []link{
 			{Href: base + "/collections", Rel: "self", Type: string(MediaJSON), Title: "this document"},
 		},
@@ -111,5 +115,28 @@ func buildCollectionsMetadata(base string) []collectionMetadata {
 				{Href: base + "/datastreams", Rel: "items", Type: string(MediaJSON), Title: "datastream resources"},
 			},
 		},
+		{
+			ID:          "all_system_events",
+			Title:       "All System Events",
+			Description: "All system events registered on this server.",
+			ItemType:    "SystemEvent",
+			Links: []link{
+				{Href: base + "/collections/all_system_events/items", Rel: "items", Type: string(MediaJSON), Title: "system event resources"},
+				{Href: base + "/systemEvents", Rel: "alternate", Type: string(MediaJSON), Title: "system event collection"},
+			},
+		},
+	}
+}
+
+func (c *Component) handleCollectionItems(w http.ResponseWriter, r *http.Request) {
+	if _, ok := NegotiateRequest(r, FamilyService); !ok {
+		WriteNotAcceptable(w, FamilyService)
+		return
+	}
+	switch r.PathValue("id") {
+	case "all_system_events":
+		c.handleSystemEvents(w, r)
+	default:
+		writeJSONError(w, http.StatusNotFound, "collection items facade not available")
 	}
 }

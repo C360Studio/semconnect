@@ -635,7 +635,9 @@ Stage 24 ships the ControlStream read subset:
   `graph.query.batch`.
 - `GET /controlstreams/{id}` — JSON ControlStream subset with system
   reference, inputName, controlledProperties, issue/execution time
-  placeholders, formats, live/async flags, and command links.
+  placeholders, formats, live/async flags, and command links. Stage 47
+  later adds canonical Part 2 alias `GET /controls/{id}` to the same
+  handler.
 - `GET /controlstreams/{id}/schema` — stored command schema subset
   with `commandFormat` and `parametersSchema`.
 - `GET /controlstreams/{id}/commands` — readable empty Command
@@ -665,7 +667,8 @@ Stage 25 ships the SystemEvent read subset:
 - `GET /systemEvents` — predicate-query on
   `vocabulary/csapi.SystemEvent`, then entity hydration so collection
   `items` are full SystemEvent resources. Stage 40 later moves this to
-  `graph.query.batch`.
+  `graph.query.batch`; Stage 47 later exposes the same collection at
+  `/collections/all_system_events/items` for ETS Part 2 discovery.
 - `GET /systemEvents/{id}` — JSON SystemEvent subset with
   `time` / `eventTime`, `eventType`, message, system reference,
   source, severity, keywords, optional payload, and links.
@@ -759,8 +762,9 @@ semstreams works the framework issues filed from Stages 14-27:
   `sosa:System`). Property collections use `itemType:
   "sosa:Property"`.
 - `items` links point at canonical endpoints such as
-  `/systems?f=geojson`; v0.1 does **not** add a
-  `/collections/{id}/items` facade or any write-side aliases.
+  `/systems?f=geojson`; Stage 47 later adds the narrow
+  `/collections/all_system_events/items` facade for SystemEvent
+  discovery only. No write-side aliases are added.
 - No new Common Part 2 conformance class is claimed yet.
 
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
@@ -1285,6 +1289,36 @@ remaining SensorML skips stay honest until those encodings are in scope.
 `samplingFeatureHasGeoJsonSchemaAndMapping`, and the four GeoJSON
 links-member relation-type checks for system, deployment, procedure, and
 samplingFeature.
+
+### Stage 47 — Part 2 canonical read aliases
+
+Stage 47 closes three read-side Part 2 skips that were about discovery
+shape rather than new domain behavior:
+
+- `conformance.go` now declares the explicit CS API `conf/system` URI.
+  The existing System surface already satisfied the ETS prerequisite;
+  the declaration was the missing signal.
+- `GET /controls/{id}` is registered as the canonical CS API Part 2
+  ControlStream item URL alias and routes to the existing
+  `/controlstreams/{id}` handler.
+- `GET /collections` still returns the Common Part 2 `collections[]`
+  document, and now mirrors that array under `items[]` for the ETS Part
+  2 resource-collection discovery shape.
+- The discovery document includes `all_system_events` with
+  `itemType: "SystemEvent"` and an `items` link to
+  `/collections/all_system_events/items`.
+- `GET /collections/all_system_events/items` is a narrow facade backed
+  by the existing `GET /systemEvents` collection. Other
+  `/collections/{id}/items` IDs still return 404 at v0.1.
+
+This stage keeps command execution/status lifecycle out of scope and
+does not introduce a graph index for observations or commands.
+
+**Outcome:** `total=137 passed=100 failed=0 skipped=37` (confirmed
+2026-06-02). Newly passing checks are
+`controlStreamCanonicalUrlReadableWhenControlsPathAvailable`,
+`systemEventCollectionsCheckedWhenAdvertised`, and
+`systemEventPrerequisitesVisibleForFullClosure`.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

@@ -1103,8 +1103,9 @@ paths:
         Stage 28 — discovery metadata for the CS API resource
         collections semconnect already reads. Collection `items`
         links point at the canonical resource endpoints (for example
-        `/systems?f=geojson`) rather than exposing the full
-        `/collections/{id}/items` facade at v0.1.
+        `/systems?f=geojson`). Stage 47 adds a narrow
+        `/collections/all_system_events/items` facade for the advertised
+        SystemEvent collection.
       parameters:
         - $ref: "#/components/parameters/F"
       responses:
@@ -1119,6 +1120,37 @@ paths:
       tags: [Collections]
       responses:
         "200": {description: OK (no body)}
+
+  /collections/{id}/items:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string}
+        description: Collection metadata ID.
+    get:
+      operationId: getCollectionItems
+      tags: [Collections]
+      summary: List items for a supported collection facade.
+      description: |-
+        Stage 47 — narrow OGC API Common items facade for
+        `all_system_events`. Other collection IDs intentionally return
+        404 until their `/collections/{id}/items` facades are implemented.
+      responses:
+        "200":
+          description: Items-only collection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ItemsOnlyCollection"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headCollectionItems
+      tags: [Collections]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
 
   # ============================================================
   # Procedures (CS API §6) — Stage 20
@@ -1682,6 +1714,36 @@ paths:
         "204":
           description: No Content.
 
+  /controls/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getControlStreamCanonical
+      tags: [ControlStreams]
+      summary: Get a control stream through the canonical controls path.
+      description: |-
+        Stage 47 — canonical CS API Part 2 ControlStream URL alias for
+        the same resource served at `/controlstreams/{id}`.
+      responses:
+        "200":
+          description: ControlStream JSON subset.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ControlStream"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headControlStreamCanonical
+      tags: [ControlStreams]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
   /controlstreams/{id}/schema:
     parameters:
       - $ref: "#/components/parameters/EntityID"
@@ -2065,14 +2127,18 @@ components:
         collections:
           type: array
           items: {$ref: "#/components/schemas/CollectionMetadata"}
+        items:
+          type: array
+          description: Stage 47 compatibility alias for ETS Part 2 resource collection discovery.
+          items: {$ref: "#/components/schemas/CollectionMetadata"}
         links:
           type: array
           items: {$ref: "#/components/schemas/Link"}
       description: |-
         Stage 28 OGC API Common Part 2 collections metadata. The
         `items` links target semconnect's canonical CS API resource
-        collection endpoints rather than a `/collections/{id}/items`
-        facade at v0.1.
+        collection endpoints; Stage 47 adds a narrow SystemEvent
+        `/collections/{id}/items` facade.
 
     CollectionMetadata:
       type: object

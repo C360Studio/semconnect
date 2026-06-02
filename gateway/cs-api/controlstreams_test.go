@@ -107,6 +107,31 @@ func TestHandleControlStream_JSON(t *testing.T) {
 	}
 }
 
+func TestHandleControlStream_ControlsCanonicalAlias(t *testing.T) {
+	fake := &fakeRequester{
+		reply:  controlStreamState(t),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/controls/"+testControlStreamID, nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var cs controlStream
+	if err := json.Unmarshal(rr.Body.Bytes(), &cs); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if cs.ID != testControlStreamID {
+		t.Errorf("id: got %q want %q", cs.ID, testControlStreamID)
+	}
+}
+
 func TestHandleControlStreamSchema(t *testing.T) {
 	fake := &multiReplyFakeRequester{entityRepliesByID: map[string][]byte{}}
 	c := newComponentWithRequester(t, fake)

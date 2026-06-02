@@ -9,6 +9,12 @@ without making semstreams review stale blockers.
 
 None currently blocking semconnect. The asks filed from the CS API
 gateway work are closed upstream as of semstreams `v1.0.0-beta.91`.
+Non-blocking vocabulary follow-up: Stage 46 introduced two gateway-local
+dotted predicates for CS API GeoJSON association mappings,
+`cs-api.deployment.deployedSystems` and
+`cs-api.samplingfeature.hostedProcedure`. semconnect can keep using
+them, but once semstreams exports matching `vocabulary/csapi` constants
+we should replace the local bridge constants with framework-owned names.
 
 ## Resolved in current pins
 

@@ -47,6 +47,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	systemsPath := join("systems")
 	systemItemPath := join("systems/{id}")
 	collectionsPath := join("collections")
+	collectionItemsPath := join("collections/{id}/items")
 	conformancePath := join("conformance")
 	healthPath := join("health")
 	datastreamsPath := join("datastreams")
@@ -67,6 +68,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	propertyItemPath := join("properties/{id}")
 	controlStreamsPath := join("controlstreams")
 	controlStreamItemPath := join("controlstreams/{id}")
+	controlItemPath := join("controls/{id}")
 	controlStreamSchemaPath := join("controlstreams/{id}/schema")
 	controlStreamCommandsPath := join("controlstreams/{id}/commands")
 	commandsPath := join("commands")
@@ -86,6 +88,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
 	mux.Handle("GET "+collectionsPath, c.middleware(http.HandlerFunc(c.handleCollections)))
 	mux.Handle("HEAD "+collectionsPath, c.middleware(http.HandlerFunc(c.handleCollections)))
+	mux.Handle("GET "+collectionItemsPath, c.middleware(http.HandlerFunc(c.handleCollectionItems)))
+	mux.Handle("HEAD "+collectionItemsPath, c.middleware(http.HandlerFunc(c.handleCollectionItems)))
 	mux.Handle("GET "+conformancePath, c.middleware(http.HandlerFunc(c.handleConformance)))
 	mux.Handle("HEAD "+conformancePath, c.middleware(http.HandlerFunc(c.handleConformance)))
 	mux.Handle("GET "+healthPath, c.middleware(http.HandlerFunc(c.handleHealth)))
@@ -171,6 +175,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("OPTIONS "+controlStreamsPath, c.middleware(http.HandlerFunc(c.handleControlStreamsOptions)))
 	mux.Handle("GET "+controlStreamItemPath, c.middleware(http.HandlerFunc(c.handleControlStream)))
 	mux.Handle("HEAD "+controlStreamItemPath, c.middleware(http.HandlerFunc(c.handleControlStream)))
+	mux.Handle("GET "+controlItemPath, c.middleware(http.HandlerFunc(c.handleControlStream)))
+	mux.Handle("HEAD "+controlItemPath, c.middleware(http.HandlerFunc(c.handleControlStream)))
 	mux.Handle("OPTIONS "+controlStreamItemPath, c.middleware(http.HandlerFunc(c.handleControlStreamOptions)))
 	mux.Handle("GET "+controlStreamSchemaPath, c.middleware(http.HandlerFunc(c.handleControlStreamSchema)))
 	mux.Handle("HEAD "+controlStreamSchemaPath, c.middleware(http.HandlerFunc(c.handleControlStreamSchema)))
@@ -228,6 +234,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"property_item", propertyItemPath,
 		"controlstreams", controlStreamsPath,
 		"controlstream_item", controlStreamItemPath,
+		"control_item", controlItemPath,
 		"controlstream_schema", controlStreamSchemaPath,
 		"controlstream_commands", controlStreamCommandsPath,
 		"commands", commandsPath,

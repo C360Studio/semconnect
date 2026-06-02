@@ -148,7 +148,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"/systems/{id}/datastreams", "/observations", "/observations/{obsID}",
 		"/areas",
 		// Stage 28 — OGC API Common Part 2 /collections metadata.
-		"/collections",
+		"/collections", "/collections/{id}/items",
 		// Stage 20 — /procedures + /procedures/{id} now implemented.
 		"/procedures", "/procedures/{id}",
 		// Stage 21 — /deployments + /deployments/{id} now implemented.
@@ -158,7 +158,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		// Stage 23 — /properties + /properties/{id} now implemented.
 		"/properties", "/properties/{id}",
 		// Stage 24 — Part 2 /controlstreams read-side.
-		"/controlstreams", "/controlstreams/{id}",
+		"/controlstreams", "/controlstreams/{id}", "/controls/{id}",
 		"/systems/{id}/controlstreams", "/commands",
 		// Stage 25 — Part 2 /systemEvents read-side.
 		"/systemEvents", "/systemEvents/{id}",

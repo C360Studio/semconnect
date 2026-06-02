@@ -543,6 +543,30 @@ EOF
     log "  seeded command metadata (HTTP $cmd_code)"
     wait_for_seeded_collection "$cs_api_url" "/controlstreams/${ctrl_id}/commands" "command" "items"
 
+    # Stage 55 — seed one read-side Feasibility resource for the
+    # selected ControlStream. This is preflight metadata only; command
+    # execution and device-side feasibility evaluation remain out of
+    # scope at v0.1.
+    log "  POST /feasibility with seed feasibility metadata referencing controlstream=$ctrl_id"
+    local feasibility_body='{"id":"c360.semconnect.systems.csapi.feasibility.ets-ptz-001","controlstream@id":"'"${ctrl_id}"'","status":"completed","params":{"pan":10,"tilt":5},"result":{"feasible":true,"reason":"within limits"}}'
+    local feasibility_resp
+    feasibility_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$feasibility_body" \
+        "${cs_api_url}/feasibility" 2>&1)" || true
+    echo "$feasibility_resp" >>"$SEED_LOG"
+    local feasibility_code
+    feasibility_code="$(echo "$feasibility_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$feasibility_code" != "201" ]]; then
+        die "POST /feasibility failed: $feasibility_code (see $SEED_LOG)"
+    fi
+    log "  seeded feasibility metadata (HTTP $feasibility_code)"
+    wait_for_seeded_collection "$cs_api_url" "/feasibility" "feasibility" "items"
+    wait_for_seeded_collection "$cs_api_url" "/controlstream/${ctrl_id}/feasibility" "controlstream feasibility" "items"
+
     # Stage 25 — seed a SystemEvent so the Part 2 system-event group
     # can exercise /systemEvents, /systemEvents/{id}, and the
     # normative /systems/{id}/events reference path.

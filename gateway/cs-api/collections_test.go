@@ -55,6 +55,7 @@ func TestHandleCollections(t *testing.T) {
 		"all_sampling_features": {"feature", "sosa:Sample"},
 		"all_properties":        {"sosa:Property", ""},
 		"all_system_events":     {"SystemEvent", ""},
+		"all_feasibility":       {"Feasibility", ""},
 	}
 	for id, want := range check {
 		got, ok := byID[id]
@@ -90,6 +91,32 @@ func TestHandleCollectionItems_SystemEvents(t *testing.T) {
 		t.Fatalf("decode: %v", err)
 	}
 	if len(coll.Items) != 1 || coll.Items[0].ID != testSystemEventID {
+		t.Fatalf("items: %+v", coll.Items)
+	}
+}
+
+func TestHandleCollectionItems_Feasibility(t *testing.T) {
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testFeasibilityID}),
+		entityRepliesByID: map[string][]byte{
+			testFeasibilityID: feasibilityState(t),
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/collections/all_feasibility/items", nil)
+	req.SetPathValue("id", "all_feasibility")
+	rr := httptest.NewRecorder()
+	c.handleCollectionItems(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll feasibilityCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != testFeasibilityID {
 		t.Fatalf("items: %+v", coll.Items)
 	}
 }

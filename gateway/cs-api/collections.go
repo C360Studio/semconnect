@@ -125,6 +125,16 @@ func buildCollectionsMetadata(base string) []collectionMetadata {
 				{Href: base + "/systemEvents", Rel: "alternate", Type: string(MediaJSON), Title: "system event collection"},
 			},
 		},
+		{
+			ID:          "all_feasibility",
+			Title:       "All Command Feasibility Resources",
+			Description: "All command feasibility resources registered on this server.",
+			ItemType:    "Feasibility",
+			Links: []link{
+				{Href: base + "/collections/all_feasibility/items", Rel: "items", Type: string(MediaJSON), Title: "feasibility resources"},
+				{Href: base + "/feasibility", Rel: "alternate", Type: string(MediaJSON), Title: "feasibility collection"},
+			},
+		},
 	}
 }
 
@@ -136,6 +146,8 @@ func (c *Component) handleCollectionItems(w http.ResponseWriter, r *http.Request
 	switch r.PathValue("id") {
 	case "all_system_events":
 		c.handleSystemEvents(w, r)
+	case "all_feasibility":
+		c.handleFeasibilities(w, r)
 	default:
 		writeJSONError(w, http.StatusNotFound, "collection items facade not available")
 	}

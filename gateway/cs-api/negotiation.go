@@ -95,6 +95,12 @@ const (
 	// FamilySystemEventItem — GET /systemEvents/{id} and
 	// /systems/{systemID}/events/{eventID}. JSON-only.
 	FamilySystemEventItem
+
+	// FamilyFeasibilityCollection — GET /feasibility and
+	// /controlstream/{id}/feasibility (Stage 55). JSON-only at v0.1.
+	FamilyFeasibilityCollection
+	// FamilyFeasibilityItem — GET /feasibility/{id}. JSON-only.
+	FamilyFeasibilityItem
 )
 
 // supported returns the negotiable encodings for fam, in preference order.
@@ -187,6 +193,8 @@ func (fam ResourceFamily) supported() []MediaType {
 	case FamilyControlStreamCollection, FamilyControlStreamItem:
 		return []MediaType{MediaJSON}
 	case FamilySystemEventCollection, FamilySystemEventItem:
+		return []MediaType{MediaJSON}
+	case FamilyFeasibilityCollection, FamilyFeasibilityItem:
 		return []MediaType{MediaJSON}
 	case FamilyAPI:
 		// OAS3 JSON is the default — most OpenAPI tooling (Swagger UI,

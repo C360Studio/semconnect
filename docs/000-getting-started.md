@@ -1210,7 +1210,8 @@ readable empty Command collection:
 **Outcome:** `total=137 passed=80 failed=0 skipped=57` (confirmed
 2026-06-02). The ETS now passes the optional canonical Commands endpoint
 check; Advanced Filtering command tests still SKIP because `/commands`
-is empty and semconnect does not claim Advanced Filtering.
+is empty. Stage 43 itself does not claim Advanced Filtering; Stage 48
+later claims the Part 1 Systems filter slice only.
 
 ### Stage 44 — Part 2 Datastream read-side closure
 
@@ -1319,6 +1320,36 @@ does not introduce a graph index for observations or commands.
 `controlStreamCanonicalUrlReadableWhenControlsPathAvailable`,
 `systemEventCollectionsCheckedWhenAdvertised`, and
 `systemEventPrerequisitesVisibleForFullClosure`.
+
+### Stage 48 — Part 1 Advanced Filtering for Systems
+
+Stage 48 declares the Part 1 Advanced Filtering conformance class and
+implements the `/systems` filter slice exercised by the pinned ETS:
+
+- `GET /systems?id=<id-list>` filters by System entity ID or preserved
+  UID. The ID list parser accepts homogeneous local-ID lists or URI UID
+  lists and rejects empty or mixed lists.
+- `GET /systems?q=<keyword>` filters over hydrated System collection
+  evidence: entity ID, preserved UID, label/name, description, and
+  definition.
+- `GET /systems?geom=POLYGON(...)` accepts WKT polygons and returns
+  Systems whose stored GeoJSON Point position is inside the polygon.
+- JSON `SystemCollection.items[]` now include hydrated `name` and
+  `description` when available, so clients and the ETS can discover
+  keyword evidence before applying `?q`.
+- Filtered requests hydrate candidate entity state through
+  `graph.query.batch`; no new graph index subject is introduced.
+
+This is intentionally a Part 1 Systems slice, not the full Part 2
+Advanced Filtering surface. Datastream, ControlStream, Observation,
+Command, and SystemEvent filter checks remain deferred.
+
+**Outcome:** `total=137 passed=106 failed=0 skipped=31` (confirmed
+2026-06-02). Newly passing checks are
+`advancedFilteringConformanceDeclared`,
+`advancedFilteringDependencyCascadeRuntime`,
+`advancedFilteringIdListSchema`, `systemsFilterById`,
+`systemsFilterByGeomSmoke`, and `systemsFilterByKeyword`.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

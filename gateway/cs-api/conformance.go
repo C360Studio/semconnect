@@ -61,6 +61,7 @@ var stageConformanceClasses = []string{
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/advanced-filtering",
 	// Stage 25 — CS API Part 2 API Common read-only prerequisite:
 	// landing-page discovery of Part 2 resource collections plus
 	// JSON collection shapes with items[] and links[].

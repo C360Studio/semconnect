@@ -110,11 +110,16 @@ func encodeReplyErr(t *testing.T, msg string) []byte {
 }
 
 func TestHandleSystems_GoldenPath(t *testing.T) {
-	fake := &fakeRequester{
-		reply:  encodeReply(t, []string{"acme.ops.robotics.gcs.drone.001", "acme.ops.robotics.gcs.drone.002"}),
-		status: natsclient.StatusConnected,
+	id1 := "acme.ops.robotics.gcs.drone.001"
+	id2 := "acme.ops.robotics.gcs.drone.002"
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{id1, id2}),
+		entityRepliesByID: map[string][]byte{
+			id1: systemStateWithPosition(t, id1, "Drone 001", ""),
+			id2: systemStateWithPosition(t, id2, "Drone 002", ""),
+		},
 	}
-	c := newTestComponent(t, fake)
+	c := newComponentWithRequester(t, fake)
 
 	req := httptest.NewRequest(http.MethodGet, "/systems", nil)
 	rr := httptest.NewRecorder()
@@ -138,34 +143,11 @@ func TestHandleSystems_GoldenPath(t *testing.T) {
 	if coll.NumberMatched != 2 || coll.NumberReturned != 2 {
 		t.Errorf("counts: matched=%d returned=%d want 2/2", coll.NumberMatched, coll.NumberReturned)
 	}
-	if len(coll.Items) != 2 || coll.Items[0].ID != "acme.ops.robotics.gcs.drone.001" {
+	if len(coll.Items) != 2 || coll.Items[0].ID != id1 || coll.Items[0].Name != "Drone 001" {
 		t.Errorf("Items: %+v", coll.Items)
 	}
-
-	// Wire shape: subject + predicate + value must be exact, otherwise
-	// graph-index won't match anything in real NATS.
-	if fake.gotSubject != subjectPredicateQuery {
-		t.Errorf("subject: got %q want %q", fake.gotSubject, subjectPredicateQuery)
-	}
-	var body struct {
-		Predicate string  `json:"predicate"`
-		Value     *string `json:"value,omitempty"`
-		Limit     int     `json:"limit"`
-	}
-	if err := json.Unmarshal(fake.gotBody, &body); err != nil {
-		t.Fatalf("decode captured body: %v", err)
-	}
-	if body.Predicate != predicateClassType {
-		t.Errorf("predicate: got %q want %q", body.Predicate, predicateClassType)
-	}
-	if body.Value == nil || *body.Value != sosa.SSNSystem {
-		t.Errorf("value: got %v want %q", body.Value, sosa.SSNSystem)
-	}
-	if body.Limit != DefaultConfig().DefaultListLimit {
-		t.Errorf("limit: got %d want %d", body.Limit, DefaultConfig().DefaultListLimit)
-	}
-	if fake.gotTimeout != 500*time.Millisecond {
-		t.Errorf("timeout: got %v want 500ms", fake.gotTimeout)
+	if fake.calls != 2 {
+		t.Errorf("requests: got %d want 2 (predicate query + batch hydration)", fake.calls)
 	}
 }
 
@@ -789,11 +771,15 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		// Stage 12 — oas30 claim is honest once /api ships the OAS3 doc.
 		"http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/core",
+		// Stage 47 — explicit System class once /systems is fully wired.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/system",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/oms",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/sensorml",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
+		// Stage 48 — Part 1 /systems id, keyword, and geometry filters.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/advanced-filtering",
 		// Stage 25 — Part 2 API Common resource collection discovery.
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/api-common",
 		// Stage 16 — create-replace-delete claim is honest once PUT/DELETE

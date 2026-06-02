@@ -114,6 +114,60 @@ func TestHandleDeployment_JSON(t *testing.T) {
 	}
 }
 
+func TestHandleDeployment_SensorML(t *testing.T) {
+	state := graph.EntityState{
+		ID: testDeploymentID,
+		Triples: []message.Triple{
+			{Subject: testDeploymentID, Predicate: sensorml.PredType, Object: ssnDeployment},
+			{Subject: testDeploymentID, Predicate: sensorml.PredLabel, Object: "Weather station deploy"},
+			{Subject: testDeploymentID, Predicate: PredSystemUID, Object: "urn:example:deploy:1"},
+			{Subject: testDeploymentID, Predicate: predDeploymentDeployedSystems, Object: "/systems/c360.semconnect.systems.csapi.system.alpha"},
+			{Subject: testDeploymentID, Predicate: PredSystemPosition, Object: `{"type":"Point","coordinates":[5,10]}`},
+		},
+	}
+	fake := &fakeRequester{
+		reply:  encodeEntityState(t, state),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/deployments/"+testDeploymentID, nil)
+	req.Header.Set("Accept", string(MediaSensorML))
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSensorML) {
+		t.Errorf("Content-Type: got %q want %q", ct, MediaSensorML)
+	}
+	var body deploymentSensorML
+	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode: %v; body=%s", err, rr.Body.String())
+	}
+	if body.Type != "Deployment" {
+		t.Errorf("type: got %q want Deployment", body.Type)
+	}
+	if body.UniqueID != "urn:example:deploy:1" {
+		t.Errorf("uniqueId: got %q", body.UniqueID)
+	}
+	if len(body.DeployedSystems) != 1 || body.DeployedSystems[0].Href != "/systems/c360.semconnect.systems.csapi.system.alpha" {
+		t.Errorf("deployedSystems: %+v", body.DeployedSystems)
+	}
+	var hasAssociation bool
+	for _, l := range body.Links {
+		if l.Rel == "samplingFeatures" || l.Rel == "datastreams" {
+			hasAssociation = true
+		}
+	}
+	if !hasAssociation {
+		t.Errorf("SensorML links missing deployment association rel: %+v", body.Links)
+	}
+}
+
 func TestHandleDeployment_NotADeploymentKind(t *testing.T) {
 	state := graph.EntityState{
 		ID: testDeploymentID,

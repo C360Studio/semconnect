@@ -172,7 +172,7 @@ func (fam ResourceFamily) supported() []MediaType {
 		// Deployments DO carry geometry (deploy site location).
 		return []MediaType{MediaJSON, MediaGeoJSON}
 	case FamilyDeploymentItem:
-		return []MediaType{MediaJSON}
+		return []MediaType{MediaJSON, MediaSensorML, MediaSensorMLLegacy}
 	case FamilySamplingFeatureCollection:
 		// Stage 22 — mirrors deployments. SamplingFeature geometry is
 		// first-class in the resource shape rather than an OSH-bar
@@ -180,8 +180,10 @@ func (fam ResourceFamily) supported() []MediaType {
 		return []MediaType{MediaJSON, MediaGeoJSON}
 	case FamilySamplingFeatureItem:
 		return []MediaType{MediaJSON}
-	case FamilyPropertyCollection, FamilyPropertyItem:
+	case FamilyPropertyCollection:
 		return []MediaType{MediaJSON}
+	case FamilyPropertyItem:
+		return []MediaType{MediaJSON, MediaSensorML, MediaSensorMLLegacy}
 	case FamilyControlStreamCollection, FamilyControlStreamItem:
 		return []MediaType{MediaJSON}
 	case FamilySystemEventCollection, FamilySystemEventItem:

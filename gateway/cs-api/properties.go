@@ -69,6 +69,7 @@ func propertyFromState(state graph.EntityState) propertyResource {
 		Links: []link{
 			{Href: "/properties/" + state.ID, Rel: "self", Type: string(MediaJSON)},
 			{Href: "/properties/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
+			{Href: "/properties/" + state.ID, Rel: "alternate", Type: string(MediaSensorML)},
 		},
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredLabel); ok {
@@ -132,6 +133,7 @@ func (c *Component) handleProperties(w http.ResponseWriter, r *http.Request) {
 			Links: []link{
 				{Href: "/properties/" + id, Rel: "self", Type: string(MediaJSON)},
 				{Href: "/properties/" + id, Rel: "canonical", Type: string(MediaJSON)},
+				{Href: "/properties/" + id, Rel: "alternate", Type: string(MediaSensorML)},
 			},
 		})
 	}
@@ -148,7 +150,8 @@ func (c *Component) handleProperties(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Component) handleProperty(w http.ResponseWriter, r *http.Request) {
-	if _, ok := NegotiateRequest(r, FamilyPropertyItem); !ok {
+	media, ok := NegotiateRequest(r, FamilyPropertyItem)
+	if !ok {
 		WriteNotAcceptable(w, FamilyPropertyItem)
 		return
 	}
@@ -170,6 +173,17 @@ func (c *Component) handleProperty(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	switch media {
+	case MediaJSON:
+		c.writePropertyJSON(w, r, state)
+	case MediaSensorML, MediaSensorMLLegacy:
+		c.writePropertySensorML(w, r, state, media)
+	default:
+		WriteNotAcceptable(w, FamilyPropertyItem)
+	}
+}
+
+func (c *Component) writePropertyJSON(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
 	w.WriteHeader(http.StatusOK)
@@ -177,6 +191,51 @@ func (c *Component) handleProperty(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = json.NewEncoder(w).Encode(propertyFromState(state))
+}
+
+type propertySensorML struct {
+	ID           string `json:"id"`
+	Type         string `json:"type"`
+	Label        string `json:"label,omitempty"`
+	Description  string `json:"description,omitempty"`
+	Definition   string `json:"definition,omitempty"`
+	BaseProperty string `json:"baseProperty,omitempty"`
+	UID          string `json:"uid,omitempty"`
+	UniqueID     string `json:"uniqueId,omitempty"`
+	Links        []link `json:"links,omitempty"`
+}
+
+func propertySensorMLFromState(state graph.EntityState) propertySensorML {
+	p := propertyFromState(state)
+	return propertySensorML{
+		ID:           p.ID,
+		Type:         "DerivedProperty",
+		Label:        p.Label,
+		Description:  p.Description,
+		Definition:   p.Definition,
+		BaseProperty: p.BaseProperty,
+		UID:          p.UID,
+		UniqueID:     p.UniqueID,
+		Links:        p.Links,
+	}
+}
+
+func (c *Component) writePropertySensorML(w http.ResponseWriter, r *http.Request, state graph.EntityState, media MediaType) {
+	body, err := json.Marshal(propertySensorMLFromState(state))
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", string(media))
+	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if _, err := w.Write(body); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("write property SensorML response", "id", state.ID, "err", err)
+	}
 }
 
 func (c *Component) handlePropertyPost(w http.ResponseWriter, r *http.Request) {

@@ -44,8 +44,7 @@ type deploymentRef struct {
 
 // deployment is the JSON shape returned by GET /deployments/{id}.
 // Mirrors `system` (Stage 18 uid preservation + Stage 14 geometry)
-// but with `Type: "Deployment"` and no SensorML reverse-mapping
-// (no spec encoding pairs SensorML with Deployment).
+// but with `Type: "Deployment"`.
 type deployment struct {
 	ID                string             `json:"id"`
 	Type              string             `json:"type"` // "Deployment"
@@ -66,6 +65,7 @@ func deploymentFromState(state graph.EntityState) deployment {
 		Links: []link{
 			{Href: "/deployments/" + state.ID, Rel: "self", Type: string(MediaJSON)},
 			{Href: "/deployments/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
+			{Href: "/deployments/" + state.ID, Rel: "alternate", Type: string(MediaSensorML)},
 			{Href: "/samplingFeatures", Rel: "samplingFeatures", Type: string(MediaJSON)},
 			{Href: "/datastreams", Rel: "datastreams", Type: string(MediaJSON)},
 		},
@@ -149,6 +149,7 @@ func (c *Component) handleDeployments(w http.ResponseWriter, r *http.Request) {
 			Links: []link{
 				{Href: "/deployments/" + id, Rel: "self", Type: string(MediaJSON)},
 				{Href: "/deployments/" + id, Rel: "canonical", Type: string(MediaJSON)},
+				{Href: "/deployments/" + id, Rel: "alternate", Type: string(MediaSensorML)},
 			},
 		})
 	}
@@ -238,7 +239,8 @@ func (c *Component) writeDeploymentsGeoJSON(w http.ResponseWriter, r *http.Reque
 
 // handleDeployment serves GET /deployments/{id}.
 func (c *Component) handleDeployment(w http.ResponseWriter, r *http.Request) {
-	if _, ok := NegotiateRequest(r, FamilyDeploymentItem); !ok {
+	media, ok := NegotiateRequest(r, FamilyDeploymentItem)
+	if !ok {
 		WriteNotAcceptable(w, FamilyDeploymentItem)
 		return
 	}
@@ -261,6 +263,17 @@ func (c *Component) handleDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	switch media {
+	case MediaJSON:
+		c.writeDeploymentJSON(w, r, state)
+	case MediaSensorML, MediaSensorMLLegacy:
+		c.writeDeploymentSensorML(w, r, state, media)
+	default:
+		WriteNotAcceptable(w, FamilyDeploymentItem)
+	}
+}
+
+func (c *Component) writeDeploymentJSON(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
 	w.WriteHeader(http.StatusOK)
@@ -268,6 +281,54 @@ func (c *Component) handleDeployment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = json.NewEncoder(w).Encode(deploymentFromState(state))
+}
+
+type deploymentSensorML struct {
+	ID              string          `json:"id"`
+	Type            string          `json:"type"`
+	Label           string          `json:"label,omitempty"`
+	Description     string          `json:"description,omitempty"`
+	UID             string          `json:"uid,omitempty"`
+	UniqueID        string          `json:"uniqueId,omitempty"`
+	Position        json.RawMessage `json:"position,omitempty"`
+	DeployedSystems []link          `json:"deployedSystems,omitempty"`
+	Links           []link          `json:"links,omitempty"`
+}
+
+func deploymentSensorMLFromState(state graph.EntityState) deploymentSensorML {
+	d := deploymentFromState(state)
+	out := deploymentSensorML{
+		ID:          d.ID,
+		Type:        "Deployment",
+		Label:       d.Label,
+		Description: d.Description,
+		UID:         d.UID,
+		UniqueID:    d.UniqueID,
+		Position:    d.Geometry,
+		Links:       d.Links,
+	}
+	if d.FeatureProperties != nil && len(d.FeatureProperties.DeployedSystemsLinks) > 0 {
+		out.DeployedSystems = d.FeatureProperties.DeployedSystemsLinks
+	}
+	return out
+}
+
+func (c *Component) writeDeploymentSensorML(w http.ResponseWriter, r *http.Request, state graph.EntityState, media MediaType) {
+	body, err := json.Marshal(deploymentSensorMLFromState(state))
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", string(media))
+	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if _, err := w.Write(body); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("write deployment SensorML response", "id", state.ID, "err", err)
+	}
 }
 
 // handleDeploymentsOptions / handleDeploymentOptions

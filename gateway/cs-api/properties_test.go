@@ -89,6 +89,55 @@ func TestHandleProperty_JSON(t *testing.T) {
 	}
 }
 
+func TestHandleProperty_SensorML(t *testing.T) {
+	state := graph.EntityState{
+		ID: testPropertyID,
+		Triples: []message.Triple{
+			{Subject: testPropertyID, Predicate: sensorml.PredType, Object: sosa.ObservableProperty},
+			{Subject: testPropertyID, Predicate: sensorml.PredLabel, Object: "Air temperature"},
+			{Subject: testPropertyID, Predicate: sensorml.PredDescription, Object: "Ambient air temperature"},
+			{Subject: testPropertyID, Predicate: PredSystemUID, Object: "urn:example:prop:airtemp"},
+			{Subject: testPropertyID, Predicate: predPropertyDefinition, Object: "http://qudt.org/vocab/quantitykind/Temperature"},
+			{Subject: testPropertyID, Predicate: predPropertyBaseProperty, Object: "http://example.org/base/temperature"},
+		},
+	}
+	fake := &fakeRequester{
+		reply:  encodeEntityState(t, state),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/properties/"+testPropertyID, nil)
+	req.Header.Set("Accept", string(MediaSensorML))
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSensorML) {
+		t.Errorf("Content-Type: got %q want %q", ct, MediaSensorML)
+	}
+	var body propertySensorML
+	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode: %v; body=%s", err, rr.Body.String())
+	}
+	if body.Type != "DerivedProperty" {
+		t.Errorf("type: got %q want DerivedProperty", body.Type)
+	}
+	if body.UniqueID != "urn:example:prop:airtemp" {
+		t.Errorf("uniqueId: got %q", body.UniqueID)
+	}
+	if body.Definition != "http://qudt.org/vocab/quantitykind/Temperature" {
+		t.Errorf("definition: got %q", body.Definition)
+	}
+	if len(body.Links) == 0 {
+		t.Errorf("links missing from SensorML property response")
+	}
+}
+
 func TestHandleProperty_NotAPropertyKind(t *testing.T) {
 	state := graph.EntityState{
 		ID: testPropertyID,

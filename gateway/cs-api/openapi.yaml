@@ -1559,15 +1559,25 @@ paths:
       operationId: getProperty
       tags: [Properties]
       summary: Get a property.
+      parameters:
+        - $ref: "#/components/parameters/F"
       responses:
         "200":
-          description: Property JSON subset.
+          description: Property resource.
           headers:
             X-CS-Reconstructed-Lossy:
               $ref: "#/components/headers/CsReconstructedLossy"
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Property"}
+            application/sml+json:
+              schema:
+                type: object
+                description: SensorML DerivedProperty-shaped resource reconstructed from triples.
+            application/sensorml+json:
+              schema:
+                type: object
+                description: Alias for application/sml+json.
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "406": {$ref: "#/components/responses/NotAcceptable"}
@@ -1681,6 +1691,14 @@ paths:
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Deployment"}
+            application/sml+json:
+              schema:
+                type: object
+                description: SensorML Deployment-shaped resource reconstructed from triples.
+            application/sensorml+json:
+              schema:
+                type: object
+                description: Alias for application/sml+json.
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "406": {$ref: "#/components/responses/NotAcceptable"}

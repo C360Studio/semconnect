@@ -40,7 +40,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `POST /procedures` (Stage 20) — accepts the same four media types POST /systems does (sml+json / sensorml+json / json / geo+json). NO position triple appended (procedures forbid location). rdf:type triple object is OVERRIDDEN to `sosa.Procedure` on the SensorML path so a PhysicalSystem mistakenly POSTed to /procedures still lands under the Procedure class for predicate-query collection.
   - `OPTIONS /procedures` + `OPTIONS /procedures/{id}` (Stage 20) — `GET, HEAD, POST, OPTIONS` on collection; `GET, HEAD, OPTIONS` on item. PUT/DELETE/PATCH intentionally absent at v0.1 (ETS CRD/update test groups only target /systems).
   - `GET /deployments` (Stage 21; Stage 46 adds association evidence) — CS API §8 collection. Predicate-query on `rdf:type = sosa.SSNDeployment`. JSON `DeploymentCollection` (default) or `application/geo+json` FeatureCollection with per-deployment geometry recovered from the shared `sensorml.process.position` triple via Stage 40 batch hydration. GeoJSON Feature `properties.deployedSystems@link` is emitted when the entity carries `cs-api.deployment.deployedSystems`.
-  - `GET /deployments/{id}` (Stage 21; Stage 46 adds association evidence) — JSON Deployment subset; includes geometry field from the position triple when present, `properties.deployedSystems@link` when stored, and allowlisted links-member association rels (`samplingFeatures`, `datastreams`) for GeoJSON relation-type checks.
+  - `GET /deployments/{id}` (Stage 21; Stage 46 adds association evidence; Stage 53 adds SensorML item reads) — JSON Deployment subset or `application/sml+json` / `application/sensorml+json` Deployment-shaped SensorML JSON reconstructed from existing triples. JSON includes geometry field from the position triple when present, `properties.deployedSystems@link` when stored, and allowlisted links-member association rels (`samplingFeatures`, `datastreams`) for GeoJSON relation-type checks. SensorML includes `deployedSystems[]` and the same links-member association evidence.
   - `POST /deployments` (Stage 21; Stage 46 accepts association evidence; Stage 50 accepts subdeployment parent evidence) — accepts `application/json` / `application/geo+json` Feature body only. NO SensorML — no spec encoding pairs SensorML with Deployment. Optional `properties.deployedSystems@link[]` hrefs are stored under gateway-local dotted predicate `cs-api.deployment.deployedSystems`. Optional `properties.parent@id` / `parent@link` stores the child-side subdeployment relation under gateway-local dotted predicate `cs-api.deployment.parent` until semstreams grows a canonical CS API deployment-composition vocabulary term.
   - `GET /deployments/{id}/subdeployments` (Stage 50) — CS API Part 1 Subdeployments collection. Validates the parent Deployment, predicate-queries all Deployments, batch-hydrates entity state, then filters child Deployments whose `cs-api.deployment.parent` object equals the parent ID. JSON `DeploymentCollection`; child items link to canonical `/deployments/{childID}`.
   - `OPTIONS /deployments` + `OPTIONS /deployments/{id}` (Stage 21) — same shape as /procedures: collection accepts POST, item is read-only.
@@ -49,7 +49,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `POST /samplingFeatures` (Stage 22; Stage 46 accepts association evidence) — accepts `application/json` / `application/geo+json` Feature body only. Entity ID minted from `properties.uid`; optional geometry round-trips via the shared position triple. Optional `properties.hostedProcedure@link.href` is stored under gateway-local dotted predicate `cs-api.samplingfeature.hostedProcedure`.
   - `OPTIONS /samplingFeatures` + `OPTIONS /samplingFeatures/{id}` (Stage 22) — same shape as /deployments: collection accepts POST, item is read-only.
   - `GET /properties` (Stage 23) — CS API properties collection. Predicate-query on `rdf:type = sosa:ObservableProperty`; JSON `PropertyCollection`.
-  - `GET /properties/{id}` (Stage 23) — JSON Property subset with uid/uniqueId, label, description, definition, and optional baseProperty.
+  - `GET /properties/{id}` (Stage 23; Stage 53 adds SensorML item reads) — JSON Property subset or `application/sml+json` / `application/sensorml+json` DerivedProperty-shaped SensorML JSON with uid/uniqueId, label, description, definition, and optional baseProperty.
   - `POST /properties` (Stage 23) — accepts `application/sml+json`, `application/sensorml+json`, or `application/json` SensorML DerivedProperty-shaped JSON. Entity ID minted from `uniqueId` (or `uid` alias); representable subset lands as triples.
   - `OPTIONS /properties` + `OPTIONS /properties/{id}` (Stage 23) — same shape as /procedures: collection accepts POST, item is read-only.
   - `GET /controlstreams` (Stage 24) — CS API Part 2 control-stream collection. Predicate-query on `vocabulary/csapi.ControlStream`, then Stage 40 batch hydration so collection `items` are full ControlStream resources.
@@ -72,7 +72,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `GET /health`.
   - All read endpoints accept `HEAD`. Routes use Go 1.22+ method+path patterns (`GET /systems` / `HEAD /systems`); 405 is enforced by the mux.
 - Auth seam: `IdentityMiddleware` populates `Identity` in every request context. Anonymous-by-default; `X-Forwarded-User` / `X-Forwarded-Email` from a trusted reverse proxy flow onto every publish as `X-CS-Forwarded-*` NATS headers for audit. No verification at v0.1.
-- Content negotiation via `Accept` AND the OGC Common Part 1 `?f=<short>` query-parameter override (Stage 7) — `NegotiateRequest` honors both. Short names: `json`, `geojson`, `sensorml`, `om`, `jsonld`. An explicit `?f=` that doesn't map to the family's supported set 406s rather than silently falling through to Accept — the override is a deliberate client signal. Per-family supported sets live in `negotiation.go`. JSON for everything; SensorML for `GET /systems/{id}` and `GET /procedures/{id}`; JSON-LD for `GET /systems/{id}` only. Collection `GET /systems` honestly 406s on non-JSON Accept (no SensorML "SystemCollection" type).
+- Content negotiation via `Accept` AND the OGC Common Part 1 `?f=<short>` query-parameter override (Stage 7) — `NegotiateRequest` honors both. Short names: `json`, `geojson`, `sensorml`, `om`, `jsonld`. An explicit `?f=` that doesn't map to the family's supported set 406s rather than silently falling through to Accept — the override is a deliberate client signal. Per-family supported sets live in `negotiation.go`. JSON for everything; SensorML for `GET /systems/{id}`, `GET /procedures/{id}`, `GET /deployments/{id}`, and `GET /properties/{id}`; JSON-LD for `GET /systems/{id}` only. Collection `GET /systems` honestly 406s on non-JSON Accept (no SensorML "SystemCollection" type).
 - Body-size limit middleware (`MaxRequestBytes`) enforces `413` on POSTs.
 - JetStream: `cs-api.observations.>` stream is EnsureStream'd at component Start() with 30-day file retention. Stage 41 also ensures the `CS_API_ARTIFACTS` ObjectStore bucket for canonical SWE schema artifacts. A failure to provision either storage primitive surfaces as a `Start()` error, not a 503-orphan.
 - Error classification: `errEntityNotFound` sentinel → 404; `pkg/errs.IsInvalid / IsTransient` → 400 / 503; raw `nats.ErrNoResponders` / `nats.ErrTimeout` / `context.DeadlineExceeded` / `nats.ErrConnectionClosed` wrapped to Transient at the boundary on both Request and PublishMsg paths. Unclassified → 500 with a generic body (full error logged).
@@ -89,7 +89,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   `main`, on `workflow_dispatch`, and on PRs labelled `conformance` — **not a PR-blocking
   gate** at this stage.
 
-  **Current outcome (Stage 52, 2026-06-02): `total=137 passed=118 failed=0 skipped=19`.**
+  **Current outcome (Stage 53, 2026-06-02): `total=137 passed=121 failed=0 skipped=16`.**
   Zero failures against our claimed conformance set. Stage 44 declares Part 2
   Datastreams/Observations and verifies the read-only surface: full Datastream collection
   items, canonical item reads, schema wrapper, global/nested Observation collections, and
@@ -120,7 +120,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   reads by reusing the existing semstreams SensorML SimpleProcess/AggregateProcess
   reverse mapper, preserves `properties.definition` from Procedure Feature POST bodies,
   and appends CS API `links[]` association evidence to System/Procedure SensorML
-  representations at the HTTP boundary.
+  representations at the HTTP boundary. Stage 53 adds Deployment and Property item
+  SensorML reads as HTTP representation-layer projections over existing triples:
+  Deployment carries `deployedSystems[]` plus association links, and Property renders
+  the existing DerivedProperty subset. No new graph predicate or storage shim is added.
 
   Trajectory: Stage 12 (20/0/117) → Stage 14 (29/1/107) → Stage 15 (32/0/105) →
   Stage 16+17+conformance-fix (38/2/97) → Stage 18 (40/0/97) → Stage 22 (58/0/79) →
@@ -132,7 +135,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   Stage 43 (80/0/57) → Stage 44 (89/0/48) → Stage 45 (91/0/46) →
   Stage 46 (97/0/40) → Stage 47 (100/0/37) → Stage 48 (106/0/31) →
   Stage 49 (110/0/27) → Stage 50 (114/0/23) → Stage 51 (115/0/22) →
-  Stage 52 (118/0/19).
+  Stage 52 (118/0/19) → Stage 53 (121/0/16).
   Eventual-consistency seed-then-query lag is handled by `run.sh` poll-until-visible
   checks after seed (systems, subsystems, datastreams, observations, subdeployments,
   controlstreams, commands, systemEvents);
@@ -195,7 +198,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `POST /procedures` | `buildProcedureTriplesFromSensorML` (sml+json) **or** `buildProcedureTriplesFromFeature` (json / geo+json) → `ingestTriples`. rdf:type override to `sosa.Procedure` on the SensorML path. No position triple. 201 Created + Location. Stage 20. |
 | `OPTIONS /procedures` / `OPTIONS /procedures/{id}` | Static `Allow` header. 204 No Content. Stage 20. |
 | `GET /deployments` | `graph.index.query.predicate` (rdf:type = `sosa.SSNDeployment`) → JSON DeploymentCollection (default) OR `graph.query.batch` hydration → `geojson.FeatureCollection` with per-deployment geometry from `sensorml.process.position` and optional `properties.deployedSystems@link` from `cs-api.deployment.deployedSystems` (on Accept `application/geo+json`). Stage 21; batch hydration Stage 40; association evidence Stage 46. |
-| `GET /deployments/{id}` | `graph.query.entity` → `deploymentFromState` (JSON subset with geometry from position triple, optional `properties.deployedSystems@link`, and allowlisted association links). Stage 21; association evidence Stage 46. |
+| `GET /deployments/{id}` | `graph.query.entity` → `deploymentFromState` (JSON subset with geometry from position triple, optional `properties.deployedSystems@link`, and allowlisted association links) OR `deploymentSensorMLFromState` → Deployment-shaped SensorML JSON. Stage 21; association evidence Stage 46; SensorML item read Stage 53. |
 | `GET /deployments/{id}/subdeployments` | Parent `graph.query.entity` kind check → predicate-query all Deployments → `graph.query.batch` hydration → filter child Deployments whose gateway-local `cs-api.deployment.parent` relation points at the parent. Stage 50. |
 | `POST /deployments` | `buildDeploymentTriplesFromFeature` (json / geo+json) → `ingestTriples`. Optional geometry → `sensorml.process.position` triple; optional `properties.deployedSystems@link[]` hrefs → `cs-api.deployment.deployedSystems`; optional `parent@id` / `parent@link` → gateway-local `cs-api.deployment.parent`. 201 Created + Location. Stage 21; association evidence Stage 46; subdeployment parent evidence Stage 50. |
 | `OPTIONS /deployments` / `OPTIONS /deployments/{id}` | Static `Allow` header. 204 No Content. Stage 21. |
@@ -204,7 +207,7 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `POST /samplingFeatures` | `buildSamplingFeatureTriplesFromFeature` (json / geo+json) → `ingestTriples`. Optional geometry → `sensorml.process.position` triple; optional `properties.hostedProcedure@link.href` → `cs-api.samplingfeature.hostedProcedure`. 201 Created + Location. Stage 22; association evidence Stage 46. |
 | `OPTIONS /samplingFeatures` / `OPTIONS /samplingFeatures/{id}` | Static `Allow` header. 204 No Content. Stage 22. |
 | `GET /properties` | `graph.index.query.predicate` (rdf:type = sosa:ObservableProperty) → JSON PropertyCollection. Stage 23. |
-| `GET /properties/{id}` | `graph.query.entity` → `propertyFromState` (JSON subset with uid/label/description/definition/baseProperty). Stage 23. |
+| `GET /properties/{id}` | `graph.query.entity` → `propertyFromState` (JSON subset with uid/label/description/definition/baseProperty) OR `propertySensorMLFromState` → DerivedProperty-shaped SensorML JSON. Stage 23; SensorML item read Stage 53. |
 | `POST /properties` | `buildPropertyTriples` (sml+json / sensorml+json / json DerivedProperty subset) → `ingestTriples`. 201 Created + Location. Stage 23. |
 | `OPTIONS /properties` / `OPTIONS /properties/{id}` | Static `Allow` header. 204 No Content. Stage 23. |
 | `GET /controlstreams` | `graph.index.query.predicate` (rdf:type = `vocabulary/csapi.ControlStream`) → `graph.query.batch` hydration → JSON ControlStreamCollection. Stage 24; batch hydration Stage 40. |

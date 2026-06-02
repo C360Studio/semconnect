@@ -553,7 +553,7 @@ Stage 21 ships `/deployments`:
   `application/geo+json` FeatureCollection with per-deployment
   geometry recovered from the position triple.
 - `GET /deployments/{id}` — JSON Deployment subset with geometry
-  when present.
+  when present. Stage 53 later adds SensorML item reads.
 - `POST /deployments` — `application/json` / `application/geo+json`
   Feature body only. SensorML is intentionally absent; no CS API
   encoding pairs SensorML with Deployment.
@@ -608,7 +608,8 @@ Stage 23 ships `/properties`:
   `rdf:type = sosa:ObservableProperty`; JSON `PropertyCollection`.
 - `GET /properties/{id}` — JSON Property subset with
   `uid` / `uniqueId`, label, description, definition, and optional
-  baseProperty recovered from triples.
+  baseProperty recovered from triples. Stage 53 later adds SensorML
+  item reads.
 - `POST /properties` — accepts `application/sml+json`,
   `application/sensorml+json`, or `application/json` SensorML
   DerivedProperty-shaped JSON. The v0.1 subset stores `uniqueId`,
@@ -1286,8 +1287,8 @@ that were waiting for concrete association evidence:
 
 This stage does not claim new conformance classes and does not add
 SensorML representations for Deployments, Procedures, or Properties. Stage
-52 later adds Procedure item SensorML reads; Deployment and Property SensorML
-representations remain separate follow-ups.
+52 later adds Procedure item SensorML reads, and Stage 53 adds Deployment
+and Property item SensorML reads.
 
 **Outcome:** `total=137 passed=97 failed=0 skipped=40` (confirmed
 2026-06-02). Newly passing checks are
@@ -1465,14 +1466,40 @@ vocabulary:
 - The conformance seed adds a concrete Procedure definition so the ETS can
   verify the mapping instead of honestly skipping an identity-only fixture.
 
-Deployment and Property SensorML representations remain out of scope for this
-stage; the remaining SensorML skips still point at those resource families.
-
 **Outcome:** `total=137 passed=118 failed=0 skipped=19` (confirmed
 2026-06-02). Newly passing checks:
 `procedureSensorMlHasSchemaAndMapping`,
 `sensorMlProcedureLinksMemberAssociationRelsUseResourceSpecificNames`, and
 `sensorMlLinksMemberAssociationRelsUseResourceSpecificNames`.
+
+### Stage 53 — Deployment and Property SensorML read side
+
+Stage 53 closes the remaining non-process SensorML read-side skips without
+adding graph vocabulary or storage:
+
+- `GET /deployments/{id}` now negotiates `application/sml+json` and
+  `application/sensorml+json`, emitting a Deployment-shaped SensorML JSON
+  representation from the existing Deployment triples.
+- Deployment SensorML includes `deployedSystems[]` from the stored
+  `properties.deployedSystems@link` evidence plus the same links-member
+  association rels already exposed on the JSON resource.
+- `GET /properties/{id}` now negotiates both SensorML media types, emitting
+  the existing DerivedProperty subset (`uniqueId`, label, description,
+  definition, and optional baseProperty).
+- Deployment and Property JSON item links advertise the SensorML alternate
+  representation.
+
+This is intentionally representation-layer work. Deployment and Property
+POSTs keep their existing request media-type contracts, and no gateway-local
+predicate is added for this stage.
+
+**Outcome:** `total=137 passed=121 failed=0 skipped=16` (confirmed
+2026-06-02). Newly passing checks:
+`deploymentSensorMlHasSchemaAndMapping`,
+`propertySensorMlHasSchemaAndMapping`, and
+`sensorMlDeploymentLinksMemberAssociationRelsUseResourceSpecificNames`.
+The remaining skips are Part 2 feasibility checks and Part 2 advanced
+filtering checks.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

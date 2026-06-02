@@ -1689,6 +1689,39 @@ paths:
         "204":
           description: No Content.
 
+  /deployments/{id}/subdeployments:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getDeploymentSubdeployments
+      summary: List a deployment's subdeployments.
+      description: |-
+        Stage 50 — CS API `/conf/subdeployment` read-side collection.
+        Returns child Deployment entities whose temporary gateway-local
+        `cs-api.deployment.parent` relation points back to the parent
+        Deployment. Individual members dereference at the canonical
+        `/deployments/{id}` endpoint.
+      tags: [Deployments]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: DeploymentCollection of child deployments.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/DeploymentCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headDeploymentSubdeployments
+      tags: [Deployments]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
   /controlstreams:
     x-cs-upstream-source: api/upstream/part2/paths/controlStreams.yaml
     get:
@@ -2396,11 +2429,16 @@ components:
               description: Optional Stage 46 SamplingFeature association mapping; href is stored on `cs-api.samplingfeature.hostedProcedure`.
             "parent@id":
               type: string
-              description: Optional Stage 49 subsystem parent System ID. Stored as the framework SensorML `isHostedBy` relation.
+              description: |-
+                Optional parent resource ID for composition endpoints.
+                Systems store this as semstreams `sensorml.PredIsHostedBy`;
+                Deployments store this as gateway-local
+                `cs-api.deployment.parent` until semstreams grows a
+                canonical deployment-composition term.
             "parent@link":
               allOf:
                 - {$ref: "#/components/schemas/Link"}
-              description: Optional link form of `parent@id`; the `/systems/{id}` path segment is extracted and stored as `isHostedBy`.
+              description: Optional link form of `parent@id`; the resource path segment is extracted and stored as the parent relation.
       description: |-
         Stage 16 — CS API §7.6 GeoJSON Feature body for POST and PUT
         on /systems. Distinct from the read-side `System` resource:

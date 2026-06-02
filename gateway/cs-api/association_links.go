@@ -4,6 +4,7 @@ import "github.com/c360studio/semstreams/message"
 
 const (
 	predDeploymentDeployedSystems      = "cs-api.deployment.deployedSystems"
+	predDeploymentParent               = "cs-api.deployment.parent"
 	predSamplingFeatureHostedProcedure = "cs-api.samplingfeature.hostedProcedure"
 )
 

@@ -780,6 +780,8 @@ func TestHandleConformance_ClaimsOnlyWiredClasses(t *testing.T) {
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
 		// Stage 48 — Part 1 /systems id, keyword, and geometry filters.
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/advanced-filtering",
+		// Stage 49 — Part 1 parent-scoped Subsystems read side.
+		"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/subsystem",
 		// Stage 25 — Part 2 API Common resource collection discovery.
 		"http://www.opengis.net/spec/ogcapi-connectedsystems-2/1.0/conf/api-common",
 		// Stage 16 — create-replace-delete claim is honest once PUT/DELETE

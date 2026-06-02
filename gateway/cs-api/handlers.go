@@ -66,6 +66,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	controlStreamItemPath := join("controlstreams/{id}")
 	controlStreamSchemaPath := join("controlstreams/{id}/schema")
 	controlStreamCommandsPath := join("controlstreams/{id}/commands")
+	commandsPath := join("commands")
 	systemControlStreamsPath := join("systems/{id}/controlstreams")
 	systemHistoryPath := join("systems/{id}/history")
 	systemHistoryItemPath := join("systems/{id}/history/{revID}")
@@ -164,6 +165,9 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+controlStreamSchemaPath, c.middleware(http.HandlerFunc(c.handleControlStreamSchema)))
 	mux.Handle("GET "+controlStreamCommandsPath, c.middleware(http.HandlerFunc(c.handleControlStreamCommands)))
 	mux.Handle("HEAD "+controlStreamCommandsPath, c.middleware(http.HandlerFunc(c.handleControlStreamCommands)))
+	mux.Handle("GET "+commandsPath, c.middleware(http.HandlerFunc(c.handleCommands)))
+	mux.Handle("HEAD "+commandsPath, c.middleware(http.HandlerFunc(c.handleCommands)))
+	mux.Handle("OPTIONS "+commandsPath, c.middleware(http.HandlerFunc(c.handleCommandsOptions)))
 	mux.Handle("GET "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
 	mux.Handle("HEAD "+systemControlStreamsPath, c.middleware(http.HandlerFunc(c.handleSystemControlStreams)))
 	// Stage 26 — OSH-bar System History read-side vendor extension.
@@ -212,6 +216,7 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"controlstream_item", controlStreamItemPath,
 		"controlstream_schema", controlStreamSchemaPath,
 		"controlstream_commands", controlStreamCommandsPath,
+		"commands", commandsPath,
 		"system_controlstreams", systemControlStreamsPath,
 		"system_history", systemHistoryPath,
 		"system_history_item", systemHistoryItemPath,

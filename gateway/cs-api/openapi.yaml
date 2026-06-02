@@ -9,9 +9,9 @@ info:
     cs-api exposes a subset of [OGC API Connected Systems](https://docs.ogc.org/DRAFTS/23-001r0.html)
     over the [semstreams](https://github.com/C360Studio/semstreams)
     framework primitives. v0.1 ships the endpoints listed below as
-    "implemented". Endpoints carrying `x-not-implemented-at-v01: true`
-    are documented here for spec-completeness and roadmap visibility but
-    return `501 Not Implemented` today.
+    implemented HTTP routes. The contract is intentionally narrower than
+    the full upstream OGC OAS where v0.1 does not yet claim a resource or
+    conformance class.
 
     **Honest deferral signals.** Several endpoints return data that is
     intentionally lossy or shape-truncated relative to the upstream
@@ -73,13 +73,6 @@ tags:
       conformance class.
   - name: Collections
     description: OGC API Common Part 2 collection metadata.
-  - name: NotImplementedAtV01
-    description: |-
-      Vendored from the upstream OGC OAS for roadmap visibility;
-      returns `501 Not Implemented` at v0.1. Each carries
-      `x-not-implemented-at-v01: true` and a pointer to the source
-      under `api/upstream/`. Implementation tracked per stage.
-
 security:
   - {}  # anonymous-by-default at v0.1 — middleware-body swap turns this on
 
@@ -1644,19 +1637,31 @@ paths:
         "406": {$ref: "#/components/responses/NotAcceptable"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
 
-  # ============================================================
-  # Deferred to follow-up stages — vendored from upstream OGC OAS
-  # for roadmap visibility. 501 today.
-  # ============================================================
   /commands:
-    x-not-implemented-at-v01: true
     x-cs-upstream-source: api/upstream/part2/paths/commands.yaml
     get:
-      tags: [NotImplementedAtV01]
-      summary: List Commands (not implemented at v0.1).
-      description: Stub. See `x-cs-upstream-source`.
+      operationId: getCommands
+      tags: [Commands]
+      summary: List Commands.
+      description: Command execution is not implemented at v0.1, so this returns an empty collection.
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
       responses:
-        "501": {$ref: "#/components/responses/NotImplemented"}
+        "200":
+          description: Empty Command collection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ItemsOnlyCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+    options:
+      operationId: optionsCommands
+      tags: [Commands]
+      summary: Command collection options.
+      responses:
+        "204":
+          description: No Content.
 
   /systemEvents:
     x-cs-upstream-source: api/upstream/part2/paths/systemEvents.yaml
@@ -1903,20 +1908,6 @@ components:
       content:
         application/json:
           schema: {$ref: "#/components/schemas/ErrorResponse"}
-    NotImplemented:
-      description: |-
-        Endpoint is documented for spec-completeness but returns
-        `501 Not Implemented` at v0.1. Path carries
-        `x-not-implemented-at-v01: true` and an `x-cs-upstream-source`
-        pointer.
-      content:
-        application/json:
-          schema:
-            type: object
-            required: [error]
-            properties:
-              error: {type: string, enum: ["not implemented at v0.1"]}
-              upstream_source: {type: string, format: uri-reference}
 
   # --- Reusable response headers ---
   headers:

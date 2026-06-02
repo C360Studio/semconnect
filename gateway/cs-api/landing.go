@@ -110,6 +110,7 @@ func (c *Component) handleLanding(w http.ResponseWriter, r *http.Request) {
 			// resource collections, then verifies collection JSON
 			// exposes items[] and links[].
 			{Href: base + "/controlstreams", Rel: "controlstreams", Type: string(MediaJSON), Title: "control stream resources"},
+			{Href: base + "/commands", Rel: "commands", Type: string(MediaJSON), Title: "command resources"},
 			{Href: base + "/systemEvents", Rel: "systemevents", Type: string(MediaJSON), Title: "system event resources"},
 		},
 	}

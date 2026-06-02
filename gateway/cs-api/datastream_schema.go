@@ -30,12 +30,16 @@ func (c *Component) handleDatastreamSchema(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	raw, ok := firstStringObject(state.Triples, PredDatastreamSchema)
+	raw, ok, err := c.readSchemaArtifact(r.Context(), state.Triples, PredDatastreamSchema)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	if !ok {
 		writeJSONError(w, http.StatusNotFound, "no datastream schema: "+id)
 		return
 	}
-	schema, err := swecommon.UnmarshalSchema([]byte(raw))
+	schema, err := swecommon.UnmarshalSchema(raw)
 	if err != nil {
 		c.writeBackendError(w, errs.Wrap(err, "cs-api", "handleDatastreamSchema", "decode schema"))
 		return
@@ -66,11 +70,16 @@ func (c *Component) fetchDatastreamObservationSchema(r *http.Request, datastream
 		}
 		return nil, false
 	}
-	raw, ok := firstStringObject(state.Triples, PredDatastreamSchema)
+	raw, ok, err := c.readSchemaArtifact(r.Context(), state.Triples, PredDatastreamSchema)
+	if err != nil {
+		c.logger.Warn("datastream schema artifact read failed; falling back to inferred observation schema",
+			"datastream", datastreamID, "err", err)
+		return nil, false
+	}
 	if !ok {
 		return nil, false
 	}
-	schema, err := swecommon.UnmarshalSchema([]byte(raw))
+	schema, err := swecommon.UnmarshalSchema(raw)
 	if err != nil {
 		c.logger.Warn("datastream schema decode failed; falling back to inferred observation schema",
 			"datastream", datastreamID, "err", err)

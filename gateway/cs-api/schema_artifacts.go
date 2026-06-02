@@ -65,9 +65,56 @@ func (c *Component) createSchemaArtifact(
 		},
 	}
 	if err := c.createEntityWithTriples(ctx, entity, triples, id, "createSchemaArtifact"); err != nil {
-		return message.Triple{}, err
+		if !errors.Is(err, errEntityConflict) {
+			return message.Triple{}, err
+		}
+		current, fetchErr := c.fetchEntity(ctx, artifactID)
+		if fetchErr != nil {
+			return message.Triple{}, fetchErr
+		}
+		current.StorageRef = entity.StorageRef
+		if err := c.replaceEntityTriples(ctx, current, triples, id); err != nil {
+			return message.Triple{}, err
+		}
 	}
 	return message.Triple{Subject: parentID, Predicate: relationshipPredicate, Object: artifactID}, nil
+}
+
+func (c *Component) readSchemaArtifact(ctx context.Context, triples []message.Triple, relationshipPredicate string) (json.RawMessage, bool, error) {
+	artifactID, ok := firstStringObject(triples, relationshipPredicate)
+	if !ok {
+		return nil, false, nil
+	}
+	artifact, err := c.fetchEntity(ctx, artifactID)
+	if err != nil {
+		return nil, true, err
+	}
+	if !isSWESchemaArtifact(artifact.Triples) {
+		return nil, true, errs.Wrap(
+			fmt.Errorf("entity %q is not a SWE schema artifact", artifactID),
+			"cs-api", "readSchemaArtifact", "fetch schema artifact")
+	}
+	if artifact.StorageRef == nil {
+		return nil, true, errs.Wrap(
+			fmt.Errorf("schema artifact %q has no storage reference", artifactID),
+			"cs-api", "readSchemaArtifact", "fetch schema artifact")
+	}
+	storePtr := c.schemaArtifacts.Load()
+	if storePtr == nil || *storePtr == nil {
+		return nil, true, errs.WrapTransient(
+			errors.New("schema artifact object store not initialized"),
+			"cs-api", "readSchemaArtifact", "fetch schema")
+	}
+	body, err := (*storePtr).GetBytes(ctx, artifact.StorageRef.Key)
+	if err != nil {
+		return nil, true, classifyJetStreamErr(err, "readSchemaArtifact", "fetch schema")
+	}
+	return json.RawMessage(body), true, nil
+}
+
+func isSWESchemaArtifact(triples []message.Triple) bool {
+	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	return ok && typeIRI == csapivocab.SWESchemaDocument
 }
 
 func (c *Component) mintSchemaArtifactEntityID(parentID, role string) string {

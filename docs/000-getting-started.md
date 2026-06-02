@@ -905,11 +905,9 @@ Stage 33 makes Datastream result schemas first-class in the gateway:
 - The schema is validated and canonicalized with semstreams
   `pkg/swecommon` before any graph mutation.
 - The schema is stored on a gateway-local `cs-api.datastream.schema`
-  predicate. semstreams beta.88 intentionally keeps Datastream schema
-  storage out of `vocabulary/csapi`; the long-term pattern is a typed
-  artifact entity with its own `StorageRef`, related to the Datastream
-  by a CS API vocabulary predicate. See
-  `docs/adr/002-cs-api-artifact-storage.md`.
+  predicate. Stage 42 later retires this bridge in favor of
+  `csapi:SWESchemaDocument` artifact entities related by
+  `csapi.HasResultSchema`.
 - `GET /datastreams/{id}` returns the schema and a `rel=schema` link
   when one is stored.
 - `GET /datastreams/{id}/schema` returns the stored `DataRecord`
@@ -923,8 +921,8 @@ Remaining local work:
 
 - Add command payload/schema parity for controlstreams.
 - Replace the gateway-local Datastream schema predicate with a typed
-  SWE schema artifact entity once semstreams ships the CS API vocabulary
-  constants tracked in upstream #171.
+  SWE schema artifact entity. Completed in Stage 42 after semstreams
+  shipped the CS API vocabulary constants.
 
 **Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
 2026-05-29). Headline conformance is unchanged from Stage 32; schema
@@ -1065,12 +1063,13 @@ the three semstreams asks filed from the CS API graph/store fit pass:
 - #173 documents the existing `natsclient.TestClient` helper patterns
   for gateway-style integration tests.
 
-No semstreams ask currently blocks semconnect. The remaining work is
-local adoption:
+No semstreams ask currently blocks semconnect. The remaining work after
+this pin is local adoption:
 
 - Migrate Datastream result schemas and ControlStream command schemas
   from gateway-local JSON predicates to `csapi:SWESchemaDocument`
-  artifact entities with dotted relationship predicates.
+  artifact entities with dotted relationship predicates. Completed in
+  Stage 42.
 - Use `natsclient.TestClient` when a real NATS-backed integration test
   is more valuable than the current in-memory fakes.
 
@@ -1111,11 +1110,6 @@ dotted-predicate blocker rather than unlocking a new ETS branch.
 
 Subsequent stages from the OSH-bar memory:
 
-- Typed artifact entity migration for Datastream and ControlStream
-  schema storage using `csapi.HasResultSchema` /
-  `csapi.HasCommandSchema`. Stage 41 wires the ObjectStore and helper;
-  the remaining work is switching the Datastream / ControlStream call
-  sites from gateway-local JSON predicates to that helper.
 - Command execution, if/when v0.1 scope expands beyond read-side
   ControlStream metadata.
 
@@ -1171,6 +1165,30 @@ predicates.
 2026-06-02). Headline conformance is unchanged from Stage 40; this stage
 adds storage substrate for the schema artifact migration rather than
 claiming a new ETS branch.
+
+### Stage 42 — Schema artifact handler migration
+
+Stage 42 retires the gateway-local schema JSON predicates:
+
+- Datastream result schemas are stored as canonical SWE Common bytes in
+  ObjectStore. The Datastream entity carries `csapi.HasResultSchema`
+  pointing at the typed `csapi:SWESchemaDocument` artifact entity.
+- ControlStream command `parametersSchema` follows the same artifact
+  pattern through `csapi.HasCommandSchema`; the small command media
+  format remains a scalar graph fact (`cs-api.controlstream.commandFormat`)
+  so item/collection reads can advertise `formats` without fetching
+  artifact content.
+- `GET /datastreams/{id}`, `GET /datastreams/{id}/schema`,
+  observation SWE encoders, and `GET /controlstreams/{id}/schema` follow
+  the parent relationship to the artifact entity, then fetch bytes from
+  ObjectStore via `StorageRef`.
+- Schema writes use deterministic artifact IDs and upsert the artifact
+  entity before attaching the parent relationship, so PUT/PATCH retries
+  converge on the same artifact.
+
+**Outcome:** `total=137 passed=79 failed=0 skipped=58` (confirmed
+2026-06-02). Headline conformance is unchanged from Stage 41; this stage
+retires local storage debt rather than claiming a new ETS branch.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

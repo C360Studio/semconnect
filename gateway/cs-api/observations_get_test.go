@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/message/oms"
-	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/payloadbuiltins"
 	"github.com/c360studio/semstreams/pkg/swecommon"
 	"github.com/nats-io/nats.go"
@@ -53,9 +53,14 @@ func wireObservationsReadComponent(t *testing.T, rd *fakeReader) *Component {
 	return c
 }
 
-func wireObservationsReadComponentWithRequester(t *testing.T, rd *fakeReader, fake *fakeRequester) *Component {
+func wireObservationsReadComponentWithRequester(t *testing.T, rd *fakeReader, fake natsRequester) *Component {
 	t.Helper()
-	c := newTestComponent(t, fake)
+	cfg := DefaultConfig()
+	cfg.QueryTimeout = 500 * time.Millisecond
+	c, err := New(cfg, fake, nil)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
 	var sr streamReader = rd
 	c.reader.Store(&sr)
 	c.initialized = true
@@ -396,15 +401,17 @@ func TestObservationsGet_SWECsvUsesStoredDatastreamSchema(t *testing.T) {
 	}
 	datastreamID := "c360.semconnect.systems.csapi.datastream.001"
 	rd := &fakeReader{msgs: []observationMsg{{Data: encodeBaseMessage(t, obs), Sequence: 9}}}
-	fake := &fakeRequester{
-		status: natsclient.StatusConnected,
-		reply: encodeDatastreamEntityStateWithSchema(t, datastreamID,
-			"Temperature feed",
-			"c360.semconnect.systems.csapi.system.sensor1",
-			"http://example.org/properties/temperature",
-			testSWEDataRecordSchema),
-	}
+	fake := &multiReplyFakeRequester{entityRepliesByID: map[string][]byte{}}
 	c := wireObservationsReadComponentWithRequester(t, rd, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
+	artifactID := schemaArtifactIDForTest(c, datastreamID, PredDatastreamSchema)
+	fake.entityRepliesByID[datastreamID] = encodeDatastreamEntityStateWithSchema(t, datastreamID,
+		"Temperature feed",
+		"c360.semconnect.systems.csapi.system.sensor1",
+		"http://example.org/properties/temperature",
+		artifactID)
+	fake.entityRepliesByID[artifactID] = seedSchemaArtifact(t, c, store, artifactID, json.RawMessage(testSWEDataRecordSchema))
 
 	req := httptest.NewRequest(http.MethodGet, "/datastreams/"+datastreamID+"/observations", nil)
 	req.Header.Set("Accept", string(MediaSWECsv))

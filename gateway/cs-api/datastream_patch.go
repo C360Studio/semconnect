@@ -125,9 +125,18 @@ func (c *Component) handleDatastreamPatch(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	merged := mergePatchDatastreamTriples(pathID, existing.Triples, in, hasSchema)
-
 	identity := IdentityFrom(r.Context())
+	var schemaRel *message.Triple
+	if hasSchema {
+		rel, err := c.createSchemaArtifact(r.Context(), pathID, PredDatastreamSchema, in.Schema, identity)
+		if err != nil {
+			c.writeBackendError(w, err)
+			return
+		}
+		schemaRel = &rel
+	}
+
+	merged := mergePatchDatastreamTriples(pathID, existing.Triples, in, schemaRel)
 	if err := c.replaceEntityTriples(r.Context(), existing, merged, identity); err != nil {
 		c.writeBackendError(w, err)
 		return
@@ -136,11 +145,12 @@ func (c *Component) handleDatastreamPatch(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func mergePatchDatastreamTriples(entityID string, existing []message.Triple, patch Datastream, hasSchema bool) []message.Triple {
+func mergePatchDatastreamTriples(entityID string, existing []message.Triple, patch Datastream, schemaRel *message.Triple) []message.Triple {
 	hasName := patch.Name != ""
 	hasDescription := patch.Description != ""
 	hasSystem := patch.System != ""
 	hasObservedProperty := patch.ObservedProperty != ""
+	hasSchema := schemaRel != nil
 
 	out := make([]message.Triple, 0, len(existing)+5)
 	var sawLabel, sawDescription, sawSystem, sawObservedProperty, sawSchema bool
@@ -173,7 +183,7 @@ func mergePatchDatastreamTriples(entityID string, existing []message.Triple, pat
 		case PredDatastreamSchema:
 			sawSchema = true
 			if hasSchema {
-				out = append(out, message.Triple{Subject: entityID, Predicate: PredDatastreamSchema, Object: string(patch.Schema)})
+				out = append(out, *schemaRel)
 				continue
 			}
 		}
@@ -192,7 +202,7 @@ func mergePatchDatastreamTriples(entityID string, existing []message.Triple, pat
 		out = append(out, message.Triple{Subject: entityID, Predicate: sosa.ObservedProperty, Object: patch.ObservedProperty})
 	}
 	if hasSchema && !sawSchema {
-		out = append(out, message.Triple{Subject: entityID, Predicate: PredDatastreamSchema, Object: string(patch.Schema)})
+		out = append(out, *schemaRel)
 	}
 	return out
 }

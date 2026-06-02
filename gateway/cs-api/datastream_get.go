@@ -3,6 +3,8 @@ package csapi
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/c360studio/semstreams/pkg/errs"
 )
 
 // handleDatastreams serves GET /datastreams — CS API §10.5. Mirrors
@@ -87,6 +89,17 @@ func (c *Component) handleDatastream(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d := datastreamFromState(state)
+	if schema, ok, err := c.readSchemaArtifact(r.Context(), state.Triples, PredDatastreamSchema); err != nil {
+		c.writeBackendError(w, err)
+		return
+	} else if ok {
+		schema, err = normalizeDatastreamSchema(schema)
+		if err != nil {
+			c.writeBackendError(w, errs.Wrap(err, "cs-api", "handleDatastream", "decode schema artifact"))
+			return
+		}
+		d.Schema = schema
+	}
 
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)

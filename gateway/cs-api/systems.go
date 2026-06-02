@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,14 +22,15 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-// CS API resource shape for the System collection. v0.1 returns just entity
-// IDs — Stage 4 (single-system GET with SensorML round-trip) is where we
-// reconstruct full uniqueId / label / location / capabilities properties from
-// the entity-state triples.
+// CS API resource shape for the System collection. Stage 48 batch-hydrates
+// name/description so Advanced Filtering clients can discover keyword
+// evidence from the collection before narrowing with ?q.
 type systemRef struct {
-	ID    string `json:"id"`
-	Type  string `json:"type"` // "System" per CS API §7.2 nominal class
-	Links []link `json:"links,omitempty"`
+	ID          string `json:"id"`
+	Type        string `json:"type"` // "System" per CS API §7.2 nominal class
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Links       []link `json:"links,omitempty"`
 }
 
 type link struct {
@@ -255,16 +257,33 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	limit, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit)
+	query := r.URL.Query()
+	limit, err := parseLimit(query.Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	filters, err := parseSystemCollectionFilters(query)
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	entities, err := c.listSystemEntities(r.Context(), limit)
+	candidateLimit := limit
+	if filters.active() {
+		candidateLimit = c.cfg.MaxListLimit
+	}
+	entities, err := c.listSystemEntities(r.Context(), candidateLimit)
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
+	}
+	if filters.active() {
+		entities, err = c.filterSystemEntities(r.Context(), entities, filters, limit)
+		if err != nil {
+			c.writeBackendError(w, err)
+			return
+		}
 	}
 
 	if media == MediaGeoJSON {
@@ -282,14 +301,28 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 			{Href: "/systems", Rel: "self", Type: string(MediaJSON)},
 		},
 	}
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), entities)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	for _, id := range entities {
-		coll.Items = append(coll.Items, systemRef{
+		ref := systemRef{
 			ID:   id,
 			Type: "System",
 			Links: []link{
 				{Href: "/systems/" + id, Rel: "self", Type: string(MediaJSON)},
 			},
-		})
+		}
+		if state, ok := statesByID[id]; ok {
+			sys := systemFromState(state)
+			ref.Name = sys.Label
+			ref.Description = sys.Description
+		} else {
+			c.logger.Warn("batch entity fetch for SystemCollection missed entity; degrading to id-only item",
+				"entity", id)
+		}
+		coll.Items = append(coll.Items, ref)
 	}
 
 	w.Header().Set("Content-Type", string(MediaJSON))
@@ -301,6 +334,206 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 		c.errs.Add(1)
 		c.logger.Error("encode systems response", "err", encErr)
 	}
+}
+
+type wktPoint struct {
+	lon float64
+	lat float64
+}
+
+type systemCollectionFilters struct {
+	idSet map[string]struct{}
+	q     string
+	geom  []wktPoint
+}
+
+func (f systemCollectionFilters) active() bool {
+	return len(f.idSet) > 0 || f.q != "" || len(f.geom) > 0
+}
+
+func parseSystemCollectionFilters(values map[string][]string) (systemCollectionFilters, error) {
+	var filters systemCollectionFilters
+	ids, err := parseIDListFilter(values["id"])
+	if err != nil {
+		return filters, err
+	}
+	if len(ids) > 0 {
+		filters.idSet = make(map[string]struct{}, len(ids))
+		for _, id := range ids {
+			filters.idSet[id] = struct{}{}
+		}
+	}
+	if raw := strings.TrimSpace(firstQueryValue(values["q"])); raw != "" {
+		filters.q = strings.ToLower(raw)
+	}
+	if raw := strings.TrimSpace(firstQueryValue(values["geom"])); raw != "" {
+		geom, err := parseWKTPolygon(raw)
+		if err != nil {
+			return filters, fmt.Errorf("geom invalid: %w", err)
+		}
+		filters.geom = geom
+	}
+	return filters, nil
+}
+
+func firstQueryValue(values []string) string {
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
+}
+
+func parseIDListFilter(values []string) ([]string, error) {
+	var ids []string
+	var sawURI, sawLocal bool
+	for _, value := range values {
+		for _, part := range strings.Split(value, ",") {
+			part = strings.TrimSpace(part)
+			if part == "" {
+				return nil, errors.New("id list must not contain empty values")
+			}
+			isURI := strings.Contains(part, "://")
+			if isURI {
+				sawURI = true
+			} else {
+				sawLocal = true
+			}
+			if sawURI && sawLocal {
+				return nil, errors.New("id list must not mix local IDs and unique identifier URIs")
+			}
+			ids = append(ids, part)
+		}
+	}
+	return ids, nil
+}
+
+func parseWKTPolygon(raw string) ([]wktPoint, error) {
+	raw = strings.TrimSpace(raw)
+	upper := strings.ToUpper(raw)
+	if !strings.HasPrefix(upper, "POLYGON") {
+		return nil, errors.New("only POLYGON WKT is supported")
+	}
+	body := strings.TrimSpace(raw[len("POLYGON"):])
+	if !strings.HasPrefix(body, "((") || !strings.HasSuffix(body, "))") {
+		return nil, errors.New("POLYGON must use double-parenthesized coordinate rings")
+	}
+	body = strings.TrimSpace(body[2 : len(body)-2])
+	parts := strings.Split(body, ",")
+	if len(parts) < 4 {
+		return nil, errors.New("POLYGON outer ring must contain at least four positions")
+	}
+	points := make([]wktPoint, 0, len(parts))
+	for _, part := range parts {
+		fields := strings.Fields(strings.TrimSpace(part))
+		if len(fields) < 2 {
+			return nil, errors.New("POLYGON positions must contain longitude and latitude")
+		}
+		lon, err := strconv.ParseFloat(fields[0], 64)
+		if err != nil || !isFinite(lon) {
+			return nil, fmt.Errorf("invalid longitude %q", fields[0])
+		}
+		lat, err := strconv.ParseFloat(fields[1], 64)
+		if err != nil || !isFinite(lat) {
+			return nil, fmt.Errorf("invalid latitude %q", fields[1])
+		}
+		points = append(points, wktPoint{lon: lon, lat: lat})
+	}
+	first := points[0]
+	last := points[len(points)-1]
+	if first.lon != last.lon || first.lat != last.lat {
+		return nil, errors.New("POLYGON outer ring must be closed")
+	}
+	return points, nil
+}
+
+func isFinite(v float64) bool {
+	return !math.IsNaN(v) && !math.IsInf(v, 0)
+}
+
+func (c *Component) filterSystemEntities(ctx context.Context, entities []string, filters systemCollectionFilters, limit int) ([]string, error) {
+	statesByID, err := c.fetchEntitiesBatch(ctx, entities)
+	if err != nil {
+		return nil, err
+	}
+	filtered := make([]string, 0, len(entities))
+	for _, id := range entities {
+		state, ok := statesByID[id]
+		if !ok {
+			continue
+		}
+		if systemStateMatchesFilters(state, filters) {
+			filtered = append(filtered, id)
+			if len(filtered) == limit {
+				break
+			}
+		}
+	}
+	return filtered, nil
+}
+
+func systemStateMatchesFilters(state graph.EntityState, filters systemCollectionFilters) bool {
+	sys := systemFromState(state)
+	if len(filters.idSet) > 0 {
+		if _, ok := filters.idSet[state.ID]; !ok {
+			if sys.UID == "" {
+				return false
+			}
+			if _, ok := filters.idSet[sys.UID]; !ok {
+				return false
+			}
+		}
+	}
+	if filters.q != "" && !systemMatchesKeyword(sys, filters.q) {
+		return false
+	}
+	if len(filters.geom) > 0 && !systemPointWithinWKTPolygon(sys, filters.geom) {
+		return false
+	}
+	return true
+}
+
+func systemMatchesKeyword(sys system, q string) bool {
+	for _, candidate := range []string{sys.ID, sys.UID, sys.UniqueID, sys.Label, sys.Description, sys.Definition} {
+		if strings.Contains(strings.ToLower(candidate), q) {
+			return true
+		}
+	}
+	return false
+}
+
+func systemPointWithinWKTPolygon(sys system, polygon []wktPoint) bool {
+	if len(sys.Geometry) == 0 {
+		return false
+	}
+	geom, err := geojson.UnmarshalGeometry(sys.Geometry)
+	if err != nil {
+		return false
+	}
+	point, ok := geom.(geojson.Point)
+	if !ok {
+		return false
+	}
+	lon := point.Coordinates.Lon()
+	lat := point.Coordinates.Lat()
+	if !isFinite(lon) || !isFinite(lat) {
+		return false
+	}
+	return pointInPolygon(wktPoint{lon: lon, lat: lat}, polygon)
+}
+
+func pointInPolygon(point wktPoint, polygon []wktPoint) bool {
+	inside := false
+	for i, j := 0, len(polygon)-1; i < len(polygon); j, i = i, i+1 {
+		pi := polygon[i]
+		pj := polygon[j]
+		if (pi.lat > point.lat) != (pj.lat > point.lat) {
+			xAtY := (pj.lon-pi.lon)*(point.lat-pi.lat)/(pj.lat-pi.lat) + pi.lon
+			if point.lon < xAtY {
+				inside = !inside
+			}
+		}
+	}
+	return inside
 }
 
 // writeSystemsGeoJSON emits the GeoJSON FeatureCollection form of

@@ -223,14 +223,18 @@ paths:
         No SensorML `SystemCollection` wrapper exists; SensorML is
         per-item via `GET /systems/{id}`.
 
-        The GeoJSON path is N+1 (entity-query per item) — at v0.1 list
-        sizes this is acceptable; future framework optimization either
-        extends the predicate index to carry entity properties OR adds
-        a batched entity-query subject.
+        Stage 48 adds the v0.1 Advanced Filtering slice for `id`, `q`,
+        and `geom` query parameters. Filtered requests hydrate matching
+        entity state through `graph.query.batch` so preserved UID,
+        label/description, and point geometry are checked against the
+        stored triples.
       tags: [Systems]
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/IDList"
+        - $ref: "#/components/parameters/Keyword"
+        - $ref: "#/components/parameters/Geom"
       responses:
         "200":
           description: |-
@@ -2008,6 +2012,36 @@ components:
         `cs-api.config.DefaultListLimit` / `MaxListLimit`. Out-of-range
         values 400.
 
+    IDList:
+      in: query
+      name: id
+      required: false
+      schema:
+        type: string
+      description: |-
+        Comma-separated local IDs or unique identifier URIs. Values must
+        not mix local IDs and URI identifiers in the same request.
+
+    Keyword:
+      in: query
+      name: q
+      required: false
+      schema:
+        type: string
+      description: |-
+        Case-insensitive keyword filter over System id, preserved uid,
+        label, description, and definition.
+
+    Geom:
+      in: query
+      name: geom
+      required: false
+      schema:
+        type: string
+      description: |-
+        WKT POLYGON filter. v0.1 matches Systems whose stored GeoJSON
+        Point position is inside the polygon.
+
     EntityID:
       in: path
       name: id
@@ -2173,14 +2207,17 @@ components:
           items: {$ref: "#/components/schemas/Link"}
       description: |-
         Per CS API §7.13 / OGC API Common §7.14: array field is
-        `items` (not `systems`). Stage 10 closed the spec gap.
+        `items` (not `systems`). Stage 48 hydrates item `name` and
+        `description` from entity triples for keyword-filter discovery.
 
     SystemRef:
       type: object
       required: [id, type]
       properties:
-        id:    {type: string}
-        type:  {type: string, enum: [System]}
+        id:          {type: string}
+        type:        {type: string, enum: [System]}
+        name:        {type: string}
+        description: {type: string}
         links:
           type: array
           items: {$ref: "#/components/schemas/Link"}

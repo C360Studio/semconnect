@@ -154,6 +154,76 @@ func systemStateWithPosition(t *testing.T, id, label, positionJSON string) []byt
 	return b
 }
 
+func TestHandleSystems_AdvancedFiltersByIDAndKeyword(t *testing.T) {
+	id1 := "c360.semconnect.systems.csapi.system.alpha"
+	id2 := "c360.semconnect.systems.csapi.system.beta"
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{id1, id2}),
+		entityRepliesByID: map[string][]byte{
+			id1: systemStateWithPosition(t, id1, "Conformance seed rover", ""),
+			id2: systemStateWithPosition(t, id2, "Warehouse mast", ""),
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems?id="+id1+"&q=rover", nil)
+	rr := httptest.NewRecorder()
+	c.handleSystems(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll systemCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != id1 {
+		t.Fatalf("items: %+v", coll.Items)
+	}
+}
+
+func TestHandleSystems_AdvancedFilterByGeom(t *testing.T) {
+	id1 := "c360.semconnect.systems.csapi.system.inside"
+	id2 := "c360.semconnect.systems.csapi.system.outside"
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{id1, id2}),
+		entityRepliesByID: map[string][]byte{
+			id1: systemStateWithPosition(t, id1, "Inside",
+				`{"type":"Point","coordinates":[-122.4,37.8]}`),
+			id2: systemStateWithPosition(t, id2, "Outside",
+				`{"type":"Point","coordinates":[10,10]}`),
+		},
+	}
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems?geom=POLYGON((-123%2037,-123%2038,-122%2038,-122%2037,-123%2037))", nil)
+	rr := httptest.NewRecorder()
+	c.handleSystems(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll systemCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != id1 {
+		t.Fatalf("items: %+v", coll.Items)
+	}
+}
+
+func TestHandleSystems_AdvancedFilterRejectsMixedIDList(t *testing.T) {
+	c := newComponentWithRequester(t, &multiReplyFakeRequester{})
+
+	req := httptest.NewRequest(http.MethodGet, "/systems?id=c360.semconnect.systems.csapi.system.alpha,https://example.test/sys/alpha", nil)
+	rr := httptest.NewRecorder()
+	c.handleSystems(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
 // TestHandleSystems_GeoJSONFeatureCollection — Accept geo+json
 // triggers the FeatureCollection path. Each system with a
 // cs-api.system.position triple gets a real Point geometry; those
@@ -240,13 +310,16 @@ func TestHandleSystems_GeoJSONEmptyCollection(t *testing.T) {
 	}
 }
 
-// TestHandleSystems_JSONUnchangedAfterStage15 — Accept JSON (or
-// no Accept) still returns the CS API SystemCollection wrapper.
-// Regression guard against the GeoJSON branch swallowing the JSON
-// path.
-func TestHandleSystems_JSONUnchangedAfterStage15(t *testing.T) {
+// TestHandleSystems_JSONHydratesCollectionItems — Accept JSON (or no Accept)
+// still returns the CS API SystemCollection wrapper, now with Stage 48
+// name/description evidence for keyword filtering.
+func TestHandleSystems_JSONHydratesCollectionItems(t *testing.T) {
 	fake := &multiReplyFakeRequester{
 		predicateReply: encodeReply(t, []string{"acme.x", "acme.y"}),
+		entityRepliesByID: map[string][]byte{
+			"acme.x": systemStateWithPosition(t, "acme.x", "Conformance seed", ""),
+			"acme.y": systemStateWithPosition(t, "acme.y", "Other seed", ""),
+		},
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -268,10 +341,11 @@ func TestHandleSystems_JSONUnchangedAfterStage15(t *testing.T) {
 	if coll.Type != "SystemCollection" || len(coll.Items) != 2 {
 		t.Errorf("collection shape: %+v", coll)
 	}
-	// JSON path does NOT do the per-entity entity-query — only one
-	// request (the predicate query) reaches the backend.
-	if fake.calls != 1 {
-		t.Errorf("requests: got %d want 1 (JSON path does not hydrate entities)", fake.calls)
+	if coll.Items[0].Name != "Conformance seed" {
+		t.Errorf("items: %+v", coll.Items)
+	}
+	if fake.calls != 2 {
+		t.Errorf("requests: got %d want 2 (predicate query + batch hydration)", fake.calls)
 	}
 }
 

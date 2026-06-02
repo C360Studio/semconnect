@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Repository status
 
-**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
+**Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
 - `cmd/cs-api-server/` — reference binary, builds and runs.
 - `gateway/cs-api/` — `Component` implementing `component.Discoverable + LifecycleComponent + gateway.Gateway`.
@@ -27,8 +27,9 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   - `DELETE /datastreams/{id}` (Stage 17; Stage 36 purges observation subject; Stage 37 moved graph deletion to entity mutations) — CS API §10.6. Idempotent. Deletes the graph entity via `graph.mutation.entity.delete`, then purges messages on the exact JetStream subject `cs-api.observations.{id}`. If graph deletion succeeds but stream purge fails, returns 503 with `X-CS-Partial-Delete: true` and `X-CS-Observation-Purge-Failed: true` so retrying DELETE can finish cleanup.
   - `OPTIONS /datastreams` + `OPTIONS /datastreams/{id}` (Stage 17; Stage 35 adds PATCH to item Allow) — collection: `GET, HEAD, POST, OPTIONS`. Item: `GET, HEAD, PUT, PATCH, DELETE, OPTIONS`.
   - `POST /datastreams/{datastreamID}/observations` — accepts `application/om+json`, wraps in `message.BaseMessage`, publishes to JetStream subject `cs-api.observations.{datastreamID}` with audit + W3C trace headers.
-  - `GET /observations` (Stage 44) — readable empty global Observation collection. v0.1 observation storage remains Datastream-scoped, so canonical/global observation item resources stay out of scope until we introduce a real observation index.
-  - `GET /datastreams/{datastreamID}/observations` (Stage 11; Stage 27 added SWE value encodings; Stage 32 routes them through semstreams `pkg/swecommon`; Stage 33 uses stored Datastream schemas) — reads back via the same JetStream stream the POST writes to. Spins a one-shot ordered consumer filtered on `cs-api.observations.{datastreamID}`, fetches up to `?limit=N` messages with `FetchNoWait` (so an empty stream returns immediately rather than burning the QueryTimeout budget), unwraps each `BaseMessage` to its inner OMS payload, returns CS API §11.3 `ObservationCollection` for `application/json`, a bare JSON array of OMS observations for `application/om+json`, or SWE Common observation-value rows for `application/swe+json`, `application/swe+csv`, and `application/swe+binary`. Schema-backed Datastreams omit `X-CS-SWE-Subset`; legacy Datastreams without schema fall back to inferred `{time,result}` and carry `X-CS-SWE-Subset: observation-values`. Paging via opaque `?after=<stream-seq>` cursor; when the page fills and a sequence was seen, a `next` link is added on the JSON wrapper (`truncated` is a heuristic — proper "remaining count" needs `consumer.Info().NumPending`, deferred follow-up; failure modes documented in `observations_get.go`). Malformed envelopes are skipped (logged) rather than 500-ing the whole request. Structured access log line on success carries the resolved `Identity` forwarded-user/email for read-side audit, mirroring the publish path's NATS-header audit. New `streamReader` interface on `Component` (production: `jetstreamObservationReader` wrapping `OrderedConsumer + FetchNoWait`; tests: fake).
+  - `GET /observations` (Stage 44; Stage 45 makes it populated) — global Observation collection backed by a wildcard JetStream read over `cs-api.observations.>`. JSON resources include Part 2 `datastream@id` recovered from the subject; no graph index is introduced at v0.1.
+  - `GET /observations/{obsID}` (Stage 45) — read-only canonical Observation item lookup. Scans the configured observation stream and returns the first matching JSON resource with `datastream@id`.
+  - `GET /datastreams/{datastreamID}/observations` (Stage 11; Stage 27 added SWE value encodings; Stage 32 routes them through semstreams `pkg/swecommon`; Stage 33 uses stored Datastream schemas; Stage 45 adds `datastream@id` on JSON resources) — reads back via the same JetStream stream the POST writes to. Spins a one-shot ordered consumer filtered on `cs-api.observations.{datastreamID}`, fetches up to `?limit=N` messages with `FetchNoWait` (so an empty stream returns immediately rather than burning the QueryTimeout budget), unwraps each `BaseMessage` to its inner OMS payload, returns CS API §11.3 `ObservationCollection` for `application/json`, a bare JSON array of OMS observations for `application/om+json`, or SWE Common observation-value rows for `application/swe+json`, `application/swe+csv`, and `application/swe+binary`. Schema-backed Datastreams omit `X-CS-SWE-Subset`; legacy Datastreams without schema fall back to inferred `{time,result}` and carry `X-CS-SWE-Subset: observation-values`. Paging via opaque `?after=<stream-seq>` cursor; when the page fills and a sequence was seen, a `next` link is added on the JSON wrapper (`truncated` is a heuristic — proper "remaining count" needs `consumer.Info().NumPending`, deferred follow-up; failure modes documented in `observations_get.go`). Malformed envelopes are skipped (logged) rather than 500-ing the whole request. Structured access log line on success carries the resolved `Identity` forwarded-user/email for read-side audit, mirroring the publish path's NATS-header audit. New `streamReader` interface on `Component` (production: `jetstreamObservationReader` wrapping `OrderedConsumer + FetchNoWait`; tests: fake).
   - `GET /systems/{id}/datastreams` (Stage 44) — system-scoped Datastream collection, filtered by beta.91's dotted `vocabulary/csapi.ProducedBy`.
   - `GET /areas` — spatial filtering via `?bbox=minLon,minLat,maxLon,maxLat` or `?polygon=<GeoJSON Polygon>` (exactly one required). Optional `?limit`. Returns a GeoJSON `FeatureCollection`; Features carry real Point geometry (Stage 13: framework v1.0.0-beta.75 added Lat/Lon/Alt echo to `SpatialResult`). `X-CS-Geometry-Available: false` header retired at Stage 13.
   - `GET /conformance` — declares the full v0.1 set: Common Part 1 core + json + **oas30** (Stage 12), CS API core + json + oms + sensorml + json-ld + geojson + **create-replace-delete** (Stage 16/17) + **update** (Stage 19) + **procedure** (Stage 20) + **deployment** (Stage 21) + **sampling feature** (Stage 22) + **property** (Stage 23) + Part 2 **api-common** + **controlstream** (Stage 24) + **system-event** (Stage 25) + **datastream** (Stage 44). Stages 20+25 begin closing the OSH-bar resource-type gap (sponsor 2026-05-17 set OSH compliance as the new bar; OSH declares 34 classes).
@@ -83,12 +84,13 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   `main`, on `workflow_dispatch`, and on PRs labelled `conformance` — **not a PR-blocking
   gate** at this stage.
 
-  **Current outcome (Stage 44, 2026-06-02): `total=137 passed=89 failed=0 skipped=48`.**
+  **Current outcome (Stage 45, 2026-06-02): `total=137 passed=91 failed=0 skipped=46`.**
   Zero failures against our claimed conformance set. Stage 44 declares Part 2
   Datastreams/Observations and verifies the read-only surface: full Datastream collection
   items, canonical item reads, schema wrapper, global/nested Observation collections, and
-  `/systems/{id}/datastreams`. Observation item/reference tests still SKIP because global
-  Observation indexing is intentionally not implemented at v0.1.
+  `/systems/{id}/datastreams`. Stage 45 makes the Observation collections populated, adds
+  canonical `/observations/{obsID}` item reads, and closes the Part 2 Datastream
+  observation item/reference checks without introducing a graph index.
 
   Trajectory: Stage 12 (20/0/117) → Stage 14 (29/1/107) → Stage 15 (32/0/105) →
   Stage 16+17+conformance-fix (38/2/97) → Stage 18 (40/0/97) → Stage 22 (58/0/79) →
@@ -97,9 +99,10 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   Stage 31 (79/0/58) → Stage 32 (79/0/58) → Stage 33 (79/0/58) → Stage 34 (79/0/58) →
   Stage 35 (79/0/58) → Stage 36 (79/0/58) → Stage 37 (79/0/58) → Stage 38 (79/0/58) →
   Stage 39 (79/0/58) → Stage 40 (79/0/58) → Stage 41 (79/0/58) → Stage 42 (79/0/58) →
-  Stage 43 (80/0/57) → Stage 44 (89/0/48). Eventual-consistency seed-then-query lag is
-  handled by `run.sh` poll-until-visible checks after seed (systems, datastreams,
-  controlstreams, systemEvents); TeamEngine host readiness is actively polled because
+  Stage 43 (80/0/57) → Stage 44 (89/0/48) → Stage 45 (91/0/46).
+  Eventual-consistency seed-then-query lag is handled by `run.sh` poll-until-visible
+  checks after seed (systems, datastreams, observations, controlstreams, systemEvents);
+  TeamEngine host readiness is actively polled because
   Tomcat can briefly reset connections after Docker starts the container.
 - **`Dockerfile`** (repo root) — multi-stage build of cs-api-server into a distroless/static-debian12 image. Used by the conformance harness and eventual operator deploys.
 
@@ -172,7 +175,8 @@ The deployment substrate underneath is NATS (JetStream + KV) — the framework's
 | `GET /controlstreams/{id}/schema` | `graph.query.entity` → `csapi.HasCommandSchema` → typed `csapi:SWESchemaDocument` artifact entity → ObjectStore bytes via `StorageRef` → command schema with SWE Common DataRecord `parametersSchema`. Stage 34 validates/canonicalizes new schemas with `pkg/swecommon`; artifact storage Stage 42. |
 | `GET /controlstreams/{id}/commands` | `graph.query.entity` kind check → empty Command collection. Stage 24. |
 | `GET /commands` | Empty global Command collection. Stage 43; command execution/status lifecycle remains out of scope at v0.1. |
-| `GET /observations` | Empty global Observation collection. Stage 44; canonical/global observation indexing remains out of scope at v0.1. |
+| `GET /observations` | Wildcard JetStream read over `cs-api.observations.>` → JSON ObservationCollection with `datastream@id` recovered from subject. Stage 44 endpoint; populated Stage 45. |
+| `GET /observations/{obsID}` | Wildcard JetStream scan → first matching JSON Observation resource. Stage 45; no graph index at v0.1. |
 | `GET /systems/{id}/datastreams` | Predicate-query all Datastreams, hydrate, filter by dotted `vocabulary/csapi.ProducedBy`. Stage 44. |
 | `GET /systems/{id}/controlstreams` | Predicate-query all ControlStreams, hydrate, filter by dotted `vocabulary/csapi.ControlsSystem`. Stage 24; beta.91 dotted predicate migration Stage 39. |
 | `GET /systemEvents` | `graph.index.query.predicate` (rdf:type = `vocabulary/csapi.SystemEvent`) → `graph.query.batch` hydration → JSON SystemEventCollection. Stage 25; batch hydration Stage 40. |

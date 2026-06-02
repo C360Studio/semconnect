@@ -1222,16 +1222,37 @@ class and wires the read-only surface the pinned ETS checks:
   `{obsFormat,resultSchema}`.
 - `/systems/{id}/datastreams` filters Datastreams by the stored
   `csapi.ProducedBy` relationship.
-- `/observations` is a readable empty global Observation collection;
-  populated observation reads remain Datastream-scoped at
-  `/datastreams/{id}/observations`.
+- `/observations` is a readable global Observation collection; Stage 45
+  makes it populated through the existing JetStream observation stream.
 - `conformance/run.sh` now seeds a schema-backed Datastream and actively
   polls `/datastreams` so Team Engine does not race the predicate index.
 
 **Outcome:** `total=137 passed=89 failed=0 skipped=48` (confirmed
 2026-06-02). The remaining Part 2 Datastream SKIPs are observation item
 and reference checks that require populated global/canonical Observation
-resources, which remain intentionally out of scope at v0.1.
+resources.
+
+### Stage 45 — canonical Observation read resources
+
+Stage 45 closes the populated Observation checks without introducing a
+new graph index:
+
+- `GET /observations` now reads the existing `cs-api.observations.>`
+  JetStream stream and returns JSON Observation resources.
+- `GET /observations/{obsID}` scans the same stream and returns the first
+  matching canonical Observation item.
+- JSON Observation resources add the Part 2-required `datastream@id`,
+  recovered from the JetStream subject. The `application/om+json` nested
+  read still returns the original OMS payload bytes.
+- `conformance/run.sh` now posts one OMS observation after Datastream
+  seed, then polls both `/observations` and
+  `/datastreams/{id}/observations` before invoking Team Engine.
+
+**Outcome:** `total=137 passed=91 failed=0 skipped=46` (confirmed
+2026-06-02). The Part 2 Datastream block is now fully PASSING in the
+pinned ETS. Remaining skips are outside the Datastream read-side slice
+(for example richer relation-type mapping, command execution/status, and
+Advanced Filtering).
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

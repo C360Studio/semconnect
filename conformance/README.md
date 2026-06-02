@@ -82,7 +82,8 @@ Outputs land in `conformance/output/` (gitignored):
 - `cs-api-server-container-<UTC>.log` — gateway logs (Stage 9).
 - `semstreams-backend-container-<UTC>.log` — framework backend logs (Stage 9).
 - `nats-container-<UTC>.log` — captured on failure only (Stage 9).
-- `seed-<UTC>.log` — POST /systems + POST /datastreams responses (Stage 9).
+- `seed-<UTC>.log` — fixture POST responses for systems, datastreams,
+  observations, and the later read-side resource seeds.
 - `compose-build-<UTC>.log` — full build log (all three buildable services).
 - `summary.txt` — human-readable summary with TestNG attribute counts.
 
@@ -182,9 +183,10 @@ SensorML + GeoJSON test groups. Without the seed step, the loaders
 see an empty collection and either SkipException or assert-fail,
 cascading SKIP through ~120 dependent tests.
 
-`observations.om.json` is not seeded today — `POST /datastreams/{id}/observations`
-is wired (Stage 3) but no ETS test currently reads stored observations
-back. Add to the seed step when an observation-shape test lands upstream.
+Stage 45 seeds one OMS observation through
+`POST /datastreams/{id}/observations` after the Datastream fixture is
+created, then polls both `/observations` and
+`/datastreams/{id}/observations` before Team Engine starts.
 
 ## NATS config (Stage 9)
 

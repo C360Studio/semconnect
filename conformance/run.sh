@@ -258,7 +258,38 @@ EOF
     if [[ "$ds_code" != "201" ]]; then
         die "POST /datastreams failed: $ds_code (see $SEED_LOG)"
     fi
-    log "  seeded datastream (HTTP $ds_code)"
+    local ds_loc
+    ds_loc="$(echo "$ds_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    local ds_id="${ds_loc##*/}"
+    if [[ -z "$ds_id" ]]; then
+        die "POST /datastreams returned 201 but Location header was empty or missing (see $SEED_LOG)"
+    fi
+    if ! [[ "$ds_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
+        die "POST /datastreams returned 201 with malformed id '$ds_id' (see $SEED_LOG)"
+    fi
+    log "  seeded datastream: id=$ds_id"
+
+    local obs_body
+    obs_body=$(cat <<EOF
+{"id":"ets-observation-001","procedure":"urn:ets:procedure:temperature","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","resultTime":"2026-06-02T18:00:00Z","result":21.5}
+EOF
+)
+    log "  POST /datastreams/$ds_id/observations"
+    local obs_resp
+    obs_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
+        -X POST -H 'Content-Type: application/om+json' \
+        --data-binary "$obs_body" \
+        "${cs_api_url}/datastreams/${ds_id}/observations" 2>&1)" || true
+    echo "$obs_resp" >>"$SEED_LOG"
+    local obs_code
+    obs_code="$(echo "$obs_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$obs_code" != "201" ]]; then
+        die "POST /datastreams/$ds_id/observations failed: $obs_code (see $SEED_LOG)"
+    fi
+    log "  seeded observation (HTTP $obs_code)"
 
     # Stage 12 — wait for the predicate index to reflect the seed before
     # invoking the suite. POST writes to ENTITY_STATES synchronously;
@@ -270,6 +301,8 @@ EOF
     log "  waiting for predicate index to reflect seed (eventual consistency)"
     wait_for_seeded_collection "$cs_api_url" "/systems" "system"
     wait_for_seeded_collection "$cs_api_url" "/datastreams" "datastream" "items"
+    wait_for_seeded_collection "$cs_api_url" "/observations" "observation"
+    wait_for_seeded_collection "$cs_api_url" "/datastreams/${ds_id}/observations" "datastream observation"
 
     # Stage 20 — seed a Procedure so the ETS procedures test group
     # has non-empty /procedures to exercise. Same Feature shape POST

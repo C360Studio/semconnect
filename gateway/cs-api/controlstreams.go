@@ -262,6 +262,30 @@ func (c *Component) handleControlStreamCommands(w http.ResponseWriter, r *http.R
 	})
 }
 
+func (c *Component) handleCommands(w http.ResponseWriter, r *http.Request) {
+	if _, ok := NegotiateRequest(r, FamilyControlStreamCollection); !ok {
+		WriteNotAcceptable(w, FamilyControlStreamCollection)
+		return
+	}
+	if _, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit); err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", string(MediaJSON))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	_ = json.NewEncoder(w).Encode(struct {
+		Items []any  `json:"items"`
+		Links []link `json:"links,omitempty"`
+	}{
+		Items: []any{},
+		Links: []link{{Href: "/commands", Rel: "self", Type: string(MediaJSON)}},
+	})
+}
+
 func (c *Component) handleSystemControlStreams(w http.ResponseWriter, r *http.Request) {
 	if _, ok := NegotiateRequest(r, FamilyControlStreamCollection); !ok {
 		WriteNotAcceptable(w, FamilyControlStreamCollection)
@@ -495,6 +519,11 @@ func (c *Component) handleControlStreamsOptions(w http.ResponseWriter, _ *http.R
 }
 
 func (c *Component) handleControlStreamOptions(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Allow", "GET, HEAD, OPTIONS")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *Component) handleCommandsOptions(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Allow", "GET, HEAD, OPTIONS")
 	w.WriteHeader(http.StatusNoContent)
 }

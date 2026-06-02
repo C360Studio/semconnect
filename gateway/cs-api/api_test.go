@@ -158,7 +158,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"/properties", "/properties/{id}",
 		// Stage 24 — Part 2 /controlstreams read-side.
 		"/controlstreams", "/controlstreams/{id}",
-		"/systems/{id}/controlstreams",
+		"/systems/{id}/controlstreams", "/commands",
 		// Stage 25 — Part 2 /systemEvents read-side.
 		"/systemEvents", "/systemEvents/{id}",
 		"/systems/{id}/events", "/systems/{id}/events/{eventID}",
@@ -177,17 +177,13 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 			t.Errorf("path %s carries x-not-implemented-at-v01=%v but is wired", p, v)
 		}
 	}
-	wantStub := []string{
-		"/commands",
-	}
-	for _, p := range wantStub {
-		entry, ok := paths[p].(map[string]any)
+	for p, raw := range paths {
+		entry, ok := raw.(map[string]any)
 		if !ok {
-			t.Errorf("openapi.yaml missing stub path: %s", p)
 			continue
 		}
-		if v, _ := entry["x-not-implemented-at-v01"].(bool); !v {
-			t.Errorf("stub path %s missing x-not-implemented-at-v01: true", p)
+		if v, ok := entry["x-not-implemented-at-v01"]; ok {
+			t.Errorf("path %s carries retired x-not-implemented-at-v01=%v", p, v)
 		}
 	}
 

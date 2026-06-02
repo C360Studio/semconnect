@@ -1190,6 +1190,24 @@ Stage 42 retires the gateway-local schema JSON predicates:
 2026-06-02). Headline conformance is unchanged from Stage 41; this stage
 retires local storage debt rather than claiming a new ETS branch.
 
+### Stage 43 — Global Commands read collection
+
+Stage 43 implements the optional canonical `GET /commands` endpoint as a
+readable empty Command collection:
+
+- `/commands` supports `GET`, `HEAD`, and `OPTIONS`.
+- The JSON body mirrors `/controlstreams/{id}/commands` with `items: []`
+  and a `self` link.
+- `?limit=` is parsed and validated for collection consistency, but no
+  Command lifecycle or execution semantics are introduced at v0.1.
+- `gateway/cs-api/openapi.yaml` no longer carries any
+  `x-not-implemented-at-v01` paths.
+
+**Outcome:** `total=137 passed=80 failed=0 skipped=57` (confirmed
+2026-06-02). The ETS now passes the optional canonical Commands endpoint
+check; Advanced Filtering command tests still SKIP because `/commands`
+is empty and semconnect does not claim Advanced Filtering.
+
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.
 
@@ -1200,13 +1218,9 @@ TestNG delta in the bump PR description so the reviewer sees what
 conformance picture moved. ADR-S001 §4 documents the pin policy;
 `conformance/README.md` documents the procedure.
 
-In parallel, each `x-not-implemented-at-v01: true` path in
-`gateway/cs-api/openapi.yaml` is its own future stage — Procedures,
-Sampling Features, Properties, Deployments, Collections (OGC API
-Common Part 2), and the Part 2 write side (Control Streams, Commands,
-System Events). Implementation pattern is established by Stages 8/11:
-inline schema + handler + tests; mark the OAS extension off; verify
-conformance delta.
+Future CS API surface expansion should continue the established pattern:
+inline schema + handler + tests; update `gateway/cs-api/openapi.yaml`;
+verify conformance delta.
 
 ## What lives where (recap)
 

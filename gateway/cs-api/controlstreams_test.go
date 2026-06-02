@@ -156,6 +156,43 @@ func TestHandleControlStreamCommands_EmptyCollection(t *testing.T) {
 	}
 }
 
+func TestHandleCommands_EmptyCollection(t *testing.T) {
+	c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected})
+
+	req := httptest.NewRequest(http.MethodGet, "/commands?limit=2", nil)
+	rr := httptest.NewRecorder()
+	c.handleCommands(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll struct {
+		Items []any  `json:"items"`
+		Links []link `json:"links"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 0 {
+		t.Fatalf("items: got %+v want empty", coll.Items)
+	}
+	if len(coll.Links) != 1 || coll.Links[0].Href != "/commands" {
+		t.Fatalf("links: %+v", coll.Links)
+	}
+}
+
+func TestHandleCommands_BadLimit(t *testing.T) {
+	c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected})
+
+	req := httptest.NewRequest(http.MethodGet, "/commands?limit=0", nil)
+	rr := httptest.NewRecorder()
+	c.handleCommands(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
 func TestHandleControlStreamPost_JSON(t *testing.T) {
 	fake := &fakeRequester{
 		status: natsclient.StatusConnected,

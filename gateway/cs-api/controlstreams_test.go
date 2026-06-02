@@ -18,6 +18,7 @@ import (
 const (
 	testControlStreamID = "c360.semconnect.systems.csapi.controlstream.ptz"
 	testControlSystemID = "c360.semconnect.systems.csapi.system.camera001"
+	testCommandID       = "c360.semconnect.systems.csapi.command.ptz001"
 )
 
 func controlStreamState(t *testing.T) []byte {
@@ -44,6 +45,20 @@ func controlStreamState(t *testing.T) []byte {
 
 func testCommandParametersSchema() json.RawMessage {
 	return json.RawMessage(`{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"}]}`)
+}
+
+func commandState(t *testing.T) []byte {
+	t.Helper()
+	return encodeEntityState(t, graph.EntityState{
+		ID: testCommandID,
+		Triples: []message.Triple{
+			{Subject: testCommandID, Predicate: sensorml.PredType, Object: CommandTypeIRI},
+			{Subject: testCommandID, Predicate: PredCommandControlStream, Object: testControlStreamID},
+			{Subject: testCommandID, Predicate: predCommandStatus, Object: "accepted"},
+			{Subject: testCommandID, Predicate: predCommandSender, Object: "ets"},
+			{Subject: testCommandID, Predicate: predCommandParams, Object: `{"pan":10}`},
+		},
+	})
 }
 
 func TestHandleControlStreams_GoldenPath(t *testing.T) {
@@ -161,12 +176,15 @@ func TestHandleControlStreamSchema(t *testing.T) {
 	}
 }
 
-func TestHandleControlStreamCommands_EmptyCollection(t *testing.T) {
-	fake := &fakeRequester{
-		reply:  controlStreamState(t),
-		status: natsclient.StatusConnected,
+func TestHandleControlStreamCommands_ReturnsReferencingCommands(t *testing.T) {
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testCommandID}),
+		entityRepliesByID: map[string][]byte{
+			testControlStreamID: controlStreamState(t),
+			testCommandID:       commandState(t),
+		},
 	}
-	c := newTestComponent(t, fake)
+	c := newComponentWithRequester(t, fake)
 
 	req := httptest.NewRequest(http.MethodGet, "/controlstreams/"+testControlStreamID+"/commands", nil)
 	req.SetPathValue("id", testControlStreamID)
@@ -176,13 +194,26 @@ func TestHandleControlStreamCommands_EmptyCollection(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
 	}
-	if !strings.Contains(rr.Body.String(), `"items":[]`) {
-		t.Errorf("body: %s", rr.Body.String())
+	var coll commandCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v; body=%s", err, rr.Body.String())
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != testCommandID {
+		t.Fatalf("items: %+v", coll.Items)
+	}
+	if coll.Items[0].ControlStreamID != testControlStreamID {
+		t.Fatalf("controlstream@id: got %q want %q", coll.Items[0].ControlStreamID, testControlStreamID)
 	}
 }
 
-func TestHandleCommands_EmptyCollection(t *testing.T) {
-	c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected})
+func TestHandleCommands_ReturnsGlobalCommandCollection(t *testing.T) {
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, []string{testCommandID}),
+		entityRepliesByID: map[string][]byte{
+			testCommandID: commandState(t),
+		},
+	}
+	c := newComponentWithRequester(t, fake)
 
 	req := httptest.NewRequest(http.MethodGet, "/commands?limit=2", nil)
 	rr := httptest.NewRecorder()
@@ -191,18 +222,39 @@ func TestHandleCommands_EmptyCollection(t *testing.T) {
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
 	}
-	var coll struct {
-		Items []any  `json:"items"`
-		Links []link `json:"links"`
-	}
+	var coll commandCollection
 	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if len(coll.Items) != 0 {
-		t.Fatalf("items: got %+v want empty", coll.Items)
+	if len(coll.Items) != 1 || coll.Items[0].ID != testCommandID {
+		t.Fatalf("items: %+v", coll.Items)
 	}
 	if len(coll.Links) != 1 || coll.Links[0].Href != "/commands" {
 		t.Fatalf("links: %+v", coll.Links)
+	}
+}
+
+func TestHandleCommand_JSON(t *testing.T) {
+	fake := &fakeRequester{
+		reply:  commandState(t),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/commands/"+testCommandID, nil)
+	req.SetPathValue("id", testCommandID)
+	rr := httptest.NewRecorder()
+	c.handleCommand(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var cmd command
+	if err := json.Unmarshal(rr.Body.Bytes(), &cmd); err != nil {
+		t.Fatalf("decode: %v; body=%s", err, rr.Body.String())
+	}
+	if cmd.ID != testCommandID || cmd.ControlStreamID != testControlStreamID {
+		t.Fatalf("command: %+v", cmd)
 	}
 }
 
@@ -215,6 +267,43 @@ func TestHandleCommands_BadLimit(t *testing.T) {
 
 	if rr.Code != http.StatusBadRequest {
 		t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestHandleCommandPost_JSON(t *testing.T) {
+	fake := &fakeRequester{
+		status: natsclient.StatusConnected,
+		reply:  encodeBatchOK(t, 9),
+	}
+	c := newTestComponent(t, fake)
+
+	body := []byte(`{"id":"` + testCommandID + `","controlstream@id":"` + testControlStreamID + `","sender":"ets","params":{"pan":10}}`)
+	req := httptest.NewRequest(http.MethodPost, "/commands", bytes.NewReader(body))
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleCommandPost(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("status: got %d want 201; body=%s", rr.Code, rr.Body.String())
+	}
+	var batch graph.AddTriplesBatchRequest
+	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
+		t.Fatalf("decode batch: %v", err)
+	}
+	var sawType, sawControlStream, sawParams bool
+	for _, tr := range batch.Triples {
+		switch tr.Predicate {
+		case sensorml.PredType:
+			sawType = tr.Object == CommandTypeIRI
+		case PredCommandControlStream:
+			sawControlStream = tr.Object == testControlStreamID
+		case predCommandParams:
+			sawParams = tr.Object == `{"pan":10}`
+		}
+	}
+	if !sawType || !sawControlStream || !sawParams {
+		t.Errorf("batch missing triples: type=%v controlstream=%v params=%v batch=%+v",
+			sawType, sawControlStream, sawParams, batch.Triples)
 	}
 }
 

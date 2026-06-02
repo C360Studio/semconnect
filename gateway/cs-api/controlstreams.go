@@ -21,13 +21,20 @@ import (
 
 const (
 	ControlStreamTypeIRI = csapivocab.ControlStream
+	CommandTypeIRI       = csapivocab.Command
 
 	PredControlStreamSystem               = csapivocab.ControlsSystem
+	PredCommandControlStream              = csapivocab.PartOfControlStream
 	predControlStreamInputName            = "cs-api.controlstream.inputName"
 	predControlStreamAsync                = "cs-api.controlstream.async"
 	predControlStreamCommandFormat        = "cs-api.controlstream.commandFormat"
 	predControlStreamSchema               = csapivocab.HasCommandSchema
 	predControlStreamControlledProperties = "cs-api.controlstream.controlledProperties"
+	predCommandIssueTime                  = "cs-api.command.issueTime"
+	predCommandExecutionTime              = "cs-api.command.executionTime"
+	predCommandStatus                     = "cs-api.command.status"
+	predCommandSender                     = "cs-api.command.sender"
+	predCommandParams                     = "cs-api.command.params"
 )
 
 type controlStreamCollection struct {
@@ -62,6 +69,24 @@ type commandSchema struct {
 	ParametersSchema map[string]any `json:"parametersSchema"`
 }
 
+type commandCollection struct {
+	Items []command `json:"items"`
+	Links []link    `json:"links,omitempty"`
+}
+
+type command struct {
+	ID              string          `json:"id"`
+	Type            string          `json:"type"`
+	ControlStreamID string          `json:"controlstream@id,omitempty"`
+	ControlStream   *link           `json:"controlstream@link,omitempty"`
+	IssueTime       string          `json:"issueTime,omitempty"`
+	ExecutionTime   string          `json:"executionTime,omitempty"`
+	Status          string          `json:"status,omitempty"`
+	Sender          string          `json:"sender,omitempty"`
+	Params          json.RawMessage `json:"params,omitempty"`
+	Links           []link          `json:"links,omitempty"`
+}
+
 type controlStreamPostBody struct {
 	ID                   string               `json:"id,omitempty"`
 	Name                 string               `json:"name"`
@@ -71,6 +96,16 @@ type controlStreamPostBody struct {
 	ControlledProperties []controlledProperty `json:"controlledProperties,omitempty"`
 	Async                bool                 `json:"async"`
 	Schema               commandSchema        `json:"schema"`
+}
+
+type commandPostBody struct {
+	ID              string          `json:"id,omitempty"`
+	ControlStreamID string          `json:"controlstream@id"`
+	IssueTime       string          `json:"issueTime,omitempty"`
+	ExecutionTime   string          `json:"executionTime,omitempty"`
+	Status          string          `json:"status,omitempty"`
+	Sender          string          `json:"sender,omitempty"`
+	Params          json.RawMessage `json:"params,omitempty"`
 }
 
 func controlStreamFromState(state graph.EntityState) controlStream {
@@ -115,6 +150,43 @@ func controlStreamFromState(state graph.EntityState) controlStream {
 func isControlStreamKind(triples []message.Triple) bool {
 	typeIRI, ok := firstStringObject(triples, typeAliases...)
 	return ok && typeIRI == ControlStreamTypeIRI
+}
+
+func commandFromState(state graph.EntityState) command {
+	cmd := command{
+		ID:     state.ID,
+		Type:   "Command",
+		Status: "accepted",
+		Links: []link{
+			{Href: "/commands/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
+		},
+	}
+	if v, ok := firstStringObject(state.Triples, PredCommandControlStream); ok {
+		cmd.ControlStreamID = v
+		cmd.ControlStream = &link{Href: "/controlstreams/" + v, Rel: "controlstream", Type: string(MediaJSON), Title: v}
+		cmd.Links = append(cmd.Links, link{Href: "/controlstreams/" + v + "/commands", Rel: "controlstream", Type: string(MediaJSON)})
+	}
+	if v, ok := firstStringObject(state.Triples, predCommandIssueTime); ok {
+		cmd.IssueTime = v
+	}
+	if v, ok := firstStringObject(state.Triples, predCommandExecutionTime); ok {
+		cmd.ExecutionTime = v
+	}
+	if v, ok := firstStringObject(state.Triples, predCommandStatus); ok {
+		cmd.Status = v
+	}
+	if v, ok := firstStringObject(state.Triples, predCommandSender); ok {
+		cmd.Sender = v
+	}
+	if v, ok := firstStringObject(state.Triples, predCommandParams); ok && v != "" {
+		cmd.Params = json.RawMessage(v)
+	}
+	return cmd
+}
+
+func isCommandKind(triples []message.Triple) bool {
+	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	return ok && typeIRI == CommandTypeIRI
 }
 
 func (c *Component) handleControlStreams(w http.ResponseWriter, r *http.Request) {
@@ -234,9 +306,18 @@ func (c *Component) handleControlStreamSchema(w http.ResponseWriter, r *http.Req
 }
 
 func (c *Component) handleControlStreamCommands(w http.ResponseWriter, r *http.Request) {
+	if _, ok := NegotiateRequest(r, FamilyControlStreamCollection); !ok {
+		WriteNotAcceptable(w, FamilyControlStreamCollection)
+		return
+	}
 	id := r.PathValue("id")
 	if err := validateEntityID(id); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid controlstream id: "+err.Error())
+		return
+	}
+	limit, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	state, err := c.fetchEntity(r.Context(), id)
@@ -248,18 +329,13 @@ func (c *Component) handleControlStreamCommands(w http.ResponseWriter, r *http.R
 		writeJSONError(w, http.StatusNotFound, "entity is not a ControlStream")
 		return
 	}
-	w.Header().Set("Content-Type", string(MediaJSON))
-	w.WriteHeader(http.StatusOK)
-	if r.Method == http.MethodHead {
+
+	ids, err := c.listEntitiesByType(r.Context(), CommandTypeIRI, c.cfg.MaxListLimit, "listControlStreamCommandEntities")
+	if err != nil {
+		c.writeBackendError(w, err)
 		return
 	}
-	_ = json.NewEncoder(w).Encode(struct {
-		Items []any  `json:"items"`
-		Links []link `json:"links,omitempty"`
-	}{
-		Items: []any{},
-		Links: []link{{Href: "/controlstreams/" + id + "/commands", Rel: "self", Type: string(MediaJSON)}},
-	})
+	c.writeCommandCollection(w, r, ids, id, "/controlstreams/"+id+"/commands", limit)
 }
 
 func (c *Component) handleCommands(w http.ResponseWriter, r *http.Request) {
@@ -267,23 +343,81 @@ func (c *Component) handleCommands(w http.ResponseWriter, r *http.Request) {
 		WriteNotAcceptable(w, FamilyControlStreamCollection)
 		return
 	}
-	if _, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit); err != nil {
+	limit, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit)
+	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	ids, err := c.listEntitiesByType(r.Context(), CommandTypeIRI, limit, "listCommandEntities")
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+	c.writeCommandCollection(w, r, ids, "", "/commands", limit)
+}
 
+func (c *Component) handleCommand(w http.ResponseWriter, r *http.Request) {
+	if _, ok := NegotiateRequest(r, FamilyControlStreamItem); !ok {
+		WriteNotAcceptable(w, FamilyControlStreamItem)
+		return
+	}
+	id := r.PathValue("id")
+	if err := validateEntityID(id); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid command id: "+err.Error())
+		return
+	}
+	state, err := c.fetchEntity(r.Context(), id)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+	if !isCommandKind(state.Triples) {
+		writeJSONError(w, http.StatusNotFound, "entity is not a Command")
+		return
+	}
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)
 	if r.Method == http.MethodHead {
 		return
 	}
-	_ = json.NewEncoder(w).Encode(struct {
-		Items []any  `json:"items"`
-		Links []link `json:"links,omitempty"`
-	}{
-		Items: []any{},
-		Links: []link{{Href: "/commands", Rel: "self", Type: string(MediaJSON)}},
-	})
+	_ = json.NewEncoder(w).Encode(commandFromState(state))
+}
+
+func (c *Component) writeCommandCollection(w http.ResponseWriter, r *http.Request, ids []string, controlStreamFilter string, selfHref string, limit int) {
+	coll := commandCollection{
+		Items: make([]command, 0, len(ids)),
+		Links: []link{{Href: selfHref, Rel: "self", Type: string(MediaJSON)}},
+	}
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), ids)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+	for _, id := range ids {
+		state, ok := statesByID[id]
+		if !ok {
+			c.logger.Warn("batch entity fetch for Command collection missed entity; skipping",
+				"entity", id)
+			continue
+		}
+		if !isCommandKind(state.Triples) {
+			continue
+		}
+		cmd := commandFromState(state)
+		if controlStreamFilter != "" && cmd.ControlStreamID != controlStreamFilter {
+			continue
+		}
+		coll.Items = append(coll.Items, cmd)
+		if len(coll.Items) == limit {
+			break
+		}
+	}
+	w.Header().Set("Content-Type", string(MediaJSON))
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	_ = json.NewEncoder(w).Encode(coll)
 }
 
 func (c *Component) handleSystemControlStreams(w http.ResponseWriter, r *http.Request) {
@@ -359,8 +493,49 @@ func (c *Component) handleControlStreamPost(w http.ResponseWriter, r *http.Reque
 	}{Status: "created", ID: entityID, Type: "ControlStream"})
 }
 
+func (c *Component) handleCommandPost(w http.ResponseWriter, r *http.Request) {
+	if err := requireMediaTypeAny(r.Header.Get("Content-Type"), string(MediaJSON)); err != nil {
+		w.Header().Set("Accept-Post", string(MediaJSON))
+		writeJSONError(w, http.StatusUnsupportedMediaType, err.Error())
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		var maxErr *http.MaxBytesError
+		if errors.As(err, &maxErr) {
+			writeJSONError(w, http.StatusRequestEntityTooLarge,
+				fmt.Sprintf("request body exceeds %d bytes", maxErr.Limit))
+			return
+		}
+		writeJSONError(w, http.StatusBadRequest, "could not read request body")
+		return
+	}
+	entityID, triples, buildErr := c.buildCommandTriples(body)
+	if buildErr != nil {
+		writeJSONError(w, http.StatusBadRequest, buildErr.Error())
+		return
+	}
+	if err := c.ingestTriples(r.Context(), triples, IdentityFrom(r.Context())); err != nil {
+		w.Header().Set("X-CS-Attempted-ID", entityID)
+		c.writeBackendError(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", string(MediaJSON))
+	w.Header().Set("Location", "/commands/"+entityID)
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(struct {
+		Status string `json:"status"`
+		ID     string `json:"id"`
+		Type   string `json:"type"`
+	}{Status: "created", ID: entityID, Type: "Command"})
+}
+
 func (c *Component) mintControlStreamEntityID(uniqueID string) string {
 	return c.cfg.ControlStreamIDPrefix + "." + uniqueIDToToken(uniqueID)
+}
+
+func (c *Component) mintCommandEntityID(uniqueID string) string {
+	return c.cfg.CommandIDPrefix + "." + uniqueIDToToken(uniqueID)
 }
 
 func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Triple, commandSchema, error) {
@@ -413,6 +588,50 @@ func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Tr
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredControlStreamSystem, Object: in.SystemID})
 	}
 	return entityID, triples, in.Schema, nil
+}
+
+func (c *Component) buildCommandTriples(body []byte) (string, []message.Triple, error) {
+	var in commandPostBody
+	if err := json.Unmarshal(body, &in); err != nil {
+		return "", nil, fmt.Errorf("invalid command JSON: %w", err)
+	}
+	if in.ControlStreamID == "" {
+		return "", nil, errors.New("controlstream@id required")
+	}
+	if err := validateEntityID(in.ControlStreamID); err != nil {
+		return "", nil, fmt.Errorf("controlstream@id invalid: %w", err)
+	}
+	entityID := in.ID
+	if entityID == "" {
+		entityID = c.mintCommandEntityID(in.ControlStreamID)
+	}
+	if err := validateEntityID(entityID); err != nil {
+		return "", nil, fmt.Errorf("id invalid: %w", err)
+	}
+	if len(in.Params) > 0 && !json.Valid(in.Params) {
+		return "", nil, errors.New("params must be valid JSON")
+	}
+	if in.Status == "" {
+		in.Status = "accepted"
+	}
+	triples := []message.Triple{
+		{Subject: entityID, Predicate: sensorml.PredType, Object: CommandTypeIRI},
+		{Subject: entityID, Predicate: PredCommandControlStream, Object: in.ControlStreamID},
+		{Subject: entityID, Predicate: predCommandStatus, Object: in.Status},
+	}
+	if in.IssueTime != "" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predCommandIssueTime, Object: in.IssueTime})
+	}
+	if in.ExecutionTime != "" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predCommandExecutionTime, Object: in.ExecutionTime})
+	}
+	if in.Sender != "" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predCommandSender, Object: in.Sender})
+	}
+	if len(in.Params) > 0 && string(in.Params) != "null" {
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: predCommandParams, Object: string(in.Params)})
+	}
+	return entityID, triples, nil
 }
 
 func controlledPropertiesFromTriples(triples []message.Triple) []controlledProperty {
@@ -524,6 +743,6 @@ func (c *Component) handleControlStreamOptions(w http.ResponseWriter, _ *http.Re
 }
 
 func (c *Component) handleCommandsOptions(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Allow", "GET, HEAD, OPTIONS")
+	w.Header().Set("Allow", "GET, HEAD, POST, OPTIONS")
 	w.WriteHeader(http.StatusNoContent)
 }

@@ -83,11 +83,10 @@ func TestHandleProcedures_GeoJSON(t *testing.T) {
 		"c360.semconnect.systems.csapi.procedure.alpha",
 		"c360.semconnect.systems.csapi.procedure.beta",
 	}
-	fake := &fakeRequester{
-		reply:  encodeReply(t, ids),
-		status: natsclient.StatusConnected,
+	fake := &multiReplyFakeRequester{
+		predicateReply: encodeReply(t, ids),
 	}
-	c := newTestComponent(t, fake)
+	c := newComponentWithRequester(t, fake)
 
 	req := httptest.NewRequest(http.MethodGet, "/procedures", nil)
 	req.Header.Set("Accept", string(MediaGeoJSON))

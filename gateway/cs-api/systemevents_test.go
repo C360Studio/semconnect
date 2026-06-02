@@ -66,6 +66,9 @@ func TestHandleSystemEvents_GoldenPath(t *testing.T) {
 	if coll.Items[0].SystemID != testEventSystemID {
 		t.Errorf("system@id: got %q", coll.Items[0].SystemID)
 	}
+	if fake.calls != 2 {
+		t.Errorf("requests: got %d want 2 (1 predicate + 1 batch)", fake.calls)
+	}
 }
 
 func TestHandleSystemEvent_JSON(t *testing.T) {

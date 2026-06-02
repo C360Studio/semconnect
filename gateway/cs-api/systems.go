@@ -76,7 +76,10 @@ type systemCollection struct {
 const (
 	subjectPredicateQuery = "graph.index.query.predicate"
 	subjectEntityQuery    = "graph.query.entity"
+	subjectBatchQuery     = "graph.query.batch"
 	predicateClassType    = sensorml.PredType
+
+	entityBatchChunkSize = 100
 )
 
 // system is the JSON shape returned by GET /systems/{id}. CS API §7.2's
@@ -236,14 +239,9 @@ func systemFromState(state graph.EntityState) system {
 //  3. NATS request to graph.index.query.predicate filtering rdf:type = ssn:System.
 //  4. Shape into CS API SystemCollection JSON OR GeoJSON FeatureCollection.
 //
-// The GeoJSON path is N+1 by design: predicate-query gives us entity IDs,
-// then we fetch each entity's state via graph.query.entity to recover the
-// framework position triple. At v0.1 list sizes this is
-// acceptable; a future optimization either (a) extends graph-index to
-// return entity properties alongside IDs, or (b) adds a batched
-// entity-query subject. Per-entity failures degrade to null-geometry
-// Features rather than failing the whole request — one missing position
-// shouldn't poison the page.
+// The GeoJSON path uses graph.query.batch to hydrate entity states and
+// recover the framework position triple. Partial-success batch misses
+// degrade to null-geometry Features rather than failing the whole request.
 func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 	// Method is enforced by the ServeMux pattern ("GET /systems",
 	// "HEAD /systems"); non-matching methods 405 before reaching here.
@@ -302,15 +300,17 @@ func (c *Component) handleSystems(w http.ResponseWriter, r *http.Request) {
 }
 
 // writeSystemsGeoJSON emits the GeoJSON FeatureCollection form of
-// /systems. Stage 15. Per-entity entity-query for the
-// framework position triple is N+1 — see handleSystems doc comment
-// for the deferred optimization paths. Per-entity backend failures
-// log a warn and degrade to a Feature with null geometry; transport-
-// layer failures (NATS unreachable) on the *first* entity surface as
-// 503 because all subsequent entities will fail identically.
+// /systems. Stage 40 uses graph.query.batch for entity hydration.
+// Missing entities from a partial-success batch reply log a warn and
+// degrade to a Feature with null geometry; batch-level transport
+// failures surface as backend errors.
 func (c *Component) writeSystemsGeoJSON(w http.ResponseWriter, r *http.Request, entities []string, limit int) {
 	features := make([]geojson.Feature, 0, len(entities))
-	var firstTransientErr error
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), entities)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	for _, id := range entities {
 		idBytes, _ := json.Marshal(id)
 		feature := geojson.Feature{
@@ -320,17 +320,10 @@ func (c *Component) writeSystemsGeoJSON(w http.ResponseWriter, r *http.Request, 
 				"type": "System",
 			},
 		}
-		state, ferr := c.fetchEntity(r.Context(), id)
-		if ferr != nil {
-			// Transient on the first entity → blame the backend and
-			// fail loudly. Transient on a later entity → log and
-			// degrade (the page is partial but not broken).
-			if errs.IsTransient(ferr) && firstTransientErr == nil && len(features) == 0 {
-				firstTransientErr = ferr
-				break
-			}
-			c.logger.Warn("fetch entity for FeatureCollection failed; degrading to null geometry",
-				"entity", id, "err", ferr)
+		state, ok := statesByID[id]
+		if !ok {
+			c.logger.Warn("batch entity fetch for FeatureCollection missed entity; degrading to null geometry",
+				"entity", id)
 			features = append(features, feature)
 			continue
 		}
@@ -356,10 +349,6 @@ func (c *Component) writeSystemsGeoJSON(w http.ResponseWriter, r *http.Request, 
 			}
 		}
 		features = append(features, feature)
-	}
-	if firstTransientErr != nil {
-		c.writeBackendError(w, firstTransientErr)
-		return
 	}
 	fc := geojson.FeatureCollection{Features: features}
 
@@ -563,6 +552,63 @@ func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntitySta
 		return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "decode entity state")
 	}
 	return state, nil
+}
+
+// fetchEntitiesBatch hydrates entity states via graph.query.batch in chunks.
+// The backend returns partial successes by omitting missing IDs, so callers
+// receive a map and decide whether a miss should skip or degrade a row.
+func (c *Component) fetchEntitiesBatch(ctx context.Context, ids []string) (map[string]graph.EntityState, error) {
+	statesByID := make(map[string]graph.EntityState, len(ids))
+	for start := 0; start < len(ids); start += entityBatchChunkSize {
+		end := start + entityBatchChunkSize
+		if end > len(ids) {
+			end = len(ids)
+		}
+		reqBody, err := json.Marshal(struct {
+			IDs []string `json:"ids"`
+		}{IDs: ids[start:end]})
+		if err != nil {
+			return nil, errs.Wrap(err, "cs-api", "fetchEntitiesBatch", "marshal batch query")
+		}
+
+		reply, err := c.nats.RequestWithHeaders(ctx, subjectBatchQuery, reqBody, nil, c.cfg.QueryTimeout)
+		if err != nil {
+			switch {
+			case errors.Is(err, nats.ErrNoResponders),
+				errors.Is(err, nats.ErrTimeout),
+				errors.Is(err, context.DeadlineExceeded),
+				errors.Is(err, nats.ErrConnectionClosed):
+				return nil, errs.WrapTransient(err, "cs-api", "fetchEntitiesBatch", "graph backend unavailable")
+			default:
+				return nil, errs.Wrap(err, "cs-api", "fetchEntitiesBatch", "batch query")
+			}
+		}
+
+		respBytes, err := natsclient.ClassifyReply(reply)
+		if err != nil {
+			if errs.IsInvalid(err) {
+				return nil, errs.WrapInvalid(err, "cs-api", "fetchEntitiesBatch", "bad query")
+			}
+			if errs.IsTransient(err) {
+				return nil, errs.WrapTransient(err, "cs-api", "fetchEntitiesBatch", "graph backend unavailable")
+			}
+			return nil, errs.Wrap(err, "cs-api", "fetchEntitiesBatch", "backend error")
+		}
+
+		var resp struct {
+			Entities []graph.EntityState `json:"entities"`
+		}
+		if err := json.Unmarshal(respBytes, &resp); err != nil {
+			return nil, errs.Wrap(err, "cs-api", "fetchEntitiesBatch", "decode batch entity states")
+		}
+		for _, state := range resp.Entities {
+			if state.ID == "" {
+				continue
+			}
+			statesByID[state.ID] = state
+		}
+	}
+	return statesByID, nil
 }
 
 // errEntityNotFound is the sentinel writeBackendError translates to 404.

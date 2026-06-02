@@ -142,11 +142,16 @@ func (c *Component) writeControlStreamCollection(w http.ResponseWriter, r *http.
 			{Href: "/controlstreams", Rel: "self", Type: string(MediaJSON)},
 		},
 	}
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), ids)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	for _, id := range ids {
-		state, err := c.fetchEntity(r.Context(), id)
-		if err != nil {
-			c.logger.Warn("fetch entity for ControlStream collection failed; skipping",
-				"entity", id, "err", err.Error())
+		state, ok := statesByID[id]
+		if !ok {
+			c.logger.Warn("batch entity fetch for ControlStream collection missed entity; skipping",
+				"entity", id)
 			continue
 		}
 		if !isControlStreamKind(state.Triples) {

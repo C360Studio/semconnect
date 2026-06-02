@@ -171,9 +171,7 @@ func (c *Component) handleProcedures(w http.ResponseWriter, r *http.Request) {
 // writeProceduresGeoJSON emits the GeoJSON FeatureCollection form of
 // /procedures. Stage 20.1. Per /req/procedure/location, procedures
 // MUST NOT carry geometry — every Feature's `geometry` field is the
-// literal JSON `null`. Distinct from /systems's GeoJSON path: no
-// N+1 entity-query (no per-entity geometry to fetch); featureType
-// is `Procedure`.
+// literal JSON `null`; batch hydration only enriches Feature properties.
 func (c *Component) writeProceduresGeoJSON(w http.ResponseWriter, r *http.Request, ids []string, limit int) {
 	// RawMessage holding the literal JSON `null` — used as a fixed
 	// value for every Feature's geometry. Marshaling a nil pointer
@@ -206,14 +204,18 @@ func (c *Component) writeProceduresGeoJSON(w http.ResponseWriter, r *http.Reques
 			{Href: "/procedures", Rel: "self", Type: string(MediaGeoJSON)},
 		},
 	}
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), ids)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	for _, id := range ids {
 		props := map[string]any{"featureType": "Procedure"}
-		state, ferr := c.fetchEntity(r.Context(), id)
-		if ferr == nil {
+		if state, ok := statesByID[id]; ok {
 			props = geoJSONFeaturePropertiesFromState("Procedure", state)
 		} else {
-			c.logger.Warn("fetch entity for procedure FeatureCollection failed; degrading to featureType-only properties",
-				"entity", id, "err", ferr.Error())
+			c.logger.Warn("batch entity fetch for procedure FeatureCollection missed entity; degrading to featureType-only properties",
+				"entity", id)
 		}
 		fc.Features = append(fc.Features, procedureFeature{
 			Type:       "Feature",

@@ -178,18 +178,22 @@ func (c *Component) writeSamplingFeaturesGeoJSON(w http.ResponseWriter, r *http.
 			{Href: "/samplingFeatures", Rel: "self", Type: string(MediaGeoJSON)},
 		},
 	}
+	statesByID, err := c.fetchEntitiesBatch(r.Context(), ids)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
 	for _, id := range ids {
 		geom := nullGeom
 		props := map[string]any{"featureType": "SamplingFeature"}
-		state, ferr := c.fetchEntity(r.Context(), id)
-		if ferr == nil {
+		if state, ok := statesByID[id]; ok {
 			props = geoJSONFeaturePropertiesFromState("SamplingFeature", state)
 			if v, ok := firstSystemPositionObject(state.Triples); ok && v != "" {
 				geom = json.RawMessage(v)
 			}
 		} else {
-			c.logger.Warn("fetch entity for sampling FeatureCollection failed; degrading to null geometry",
-				"entity", id, "err", ferr.Error())
+			c.logger.Warn("batch entity fetch for sampling FeatureCollection missed entity; degrading to null geometry",
+				"entity", id)
 		}
 		fc.Features = append(fc.Features, samplingFeatureFeature{
 			Type:       "Feature",

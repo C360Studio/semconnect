@@ -797,7 +797,8 @@ paths:
       summary: Fetch the SWE Common schema for a datastream.
       description: |-
         Returns the stored SWE Common DataRecord JSON schema for
-        observation value encodings. The Datastream graph entity stores
+        observation value encodings wrapped in the CS API Part 2
+        observation schema shape. The Datastream graph entity stores
         a `csapi.HasResultSchema` relationship to a first-class
         `csapi:SWESchemaDocument` artifact entity; the artifact's
         `StorageRef` points at the canonical schema bytes in ObjectStore.
@@ -806,10 +807,10 @@ paths:
         - $ref: "#/components/parameters/F"
       responses:
         "200":
-          description: SWE Common DataRecord schema.
+          description: Datastream observation schema.
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/SWEDataRecordSchema"}
+              schema: {$ref: "#/components/schemas/DatastreamObservationSchema"}
         "400": {$ref: "#/components/responses/BadRequest"}
         "404": {$ref: "#/components/responses/NotFound"}
         "406": {$ref: "#/components/responses/NotAcceptable"}
@@ -820,6 +821,27 @@ paths:
       responses:
         "200": {description: OK (no body)}
         "404": {description: Not Found}
+
+  /systems/{id}/datastreams:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getSystemDatastreams
+      summary: List datastreams for a system.
+      description: Stage 44 — filters Datastreams by the stored system reference.
+      tags: [Datastreams]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: DatastreamCollection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/DatastreamCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
 
   /datastreams/{datastreamID}/observations:
     parameters:
@@ -936,6 +958,39 @@ paths:
         "413": {$ref: "#/components/responses/PayloadTooLarge"}
         "415": {$ref: "#/components/responses/UnsupportedMediaType"}
         "503": {$ref: "#/components/responses/ServiceUnavailable"}
+
+  /observations:
+    get:
+      operationId: getGlobalObservations
+      summary: List global observations.
+      description: |-
+        Readable global Observation collection. v0.1 keeps observation
+        storage Datastream-scoped, so this canonical collection is empty
+        while `/datastreams/{id}/observations` exposes populated stream
+        reads.
+      tags: [Observations]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Empty global ObservationCollection.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ObservationCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+    head:
+      operationId: headGlobalObservations
+      tags: [Observations]
+      responses:
+        "200": {description: OK (no body)}
+    options:
+      operationId: optionsGlobalObservations
+      tags: [Observations]
+      responses:
+        "204":
+          description: No Content.
 
   # ============================================================
   # Spatial (cs-api shape on OGC GeoJSON conformance class)
@@ -2462,17 +2517,7 @@ components:
         truncated:      {type: boolean}
         items:
           type: array
-          items: {$ref: "#/components/schemas/DatastreamRef"}
-        links:
-          type: array
-          items: {$ref: "#/components/schemas/Link"}
-
-    DatastreamRef:
-      type: object
-      required: [id, type]
-      properties:
-        id:    {type: string}
-        type:  {type: string, enum: [Datastream]}
+          items: {$ref: "#/components/schemas/Datastream"}
         links:
           type: array
           items: {$ref: "#/components/schemas/Link"}
@@ -2486,12 +2531,30 @@ components:
         name:             {type: string}
         description:      {type: string}
         system:           {type: string, description: 6-part SemStreams system ID.}
+        system@id:        {type: string, description: CS API Part 2 producing System ID.}
+        system@link:      {$ref: "#/components/schemas/Link"}
+        outputName:       {type: string}
         observedProperty: {type: string, format: uri}
+        observedProperties:
+          type: array
+          items: {type: string, format: uri}
+        formats:
+          type: array
+          items: {type: string}
+        resultType:       {type: string}
         schema:
           $ref: "#/components/schemas/SWEDataRecordSchema"
         links:
           type: array
           items: {$ref: "#/components/schemas/Link"}
+
+    DatastreamObservationSchema:
+      type: object
+      required: [obsFormat, resultSchema]
+      properties:
+        obsFormat: {type: string}
+        resultSchema:
+          $ref: "#/components/schemas/SWEDataRecordSchema"
 
     DatastreamCreate:
       type: object

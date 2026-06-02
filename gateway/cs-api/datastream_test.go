@@ -106,11 +106,15 @@ func TestHandleDatastreams_GoldenPath(t *testing.T) {
 		"c360.semconnect.systems.csapi.datastream.alpha",
 		"c360.semconnect.systems.csapi.datastream.beta",
 	}
-	fake := &fakeRequester{
-		status: natsclient.StatusConnected,
-		reply:  encodeReply(t, ids),
+	systemID := "c360.semconnect.systems.csapi.system.sensor1"
+	fake := &multiReplyFakeRequester{
+		predicateReply:    encodeReply(t, ids),
+		entityRepliesByID: map[string][]byte{},
 	}
-	c := newTestComponent(t, fake)
+	for _, id := range ids {
+		fake.entityRepliesByID[id] = encodeDatastreamEntityState(t, id, "Feed "+id, systemID, "http://example.org/properties/temperature")
+	}
+	c := newComponentWithRequester(t, fake)
 
 	req := httptest.NewRequest(http.MethodGet, "/datastreams", nil)
 	rr := httptest.NewRecorder()
@@ -137,6 +141,41 @@ func TestHandleDatastreams_GoldenPath(t *testing.T) {
 	}
 	if len(coll.Items) != len(ids) {
 		t.Errorf("items: got %d want %d", len(coll.Items), len(ids))
+	}
+	if coll.Items[0].SystemID != systemID || coll.Items[0].OutputName == "" || len(coll.Items[0].ObservedProps) != 1 || len(coll.Items[0].Formats) == 0 || coll.Items[0].ResultType == "" {
+		t.Fatalf("collection item missing Part 2 datastream shape: %+v", coll.Items[0])
+	}
+}
+
+func TestHandleSystemDatastreams_FiltersBySystem(t *testing.T) {
+	ids := []string{
+		"c360.semconnect.systems.csapi.datastream.alpha",
+		"c360.semconnect.systems.csapi.datastream.beta",
+	}
+	systemID := "c360.semconnect.systems.csapi.system.sensor1"
+	otherSystemID := "c360.semconnect.systems.csapi.system.sensor2"
+	fake := &multiReplyFakeRequester{
+		predicateReply:    encodeReply(t, ids),
+		entityRepliesByID: map[string][]byte{},
+	}
+	fake.entityRepliesByID[ids[0]] = encodeDatastreamEntityState(t, ids[0], "Temperature", systemID, "http://example.org/properties/temperature")
+	fake.entityRepliesByID[ids[1]] = encodeDatastreamEntityState(t, ids[1], "Humidity", otherSystemID, "http://example.org/properties/humidity")
+	c := newComponentWithRequester(t, fake)
+
+	req := httptest.NewRequest(http.MethodGet, "/systems/"+systemID+"/datastreams", nil)
+	req.SetPathValue("id", systemID)
+	rr := httptest.NewRecorder()
+	c.handleSystemDatastreams(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	var coll datastreamCollection
+	if err := json.Unmarshal(rr.Body.Bytes(), &coll); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(coll.Items) != 1 || coll.Items[0].ID != ids[0] {
+		t.Fatalf("items: %+v", coll.Items)
 	}
 }
 
@@ -179,6 +218,9 @@ func TestHandleDatastream_GoldenPath(t *testing.T) {
 	}
 	if d.ObservedProperty != "http://example.org/properties/temperature" {
 		t.Errorf("observedProperty: got %q", d.ObservedProperty)
+	}
+	if d.SystemID != d.System || d.OutputName == "" || len(d.ObservedProps) != 1 || len(d.Formats) == 0 || d.ResultType == "" {
+		t.Errorf("Part 2 datastream fields missing: %+v", d)
 	}
 }
 
@@ -248,8 +290,12 @@ func TestHandleDatastreamSchema_GoldenPath(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if body["type"] != "DataRecord" {
-		t.Fatalf("schema type: got %v", body["type"])
+	if body["obsFormat"] != string(MediaJSON) {
+		t.Fatalf("obsFormat: got %v", body["obsFormat"])
+	}
+	resultSchema, _ := body["resultSchema"].(map[string]any)
+	if resultSchema["type"] != "DataRecord" {
+		t.Fatalf("resultSchema.type: got %v", resultSchema["type"])
 	}
 }
 

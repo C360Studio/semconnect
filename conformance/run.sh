@@ -235,11 +235,12 @@ seed_fixtures() {
 
     # Build a Datastream pointing at the just-seeded System. CS API §10
     # shape: id (optional, will be minted), name, description, system
-    # ref (6-part minted ID), observedProperty IRI. Inline JSON is safe
-    # because sys_id is regex-validated above; no shell-quoting risk.
+    # ref (6-part minted ID), observedProperty IRI, and a SWE Common
+    # DataRecord schema. Inline JSON is safe because sys_id is
+    # regex-validated above; no shell-quoting risk.
     local ds_body
     ds_body=$(cat <<EOF
-{"name":"Conformance temperature stream","description":"Stage 9 seed fixture — sensor observations for the weather station.","system":"${sys_id}","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature"}
+{"name":"Conformance temperature stream","description":"Stage 9 seed fixture — sensor observations for the weather station.","system":"${sys_id}","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","schema":{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}}
 EOF
 )
     log "  POST /datastreams referencing system=$sys_id"
@@ -257,6 +258,7 @@ EOF
     if [[ "$ds_code" != "201" ]]; then
         die "POST /datastreams failed: $ds_code (see $SEED_LOG)"
     fi
+    log "  seeded datastream (HTTP $ds_code)"
 
     # Stage 12 — wait for the predicate index to reflect the seed before
     # invoking the suite. POST writes to ENTITY_STATES synchronously;
@@ -267,6 +269,7 @@ EOF
     # though /systems/{id} (direct entity query) already works.
     log "  waiting for predicate index to reflect seed (eventual consistency)"
     wait_for_seeded_collection "$cs_api_url" "/systems" "system"
+    wait_for_seeded_collection "$cs_api_url" "/datastreams" "datastream" "items"
 
     # Stage 20 — seed a Procedure so the ETS procedures test group
     # has non-empty /procedures to exercise. Same Feature shape POST

@@ -44,17 +44,15 @@ type Datastream struct {
 	Name             string          `json:"name,omitempty"`
 	Description      string          `json:"description,omitempty"`
 	System           string          `json:"system,omitempty"`           // 6-part entity ID
+	SystemID         string          `json:"system@id,omitempty"`        // CS API Part 2 shape
+	SystemLink       *link           `json:"system@link,omitempty"`      // CS API Part 2 shape
+	OutputName       string          `json:"outputName,omitempty"`       // CS API Part 2 shape
 	ObservedProperty string          `json:"observedProperty,omitempty"` // IRI
-	Schema           json.RawMessage `json:"schema,omitempty"`           // SWE Common DataRecord JSON
+	ObservedProps    []string        `json:"observedProperties,omitempty"`
+	Formats          []string        `json:"formats,omitempty"`
+	ResultType       string          `json:"resultType,omitempty"`
+	Schema           json.RawMessage `json:"schema,omitempty"` // SWE Common DataRecord JSON
 	Links            []link          `json:"links"`
-}
-
-// datastreamRef is the per-item shape inside a DatastreamCollection.
-// Mirrors systemRef.
-type datastreamRef struct {
-	ID    string `json:"id"`
-	Type  string `json:"type"` // "Datastream"
-	Links []link `json:"links,omitempty"`
 }
 
 type datastreamCollection struct {
@@ -64,8 +62,13 @@ type datastreamCollection struct {
 	Truncated      bool   `json:"truncated,omitempty"`
 	// `items` (not `datastreams`) per CS API §10 / OGC API Common §7.14.
 	// Mirrors systemCollection.Items — see Stage 10 note there.
-	Items []datastreamRef `json:"items"`
-	Links []link          `json:"links"`
+	Items []Datastream `json:"items"`
+	Links []link       `json:"links"`
+}
+
+type datastreamObservationSchema struct {
+	ObsFormat    string         `json:"obsFormat"`
+	ResultSchema map[string]any `json:"resultSchema"`
 }
 
 // datastreamFromState collapses an EntityState into the v0.1 Datastream
@@ -92,10 +95,16 @@ func datastreamFromState(state graph.EntityState) Datastream {
 	}
 	if v, ok := firstStringObject(state.Triples, PredDatastreamSystem); ok {
 		d.System = v
+		d.SystemID = v
+		d.SystemLink = &link{Href: "/systems/" + v, Rel: "system", Type: string(MediaJSON), Title: v}
 	}
 	if v, ok := firstStringObject(state.Triples, sosa.ObservedProperty); ok {
 		d.ObservedProperty = v
+		d.ObservedProps = []string{v}
 	}
+	d.OutputName = "result"
+	d.Formats = []string{string(MediaJSON), string(MediaOMS)}
+	d.ResultType = "observation"
 	if _, ok := firstStringObject(state.Triples, PredDatastreamSchema); ok {
 		d.Links = append(d.Links, link{
 			Href: "/datastreams/" + state.ID + "/schema",
@@ -103,6 +112,11 @@ func datastreamFromState(state graph.EntityState) Datastream {
 			Type: string(MediaJSON),
 		})
 	}
+	d.Links = append(d.Links, link{
+		Href: "/datastreams/" + state.ID + "/observations",
+		Rel:  "observations",
+		Type: string(MediaJSON),
+	})
 	return d
 }
 

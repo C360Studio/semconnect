@@ -30,6 +30,7 @@ import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
@@ -76,6 +77,7 @@ func procedureFromState(state graph.EntityState) procedure {
 		Links: []link{
 			{Href: "/procedures/" + state.ID, Rel: "self", Type: string(MediaJSON)},
 			{Href: "/procedures/" + state.ID, Rel: "canonical", Type: string(MediaJSON)},
+			{Href: "/procedures/" + state.ID, Rel: "alternate", Type: string(MediaSensorML)},
 			{Href: "/systems", Rel: "implementingSystems", Type: string(MediaJSON)},
 		},
 	}
@@ -154,6 +156,7 @@ func (c *Component) handleProcedures(w http.ResponseWriter, r *http.Request) {
 			Links: []link{
 				{Href: "/procedures/" + id, Rel: "self", Type: string(MediaJSON)},
 				{Href: "/procedures/" + id, Rel: "canonical", Type: string(MediaJSON)},
+				{Href: "/procedures/" + id, Rel: "alternate", Type: string(MediaSensorML)},
 			},
 		})
 	}
@@ -243,7 +246,8 @@ func (c *Component) writeProceduresGeoJSON(w http.ResponseWriter, r *http.Reques
 
 // handleProcedure serves GET /procedures/{id}.
 func (c *Component) handleProcedure(w http.ResponseWriter, r *http.Request) {
-	if _, ok := NegotiateRequest(r, FamilyProcedureItem); !ok {
+	media, ok := NegotiateRequest(r, FamilyProcedureItem)
+	if !ok {
 		WriteNotAcceptable(w, FamilyProcedureItem)
 		return
 	}
@@ -266,6 +270,17 @@ func (c *Component) handleProcedure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	switch media {
+	case MediaJSON:
+		c.writeProcedureJSON(w, r, state)
+	case MediaSensorML, MediaSensorMLLegacy:
+		c.writeProcedureSensorML(w, r, state, media)
+	default:
+		WriteNotAcceptable(w, FamilyProcedureItem)
+	}
+}
+
+func (c *Component) writeProcedureJSON(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
 	w.WriteHeader(http.StatusOK)
@@ -273,6 +288,29 @@ func (c *Component) handleProcedure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = json.NewEncoder(w).Encode(procedureFromState(state))
+}
+
+func (c *Component) writeProcedureSensorML(w http.ResponseWriter, r *http.Request, state graph.EntityState, media MediaType) {
+	proc, err := processReconstructionFromState(state)
+	if err != nil {
+		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeProcedureSensorML", "reverse mapping"))
+		return
+	}
+	body, err := marshalSensorMLResource(proc, procedureFromState(state).Links)
+	if err != nil {
+		c.writeBackendError(w, errs.Wrap(err, "cs-api", "writeProcedureSensorML", "marshal sensorml"))
+		return
+	}
+	w.Header().Set("Content-Type", string(media))
+	w.Header().Set("X-CS-Reconstructed-Lossy", "true")
+	w.WriteHeader(http.StatusOK)
+	if r.Method == http.MethodHead {
+		return
+	}
+	if _, err := w.Write(body); err != nil {
+		c.errs.Add(1)
+		c.logger.Error("write procedure SensorML response", "id", state.ID, "err", err)
+	}
 }
 
 // handleProceduresOptions serves OPTIONS /procedures. Read-only +

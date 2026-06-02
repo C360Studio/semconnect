@@ -137,6 +137,7 @@ func TestHandleProcedure_JSON(t *testing.T) {
 		Triples: []message.Triple{
 			{Subject: testProcedureID, Predicate: sensorml.PredType, Object: sosa.Procedure},
 			{Subject: testProcedureID, Predicate: sensorml.PredLabel, Object: "Calibration procedure"},
+			{Subject: testProcedureID, Predicate: sensorml.PredDefinition, Object: "http://example.org/procedures/calibration"},
 			{Subject: testProcedureID, Predicate: PredSystemUID, Object: "urn:example:proc:calibration"},
 		},
 	}
@@ -192,6 +193,74 @@ func TestHandleProcedure_JSON(t *testing.T) {
 	if !hasAssociation {
 		t.Errorf("links missing rel=implementingSystems: %+v", p.Links)
 	}
+	var hasSensorMLAlternate bool
+	for _, l := range p.Links {
+		if l.Rel == "alternate" && l.Type == string(MediaSensorML) {
+			hasSensorMLAlternate = true
+		}
+	}
+	if !hasSensorMLAlternate {
+		t.Errorf("links missing SensorML alternate: %+v", p.Links)
+	}
+}
+
+func TestHandleProcedure_SensorML(t *testing.T) {
+	state := graph.EntityState{
+		ID: testProcedureID,
+		Triples: []message.Triple{
+			{Subject: testProcedureID, Predicate: sensorml.PredType, Object: sosa.Procedure},
+			{Subject: testProcedureID, Predicate: sensorml.PredLabel, Object: "Calibration procedure"},
+			{Subject: testProcedureID, Predicate: sensorml.PredDefinition, Object: "http://example.org/procedures/calibration"},
+			{Subject: testProcedureID, Predicate: PredSystemUID, Object: "urn:example:proc:calibration"},
+		},
+	}
+	fake := &fakeRequester{
+		reply:  encodeEntityState(t, state),
+		status: natsclient.StatusConnected,
+	}
+	c := newTestComponent(t, fake)
+	mux := http.NewServeMux()
+	c.RegisterHTTPHandlers("", mux)
+
+	req := httptest.NewRequest(http.MethodGet, "/procedures/"+testProcedureID, nil)
+	req.Header.Set("Accept", string(MediaSensorML))
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status: got %d want 200; body=%s", rr.Code, rr.Body.String())
+	}
+	if ct := rr.Header().Get("Content-Type"); ct != string(MediaSensorML) {
+		t.Errorf("Content-Type: got %q want %q", ct, MediaSensorML)
+	}
+	proc, err := sensorml.UnmarshalProcess(rr.Body.Bytes())
+	if err != nil {
+		t.Fatalf("framework parse: %v; body=%s", err, rr.Body.String())
+	}
+	if proc.Type() != sensorml.TypeSimpleProcess {
+		t.Errorf("type: got %q want %q", proc.Type(), sensorml.TypeSimpleProcess)
+	}
+	if proc.Base().UniqueID != "urn:example:proc:calibration" {
+		t.Errorf("uniqueId: got %q", proc.Base().UniqueID)
+	}
+	if proc.Base().Definition != "http://example.org/procedures/calibration" {
+		t.Errorf("definition: got %q", proc.Base().Definition)
+	}
+	var doc struct {
+		Links []link `json:"links"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &doc); err != nil {
+		t.Fatalf("decode links: %v", err)
+	}
+	var hasImplementingSystems bool
+	for _, l := range doc.Links {
+		if l.Rel == "implementingSystems" {
+			hasImplementingSystems = true
+		}
+	}
+	if !hasImplementingSystems {
+		t.Errorf("SensorML links missing implementingSystems: %+v", doc.Links)
+	}
 }
 
 // TestHandleProcedure_NotAProcedureKind — entity exists but isn't a
@@ -228,7 +297,7 @@ func TestHandleProcedurePost_Feature_GoldenPath(t *testing.T) {
 	}
 	c := newTestComponent(t, fake)
 
-	body := []byte(`{"type":"Feature","properties":{"uid":"urn:example:proc:cal1","name":"Cal-1","description":"Daily calibration"}}`)
+	body := []byte(`{"type":"Feature","properties":{"uid":"urn:example:proc:cal1","name":"Cal-1","description":"Daily calibration","definition":"http://example.org/procedures/calibration"}}`)
 	req := httptest.NewRequest(http.MethodPost, "/procedures", bytes.NewReader(body))
 	req.Header.Set("Content-Type", string(MediaJSON))
 	rr := httptest.NewRecorder()
@@ -249,7 +318,7 @@ func TestHandleProcedurePost_Feature_GoldenPath(t *testing.T) {
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode publish body: %v", err)
 	}
-	var sawProcedureType, sawUID, sawPosition bool
+	var sawProcedureType, sawUID, sawDefinition, sawPosition bool
 	for _, tr := range batch.Triples {
 		if tr.Predicate == sensorml.PredType {
 			if s, ok := tr.Object.(string); ok && s == sosa.Procedure {
@@ -258,6 +327,9 @@ func TestHandleProcedurePost_Feature_GoldenPath(t *testing.T) {
 		}
 		if tr.Predicate == PredSystemUID {
 			sawUID = true
+		}
+		if tr.Predicate == sensorml.PredDefinition {
+			sawDefinition = true
 		}
 		if tr.Predicate == PredSystemPosition {
 			sawPosition = true
@@ -268,6 +340,9 @@ func TestHandleProcedurePost_Feature_GoldenPath(t *testing.T) {
 	}
 	if !sawUID {
 		t.Errorf("cs-api.system.uid triple missing; batch=%+v", batch.Triples)
+	}
+	if !sawDefinition {
+		t.Errorf("definition triple missing; batch=%+v", batch.Triples)
 	}
 	if sawPosition {
 		t.Errorf("/req/procedure/location forbids position; batch should not contain PredSystemPosition: %+v", batch.Triples)

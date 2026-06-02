@@ -58,7 +58,8 @@ const (
 	// expected to return a FeatureCollection (every Feature with
 	// `geometry: null` per /req/procedure/location).
 	FamilyProcedureCollection
-	// FamilyProcedureItem — GET /procedures/{id}. JSON-only at v0.1.
+	// FamilyProcedureItem — GET /procedures/{id}. JSON + SensorML. A
+	// Procedure naturally maps to SensorML SimpleProcess / AggregateProcess.
 	FamilyProcedureItem
 
 	// FamilyDeploymentCollection — GET /deployments (Stage 21). JSON +
@@ -162,10 +163,10 @@ func (fam ResourceFamily) supported() []MediaType {
 		// geo+json wiring (Stage 15).
 		return []MediaType{MediaJSON, MediaGeoJSON}
 	case FamilyProcedureItem:
-		// JSON-only at v0.1. SensorML on a procedure item would be
-		// natural (Procedure ↔ SimpleProcess) but adds reverse-mapping
-		// surface area not exercised by the ETS at v0.1; deferred.
-		return []MediaType{MediaJSON}
+		// Procedures are SensorML processes rather than physical
+		// systems, but the same triple reverse mapper handles
+		// sosa.Procedure as SimpleProcess / AggregateProcess.
+		return []MediaType{MediaJSON, MediaSensorML, MediaSensorMLLegacy}
 	case FamilyDeploymentCollection:
 		// Stage 21 — same JSON + geo+json shape /systems uses.
 		// Deployments DO carry geometry (deploy site location).

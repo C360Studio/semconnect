@@ -1285,8 +1285,9 @@ that were waiting for concrete association evidence:
   the fixture sequence.
 
 This stage does not claim new conformance classes and does not add
-SensorML representations for Deployments, Procedures, or Properties. The
-remaining SensorML skips stay honest until those encodings are in scope.
+SensorML representations for Deployments, Procedures, or Properties. Stage
+52 later adds Procedure item SensorML reads; Deployment and Property SensorML
+representations remain separate follow-ups.
 
 **Outcome:** `total=137 passed=97 failed=0 skipped=40` (confirmed
 2026-06-02). Newly passing checks are
@@ -1445,6 +1446,33 @@ actuation side effects remain out of v0.1 scope.
 **Outcome:** `total=137 passed=115 failed=0 skipped=22` (confirmed
 2026-06-02). Newly passing check:
 `commandsReferenceSelectedControlStreamWhenNestedCollectionPopulated`.
+
+### Stage 52 — Procedure SensorML read side
+
+Stage 52 closes the Procedure SensorML read-side gap without adding new graph
+vocabulary:
+
+- `GET /procedures/{id}` now negotiates `application/sml+json` and
+  `application/sensorml+json`, reusing the existing semstreams
+  SimpleProcess/AggregateProcess reverse mapper for `sosa.Procedure`.
+- Procedure JSON item links advertise the SensorML alternate representation.
+- Procedure Feature POST now preserves `properties.definition` on
+  `sensorml.PredDefinition`, giving SensorML read-back non-identity mapping
+  evidence.
+- System and Procedure SensorML responses append the same CS API `links[]`
+  association evidence their JSON resources already expose. This is a
+  representation-layer addition: no new graph predicate or storage shim.
+- The conformance seed adds a concrete Procedure definition so the ETS can
+  verify the mapping instead of honestly skipping an identity-only fixture.
+
+Deployment and Property SensorML representations remain out of scope for this
+stage; the remaining SensorML skips still point at those resource families.
+
+**Outcome:** `total=137 passed=118 failed=0 skipped=19` (confirmed
+2026-06-02). Newly passing checks:
+`procedureSensorMlHasSchemaAndMapping`,
+`sensorMlProcedureLinksMemberAssociationRelsUseResourceSpecificNames`, and
+`sensorMlLinksMemberAssociationRelsUseResourceSpecificNames`.
 
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.

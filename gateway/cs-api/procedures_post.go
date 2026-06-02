@@ -141,7 +141,9 @@ func (c *Component) buildProcedureTriplesFromSensorML(body []byte) (string, []me
 // without the geometry triple (procedures don't carry location).
 // Re-uses systemFeatureBody since the body shape is identical — the
 // minimum Feature schema (type + properties.uid + name + description)
-// is resource-kind-agnostic at v0.1.
+// is resource-kind-agnostic at v0.1. Procedure also honors
+// properties.definition so SensorML read-back carries non-identity
+// procedure mapping evidence.
 func (c *Component) buildProcedureTriplesFromFeature(body []byte) (string, []message.Triple, error) {
 	var feat systemFeatureBody
 	if err := json.Unmarshal(body, &feat); err != nil {
@@ -166,6 +168,11 @@ func (c *Component) buildProcedureTriplesFromFeature(body []byte) (string, []mes
 	if feat.Properties.Description != "" {
 		triples = append(triples, message.Triple{
 			Subject: entityID, Predicate: sensorml.PredDescription, Object: feat.Properties.Description,
+		})
+	}
+	if feat.Properties.Definition != "" {
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: sensorml.PredDefinition, Object: feat.Properties.Definition,
 		})
 	}
 	// NO position triple — /req/procedure/location forbids it.

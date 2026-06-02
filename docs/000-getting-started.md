@@ -1351,6 +1351,34 @@ Command, and SystemEvent filter checks remain deferred.
 `advancedFilteringIdListSchema`, `systemsFilterById`,
 `systemsFilterByGeomSmoke`, and `systemsFilterByKeyword`.
 
+### Stage 49 — Part 1 Subsystems read side
+
+Stage 49 declares the Part 1 Subsystems conformance class and implements
+the parent-scoped read surface the pinned ETS exercises:
+
+- `POST /systems` Feature bodies now accept optional `properties.parent@id`
+  or `properties.parent@link`. The gateway stores the relation on the
+  child System using semstreams' `sensorml.PredIsHostedBy` predicate.
+- `GET /systems/{id}/subsystems` validates the parent System, lists
+  Systems via the existing predicate index, batch-hydrates entity state,
+  and filters children whose `PredIsHostedBy` points to the parent.
+- `GET /systems/{id}/subsystems/{subsystemID}` verifies the child is a
+  System hosted by the parent, then serves the same item encodings as the
+  canonical `/systems/{subsystemID}` resource. The JSON form carries both
+  `rel=canonical` and `rel=parent` links.
+- The conformance fixture seed now creates a child System linked to the
+  primary seeded System and waits for `/systems/{id}/subsystems` to become
+  non-empty before Team Engine starts.
+
+This stage intentionally does not implement recursive subsystem search or
+time-filtered subcollections; those are outside the pinned ETS assertions
+and can follow once a client or newer suite asks for them.
+
+**Outcome:** `total=137 passed=110 failed=0 skipped=27` (confirmed
+2026-06-02). Newly passing checks are
+`subsystemsCollectionReturns200`, `subsystemItemHasIdTypeLinks`,
+`subsystemItemHasCanonicalLink`, and `subsystemHasParentSystemLink`.
+
 Also pending: HTML + Part 3 (`websocket`, `mqtt`) if product scope
 expands in that direction.
 

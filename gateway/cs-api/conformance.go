@@ -62,6 +62,12 @@ var stageConformanceClasses = []string{
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/json-ld",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/geojson",
 	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/advanced-filtering",
+	// Stage 49 — CS API Part 1 Subsystems read-side: parent-scoped
+	// /systems/{id}/subsystems collection plus
+	// /systems/{id}/subsystems/{subsystemID} item alias. Relations are
+	// stored on child System entities via semstreams'
+	// sensorml.PredIsHostedBy predicate.
+	"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/conf/subsystem",
 	// Stage 25 — CS API Part 2 API Common read-only prerequisite:
 	// landing-page discovery of Part 2 resource collections plus
 	// JSON collection shapes with items[] and links[].

@@ -484,6 +484,76 @@ paths:
               schema: {type: string}
               description: '`GET, HEAD, PUT, PATCH, DELETE, OPTIONS`'
 
+  /systems/{id}/subsystems:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+    get:
+      operationId: getSystemSubsystems
+      summary: List a system's subsystems.
+      description: |-
+        Stage 49 — CS API `/conf/subsystem` read-side collection. Returns
+        child System entities whose stored SensorML relation points back to
+        the parent with `sensorml.PredIsHostedBy`.
+      tags: [Systems]
+      parameters:
+        - $ref: "#/components/parameters/F"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: SystemCollection of child systems.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SystemCollection"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSystemSubsystems
+      tags: [Systems]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
+  /systems/{id}/subsystems/{subsystemID}:
+    parameters:
+      - $ref: "#/components/parameters/EntityID"
+      - $ref: "#/components/parameters/SubsystemID"
+    get:
+      operationId: getSystemSubsystem
+      summary: Fetch a subsystem through its parent system.
+      description: |-
+        Subsystems are ordinary System resources. This endpoint first verifies
+        that `{subsystemID}` is hosted by `{id}`, then returns the same
+        encodings as `/systems/{subsystemID}`. The JSON representation includes
+        `rel=canonical` and `rel=parent` links.
+      tags: [Systems]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Subsystem resource.
+          headers:
+            X-CS-Reconstructed-Lossy:
+              $ref: "#/components/headers/CsReconstructedLossy"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/System"}
+            application/sensorml+json:
+              schema: {type: object}
+            application/ld+json:
+              schema: {type: object}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headSystemSubsystem
+      tags: [Systems]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {description: Not Found}
+
   # ============================================================
   # System History (OSH-bar vendor extension)
   # ============================================================
@@ -2052,6 +2122,16 @@ components:
       description: |-
         6-part SemStreams entity ID. NATS-token-safe characters only.
 
+    SubsystemID:
+      in: path
+      name: subsystemID
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_.:-]+$'
+      description: |-
+        Child System entity ID in `/systems/{id}/subsystems/{subsystemID}`.
+
   # --- Reusable response shapes ---
   responses:
     BadRequest:
@@ -2314,6 +2394,13 @@ components:
               allOf:
                 - {$ref: "#/components/schemas/Link"}
               description: Optional Stage 46 SamplingFeature association mapping; href is stored on `cs-api.samplingfeature.hostedProcedure`.
+            "parent@id":
+              type: string
+              description: Optional Stage 49 subsystem parent System ID. Stored as the framework SensorML `isHostedBy` relation.
+            "parent@link":
+              allOf:
+                - {$ref: "#/components/schemas/Link"}
+              description: Optional link form of `parent@id`; the `/systems/{id}` path segment is extracted and stored as `isHostedBy`.
       description: |-
         Stage 16 — CS API §7.6 GeoJSON Feature body for POST and PUT
         on /systems. Distinct from the read-side `System` resource:

@@ -168,6 +168,8 @@ type systemFeatureBody struct {
 		Description          string `json:"description,omitempty"`
 		DeployedSystemsLinks []link `json:"deployedSystems@link,omitempty"`
 		HostedProcedureLink  *link  `json:"hostedProcedure@link,omitempty"`
+		ParentID             string `json:"parent@id,omitempty"`
+		ParentLink           *link  `json:"parent@link,omitempty"`
 	} `json:"properties"`
 }
 
@@ -180,6 +182,9 @@ type systemFeatureBody struct {
 //   - properties.description → sensorml.PredDescription
 //   - top-level geometry → sensorml.process.position triple, the same
 //     framework predicate SensorML bodies emit
+//   - properties.parent@id / parent@link.href → sensorml.PredIsHostedBy
+//     so /systems/{id}/subsystems can expose composition without a gateway
+//     local predicate
 //   - rdf:type (sensorml.PredType) = sosa.SSNSystem so /systems
 //     predicate query finds it
 //
@@ -223,7 +228,34 @@ func (c *Component) buildSystemTriplesFromFeature(body []byte) (string, []messag
 			Subject: entityID, Predicate: PredSystemPosition, Object: string(feat.Geometry),
 		})
 	}
+	if parentID := parentIDFromSystemFeature(feat); parentID != "" {
+		if err := validateEntityID(parentID); err != nil {
+			return "", nil, fmt.Errorf("properties.parent@id invalid: %w", err)
+		}
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: sensorml.PredIsHostedBy, Object: parentID,
+		})
+	}
 	return entityID, triples, nil
+}
+
+func parentIDFromSystemFeature(feat systemFeatureBody) string {
+	if feat.Properties.ParentID != "" {
+		return strings.TrimSpace(feat.Properties.ParentID)
+	}
+	if feat.Properties.ParentLink == nil {
+		return ""
+	}
+	href := strings.TrimSpace(feat.Properties.ParentLink.Href)
+	if i := strings.Index(href, "/systems/"); i >= 0 {
+		href = href[i+len("/systems/"):]
+	}
+	for _, sep := range []string{"?", "#", "/"} {
+		if i := strings.Index(href, sep); i >= 0 {
+			href = href[:i]
+		}
+	}
+	return href
 }
 
 // nonIDTokenChar matches anything outside the SemStreams entity ID

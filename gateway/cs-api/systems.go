@@ -202,6 +202,12 @@ func systemFromState(state graph.EntityState) system {
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredIsHostedBy); ok {
 		s.HostedBy = v
+		s.Links = append(s.Links, link{
+			Href:  "/systems/" + v,
+			Rel:   "parent",
+			Type:  string(MediaJSON),
+			Title: "Parent system",
+		})
 	}
 	// Surface position from the framework position triple. Object is
 	// the raw GeoJSON-shaped JSON bytes (as string); cast back to

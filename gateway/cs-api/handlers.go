@@ -46,6 +46,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	landingPath := join("{$}")
 	systemsPath := join("systems")
 	systemItemPath := join("systems/{id}")
+	systemSubsystemsPath := join("systems/{id}/subsystems")
+	systemSubsystemItemPath := join("systems/{id}/subsystems/{subsystemID}")
 	collectionsPath := join("collections")
 	collectionItemsPath := join("collections/{id}/items")
 	conformancePath := join("conformance")
@@ -86,6 +88,10 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 	mux.Handle("HEAD "+systemsPath, c.middleware(http.HandlerFunc(c.handleSystems)))
 	mux.Handle("GET "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
 	mux.Handle("HEAD "+systemItemPath, c.middleware(http.HandlerFunc(c.handleSystem)))
+	mux.Handle("GET "+systemSubsystemsPath, c.middleware(http.HandlerFunc(c.handleSystemSubsystems)))
+	mux.Handle("HEAD "+systemSubsystemsPath, c.middleware(http.HandlerFunc(c.handleSystemSubsystems)))
+	mux.Handle("GET "+systemSubsystemItemPath, c.middleware(http.HandlerFunc(c.handleSystemSubsystem)))
+	mux.Handle("HEAD "+systemSubsystemItemPath, c.middleware(http.HandlerFunc(c.handleSystemSubsystem)))
 	mux.Handle("GET "+collectionsPath, c.middleware(http.HandlerFunc(c.handleCollections)))
 	mux.Handle("HEAD "+collectionsPath, c.middleware(http.HandlerFunc(c.handleCollections)))
 	mux.Handle("GET "+collectionItemsPath, c.middleware(http.HandlerFunc(c.handleCollectionItems)))
@@ -214,6 +220,8 @@ func (c *Component) RegisterHTTPHandlers(prefix string, mux *http.ServeMux) {
 		"landing", landingPath,
 		"systems", systemsPath,
 		"system_item", systemItemPath,
+		"system_subsystems", systemSubsystemsPath,
+		"system_subsystem_item", systemSubsystemItemPath,
 		"collections", collectionsPath,
 		"conformance", conformancePath,
 		"health", healthPath,

@@ -233,6 +233,41 @@ seed_fixtures() {
     fi
     log "  seeded system: id=$sys_id"
 
+    # Stage 49 — seed a child System so the optional Subsystems
+    # conformance group has a concrete parent composition to exercise.
+    # The gateway stores parent@id as the framework SensorML
+    # sensorml.PredIsHostedBy relation on the child entity.
+    local subsystem_body
+    subsystem_body=$(cat <<EOF
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-122.4195,37.775]},"properties":{"uid":"urn:ets:system:weather:subsystem:01","name":"Conformance seed subsystem","description":"Stage 49 seed fixture — hosted child system","parent@id":"${sys_id}"}}
+EOF
+)
+    log "  POST /systems with child subsystem referencing parent=$sys_id"
+    local subsystem_resp
+    subsystem_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
+        -X POST -H 'Content-Type: application/json' \
+        --data-binary "$subsystem_body" \
+        "${cs_api_url}/systems" 2>&1)" || true
+    echo "$subsystem_resp" >>"$SEED_LOG"
+    local subsystem_code
+    subsystem_code="$(echo "$subsystem_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$subsystem_code" != "201" ]]; then
+        die "POST /systems child subsystem failed: $subsystem_code (see $SEED_LOG)"
+    fi
+    local subsystem_loc
+    subsystem_loc="$(echo "$subsystem_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    local subsystem_id="${subsystem_loc##*/}"
+    if [[ -z "$subsystem_id" ]]; then
+        die "POST /systems child subsystem returned 201 but Location header was empty or missing (see $SEED_LOG)"
+    fi
+    if ! [[ "$subsystem_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
+        die "POST /systems child subsystem returned 201 with malformed id '$subsystem_id' (see $SEED_LOG)"
+    fi
+    log "  seeded subsystem: id=$subsystem_id"
+
     # Build a Datastream pointing at the just-seeded System. CS API §10
     # shape: id (optional, will be minted), name, description, system
     # ref (6-part minted ID), observedProperty IRI, and a SWE Common
@@ -300,6 +335,7 @@ EOF
     # though /systems/{id} (direct entity query) already works.
     log "  waiting for predicate index to reflect seed (eventual consistency)"
     wait_for_seeded_collection "$cs_api_url" "/systems" "system"
+    wait_for_seeded_collection "$cs_api_url" "/systems/${sys_id}/subsystems" "subsystem"
     wait_for_seeded_collection "$cs_api_url" "/datastreams" "datastream" "items"
     wait_for_seeded_collection "$cs_api_url" "/observations" "observation"
     wait_for_seeded_collection "$cs_api_url" "/datastreams/${ds_id}/observations" "datastream observation"

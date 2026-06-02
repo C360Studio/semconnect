@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/c360studio/semstreams/pkg/swecommon"
@@ -50,18 +51,40 @@ func (c *Component) handleGlobalObservations(w http.ResponseWriter, r *http.Requ
 		WriteNotAcceptable(w, FamilyDatastreamCollection)
 		return
 	}
-	if _, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit); err != nil {
+	limit, err := parseLimit(r.URL.Query().Get("limit"), c.cfg.DefaultListLimit, c.cfg.MaxListLimit)
+	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	startSeq, err := parseObservationAfter(r.URL.Query().Get("after"))
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	msgs, lastSeq, err := c.fetchObservationMessages(r.Context(), c.cfg.ObservationsSubjectPrefix+".>", limit, startSeq)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+	items := c.observationResourcesFromMessages(msgs, "")
+	links := []link{
+		{Href: observationsCollectionSelfLink(r.URL.RawQuery), Rel: "self", Type: string(MediaJSON)},
+	}
+	truncated := len(items) == limit && lastSeq > 0
+	if truncated {
+		links = append(links, link{
+			Href: fmt.Sprintf("/observations?limit=%d&after=%d", limit, lastSeq),
+			Rel:  "next",
+			Type: string(MediaJSON),
+		})
+	}
 	coll := observationCollection{
 		Type:           "ObservationCollection",
-		NumberMatched:  0,
-		NumberReturned: 0,
-		Items:          []json.RawMessage{},
-		Links: []link{
-			{Href: "/observations", Rel: "self", Type: string(MediaJSON)},
-		},
+		NumberMatched:  len(items),
+		NumberReturned: len(items),
+		Truncated:      truncated,
+		Items:          items,
+		Links:          links,
 	}
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.WriteHeader(http.StatusOK)
@@ -75,6 +98,44 @@ func (c *Component) handleGlobalObservations(w http.ResponseWriter, r *http.Requ
 }
 
 func (c *Component) handleGlobalObservationsOptions(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Allow", "GET, HEAD, OPTIONS")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (c *Component) handleObservationGet(w http.ResponseWriter, r *http.Request) {
+	media, ok := NegotiateRequest(r, FamilyDatastreamCollection)
+	if !ok || media != MediaJSON {
+		WriteNotAcceptable(w, FamilyDatastreamCollection)
+		return
+	}
+	obsID := r.PathValue("obsID")
+	if err := validateEntityID(obsID); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid observation id: "+err.Error())
+		return
+	}
+	msgs, _, err := c.fetchObservationMessages(r.Context(), c.cfg.ObservationsSubjectPrefix+".>", c.cfg.MaxListLimit, 0)
+	if err != nil {
+		c.writeBackendError(w, err)
+		return
+	}
+	for _, msg := range msgs {
+		datastreamID := datastreamIDFromObservationSubject(c.cfg.ObservationsSubjectPrefix, msg.Subject)
+		resource, ok := observationResourceFromPayload(msg.Data, datastreamID)
+		if !ok || observationResourceID(resource) != obsID {
+			continue
+		}
+		w.Header().Set("Content-Type", string(MediaJSON))
+		w.WriteHeader(http.StatusOK)
+		if r.Method == http.MethodHead {
+			return
+		}
+		_, _ = w.Write(resource)
+		return
+	}
+	writeJSONError(w, http.StatusNotFound, "observation not found")
+}
+
+func (c *Component) handleObservationOptions(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Allow", "GET, HEAD, OPTIONS")
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -206,9 +267,43 @@ func (c *Component) fetchObservations(
 	limit int,
 	startSeq uint64,
 ) ([]json.RawMessage, uint64, error) {
+	subject := c.cfg.ObservationsSubjectPrefix + "." + datastreamID
+	msgs, lastSeq, err := c.fetchObservationMessagesWithReader(ctx, rd, subject, limit, startSeq)
+	if err != nil {
+		return nil, 0, err
+	}
+	items := make([]json.RawMessage, 0, len(msgs))
+	for _, msg := range msgs {
+		if len(msg.Data) > 0 {
+			items = append(items, msg.Data)
+		}
+	}
+	return items, lastSeq, nil
+}
+
+func (c *Component) fetchObservationMessages(
+	ctx context.Context,
+	subject string,
+	limit int,
+	startSeq uint64,
+) ([]observationMsg, uint64, error) {
+	rdPtr := c.reader.Load()
+	if rdPtr == nil {
+		return nil, 0, errs.WrapTransient(errors.New("observation stream reader not initialized"),
+			"cs-api", "fetchObservationMessages", "reader unset")
+	}
+	return c.fetchObservationMessagesWithReader(ctx, *rdPtr, subject, limit, startSeq)
+}
+
+func (c *Component) fetchObservationMessagesWithReader(
+	ctx context.Context,
+	rd streamReader,
+	subject string,
+	limit int,
+	startSeq uint64,
+) ([]observationMsg, uint64, error) {
 	cctx, cancel := context.WithTimeout(ctx, c.cfg.QueryTimeout)
 	defer cancel()
-	subject := c.cfg.ObservationsSubjectPrefix + "." + datastreamID
 	msgs, err := rd.FetchSubject(cctx, subject, limit, startSeq)
 	if err != nil {
 		// Classify uniformly — no special timeout exception. FetchNoWait
@@ -218,7 +313,7 @@ func (c *Component) fetchObservations(
 		return nil, 0, classifyJetStreamErr(err, "handleObservationsGet", "fetch")
 	}
 
-	items := make([]json.RawMessage, 0, len(msgs))
+	out := make([]observationMsg, 0, len(msgs))
 	var lastSeq uint64
 	for _, msg := range msgs {
 		if msg.Sequence > lastSeq {
@@ -231,12 +326,16 @@ func (c *Component) fetchObservations(
 			// page. Logged so operators can grep for "envelope decode"
 			// and bisect against the offending stream sequence.
 			c.logger.Warn("observation envelope decode failed; skipping",
-				"datastream", datastreamID, "seq", msg.Sequence, "err", uerr)
+				"subject", subject, "seq", msg.Sequence, "err", uerr)
 			continue
 		}
-		items = append(items, env.Payload)
+		if msg.Subject == "" {
+			msg.Subject = subject
+		}
+		msg.Data = env.Payload
+		out = append(out, msg)
 	}
-	return items, lastSeq, nil
+	return out, lastSeq, nil
 }
 
 func (c *Component) writeObservationsWrapped(
@@ -265,7 +364,7 @@ func (c *Component) writeObservationsWrapped(
 		NumberMatched:  len(items),
 		NumberReturned: len(items),
 		Truncated:      truncated,
-		Items:          items,
+		Items:          observationResourcesFromPayloads(items, datastreamID),
 		Links:          links,
 	}
 
@@ -588,6 +687,91 @@ func (c *Component) observationsSelfLink(datastreamID, rawQuery string) string {
 		return base + "?" + rawQuery
 	}
 	return base
+}
+
+func observationsCollectionSelfLink(rawQuery string) string {
+	if rawQuery == "" {
+		return "/observations"
+	}
+	return "/observations?" + rawQuery
+}
+
+func parseObservationAfter(raw string) (uint64, error) {
+	if raw == "" {
+		return 0, nil
+	}
+	parsed, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return 0, errors.New("after must be a positive integer sequence")
+	}
+	return parsed, nil
+}
+
+func (c *Component) observationResourcesFromMessages(msgs []observationMsg, fallbackDatastreamID string) []json.RawMessage {
+	items := make([]json.RawMessage, 0, len(msgs))
+	for _, msg := range msgs {
+		datastreamID := fallbackDatastreamID
+		if datastreamID == "" {
+			datastreamID = datastreamIDFromObservationSubject(c.cfg.ObservationsSubjectPrefix, msg.Subject)
+		}
+		resource, ok := observationResourceFromPayload(msg.Data, datastreamID)
+		if ok {
+			items = append(items, resource)
+		}
+	}
+	return items
+}
+
+func observationResourcesFromPayloads(payloads []json.RawMessage, datastreamID string) []json.RawMessage {
+	items := make([]json.RawMessage, 0, len(payloads))
+	for _, payload := range payloads {
+		resource, ok := observationResourceFromPayload(payload, datastreamID)
+		if ok {
+			items = append(items, resource)
+		}
+	}
+	return items
+}
+
+func observationResourceFromPayload(payload json.RawMessage, datastreamID string) (json.RawMessage, bool) {
+	if len(payload) == 0 {
+		return nil, false
+	}
+	var obj map[string]any
+	if err := json.Unmarshal(payload, &obj); err != nil {
+		return nil, false
+	}
+	if datastreamID != "" {
+		obj["datastream@id"] = datastreamID
+	}
+	if _, ok := obj["phenomenonTime"]; !ok {
+		if resultTime, ok := obj["resultTime"]; ok {
+			obj["phenomenonTime"] = resultTime
+		}
+	}
+	out, err := json.Marshal(obj)
+	if err != nil {
+		return nil, false
+	}
+	return out, true
+}
+
+func observationResourceID(resource json.RawMessage) string {
+	var obj struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(resource, &obj); err != nil {
+		return ""
+	}
+	return obj.ID
+}
+
+func datastreamIDFromObservationSubject(prefix, subject string) string {
+	want := prefix + "."
+	if !strings.HasPrefix(subject, want) {
+		return ""
+	}
+	return strings.TrimPrefix(subject, want)
 }
 
 // classifyJetStreamErr maps JetStream / NATS sentinels to pkg/errs

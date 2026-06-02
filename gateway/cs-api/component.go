@@ -81,6 +81,7 @@ type schemaObjectStore interface {
 type observationMsg struct {
 	Data     []byte
 	Sequence uint64
+	Subject  string
 }
 
 // jetstreamObservationReader is the production streamReader: thin wrapper
@@ -136,7 +137,7 @@ func (r *jetstreamObservationReader) FetchSubject(
 		if meta, mErr := msg.Metadata(); mErr == nil {
 			seq = meta.Sequence.Stream
 		}
-		out = append(out, observationMsg{Data: msg.Data(), Sequence: seq})
+		out = append(out, observationMsg{Data: msg.Data(), Sequence: seq, Subject: msg.Subject()})
 	}
 	if berr := batch.Error(); berr != nil {
 		return out, berr

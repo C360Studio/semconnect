@@ -145,7 +145,7 @@ func TestEmbeddedOpenAPI_Shape(t *testing.T) {
 		"/datastreams", "/datastreams/{id}",
 		"/datastreams/{id}/schema",
 		"/datastreams/{datastreamID}/observations",
-		"/systems/{id}/datastreams", "/observations",
+		"/systems/{id}/datastreams", "/observations", "/observations/{obsID}",
 		"/areas",
 		// Stage 28 — OGC API Common Part 2 /collections metadata.
 		"/collections",

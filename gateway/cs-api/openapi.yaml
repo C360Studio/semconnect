@@ -964,17 +964,22 @@ paths:
       operationId: getGlobalObservations
       summary: List global observations.
       description: |-
-        Readable global Observation collection. v0.1 keeps observation
-        storage Datastream-scoped, so this canonical collection is empty
-        while `/datastreams/{id}/observations` exposes populated stream
-        reads.
+        Readable global Observation collection. v0.1 stores observations
+        on Datastream-scoped JetStream subjects and reads this canonical
+        collection through the wildcard `cs-api.observations.>` filter.
+        JSON resources include `datastream@id` recovered from the subject.
       tags: [Observations]
       parameters:
         - $ref: "#/components/parameters/F"
         - $ref: "#/components/parameters/Limit"
+        - in: query
+          name: after
+          required: false
+          schema: {type: integer, format: int64, minimum: 1}
+          description: Opaque JetStream stream sequence cursor.
       responses:
         "200":
-          description: Empty global ObservationCollection.
+          description: Global ObservationCollection.
           content:
             application/json:
               schema: {$ref: "#/components/schemas/ObservationCollection"}
@@ -987,6 +992,47 @@ paths:
         "200": {description: OK (no body)}
     options:
       operationId: optionsGlobalObservations
+      tags: [Observations]
+      responses:
+        "204":
+          description: No Content.
+
+  /observations/{obsID}:
+    parameters:
+      - in: path
+        name: obsID
+        required: true
+        schema: {type: string}
+        description: Local Observation identifier.
+    get:
+      operationId: getObservation
+      summary: Fetch an observation by ID.
+      description: |-
+        Read-only canonical Observation item lookup. v0.1 scans the
+        configured observations stream through `cs-api.observations.>`
+        and returns the first matching resource with `datastream@id`
+        recovered from the JetStream subject.
+      tags: [Observations]
+      parameters:
+        - $ref: "#/components/parameters/F"
+      responses:
+        "200":
+          description: Observation resource.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Observation"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "406": {$ref: "#/components/responses/NotAcceptable"}
+        "503": {$ref: "#/components/responses/ServiceUnavailable"}
+    head:
+      operationId: headObservation
+      tags: [Observations]
+      responses:
+        "200": {description: OK (no body)}
+        "404": {$ref: "#/components/responses/NotFound"}
+    options:
+      operationId: optionsObservation
       tags: [Observations]
       responses:
         "204":
@@ -2646,9 +2692,10 @@ components:
 
     Observation:
       type: object
-      required: [procedure, observedProperty, resultTime]
+      required: [id, datastream@id, resultTime]
       properties:
         id:               {type: string}
+        datastream@id:    {type: string}
         procedure:        {type: string, format: uri}
         observedProperty: {type: string, format: uri}
         featureOfInterest: {type: string}

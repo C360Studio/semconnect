@@ -14,6 +14,7 @@ import {
 import { runNaturalLanguageSearch } from '$lib/search/nlSearch';
 import { fetchCsApiSnapshot } from '$lib/services/csApi';
 import { fetchGraphPrefixes, searchGraphGateway } from '$lib/services/graphGateway';
+import { runSemanticAssist, type SemanticAssistResult } from '$lib/services/semanticAssist';
 import {
   RESOURCE_KINDS,
   type DemoEntity,
@@ -267,29 +268,48 @@ export class DemoStore {
 
   async runSearch(query = this.searchQuery): Promise<void> {
     this.searchQuery = query;
+    this.searching = true;
 
-    if (this.config.mode !== 'demo') {
-      this.searching = true;
-      try {
-        const graphSnapshot = await searchGraphGateway(this.config, query);
-        this.entities = mergeEntities([...this.entities, ...graphSnapshot.entities]);
-        this.relationships = mergeRelationships([...this.relationships, ...graphSnapshot.relationships]);
-        this.searchResult = graphSnapshot.searchResult;
-        this.selectedEntityId = this.searchResult.matchedEntityIds[0] ?? this.selectedEntityId;
-        this.connectionMessage = 'SemStreams graph gateway answered the semantic search.';
-        return;
-      } catch (error) {
-        const message = `semantic search: ${errorMessage(error)}`;
-        this.liveErrors = [...this.liveErrors.filter((item) => !item.startsWith('semantic search:')), message];
-        this.connectionStatus = this.config.mode === 'hybrid' ? 'hybrid' : 'error';
-        this.connectionMessage = 'SemStreams search unavailable; using local graph search over loaded resources.';
-      } finally {
-        this.searching = false;
+    try {
+      let result: SearchResult | null = null;
+
+      if (this.config.mode !== 'demo') {
+        try {
+          const graphSnapshot = await searchGraphGateway(this.config, query);
+          this.entities = mergeEntities([...this.entities, ...graphSnapshot.entities]);
+          this.relationships = mergeRelationships([...this.relationships, ...graphSnapshot.relationships]);
+          result = graphSnapshot.searchResult;
+          this.connectionMessage = 'SemStreams graph gateway answered the semantic search.';
+        } catch (error) {
+          const message = `semantic search: ${errorMessage(error)}`;
+          this.liveErrors = [...this.liveErrors.filter((item) => !item.startsWith('semantic search:')), message];
+          this.connectionStatus = this.config.mode === 'hybrid' ? 'hybrid' : 'error';
+          this.connectionMessage = 'SemStreams search unavailable; using local graph search over loaded resources.';
+        }
       }
-    }
 
-    this.searchResult = runNaturalLanguageSearch(query, this.entities, this.relationships, this.samples);
-    this.selectedEntityId = this.searchResult.matchedEntityIds[0] ?? null;
+      const semanticAssist = await runSemanticAssist(this.config, query, this.entities);
+      if (semanticAssist.errors.length > 0) {
+        this.liveErrors = [
+          ...this.liveErrors.filter(
+            (item) => !item.startsWith('semembed:') && !item.startsWith('seminstruct:')
+          ),
+          ...semanticAssist.errors
+        ];
+      }
+
+      this.searchResult = applySemanticAssist(
+        result ?? runNaturalLanguageSearch(query, this.entities, this.relationships, this.samples),
+        semanticAssist
+      );
+      this.selectedEntityId = this.searchResult.matchedEntityIds[0] ?? null;
+
+      if (semanticAssist.supportingFacts.length > 0) {
+        this.connectionMessage = 'SemStreams search answered with semembed and seminstruct assist.';
+      }
+    } finally {
+      this.searching = false;
+    }
   }
 
   private startPolling(): void {
@@ -320,6 +340,27 @@ export class DemoStore {
     }
     this.selectedEntityId = this.visibleEntities[0]?.id ?? null;
   }
+}
+
+function applySemanticAssist(result: SearchResult, semanticAssist: SemanticAssistResult): SearchResult {
+  if (!semanticAssist.classification && semanticAssist.matchedEntityIds.length === 0) {
+    return result;
+  }
+
+  const matchedEntityIds = [
+    ...new Set([...result.matchedEntityIds, ...semanticAssist.matchedEntityIds])
+  ];
+
+  return {
+    ...result,
+    intent: semanticAssist.classification?.intent ?? result.intent,
+    confidence: Math.max(result.confidence, semanticAssist.classification?.confidence ?? 0),
+    matchedEntityIds,
+    explanation: semanticAssist.classification
+      ? `${result.explanation} Seminstruct classified the natural-language intent before semembed expanded the graph focus.`
+      : result.explanation,
+    supportingFacts: [...semanticAssist.supportingFacts, ...result.supportingFacts].slice(0, 8)
+  };
 }
 
 function mergeEntities(entities: DemoEntity[]): DemoEntity[] {

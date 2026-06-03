@@ -6,5 +6,14 @@
   "pollMs": 0,
   "limits": {
     "observations": 25
+  },
+  "semanticAssist": {
+    "enabled": false,
+    "semembedEndpoint": "",
+    "semembedModel": "all-MiniLM-L6-v2",
+    "seminstructEndpoint": "",
+    "seminstructModel": "qwen3-0.6b",
+    "similarityThreshold": 0.62,
+    "maxMatches": 8
   }
 }

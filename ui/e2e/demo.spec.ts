@@ -79,7 +79,16 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
         graphqlEndpoint: '/mock-graph',
         graphPrefixes: ['c360.demo.water.plant'],
         pollMs: 0,
-        limits: { observations: 5 }
+        limits: { observations: 5 },
+        semanticAssist: {
+          enabled: true,
+          semembedEndpoint: '/mock-embed/v1',
+          semembedModel: 'all-MiniLM-L6-v2',
+          seminstructEndpoint: '/mock-instruct/v1',
+          seminstructModel: 'qwen3-0.6b',
+          similarityThreshold: 0.72,
+          maxMatches: 6
+        }
       }
     });
   });
@@ -224,6 +233,40 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
     });
   });
 
+  await page.route('**/mock-instruct/v1/chat/completions', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      json: {
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                intent: 'telemetry.temperature',
+                confidence: 0.94,
+                slots: { observedProperty: 'temperature' }
+              })
+            }
+          }
+        ]
+      }
+    });
+  });
+
+  await page.route('**/mock-embed/v1/embeddings', async (route) => {
+    const request = route.request().postDataJSON() as { input?: string[] };
+    const input = request.input ?? [];
+
+    await route.fulfill({
+      contentType: 'application/json',
+      json: {
+        data: input.map((text, index) => ({
+          index,
+          embedding: semanticEmbeddingFor(text)
+        }))
+      }
+    });
+  });
+
   await page.goto('/');
 
   await expect(page.getByTestId('stream-state')).toContainText('1 observations');
@@ -234,9 +277,20 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
   await page.getByTestId('nl-query').fill('temperature telemetry');
   await page.getByTestId('run-search').click();
 
-  await expect(page.getByTestId('connection-state')).toContainText('SemStreams graph gateway answered');
+  await expect(page.getByTestId('connection-state')).toContainText('semembed and seminstruct assist');
   await expect(page.getByTestId('entity-detail')).toContainText('Live Temperature');
   await expect(page.getByTestId('entity-detail')).toContainText('system.live-pump');
-  await expect(page.getByTestId('search-intent')).toContainText('semstreams.temperature');
+  await expect(page.getByTestId('search-intent')).toContainText('telemetry.temperature');
+  await expect(page.getByTestId('search-result')).toContainText('seminstruct classified');
+  await expect(page.getByTestId('search-result')).toContainText('semembed matched');
   await expect(page.getByTestId('graph-surface')).toHaveAttribute('data-ready', 'true');
 });
+
+function semanticEmbeddingFor(text: string): number[] {
+  const normalized = text.toLowerCase();
+  if (normalized.includes('temperature')) return [0.98, 0.04, 0.02];
+  if (normalized.includes('telemetry')) return [0.91, 0.08, 0.03];
+  if (normalized.includes('pump')) return [0.74, 0.18, 0.08];
+  if (normalized.includes('pressure')) return [0.58, 0.32, 0.08];
+  return [0.08, 0.82, 0.1];
+}

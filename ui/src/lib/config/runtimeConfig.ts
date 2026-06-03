@@ -9,6 +9,15 @@ export interface RuntimeConfig {
   limits: {
     observations: number;
   };
+  semanticAssist: {
+    enabled: boolean;
+    semembedEndpoint: string;
+    semembedModel: string;
+    seminstructEndpoint: string;
+    seminstructModel: string;
+    similarityThreshold: number;
+    maxMatches: number;
+  };
 }
 
 const CONFIG_PATH = '/semconnect-demo.config.json';
@@ -21,6 +30,15 @@ export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
   pollMs: 0,
   limits: {
     observations: 25
+  },
+  semanticAssist: {
+    enabled: false,
+    semembedEndpoint: '',
+    semembedModel: 'all-MiniLM-L6-v2',
+    seminstructEndpoint: '',
+    seminstructModel: 'qwen3-0.6b',
+    similarityThreshold: 0.62,
+    maxMatches: 8
   }
 };
 
@@ -54,6 +72,31 @@ function normalizeConfig(payload: Partial<RuntimeConfig>): RuntimeConfig {
         payload.limits?.observations,
         DEFAULT_RUNTIME_CONFIG.limits.observations
       )
+    },
+    semanticAssist: {
+      enabled: payload.semanticAssist?.enabled === true,
+      semembedEndpoint: trimTrailingSlash(
+        payload.semanticAssist?.semembedEndpoint ?? DEFAULT_RUNTIME_CONFIG.semanticAssist.semembedEndpoint
+      ),
+      semembedModel: stringValue(
+        payload.semanticAssist?.semembedModel,
+        DEFAULT_RUNTIME_CONFIG.semanticAssist.semembedModel
+      ),
+      seminstructEndpoint: trimTrailingSlash(
+        payload.semanticAssist?.seminstructEndpoint ?? DEFAULT_RUNTIME_CONFIG.semanticAssist.seminstructEndpoint
+      ),
+      seminstructModel: stringValue(
+        payload.semanticAssist?.seminstructModel,
+        DEFAULT_RUNTIME_CONFIG.semanticAssist.seminstructModel
+      ),
+      similarityThreshold: positiveNumber(
+        payload.semanticAssist?.similarityThreshold,
+        DEFAULT_RUNTIME_CONFIG.semanticAssist.similarityThreshold
+      ),
+      maxMatches: positiveNumber(
+        payload.semanticAssist?.maxMatches,
+        DEFAULT_RUNTIME_CONFIG.semanticAssist.maxMatches
+      )
     }
   };
 }
@@ -64,6 +107,10 @@ function isRuntimeMode(value: unknown): value is RuntimeMode {
 
 function positiveNumber(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function stringValue(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.trim() ? value : fallback;
 }
 
 function trimTrailingSlash(value: string): string {

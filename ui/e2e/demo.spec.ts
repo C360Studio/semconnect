@@ -279,12 +279,12 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
   await page.getByTestId('nl-query').fill('temperature telemetry');
   await page.getByTestId('run-search').click();
 
-  await expect(page.getByTestId('connection-state')).toContainText('semembed and seminstruct assist');
+  await expect(page.getByTestId('connection-state')).toContainText('semantic assist');
   await expect(page.getByTestId('entity-detail')).toContainText('Live Temperature');
   await expect(page.getByTestId('entity-detail')).toContainText('system.live-pump');
   await expect(page.getByTestId('search-intent')).toContainText('telemetry.temperature');
-  await expect(page.getByTestId('search-result')).toContainText('seminstruct classified');
-  await expect(page.getByTestId('search-result')).toContainText('semembed matched');
+  await expect(page.getByTestId('search-result')).toContainText('Semantic classifier');
+  await expect(page.getByTestId('search-result')).toContainText('Semantic similarity matched');
   await expect(page.getByTestId('graph-surface')).toHaveAttribute('data-ready', 'true');
 });
 

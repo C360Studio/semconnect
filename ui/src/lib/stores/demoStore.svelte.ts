@@ -306,7 +306,7 @@ export class DemoStore {
       this.selectedEntityId = this.searchResult.matchedEntityIds[0] ?? null;
 
       if (semanticAssist.supportingFacts.length > 0) {
-        this.connectionMessage = 'SemStreams search answered with semembed and seminstruct assist.';
+        this.connectionMessage = 'SemStreams search answered with semantic assist.';
       }
     } finally {
       this.searching = false;
@@ -369,7 +369,7 @@ function applySemanticAssist(
     confidence: Math.max(result.confidence, semanticAssist.classification?.confidence ?? 0),
     matchedEntityIds,
     explanation: semanticAssist.classification
-      ? `${result.explanation} Seminstruct classified the natural-language intent before semembed expanded the graph focus.`
+      ? `${result.explanation} Semantic classification read the natural-language intent before similarity search expanded the graph focus.`
       : result.explanation,
     supportingFacts: [...semanticAssist.supportingFacts, ...guardFact, ...result.supportingFacts].slice(0, 8)
   };
@@ -394,7 +394,7 @@ function semanticIdsInFocusedNeighborhood(
 
 function semanticGuardFact(heldBackCount: number): string {
   const noun = heldBackCount === 1 ? 'match' : 'matches';
-  return `Kept ${heldBackCount} broader semembed ${noun} out of graph focus ` +
+  return `Kept ${heldBackCount} broader semantic ${noun} out of graph focus ` +
     'because they were outside the current neighborhood.';
 }
 

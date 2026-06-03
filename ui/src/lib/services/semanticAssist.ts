@@ -78,12 +78,12 @@ export async function runSemanticAssist(
   const supportingFacts: string[] = [];
   if (classification) {
     supportingFacts.push(
-      `seminstruct classified the query as ${classification.intent} (${Math.round(classification.confidence * 100)}%).`
+      `Semantic classifier read the query as ${classification.intent} (${Math.round(classification.confidence * 100)}%).`
     );
   }
   if (matches.length > 0) {
     supportingFacts.push(
-      `semembed matched ${matches.length} graph entities above ${config.semanticAssist.similarityThreshold.toFixed(2)}.`
+      `Semantic similarity matched ${matches.length} graph entities above ${config.semanticAssist.similarityThreshold.toFixed(2)}.`
     );
     supportingFacts.push(
       `Top semantic matches: ${matches.slice(0, 3).map((match) => `${match.label} ${match.score.toFixed(2)}`).join(', ')}.`

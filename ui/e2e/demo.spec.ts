@@ -11,6 +11,8 @@ test('renders the telemetry knowledge graph demo', async ({ page }) => {
   await expect(page.getByTestId('runtime-status')).toContainText('demo mode');
   await expect(page.getByTestId('search-result')).toHaveCount(0);
   await expect(page.getByTestId('nl-query')).toHaveValue('');
+  await expect(page.getByTestId('demo-story')).toContainText('Telemetry Becomes Graph Context');
+  await expect(page.getByTestId('demo-story')).toContainText('SemStreams indexes');
 
   const canvasBox = await page.getByTestId('sigma-target').boundingBox();
   expect(canvasBox?.width ?? 0).toBeGreaterThan(400);

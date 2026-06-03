@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Crosshair, Link2 } from '@lucide/svelte';
+  import { Activity, BrainCircuit, Database, GitBranch, Link2 } from '@lucide/svelte';
   import type { DemoEntity, DemoRelationship } from '$lib/types/demo';
   import { colorForKind } from '$lib/utils/colors';
 
@@ -68,10 +68,38 @@
       </ul>
     </section>
   {:else}
-    <div class="empty">
-      <Crosshair size={22} />
-      <h2>No resource selected</h2>
-      <p>Select a graph node or run a search.</p>
+    <div class="demo-story" data-testid="demo-story">
+      <header class="story-header">
+        <span class="story-icon" aria-hidden="true">
+          <Activity size={18} />
+        </span>
+        <div>
+          <span class="kind">demo path</span>
+          <h2>Telemetry Becomes Graph Context</h2>
+        </div>
+      </header>
+
+      <p class="story-copy">
+        Connected Systems resources land at the server as Systems, Datastreams, Observations,
+        ControlStreams, and Feasibility evidence. SemStreams turns that feed into triples,
+        relationships, summaries, and optional semantic signals. The graph renders the result while
+        new readings keep changing the evidence.
+      </p>
+
+      <ol class="story-steps" aria-label="Demo data flow">
+        <li>
+          <Database size={15} />
+          <span>CS API resources and telemetry readings arrive with canonical IDs.</span>
+        </li>
+        <li>
+          <GitBranch size={15} />
+          <span>SemStreams indexes predicates, edges, resource classes, and provenance.</span>
+        </li>
+        <li>
+          <BrainCircuit size={15} />
+          <span>Natural-language focus can add semembed and seminstruct context when enabled.</span>
+        </li>
+      </ol>
     </div>
   {/if}
 </section>
@@ -84,7 +112,7 @@
     min-height: 0;
   }
 
-  header {
+  header:not(.story-header) {
     border-left: 4px solid var(--kind-color);
     padding-left: 10px;
   }
@@ -112,7 +140,7 @@
   }
 
   header p,
-  .empty p {
+  .story-copy {
     margin-top: 6px;
     color: #5d6b82;
     font-size: 12px;
@@ -228,13 +256,57 @@
     color: #526078;
   }
 
-  .empty {
+  .demo-story {
     display: flex;
-    min-height: 260px;
     flex-direction: column;
+    gap: 14px;
+    min-height: 260px;
+    padding: 6px 0;
+  }
+
+  .story-header {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: #69768d;
+  }
+
+  .story-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid #c7d9dd;
+    border-radius: 7px;
+    background: #eef8f7;
+    color: #146c73;
+  }
+
+  .story-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .story-steps li {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    padding: 9px;
+    border: 1px solid #d7dce8;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #243047;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .story-steps :global(svg) {
+    margin-top: 1px;
+    color: #526078;
   }
 </style>

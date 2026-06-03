@@ -300,7 +300,8 @@ export class DemoStore {
 
       this.searchResult = applySemanticAssist(
         result ?? runNaturalLanguageSearch(query, this.entities, this.relationships, this.samples),
-        semanticAssist
+        semanticAssist,
+        this.relationships
       );
       this.selectedEntityId = this.searchResult.matchedEntityIds[0] ?? null;
 
@@ -342,14 +343,25 @@ export class DemoStore {
   }
 }
 
-function applySemanticAssist(result: SearchResult, semanticAssist: SemanticAssistResult): SearchResult {
+function applySemanticAssist(
+  result: SearchResult,
+  semanticAssist: SemanticAssistResult,
+  relationships: DemoRelationship[]
+): SearchResult {
   if (!semanticAssist.classification && semanticAssist.matchedEntityIds.length === 0) {
     return result;
   }
 
+  const semanticFocusIds = semanticIdsInFocusedNeighborhood(
+    result.matchedEntityIds,
+    semanticAssist.matchedEntityIds,
+    relationships
+  );
   const matchedEntityIds = [
-    ...new Set([...result.matchedEntityIds, ...semanticAssist.matchedEntityIds])
+    ...new Set([...result.matchedEntityIds, ...semanticFocusIds])
   ];
+  const heldBackCount = semanticAssist.matchedEntityIds.length - semanticFocusIds.length;
+  const guardFact = heldBackCount > 0 ? [semanticGuardFact(heldBackCount)] : [];
 
   return {
     ...result,
@@ -359,8 +371,31 @@ function applySemanticAssist(result: SearchResult, semanticAssist: SemanticAssis
     explanation: semanticAssist.classification
       ? `${result.explanation} Seminstruct classified the natural-language intent before semembed expanded the graph focus.`
       : result.explanation,
-    supportingFacts: [...semanticAssist.supportingFacts, ...result.supportingFacts].slice(0, 8)
+    supportingFacts: [...semanticAssist.supportingFacts, ...guardFact, ...result.supportingFacts].slice(0, 8)
   };
+}
+
+function semanticIdsInFocusedNeighborhood(
+  focusedIds: string[],
+  semanticIds: string[],
+  relationships: DemoRelationship[]
+): string[] {
+  const focused = new Set(focusedIds);
+  if (focused.size === 0) return semanticIds;
+
+  const neighborhood = new Set(focused);
+  for (const relationship of relationships) {
+    if (focused.has(relationship.sourceId)) neighborhood.add(relationship.targetId);
+    if (focused.has(relationship.targetId)) neighborhood.add(relationship.sourceId);
+  }
+
+  return semanticIds.filter((entityId) => neighborhood.has(entityId));
+}
+
+function semanticGuardFact(heldBackCount: number): string {
+  const noun = heldBackCount === 1 ? 'match' : 'matches';
+  return `Kept ${heldBackCount} broader semembed ${noun} out of graph focus ` +
+    'because they were outside the current neighborhood.';
 }
 
 function mergeEntities(entities: DemoEntity[]): DemoEntity[] {

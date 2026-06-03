@@ -61,11 +61,6 @@ export async function searchGraphGateway(
           text
           keywords
         }
-        relationships {
-          from
-          to
-          predicate
-        }
         count
         duration_ms
       }
@@ -80,7 +75,7 @@ export async function searchGraphGateway(
   );
 
   const result = response.data.globalSearch;
-  const transformed = transformGraphEntities(result.entities ?? [], result.relationships ?? []);
+  const transformed = transformGraphEntities(result.entities ?? [], []);
   const classification = classificationFromExtensions(response.extensions);
 
   return {
@@ -95,7 +90,7 @@ export async function searchGraphGateway(
         `SemStreams graph gateway returned ${result.count ?? transformed.entities.length} matching entities.`,
       supportingFacts: [
         `${transformed.entities.length} graph entities returned from globalSearch.`,
-        `${transformed.relationships.length} explicit graph relationships returned.`,
+        `${transformed.relationships.length} graph relationships derived from returned triples.`,
         `${result.duration_ms ?? 0}ms gateway duration.`
       ]
     }

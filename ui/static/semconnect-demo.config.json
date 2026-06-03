@@ -1,0 +1,10 @@
+{
+  "mode": "demo",
+  "csApiBaseUrl": "",
+  "graphqlEndpoint": "/graphql",
+  "graphPrefixes": ["c360.demo.water.plant"],
+  "pollMs": 0,
+  "limits": {
+    "observations": 25
+  }
+}

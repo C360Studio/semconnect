@@ -12,6 +12,8 @@ HTTP, indexed by SemStreams, and visualized in the browser.
 - CS API resources are created through SemConnect: Systems, Datastreams,
   Observations, a ControlStream, and a Feasibility record.
 - SemStreams stores and indexes the semantic graph behind those resources.
+- In full-stack mode, Start posts new OMS observations to the CS API
+  datastream observations endpoint and refreshes them back from live services.
 - The UI renders entities, relationships, telemetry context, and natural
   language graph focus for queries such as `latest water temperature telemetry`.
 - The comparison runner can execute the same story against the statistical
@@ -121,6 +123,10 @@ The seeded CS API resources should stabilize at:
 ```text
 systems=3 datastreams=2 observations=3 controlstreams=1 feasibility=1
 ```
+
+The full-stack comparison runner also presses Start once in the browser. That
+posts one additional OMS observation through CS API, and the UI should refresh
+to at least `4 observations` before the runner continues to search.
 
 The graph prefix query should find the seeded demo entities. In the current
 demo data, that prefix count is expected to settle around `14`.

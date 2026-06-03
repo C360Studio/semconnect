@@ -1,3 +1,9 @@
+import {
+  DATASTREAM_PRESSURE_ID,
+  DATASTREAM_TEMP_ID,
+  SYSTEM_PUMP_ID,
+  SYSTEM_TEMP_PROBE_ID
+} from '$lib/data/demoGraph';
 import type { RuntimeConfig } from '$lib/config/runtimeConfig';
 import type { DemoEntity, DemoFact, DemoRelationship, ResourceKind, TelemetrySample } from '$lib/types/demo';
 
@@ -66,6 +72,30 @@ export async function fetchCsApiSnapshot(
     ...snapshotFromPayloads(payloads),
     errors
   };
+}
+
+export async function postObservationSample(
+  config: RuntimeConfig,
+  sample: TelemetrySample,
+  signal?: AbortSignal
+): Promise<void> {
+  const response = await fetch(
+    joinUrl(config.csApiBaseUrl, `/datastreams/${encodeURIComponent(sample.datastreamId)}/observations`),
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/om+json'
+      },
+      body: JSON.stringify(observationPayload(sample)),
+      signal
+    }
+  );
+
+  if ([200, 201, 202, 204].includes(response.status)) return;
+
+  const text = await response.text();
+  throw new Error(`${response.status} ${response.statusText}${text ? `: ${text.slice(0, 240)}` : ''}`);
 }
 
 function snapshotFromPayloads(payloads: Map<string, unknown>): Snapshot {
@@ -317,6 +347,27 @@ function sampleFromObservation(
     phenomenonTime: stringValue(item.phenomenonTime) ?? resultTime,
     resultTime
   };
+}
+
+function observationPayload(sample: TelemetrySample): JsonObject {
+  return {
+    id: sample.id,
+    procedure: procedureForSample(sample),
+    observedProperty: sample.observedProperty,
+    phenomenonTime: sample.phenomenonTime,
+    resultTime: sample.resultTime,
+    result: {
+      value: sample.value,
+      uom: sample.unit,
+      quality: sample.quality
+    }
+  };
+}
+
+function procedureForSample(sample: TelemetrySample): string {
+  if (sample.datastreamId === DATASTREAM_TEMP_ID) return SYSTEM_TEMP_PROBE_ID;
+  if (sample.datastreamId === DATASTREAM_PRESSURE_ID) return SYSTEM_PUMP_ID;
+  return sample.datastreamId;
 }
 
 function addRelationship(

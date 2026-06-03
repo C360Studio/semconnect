@@ -72,6 +72,20 @@ test('graph filters can isolate telemetry resources', async ({ page }) => {
 });
 
 test('loads live resources through CS API and SemStreams adapters', async ({ page }) => {
+  const liveObservations: Array<Record<string, unknown>> = [
+    {
+      id: 'c360.demo.water.plant.observation.live-001',
+      name: 'Live water temperature sample',
+      'datastream@id': 'c360.demo.water.plant.datastream.live-temp',
+      phenomenonTime: '2026-06-03T14:31:00.000Z',
+      resultTime: '2026-06-03T14:31:00.000Z',
+      observedProperty: 'water temperature',
+      result: { value: 21.2, uom: 'degC' }
+    }
+  ];
+  const postedObservations: Array<Record<string, unknown>> = [];
+  const postedObservationContentTypes: string[] = [];
+
   await page.route('**/semconnect-demo.config.json', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
@@ -97,6 +111,31 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
 
   await page.route('**/mock-cs/**', async (route) => {
     const url = new URL(route.request().url());
+    const method = route.request().method();
+    const observationPostPath =
+      '/mock-cs/datastreams/c360.demo.water.plant.datastream.inlet-temperature/observations';
+
+    if (method === 'POST' && url.pathname === observationPostPath) {
+      const body = route.request().postDataJSON() as Record<string, unknown>;
+      postedObservations.push(body);
+      postedObservationContentTypes.push(route.request().headers()['content-type'] ?? '');
+      liveObservations.unshift({
+        ...body,
+        name: 'Posted water temperature sample',
+        'datastream@id': 'c360.demo.water.plant.datastream.inlet-temperature'
+      });
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        json: {
+          status: 'accepted',
+          id: body.id,
+          subject: 'cs-api.observations.c360.demo.water.plant.datastream.inlet-temperature'
+        }
+      });
+      return;
+    }
+
     const payloads: Record<string, unknown> = {
       '/mock-cs/systems': {
         items: [
@@ -122,17 +161,7 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
         ]
       },
       '/mock-cs/observations': {
-        items: [
-          {
-            id: 'c360.demo.water.plant.observation.live-001',
-            name: 'Live water temperature sample',
-            'datastream@id': 'c360.demo.water.plant.datastream.live-temp',
-            phenomenonTime: '2026-06-03T14:31:00.000Z',
-            resultTime: '2026-06-03T14:31:00.000Z',
-            observedProperty: 'water temperature',
-            result: { value: 21.2, uom: 'degC' }
-          }
-        ]
+        items: liveObservations
       },
       '/mock-cs/controlstreams': { items: [] },
       '/mock-cs/feasibility': { items: [] }
@@ -275,6 +304,19 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
   await expect(page.getByTestId('connection-state')).toContainText('Live CS API and SemStreams graph gateway connected');
   await expect(page.getByTestId('search-result')).toHaveCount(0);
   await expect(page.getByTestId('sample-row').first()).toContainText('21.2');
+
+  await page.getByTestId('start-stream').click();
+  await expect.poll(() => postedObservations.length).toBe(1);
+  expect(postedObservations[0]).toMatchObject({
+    id: 'c360.demo.water.plant.observation.obs-004',
+    procedure: 'c360.demo.water.plant.system.temp-probe-t17',
+    observedProperty: 'water temperature'
+  });
+  expect(postedObservationContentTypes[0]).toContain('application/om+json');
+  await expect(page.getByTestId('stream-state')).toContainText('receiving / 2 observations');
+  await expect(page.getByTestId('connection-state')).toContainText('Posted telemetry through CS API');
+  await expect(page.getByTestId('sample-row').first()).toContainText('degC');
+  await page.getByTestId('pause-stream').click();
 
   await page.getByTestId('nl-query').fill('temperature telemetry');
   await page.getByTestId('run-search').click();

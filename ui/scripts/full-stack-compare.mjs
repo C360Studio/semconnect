@@ -608,6 +608,30 @@ async function runUiCheck({ profile, options, runDir, appBaseUrl }) {
       null,
       { timeout: 60000 }
     );
+    const initialStreamText = cleanText(await page.getByTestId('stream-state').textContent());
+    await page.getByTestId('start-stream').click();
+    await page.waitForFunction(
+      () => {
+        const text = document.querySelector('[data-testid="stream-state"]')?.textContent ?? '';
+        const match = text.match(/receiving\s*\/\s*(\d+)\s+observations/);
+        return match && Number(match[1]) >= 4;
+      },
+      null,
+      { timeout: 90000 }
+    );
+    const ingestStreamText = cleanText(await page.getByTestId('stream-state').textContent());
+    await page.getByTestId('pause-stream').click();
+    await page.waitForFunction(
+      () => {
+        const text = document.querySelector('[data-testid="stream-state"]')?.textContent ?? '';
+        const match = text.match(/paused\s*\/\s*(\d+)\s+observations/);
+        return match && Number(match[1]) >= 4;
+      },
+      null,
+      { timeout: 30000 }
+    );
+    const pausedStreamText = cleanText(await page.getByTestId('stream-state').textContent());
+
     await page.getByTestId('nl-query').fill(SEARCH_QUERY);
     await page.getByTestId('run-search').click();
     await page.waitForFunction(
@@ -633,6 +657,9 @@ async function runUiCheck({ profile, options, runDir, appBaseUrl }) {
       screenshot: options.screenshots ? screenshotPath : null,
       statsText: cleanText(statsText),
       connectionText: cleanText(connectionText),
+      initialStreamText,
+      ingestStreamText,
+      pausedStreamText,
       intentText: cleanText(intentText),
       searchText: cleanText(searchText),
       selectedDetailText: cleanText(detailText).slice(0, 500),

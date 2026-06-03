@@ -12,7 +12,7 @@ import {
   relationshipForSample
 } from '$lib/data/demoGraph';
 import { runNaturalLanguageSearch } from '$lib/search/nlSearch';
-import { fetchCsApiSnapshot } from '$lib/services/csApi';
+import { fetchCsApiSnapshot, postObservationSample } from '$lib/services/csApi';
 import { fetchGraphPrefixes, searchGraphGateway } from '$lib/services/graphGateway';
 import { runSemanticAssist, type SemanticAssistResult } from '$lib/services/semanticAssist';
 import {
@@ -46,6 +46,7 @@ export class DemoStore {
   private timer: ReturnType<typeof setInterval> | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private abortController: AbortController | null = null;
+  private liveIngestInFlight = false;
   private sequence = 4;
 
   constructor() {
@@ -200,8 +201,8 @@ export class DemoStore {
   start(): void {
     if (this.running) return;
     this.running = true;
-    this.injectSample();
-    this.timer = setInterval(() => this.injectSample(), 1800);
+    this.ingestNextSample();
+    this.timer = setInterval(() => this.ingestNextSample(), this.config.mode === 'demo' ? 1800 : 3000);
   }
 
   stop(): void {
@@ -241,6 +242,38 @@ export class DemoStore {
         this.relationships,
         this.samples
       );
+    }
+  }
+
+  private ingestNextSample(): void {
+    if (this.config.mode === 'demo') {
+      this.injectSample();
+      return;
+    }
+    void this.postLiveSample();
+  }
+
+  private async postLiveSample(): Promise<void> {
+    if (this.liveIngestInFlight) return;
+    this.liveIngestInFlight = true;
+    const sample = createNextSample(this.sequence, this.nextSampleTimestamp());
+    this.sequence += 1;
+
+    try {
+      await postObservationSample(this.config, sample);
+      await this.refreshLiveData();
+      if (this.entities.some((entity) => entity.id === sample.id)) {
+        this.selectedEntityId = sample.id;
+      }
+      this.connectionMessage = 'Posted telemetry through CS API; live graph refreshed.';
+    } catch (error) {
+      const message = `observation ingest: ${errorMessage(error)}`;
+      this.liveErrors = [...this.liveErrors.filter((item) => !item.startsWith('observation ingest:')), message];
+      this.connectionStatus = 'error';
+      this.connectionMessage = 'Observation ingest failed; telemetry stream paused.';
+      this.stop();
+    } finally {
+      this.liveIngestInFlight = false;
     }
   }
 
@@ -340,6 +373,16 @@ export class DemoStore {
       return;
     }
     this.selectedEntityId = this.visibleEntities[0]?.id ?? null;
+  }
+
+  private nextSampleTimestamp(): string {
+    const latestLoaded = Math.max(
+      0,
+      ...this.samples
+        .map((sample) => Date.parse(sample.resultTime))
+        .filter((timestamp) => Number.isFinite(timestamp))
+    );
+    return new Date(Math.max(Date.now(), latestLoaded) + 1000).toISOString();
   }
 }
 

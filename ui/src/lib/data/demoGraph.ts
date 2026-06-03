@@ -193,7 +193,7 @@ export function relationshipForSample(sampleValue: TelemetrySample): DemoRelatio
   return edge(sampleValue.id, sampleValue.datastreamId, 'csapi.observation.datastream', 'from stream');
 }
 
-export function createNextSample(sequence: number): TelemetrySample {
+export function createNextSample(sequence: number, timestampIso?: string): TelemetrySample {
   const useTemperature = sequence % 3 !== 0;
   const datastreamId = useTemperature ? DATASTREAM_TEMP_ID : DATASTREAM_PRESSURE_ID;
   const observedProperty = useTemperature ? 'water temperature' : 'discharge pressure';
@@ -203,7 +203,16 @@ export function createNextSample(sequence: number): TelemetrySample {
   const value = Number((base + drift + sequence * 0.03).toFixed(2));
   const quality = useTemperature && value > 19.4 ? 'watch' : 'good';
 
-  return sample(`obs-${String(sequence).padStart(3, '0')}`, datastreamId, observedProperty, value, unit, quality, sequence);
+  return sample(
+    `obs-${String(sequence).padStart(3, '0')}`,
+    datastreamId,
+    observedProperty,
+    value,
+    unit,
+    quality,
+    sequence,
+    timestampIso
+  );
 }
 
 function sample(
@@ -213,9 +222,10 @@ function sample(
   value: number,
   unit: string,
   quality: TelemetrySample['quality'],
-  offsetSeconds: number
+  offsetSeconds: number,
+  timestampIso?: string
 ): TelemetrySample {
-  const timestamp = new Date(Date.parse(NOW) + offsetSeconds * 1000).toISOString();
+  const timestamp = timestampIso ?? new Date(Date.parse(NOW) + offsetSeconds * 1000).toISOString();
   return {
     id: `c360.demo.water.plant.observation.${id}`,
     datastreamId,

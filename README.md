@@ -116,8 +116,25 @@ Run the full conformance harness:
 The harness writes TestNG XML, logs, seed output, and a summary into
 `conformance/output/`.
 
+## Demo UI
+
+The telemetry graph demo lives under `ui/`. It can run with local fixture data
+for quick UI review, or against a full SemStreams + CS API stack through the
+comparison runner:
+
+```bash
+cd ui
+npm run compare:full-stack -- --profile both
+```
+
+See [docs/demo-telemetry-graph.md](docs/demo-telemetry-graph.md) for the
+sponsor and early-adopter runbook, including Caddy proxying, expected counts,
+semantic-vs-statistical comparison notes, and the CS API ID mapping.
+
 ## Documentation
 
+- [docs/demo-telemetry-graph.md](docs/demo-telemetry-graph.md) - telemetry
+  graph demo runbook for sponsors and early adopters.
 - [docs/adr/001-cs-api-server-scope.md](docs/adr/001-cs-api-server-scope.md) -
   CS API server scope and conformance stance.
 - [docs/adr/002-cs-api-artifact-storage.md](docs/adr/002-cs-api-artifact-storage.md) -

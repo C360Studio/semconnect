@@ -97,7 +97,7 @@
         </li>
         <li>
           <BrainCircuit size={15} />
-          <span>Natural-language focus can add semembed and seminstruct context when enabled.</span>
+          <span>Search can bring nearby graph context into focus while the evidence stays traceable.</span>
         </li>
       </ol>
     </div>

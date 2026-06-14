@@ -133,6 +133,13 @@ pin, foreign-edge ownership classification is observe-only: unclaimed edges are
 metered and warned but still routed. Treat this as write-semantics governance and
 provenance, not as an endpoint authorization boundary.
 
+Ownership arbitration is not encoded as domain triples. It belongs to the
+SemStreams ownership substrate and its owner-claim registry. Domain triples may
+still record provenance about graph materialization, source, audit, or lineage;
+for example, a SemStreams referential-integrity stub may carry a
+`core.identity.stub_owner` triple naming the producer that caused the stub to be
+created. That is provenance on the entity, not an ownership claim.
+
 Adding a second backend is a future design decision, not a v0.1 abstraction
 requirement.
 

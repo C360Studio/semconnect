@@ -94,6 +94,12 @@ bake window for these foreign edges, so operators should treat it as provenance,
 write-semantics, and future enforcement readiness rather than as a hard security
 boundary.
 
+Ownership claims themselves are not modeled as ordinary domain triples. Those
+claims live in SemStreams' ownership substrate. Entity triples may still carry
+provenance about graph materialization, source, audit, or lineage; for example,
+SemStreams referential stubs can record which producer caused the stub to exist.
+That is provenance on the entity, not ownership arbitration.
+
 The framework/sister-repo boundary is documented in
 [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
 and the

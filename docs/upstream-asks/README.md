@@ -71,3 +71,6 @@ Non-blocking vocabulary asks now filed upstream:
 - Track SemStreams ADR-056 follow-ups for hard foreign-edge rejection,
   pending-edge buffering, owner-token write leases, and projection-contract
   boot binding before documenting graph ownership as hard enforcement.
+- Keep the user-facing distinction clear: ownership claims live in the
+  SemStreams ownership substrate, while entity triples may still describe
+  provenance such as referential-stub materialization (`core.identity.stub_owner`).

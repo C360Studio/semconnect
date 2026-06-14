@@ -47,6 +47,11 @@ const (
 // null in GeoJSON Feature geometry.
 var jsonNull = []byte("null")
 
+// Matches SemStreams' ADR-056 cs-api System projection contract. SensorML
+// System writes can emit child->parent foreign edges, so graph-ingest needs a
+// concrete producer key to classify the edge claim instead of "_invalid".
+var systemProjectionMessageType = message.Type{Domain: "sensorml", Category: "asset", Version: "v1"}
+
 func firstSystemPositionObject(triples []message.Triple) (string, bool) {
 	return firstStringObject(triples, PredSystemPosition, legacyPredSystemPosition)
 }
@@ -108,7 +113,7 @@ func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := IdentityFrom(r.Context())
-	if err := c.ingestTriples(r.Context(), triples, id); err != nil {
+	if err := c.ingestProjectedTriples(r.Context(), entityID, triples, systemProjectionMessageType, id); err != nil {
 		// Echo the minted ID into the error path so a 400/503 body
 		// names the resource the client tried to create. Otherwise the
 		// client has no correlation back to their POST.
@@ -148,6 +153,9 @@ func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []messa
 	}
 	entityID := c.mintSystemEntityID(process.Base().UniqueID)
 	asset := sensorml.NewAsset(entityID, process)
+	asset.ChildIDFn = func(localID string) string {
+		return entityID + "_" + uniqueIDToToken(localID)
+	}
 	triples := asset.Triples()
 	if len(triples) == 0 {
 		return entityID, nil, errors.New("SensorML process produced no representable triples")
@@ -318,9 +326,17 @@ func (c *Component) ingestTriples(ctx context.Context, triples []message.Triple,
 	if err != nil {
 		return errs.WrapInvalid(err, "cs-api", "ingestTriples", "invalid triple set")
 	}
+	return c.ingestProjectedTriples(ctx, entityID, triples, message.Type{}, id)
+}
+
+func (c *Component) ingestProjectedTriples(ctx context.Context, entityID string, triples []message.Triple, mt message.Type, id Identity) error {
+	if err := validateProjectedTriples(entityID, triples); err != nil {
+		return errs.WrapInvalid(err, "cs-api", "ingestProjectedTriples", "invalid triple set")
+	}
 	return c.createEntityWithTriples(ctx, &graph.EntityState{
-		ID:      entityID,
-		Triples: triples,
+		ID:          entityID,
+		Triples:     triples,
+		MessageType: mt,
 	}, triples, id, "ingestTriples")
 }
 
@@ -396,6 +412,28 @@ func singleSubject(triples []message.Triple) (string, error) {
 		}
 	}
 	return subject, nil
+}
+
+func validateProjectedTriples(entityID string, triples []message.Triple) error {
+	if entityID == "" {
+		return errors.New("entity id is empty")
+	}
+	if len(triples) == 0 {
+		return errors.New("no triples to ingest")
+	}
+	hasPrimary := false
+	for i, tr := range triples {
+		if tr.Subject == "" {
+			return fmt.Errorf("triple[%d] subject is empty", i)
+		}
+		if tr.Subject == entityID {
+			hasPrimary = true
+		}
+	}
+	if !hasPrimary {
+		return fmt.Errorf("no triples target primary entity %q", entityID)
+	}
+	return nil
 }
 
 func mutationFailure(op string, resp graph.MutationResponse) error {

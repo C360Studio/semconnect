@@ -342,6 +342,46 @@ func TestHandleSystemPut_GoldenPath(t *testing.T) {
 	}
 }
 
+func TestReplaceEntityTriples_ForwardsForeignEdgeProjection(t *testing.T) {
+	parentID := "acme.ops.robotics.gcs.drone.099"
+	childID := parentID + "_camera"
+	current := existingSystemState(parentID)
+	current.MessageType = systemProjectionMessageType
+	fake := &crdFakeRequester{
+		batchReply: encodeBatchOK(t, 3),
+	}
+	c := newComponentWithRequester(t, fake)
+
+	triples := []message.Triple{
+		{Subject: parentID, Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+		{Subject: parentID, Predicate: sensorml.PredHosts, Object: childID},
+		{Subject: childID, Predicate: sensorml.PredIsHostedBy, Object: parentID},
+	}
+	if err := c.replaceEntityTriples(context.Background(), current, triples, Identity{}); err != nil {
+		t.Fatalf("replaceEntityTriples: %v", err)
+	}
+
+	var sent graph.UpdateEntityWithTriplesRequest
+	if err := json.Unmarshal(fake.batchBody, &sent); err != nil {
+		t.Fatalf("decode update body: %v", err)
+	}
+	if sent.Entity == nil || sent.Entity.ID != parentID {
+		t.Fatalf("entity: got %+v want ID %q", sent.Entity, parentID)
+	}
+	if !sent.Entity.MessageType.Equal(systemProjectionMessageType) {
+		t.Fatalf("entity.MessageType: got %+v want %+v", sent.Entity.MessageType, systemProjectionMessageType)
+	}
+	var sawForeign bool
+	for _, tr := range sent.AddTriples {
+		if tr.Subject == childID && tr.Predicate == sensorml.PredIsHostedBy && tr.Object == parentID {
+			sawForeign = true
+		}
+	}
+	if !sawForeign {
+		t.Fatalf("foreign edge not forwarded in update AddTriples: %+v", sent.AddTriples)
+	}
+}
+
 // TestHandleSystemPut_PathBodyIDMismatch — PUT body whose uid would mint a
 // different entity ID than the path {id} returns 400.
 func TestHandleSystemPut_PathBodyIDMismatch(t *testing.T) {

@@ -11,6 +11,7 @@ import (
 
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/natsclient"
+	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 // minimalSensorML produces a SensorML PhysicalSystem JSON body with
@@ -27,6 +28,24 @@ func minimalSensorML(uniqueID, label string) []byte {
 				"definition": "http://example.org/serial",
 				"label":      "Serial Number",
 				"value":      "SN-0001",
+			},
+		},
+	}
+	out, _ := json.Marshal(body)
+	return out
+}
+
+func sensorMLWithComponent(uniqueID, label, childID string) []byte {
+	body := map[string]any{
+		"type":     "PhysicalSystem",
+		"id":       "doc-id-1",
+		"uniqueId": uniqueID,
+		"label":    label,
+		"components": []map[string]any{
+			{
+				"type":  "PhysicalComponent",
+				"id":    childID,
+				"label": "Camera",
 			},
 		},
 	}
@@ -121,6 +140,9 @@ func TestHandleSystemPost_GoldenPath(t *testing.T) {
 	if sent.Entity == nil || sent.Entity.ID != body.ID {
 		t.Fatalf("entity: got %+v want ID %q", sent.Entity, body.ID)
 	}
+	if !sent.Entity.MessageType.Equal(systemProjectionMessageType) {
+		t.Fatalf("entity.MessageType: got %+v want %+v", sent.Entity.MessageType, systemProjectionMessageType)
+	}
 	if len(sent.Triples) == 0 {
 		t.Fatal("no triples published")
 	}
@@ -128,6 +150,58 @@ func TestHandleSystemPost_GoldenPath(t *testing.T) {
 		if tr.Subject != body.ID {
 			t.Errorf("triple[%d].Subject=%q want %q (all triples should share the entity ID)", i, tr.Subject, body.ID)
 		}
+	}
+}
+
+func TestHandleSystemPost_SensorMLComponentForeignEdgeForwarded(t *testing.T) {
+	fake := &fakeRequester{
+		status: natsclient.StatusConnected,
+		reply:  encodeBatchOK(t, 4),
+	}
+	c := newTestComponent(t, fake)
+
+	req := httptest.NewRequest(http.MethodPost, "/systems",
+		bytes.NewReader(sensorMLWithComponent("urn:uuid:parent", "Parent System", "camera")))
+	req.Header.Set("Content-Type", string(MediaSensorML))
+	rr := httptest.NewRecorder()
+	c.handleSystemPost(rr, req)
+
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("status: got %d want 201 (body=%s)", rr.Code, rr.Body.String())
+	}
+	var body struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
+		t.Fatalf("body parse: %v", err)
+	}
+
+	var sent graph.CreateEntityWithTriplesRequest
+	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
+		t.Fatalf("decode published body: %v", err)
+	}
+	if sent.Entity == nil || sent.Entity.ID != body.ID {
+		t.Fatalf("entity: got %+v want ID %q", sent.Entity, body.ID)
+	}
+	if !sent.Entity.MessageType.Equal(systemProjectionMessageType) {
+		t.Fatalf("entity.MessageType: got %+v want %+v", sent.Entity.MessageType, systemProjectionMessageType)
+	}
+
+	childID := body.ID + "_" + uniqueIDToToken("camera")
+	var sawHost, sawHostedBy bool
+	for _, tr := range sent.Triples {
+		if tr.Subject == body.ID && tr.Predicate == sensorml.PredHosts && tr.Object == childID {
+			sawHost = true
+		}
+		if tr.Subject == childID && tr.Predicate == sensorml.PredIsHostedBy && tr.Object == body.ID {
+			sawHostedBy = true
+		}
+	}
+	if !sawHost {
+		t.Fatalf("missing parent hosts triple for child %q: %+v", childID, sent.Triples)
+	}
+	if !sawHostedBy {
+		t.Fatalf("missing child isHostedBy foreign edge for parent %q: %+v", body.ID, sent.Triples)
 	}
 }
 

@@ -20,7 +20,7 @@ total=137 passed=137 failed=0 skipped=0
 
 ## Current Status
 
-- Framework pin: `github.com/c360studio/semstreams v1.0.0-beta.91`.
+- Framework pin: `github.com/c360studio/semstreams v1.0.0-beta.108`.
 - ETS pin: Botts CS API ETS `0.1-SNAPSHOT` at commit `d9caf33`.
 - Reference binary: `cmd/cs-api-server`.
 - Gateway package: `gateway/cs-api`.
@@ -79,6 +79,20 @@ This repo relies on semstreams for:
 | Vocabularies | `vocabulary/sosa`, `vocabulary/ssn`, `vocabulary/swe`, `vocabulary/oms`, `vocabulary/csapi` |
 | Encoders | `parser/sensorml`, GeoJSON types, JSON-LD export |
 | NATS boundary | `natsclient` request/reply classification and test helpers |
+
+### Graph Governance Posture
+
+SemConnect writes CS API resources through SemStreams entity mutation subjects.
+At `v1.0.0-beta.108`, System SensorML writes also stamp a projection producer
+type and forward child/foreign-edge triples through the mutation lane. SemStreams
+normalizes those projected triples at graph-ingest, routes foreign-subject edges
+onto their own entities, and meters unclaimed `(message_type, predicate)` pairs.
+
+That is the first governed graph-state integration point for this gateway. It is
+not endpoint authorization yet: SemStreams ownership is still in an observe-only
+bake window for these foreign edges, so operators should treat it as provenance,
+write-semantics, and future enforcement readiness rather than as a hard security
+boundary.
 
 The framework/sister-repo boundary is documented in
 [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)

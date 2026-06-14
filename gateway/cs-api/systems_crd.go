@@ -129,14 +129,8 @@ func (c *Component) replaceEntityTriples(
 	triples []message.Triple,
 	id Identity,
 ) error {
-	entityID, err := singleSubject(triples)
-	if err != nil {
+	if err := validateProjectedTriples(current.ID, triples); err != nil {
 		return errs.WrapInvalid(err, "cs-api", "replaceEntityTriples", "invalid triple set")
-	}
-	if entityID != current.ID {
-		return errs.WrapInvalid(
-			fmt.Errorf("replacement triples target %q, not existing entity %q", entityID, current.ID),
-			"cs-api", "replaceEntityTriples", "entity mismatch")
 	}
 
 	req := graph.UpdateEntityWithTriplesRequest{

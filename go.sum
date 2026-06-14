@@ -34,6 +34,8 @@ github.com/c360studio/semstreams v1.0.0-beta.90 h1:9SWuvDOJfQU6miqUpX828p7yd9ftF
 github.com/c360studio/semstreams v1.0.0-beta.90/go.mod h1:BFmWX3QRlRaYyuSwU9cX/C7zz1MJCqwhnPhENqKvSEg=
 github.com/c360studio/semstreams v1.0.0-beta.91 h1:ZNI9Ei/R+6ftRRaEDclGqMn0hoVHtPRHLcP74DT64+8=
 github.com/c360studio/semstreams v1.0.0-beta.91/go.mod h1:BFmWX3QRlRaYyuSwU9cX/C7zz1MJCqwhnPhENqKvSEg=
+github.com/c360studio/semstreams v1.0.0-beta.108 h1:p6hX8XDFE+3m2evHNi8M11xGCtKwnQ3IuN1AcmL59qI=
+github.com/c360studio/semstreams v1.0.0-beta.108/go.mod h1:TogKYJEkqAJWfWJfWsFwmN7cyaTL0uQMo0hHDcorSxM=
 github.com/cenkalti/backoff/v4 v4.3.0 h1:MyRJ/UdXutAwSAT+s3wNd7MfTIcy71VQueUuFK343L8=
 github.com/cenkalti/backoff/v4 v4.3.0/go.mod h1:Y3VNntkOUPxTVeUxJ/G5vcM//AlwfmyYozVcomhLiZE=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

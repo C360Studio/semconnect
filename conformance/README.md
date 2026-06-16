@@ -22,7 +22,7 @@ The current pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.108` at `5d487a45aefaa6c84fd2f1485db344c8b644db8e`.
+- semstreams backend `v1.0.0-beta.111` at `2c38acaabfcadac22cf484bf533bd05cf2fbaa97`.
 
 The run exercises real gateway/framework behavior:
 
@@ -110,9 +110,9 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_COMMIT=5d487a45aefaa6c84fd2f1485db344c8b644db8e
-SEMSTREAMS_COMMIT_DATE=2026-06-14
-SEMSTREAMS_VERSION=v1.0.0-beta.108
+SEMSTREAMS_COMMIT=2c38acaabfcadac22cf484bf533bd05cf2fbaa97
+SEMSTREAMS_COMMIT_DATE=2026-06-16
+SEMSTREAMS_VERSION=v1.0.0-beta.111
 ```
 
 Bumping is intentional, not auto-pulled.

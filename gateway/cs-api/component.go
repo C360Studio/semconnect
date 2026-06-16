@@ -402,6 +402,11 @@ func (c *Component) Start(ctx context.Context) error {
 	var artifacts schemaObjectStore = schemaStore
 	c.schemaArtifacts.Store(&artifacts)
 
+	if err := c.bindProjectionContracts(ctx); err != nil {
+		c.mu.Unlock()
+		return fmt.Errorf("cs-api: Start: bind projection contracts: %w", err)
+	}
+
 	if c.cfg.StandaloneServer {
 		// Bind synchronously so a port conflict / permission error
 		// surfaces as a Start() error instead of a silently-orphaned

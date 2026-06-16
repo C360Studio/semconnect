@@ -50,7 +50,7 @@ var jsonNull = []byte("null")
 // Matches SemStreams' ADR-056 cs-api System projection contract. SensorML
 // System writes can emit child->parent foreign edges, so graph-ingest needs a
 // concrete producer key to classify the edge claim instead of "_invalid".
-var systemProjectionMessageType = message.Type{Domain: "sensorml", Category: "asset", Version: "v1"}
+var systemProjectionMessageType = message.Type{Domain: "c360", Category: "csapi.system", Version: "v1"}
 
 func firstSystemPositionObject(triples []message.Triple) (string, bool) {
 	return firstStringObject(triples, PredSystemPosition, legacyPredSystemPosition)

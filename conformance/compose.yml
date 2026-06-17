@@ -85,6 +85,14 @@ services:
       start_period: 30s
     expose:
       - "8090"
+      # 9090 — the framework's Prometheus /metrics endpoint. `cmd/semstreams`
+      # auto-injects a `metrics` service at boot (ensureMetricsConfig, port
+      # 9090) even when the config file omits it, so this endpoint is always
+      # live. The Stage 56 foreign-edge bake in run.sh scrapes
+      # semstreams_graph_ingest_foreign_edge_unclaimed_total here. (Inter-service
+      # traffic on the compose network ignores `expose`, which is informational —
+      # this documents the dependency for the human reading the harness.)
+      - "9090"
 
   cs-api-server:
     build:

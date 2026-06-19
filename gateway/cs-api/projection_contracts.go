@@ -37,7 +37,13 @@ func (c *Component) bindProjectionContracts(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("ensure ownership buckets: %w", err)
 	}
-	if err := projection.Bind(ctx, reg, systemProjectionOwner,
+	// beta.113 (ADR-055/056 flip): Bind now returns the owner's OwnerToken. We
+	// discard it — this is an FE-ONLY owner (the contract derives a single
+	// ForeignEdgeClaim and zero OwnerClaims, see the test), and an FE-only claim
+	// is compaction-exempt (epoch.go), so it needs no heartbeat / OwnerToken
+	// lease. (A static owner that derived a real OwnerClaim would have to
+	// BindAndHeartbeat to keep its OWNER_PRESENCE key alive.)
+	if _, err := projection.Bind(ctx, reg, systemProjectionOwner,
 		systemProjectionContract(c.cfg.SystemIDPrefix)); err != nil {
 		return fmt.Errorf("bind System projection contract: %w", err)
 	}

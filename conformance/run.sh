@@ -670,30 +670,43 @@ assert_foreign_edge_bake() {
         echo "$metrics" | grep 'foreign_edge' || echo "(no foreign_edge_* series emitted)"
     } >"$bake_report"
 
-    # Sum the unclaimed counter across all label sets. An absent series == 0
-    # (a CounterVec emits nothing for a label combo it never incremented).
-    local unclaimed
-    unclaimed="$(echo "$metrics" | python3 -c '
+    # Sum the unclaimed AND dropped counters across all label sets. An absent
+    # series == 0 (a CounterVec emits nothing for a label combo it never
+    # incremented). Post-flip (beta.113, auto-vivify removed) BOTH must be zero:
+    # unclaimed>0 means a foreign edge has no registered claim; dropped>0 means a
+    # claimed edge's target was absent and its mode forbade materialising it (an
+    # EdgeStrict loud-drop) — either one breaks hosted-child resolution.
+    local bake_counts unclaimed dropped
+    bake_counts="$(echo "$metrics" | python3 -c '
 import re, sys
 # Anchor on the exact metric name, an optional {labels} block, then take the
 # VALUE field (group 1) — never a trailing optional timestamp, and never a
 # future sibling series like ..._total_created.
-pat = re.compile(r"^semstreams_graph_ingest_foreign_edge_unclaimed_total(?:\{[^}]*\})?\s+(\S+)")
-total = 0.0
+pats = {
+    "unclaimed": re.compile(r"^semstreams_graph_ingest_foreign_edge_unclaimed_total(?:\{[^}]*\})?\s+(\S+)"),
+    "dropped":   re.compile(r"^semstreams_graph_ingest_foreign_edge_dropped_total(?:\{[^}]*\})?\s+(\S+)"),
+}
+totals = {"unclaimed": 0.0, "dropped": 0.0}
 ok = True
 for line in sys.stdin:
     line = line.strip()
     if not line or line.startswith("#"):
         continue
-    m = pat.match(line)
-    if not m:
-        continue
-    try:
-        total += float(m.group(1))
-    except ValueError:
-        ok = False
-print(int(total) if ok else "ERR")
-' 2>/dev/null || echo "ERR")"
+    for key, pat in pats.items():
+        m = pat.match(line)
+        if not m:
+            continue
+        try:
+            totals[key] += float(m.group(1))
+        except ValueError:
+            ok = False
+        break
+if ok:
+    print(int(totals["unclaimed"]), int(totals["dropped"]))
+else:
+    print("ERR ERR")
+' 2>/dev/null || echo "ERR ERR")"
+    read -r unclaimed dropped <<<"$bake_counts"
 
     # Positive signal: did the foreign-subject lane actually fire this run?
     # graph-ingest WARNs once per cross-entity projected write at
@@ -703,24 +716,26 @@ print(int(total) if ok else "ERR")
         fired=1
     fi
 
-    if [[ "$unclaimed" == "ERR" ]]; then
+    if [[ "$unclaimed" == "ERR" || "$dropped" == "ERR" ]]; then
         BAKE_VERDICT="INCONCLUSIVE"
-        BAKE_DETAIL="could not parse foreign_edge_unclaimed_total from /metrics (see $bake_report)"
-    elif [[ "$unclaimed" -gt 0 ]]; then
+        BAKE_DETAIL="could not parse foreign_edge_* counters from /metrics (see $bake_report)"
+    elif [[ "$unclaimed" -gt 0 || "$dropped" -gt 0 ]]; then
         BAKE_VERDICT="FAIL"
-        BAKE_DETAIL="foreign_edge_unclaimed_total=$unclaimed (>0) — an unclaimed foreign edge would DROP post-flip; see $bake_report"
+        BAKE_DETAIL="foreign_edge_unclaimed_total=$unclaimed, foreign_edge_dropped_total=$dropped (both must be 0) — post-flip a hosted-child edge is dropped instead of NoBirthStub-stubbed; see $bake_report"
     elif [[ "$fired" -eq 1 ]]; then
         BAKE_VERDICT="PASS"
-        BAKE_DETAIL="foreign_edge_unclaimed_total=0 with the isHostedBy lane exercised — zero by CLAIMED"
+        BAKE_DETAIL="foreign_edge_unclaimed_total=0 + foreign_edge_dropped_total=0 with the isHostedBy lane exercised — zero by CLAIMED (NoBirthStub-routed)"
     else
         BAKE_VERDICT="INCONCLUSIVE"
-        BAKE_DETAIL="foreign_edge_unclaimed_total=0 but the foreign lane never fired (no cross-entity-edge WARN in $BACKEND_LOG) — zero by ABSENCE, proves nothing; check the Stage 56 hosted-platform seed"
+        BAKE_DETAIL="counters zero but the foreign lane never fired (no cross-entity-edge WARN in $BACKEND_LOG) — zero by ABSENCE, proves nothing; check the Stage 56 hosted-platform seed"
     fi
 
     {
         echo
         echo "verdict:    $BAKE_VERDICT"
         echo "detail:     $BAKE_DETAIL"
+        echo "unclaimed:  $unclaimed"
+        echo "dropped:    $dropped"
         echo "lane-fired: $fired"
     } >>"$bake_report"
     log "  foreign-edge bake: $BAKE_VERDICT — $BAKE_DETAIL"

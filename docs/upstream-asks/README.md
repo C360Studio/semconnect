@@ -27,11 +27,13 @@ Non-blocking vocabulary asks now filed upstream:
 
 ## Resolved in current pins
 
-- `v1.0.0-beta.108`: ADR-056 ownership/projection substrate plus the shared
+- `v1.0.0-beta.111`: ADR-056 ownership/projection substrate plus the shared
   projection-normalization seam now covers mutation-lane writes. semconnect
-  uses this for SensorML System projections by stamping the `sensorml.asset.v1`
-  producer and forwarding child foreign-edge triples. SemStreams classifies
-  unclaimed foreign edges in observe-only mode at this pin.
+  uses this for SensorML System projections by stamping the
+  `c360.csapi.system.v1` producer, forwarding child foreign-edge triples, and
+  binding a `NoBirthStub` `sensorml.PredIsHostedBy` foreign-edge claim for its
+  configured System ID prefix. SemStreams classifies unclaimed foreign edges in
+  observe-only mode at this pin.
 - `v1.0.0-beta.91`: #182 split `vocabulary/csapi` relationship
   predicates into dotted internal constants plus `*IRI` boundary
   constants. semconnect now writes dotted CS API relationship predicates

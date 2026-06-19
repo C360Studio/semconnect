@@ -1,0 +1,19 @@
+{
+  "type": "PhysicalSystem",
+  "id": "doc-hosted-platform-01",
+  "uniqueId": "urn:ets:system:hosted-platform-bake-01",
+  "definition": "http://www.w3.org/ns/ssn/System",
+  "label": "Conformance hosted platform (foreign-edge bake)",
+  "description": "ADR-055/056 must-exist-flip bake fixture. Declares one inline hosted component, so POST /systems emits a foreign-subject `child isHostedBy parent` edge (subject = the not-yet-existent child). Exercising this lane is what lets the harness prove foreign_edge_unclaimed_total reads zero BY CLAIMED (the registered NoBirthStub isHostedBy claim covers it), not zero by absence.",
+  "position": {
+    "type": "Point",
+    "coordinates": [-122.4194, 37.7749, 12.0]
+  },
+  "components": [
+    {
+      "type": "PhysicalComponent",
+      "id": "thermometer-bake-01",
+      "label": "Bake child thermometer"
+    }
+  ]
+}

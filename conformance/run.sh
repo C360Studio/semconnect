@@ -16,6 +16,9 @@
 #   0 — harness ran end-to-end; TestNG report archived (read it for pass/fail)
 #   1 — infrastructure failure (build, container start, health, network)
 #   2 — TeamEngine REST API returned non-2xx during suite invocation
+#   3 — ADR-055/056 foreign-edge bake FAILED (foreign_edge_unclaimed_total > 0;
+#       an emitted foreign edge would drop post-flip). BAKE_STRICT=0 downgrades
+#       this to a warning (exit 0).
 #
 # Stage 6 calibration note: the pinned Botts ETS is 0.1-SNAPSHOT (scaffold).
 # A zero-failure run today proves the harness, NOT the conformance picture.
@@ -267,6 +270,46 @@ EOF
         die "POST /systems child subsystem returned 201 with malformed id '$subsystem_id' (see $SEED_LOG)"
     fi
     log "  seeded subsystem: id=$subsystem_id"
+
+    # Stage 56 — ADR-055/056 must-exist-flip bake fixture. POST a SensorML
+    # PhysicalSystem with an inline hosted component so the gateway emits a
+    # foreign-subject `child isHostedBy parent` edge (subject = the
+    # not-yet-existent child). This is the ONLY cs-api lane that emits a
+    # foreign-SUBJECT edge — the Stage-49 subsystem above is an own-subject
+    # object-reference, which does NOT exercise the routing seam. Seeding this
+    # is what makes assert_foreign_edge_bake's zero reading mean "zero by
+    # claimed" rather than the meaningless "zero by absence" (ADR-056 Decision
+    # 4): the registered NoBirthStub isHostedBy claim
+    # (gateway/cs-api/projection_contracts.go) must cover this edge so it is
+    # stubbed, not dropped, once the must-exist flip tags.
+    log "  POST /systems with $(basename "$fixtures_dir/system-hosted.sml.json") (foreign-edge bake)"
+    local hosted_resp
+    hosted_resp="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        -v "$fixtures_dir":/fx:ro \
+        curlimages/curl:8.10.1 \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
+        -X POST -H 'Content-Type: application/sensorml+json' \
+        --data-binary @/fx/system-hosted.sml.json \
+        "${cs_api_url}/systems" 2>&1)" || true
+    echo "$hosted_resp" >>"$SEED_LOG"
+    local hosted_code
+    hosted_code="$(echo "$hosted_resp" | awk '/^HTTP /{print $2}' | tail -1)"
+    if [[ "$hosted_code" != "201" ]]; then
+        die "POST /systems hosted-platform bake fixture failed: $hosted_code (see $SEED_LOG)"
+    fi
+    local hosted_loc hosted_id
+    hosted_loc="$(echo "$hosted_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    hosted_id="${hosted_loc##*/}"
+    if [[ -z "$hosted_id" ]]; then
+        die "POST /systems hosted bake fixture returned 201 but Location was empty or missing (see $SEED_LOG)"
+    fi
+    # Symmetry with the sibling seeds — hosted_id is log-only here, but keep the
+    # same well-formedness guard so a future use can trust it.
+    if ! [[ "$hosted_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
+        die "POST /systems hosted bake fixture returned 201 with malformed id '$hosted_id' (see $SEED_LOG)"
+    fi
+    log "  seeded hosted platform (foreign isHostedBy lane fired): id=$hosted_id"
 
     # Build a Datastream pointing at the just-seeded System. CS API §10
     # shape: id (optional, will be minted), name, description, system
@@ -592,6 +635,97 @@ EOF
     log "  seed complete (log: $SEED_LOG)"
 }
 
+# Stage 56 — ADR-055/056 must-exist-flip readiness bake. After the full ETS
+# window, scrape graph-ingest's Prometheus counter
+# semstreams_graph_ingest_foreign_edge_unclaimed_total and assert ZERO. A
+# non-zero reading means cs-api emitted a foreign-subject edge with no
+# registered ForeignEdgeClaim — post-flip that edge is DROPPED instead of
+# routed via NoBirthStub, breaking hosted-child resolution. The Stage 56
+# hosted-platform seed guarantees the foreign isHostedBy lane actually fired,
+# so a clean zero is zero-BY-CLAIMED, corroborated by the backend "projected
+# write emitted cross-entity edges" WARN — not the meaningless zero-by-absence
+# (ADR-056:189).
+#
+# Sets globals BAKE_VERDICT (PASS|FAIL|INCONCLUSIVE) and BAKE_DETAIL for the
+# summary. The caller turns a FAIL into exit 3 unless BAKE_STRICT=0.
+assert_foreign_edge_bake() {
+    local bake_report="$OUTPUT_DIR/foreign-edge-bake-${UTC_STAMP}.txt"
+    local metrics
+    metrics="$(docker run --rm \
+        --network "${COMPOSE_PROJECT}_default" \
+        curlimages/curl:8.10.1 \
+        -sS "http://semstreams-backend:9090/metrics" 2>/dev/null || true)"
+
+    if [[ -z "$metrics" ]]; then
+        BAKE_VERDICT="INCONCLUSIVE"
+        BAKE_DETAIL="graph-ingest /metrics (semstreams-backend:9090) unreachable"
+        echo "BAKE INCONCLUSIVE — $BAKE_DETAIL" >"$bake_report"
+        log "  foreign-edge bake: INCONCLUSIVE ($BAKE_DETAIL)"
+        return 0
+    fi
+
+    # Persist every foreign_edge_* series for triage.
+    {
+        echo "# foreign-edge bake — $UTC_STAMP"
+        echo "$metrics" | grep 'foreign_edge' || echo "(no foreign_edge_* series emitted)"
+    } >"$bake_report"
+
+    # Sum the unclaimed counter across all label sets. An absent series == 0
+    # (a CounterVec emits nothing for a label combo it never incremented).
+    local unclaimed
+    unclaimed="$(echo "$metrics" | python3 -c '
+import re, sys
+# Anchor on the exact metric name, an optional {labels} block, then take the
+# VALUE field (group 1) — never a trailing optional timestamp, and never a
+# future sibling series like ..._total_created.
+pat = re.compile(r"^semstreams_graph_ingest_foreign_edge_unclaimed_total(?:\{[^}]*\})?\s+(\S+)")
+total = 0.0
+ok = True
+for line in sys.stdin:
+    line = line.strip()
+    if not line or line.startswith("#"):
+        continue
+    m = pat.match(line)
+    if not m:
+        continue
+    try:
+        total += float(m.group(1))
+    except ValueError:
+        ok = False
+print(int(total) if ok else "ERR")
+' 2>/dev/null || echo "ERR")"
+
+    # Positive signal: did the foreign-subject lane actually fire this run?
+    # graph-ingest WARNs once per cross-entity projected write at
+    # normalizeProjection — its presence rules out zero-by-absence.
+    local fired=0
+    if grep -q "projected write emitted cross-entity edges" "$BACKEND_LOG" 2>/dev/null; then
+        fired=1
+    fi
+
+    if [[ "$unclaimed" == "ERR" ]]; then
+        BAKE_VERDICT="INCONCLUSIVE"
+        BAKE_DETAIL="could not parse foreign_edge_unclaimed_total from /metrics (see $bake_report)"
+    elif [[ "$unclaimed" -gt 0 ]]; then
+        BAKE_VERDICT="FAIL"
+        BAKE_DETAIL="foreign_edge_unclaimed_total=$unclaimed (>0) — an unclaimed foreign edge would DROP post-flip; see $bake_report"
+    elif [[ "$fired" -eq 1 ]]; then
+        BAKE_VERDICT="PASS"
+        BAKE_DETAIL="foreign_edge_unclaimed_total=0 with the isHostedBy lane exercised — zero by CLAIMED"
+    else
+        BAKE_VERDICT="INCONCLUSIVE"
+        BAKE_DETAIL="foreign_edge_unclaimed_total=0 but the foreign lane never fired (no cross-entity-edge WARN in $BACKEND_LOG) — zero by ABSENCE, proves nothing; check the Stage 56 hosted-platform seed"
+    fi
+
+    {
+        echo
+        echo "verdict:    $BAKE_VERDICT"
+        echo "detail:     $BAKE_DETAIL"
+        echo "lane-fired: $fired"
+    } >>"$bake_report"
+    log "  foreign-edge bake: $BAKE_VERDICT — $BAKE_DETAIL"
+}
+
 teardown_silent() {
     compose down -v --remove-orphans >/dev/null 2>&1 || true
 }
@@ -650,7 +784,7 @@ docker info >/dev/null 2>&1 || die "docker daemon not reachable"
 command -v git >/dev/null 2>&1 || die "git not found in PATH"
 
 # 2. Materialise pinned ETS + framework sources + tear down any previous stack.
-log "step 1/7 — materialising pinned ETS + framework sources, tearing down previous stack"
+log "step 1/8 — materialising pinned ETS + framework sources, tearing down previous stack"
 ensure_ets_vendor
 ensure_semstreams_vendor
 compose down -v --remove-orphans >/dev/null 2>&1 || true
@@ -660,14 +794,14 @@ compose down -v --remove-orphans >/dev/null 2>&1 || true
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
-log "step 2/7 — docker compose build (cold ETS build is ~5–6 min)"
+log "step 2/8 — docker compose build (cold ETS build is ~5–6 min)"
 BUILD_LOG="$OUTPUT_DIR/compose-build-${UTC_STAMP}.log"
 if ! compose build >"$BUILD_LOG" 2>&1; then
     tail -100 "$BUILD_LOG"
     die "compose build failed (full log: $BUILD_LOG)"
 fi
 
-log "step 3/7 — docker compose up -d (waits for all healthchecks)"
+log "step 3/8 — docker compose up -d (waits for all healthchecks)"
 # `--wait` was dropped 2026-05-17 because GHA runners updated docker
 # compose to a version that exits non-zero for `--wait` when ANY
 # service has `healthcheck: disable: true` — cs-api-server's
@@ -704,7 +838,7 @@ fi
 #    if the host can reach TE, and TE depends_on cs-api-server, the path
 #    is wired). The host probe avoids relying on `curl` being installed
 #    inside whatever teamengine image the pin produces.
-log "step 4/7 — verifying TeamEngine is reachable on host port ${TE_HOST_PORT}"
+log "step 4/8 — verifying TeamEngine is reachable on host port ${TE_HOST_PORT}"
 te_ready=0
 for i in $(seq 1 "$HEALTH_TIMEOUT_S"); do
     te_http="$(curl -sS -o /dev/null -w '%{http_code}' \
@@ -724,12 +858,12 @@ fi
 #    @BeforeClass fixture loaders (fetchSensorMlInputs /
 #    fetchGeoJsonInputs) see an empty SystemCollection and SKIP every
 #    test that depends on the systemfeatures group.
-log "step 5/7 — seeding CS-API fixtures"
+log "step 5/8 — seeding CS-API fixtures"
 seed_fixtures
 
 # 6. Confirm suite is registered, then invoke it.
 TE_BASE="http://localhost:${TE_HOST_PORT}/teamengine"
-log "step 6/7 — verifying suite ${ETS_CODE} is registered"
+log "step 6/8 — verifying suite ${ETS_CODE} is registered"
 suites_xml="$(curl -fsS -u "${TE_USER}:${TE_PASS}" \
                     -H 'Accept: application/xml' \
                     "${TE_BASE}/rest/suites")" \
@@ -739,7 +873,7 @@ if ! echo "$suites_xml" | grep -q "<etscode>${ETS_CODE}</etscode>"; then
     die "${ETS_CODE} not present in /rest/suites — see $OUTPUT_DIR/suites-${UTC_STAMP}.xml"
 fi
 
-log "step 7/7 — invoking suite ${ETS_CODE} against ${IUT_URL} (timeout ${RUN_TIMEOUT_S}s)"
+log "step 7/8 — invoking suite ${ETS_CODE} against ${IUT_URL} (timeout ${RUN_TIMEOUT_S}s)"
 # Stage 16 — opt into the ETS mutation lifecycle tests
 # (createreplacedelete + update groups). The harness's stack is
 # ephemeral per run (compose down -v at start), so
@@ -768,6 +902,15 @@ fi
 compose logs teamengine >"$TE_LOG" 2>&1 || true
 compose logs cs-api-server >"$CS_LOG" 2>&1 || true
 compose logs semstreams-backend >"$BACKEND_LOG" 2>&1 || true
+
+# step 8/8 — ADR-055/056 must-exist-flip readiness bake. Runs after the full
+# ETS window (and after the backend log is captured above, which the bake
+# greps for the cross-entity-edge WARN), so it sees every foreign edge the run
+# produced. Sets BAKE_VERDICT / BAKE_DETAIL; the exit-3 gate is at the tail.
+log "step 8/8 — ADR-055/056 foreign-edge readiness bake"
+BAKE_VERDICT="INCONCLUSIVE"
+BAKE_DETAIL="not run"
+assert_foreign_edge_bake
 
 # 6. Parse TestNG attributes and emit a summary. Uses xml.etree.ElementTree
 #    rather than a regex so we tolerate XML preambles, stylesheets, and
@@ -801,17 +944,44 @@ fi
     echo "IUT: $IUT_URL"
     echo
     echo "TestNG: total=$total passed=$passed failed=$failed skipped=$skipped"
+    echo "Foreign-edge bake (ADR-055/056): $BAKE_VERDICT — $BAKE_DETAIL"
     echo "Report:        $REPORT_XML"
     echo "TE log:        $TE_LOG"
     echo "cs-api log:    $CS_LOG"
     echo "backend log:   $BACKEND_LOG"
     echo "seed log:      $SEED_LOG"
+    echo "bake report:   $OUTPUT_DIR/foreign-edge-bake-${UTC_STAMP}.txt"
     echo
     echo "Stage 9 note: cs-api-server now runs against a real graph backend"
     echo "(semstreams-backend), seeded with conformance/fixtures/system.sml.json"
     echo "and a referencing datastream before suite invocation. The Botts"
     echo "fixture-loader 503s are eliminated — surviving failures are genuine"
     echo "spec assertions or upstream-ETS bugs."
+    echo
+    echo "Stage 56 note: the foreign-edge bake POSTs system-hosted.sml.json (a"
+    echo "SensorML system with an inline hosted component) and asserts"
+    echo "graph-ingest's foreign_edge_unclaimed_total reads zero — proving every"
+    echo "isHostedBy foreign edge cs-api emits is CLAIMED (NoBirthStub-stubbed),"
+    echo "not dropped, once the must-exist flip tags. This clears cs-api's half"
+    echo "of the foreign-edge flip gate (semconnect#65)."
 } | tee "$SUMMARY"
+
+# ADR-055/056 flip gate: a non-zero unclaimed counter is a real readiness
+# failure (an emitted foreign edge would DROP post-flip), so fail loud by
+# default. INCONCLUSIVE (metrics unreachable / zero-by-absence) never fails the
+# run — it just isn't a clean bake. Set BAKE_STRICT=0 to downgrade FAIL to warn.
+if [[ "$BAKE_VERDICT" == "FAIL" && "${BAKE_STRICT:-1}" -eq 1 ]]; then
+    log "FATAL: foreign-edge bake FAILED — cs-api is NOT flip-ready ($BAKE_DETAIL)"
+    log "       (set BAKE_STRICT=0 to downgrade this gate to a warning)"
+    # A failing bake is precisely when an operator wants the stack up to poke
+    # /metrics live. All triage logs (TE/cs-api/backend/bake report) are already
+    # on disk above, so honour KEEP_STACK here: cancel the EXIT trap so on_exit
+    # doesn't tear the stack down on this rc=3 failure path.
+    if [[ "$KEEP_STACK" -eq 1 ]]; then
+        log "       stack left running for triage; tear down with ./conformance/run.sh --teardown-only"
+        trap - EXIT
+    fi
+    exit 3
+fi
 
 log "done — exit 0 means harness ran; read $REPORT_XML for the conformance picture"

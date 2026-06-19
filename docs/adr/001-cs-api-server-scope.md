@@ -3,7 +3,7 @@
 - **Status**: Accepted (2026-06-02)
 - **Repo**: `semconnect`
 - **Companion**: [ADR-044 (semstreams)](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
-- **Framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.108`
+- **Framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.111`
 
 ## Context
 
@@ -88,7 +88,7 @@ of Team Engine or the ETS.
   `conformance/output/`.
 
 **Current result**: Stage 55 reports `total=137 passed=137 failed=0 skipped=0`
-against Botts ETS `d9caf33` and semstreams `v1.0.0-beta.108`.
+against Botts ETS `d9caf33` and semstreams `v1.0.0-beta.111`.
 
 ### 5. CS API Part 3 Pub/Sub Binding Stance
 
@@ -125,11 +125,13 @@ framework request/reply and ObjectStore contracts directly:
 - JetStream for observations
 - ObjectStore-backed artifact entities for SWE schemas and command schemas
 
-On semstreams `v1.0.0-beta.108`, the System SensorML write path also exercises
-the governed semantic-state projection lane. SemConnect stamps the System
-projection producer type, forwards child foreign-edge triples, and relies on
-graph-ingest to partition and route those edges onto their own subjects. At this
-pin, foreign-edge ownership classification is observe-only: unclaimed edges are
+On semstreams `v1.0.0-beta.111`, the System SensorML write path also exercises
+the governed semantic-state projection lane. SemConnect stamps the
+`c360.csapi.system.v1` System projection producer type, binds a `NoBirthStub`
+`sensorml.PredIsHostedBy` foreign-edge claim for the configured System ID
+prefix, forwards child foreign-edge triples, and relies on graph-ingest to
+partition and route those edges onto their own subjects. At this pin,
+foreign-edge ownership classification is observe-only: unclaimed edges are
 metered and warned but still routed. Treat this as write-semantics governance and
 provenance, not as an endpoint authorization boundary.
 

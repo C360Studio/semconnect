@@ -12,7 +12,7 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-As of Stage 55, the pinned suite is green:
+As of Stage 56, the pinned suite is green:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -22,7 +22,7 @@ The current pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.111` at `2c38acaabfcadac22cf484bf533bd05cf2fbaa97`.
+- semstreams backend `v1.0.0-beta.116` at `a96df3efde8d242dd03e58fdab622fc2b561f2f1`.
 
 The run exercises real gateway/framework behavior:
 
@@ -110,9 +110,9 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_COMMIT=2c38acaabfcadac22cf484bf533bd05cf2fbaa97
-SEMSTREAMS_COMMIT_DATE=2026-06-16
-SEMSTREAMS_VERSION=v1.0.0-beta.111
+SEMSTREAMS_COMMIT=a96df3efde8d242dd03e58fdab622fc2b561f2f1
+SEMSTREAMS_COMMIT_DATE=2026-06-26
+SEMSTREAMS_VERSION=v1.0.0-beta.116
 ```
 
 Bumping is intentional, not auto-pulled.

@@ -94,7 +94,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
   `main`, on `workflow_dispatch`, and on PRs labelled `conformance` — **not a PR-blocking
   gate** at this stage.
 
-  **Current outcome (Stage 55, 2026-06-02): `total=137 passed=137 failed=0 skipped=0`.**
+  **Current outcome (Stage 56, 2026-06-27): `total=137 passed=137 failed=0 skipped=0`.**
   Zero failures against our claimed conformance set. Stage 44 declares Part 2
   Datastreams/Observations and verifies the read-only surface: full Datastream collection
   items, canonical item reads, schema wrapper, global/nested Observation collections, and

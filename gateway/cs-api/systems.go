@@ -873,6 +873,10 @@ func classifyEntityQueryFailure(err error) error {
 	if err == nil {
 		return nil
 	}
+	var ce *errs.ClassifiedError
+	if errors.As(err, &ce) && ce.Code == graph.ErrorCodeEntityNotFound {
+		return fmt.Errorf("%w: %s", errEntityNotFound, err.Error())
+	}
 	tail := strings.TrimPrefix(err.Error(), "error: ")
 	switch {
 	case strings.HasPrefix(tail, "not found:"):
@@ -915,7 +919,7 @@ func (c *Component) listEntitiesByType(ctx context.Context, typeIRI string, limi
 		return nil, errs.Wrap(err, "cs-api", opName, "marshal predicate query")
 	}
 
-	respBytes, err := c.nats.Request(ctx, subjectPredicateQuery, reqBody, c.cfg.QueryTimeout)
+	reply, err := c.nats.RequestWithHeaders(ctx, subjectPredicateQuery, reqBody, nil, c.cfg.QueryTimeout)
 	if err != nil {
 		switch {
 		case errors.Is(err, nats.ErrNoResponders),
@@ -932,12 +936,21 @@ func (c *Component) listEntitiesByType(ctx context.Context, typeIRI string, limi
 		}
 	}
 
+	respBytes, err := natsclient.ClassifyReply(reply)
+	if err != nil {
+		switch {
+		case errs.IsInvalid(err):
+			return nil, errs.WrapInvalid(err, "cs-api", opName, "predicate query")
+		case errs.IsTransient(err):
+			return nil, errs.WrapTransient(err, "cs-api", opName, "predicate query")
+		default:
+			return nil, errs.Wrap(err, "cs-api", opName, "predicate query")
+		}
+	}
+
 	var resp graph.QueryResponse[graph.PredicateData]
 	if err := json.Unmarshal(respBytes, &resp); err != nil {
 		return nil, errs.Wrap(err, "cs-api", opName, "decode predicate response")
-	}
-	if resp.Error != "" {
-		return nil, errs.WrapTransient(errors.New(resp.Error), "cs-api", opName, "predicate query")
 	}
 	return resp.Data.Entities, nil
 }

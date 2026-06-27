@@ -3,7 +3,7 @@
 - **Status**: Accepted (2026-06-02)
 - **Repo**: `semconnect`
 - **Companion**: [ADR-044 (semstreams)](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
-- **Framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.111`
+- **Framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.116`
 
 ## Context
 
@@ -87,8 +87,8 @@ of Team Engine or the ETS.
 - TestNG XML, service logs, build logs, and seed logs are archived under
   `conformance/output/`.
 
-**Current result**: Stage 55 reports `total=137 passed=137 failed=0 skipped=0`
-against Botts ETS `d9caf33` and semstreams `v1.0.0-beta.111`.
+**Current result**: Stage 56 reports `total=137 passed=137 failed=0 skipped=0`
+against Botts ETS `d9caf33` and semstreams `v1.0.0-beta.116`.
 
 ### 5. CS API Part 3 Pub/Sub Binding Stance
 
@@ -125,7 +125,7 @@ framework request/reply and ObjectStore contracts directly:
 - JetStream for observations
 - ObjectStore-backed artifact entities for SWE schemas and command schemas
 
-On semstreams `v1.0.0-beta.111`, the System SensorML write path also exercises
+At the current semstreams pin, the System SensorML write path also exercises
 the governed semantic-state projection lane. SemConnect stamps the
 `c360.csapi.system.v1` System projection producer type, binds a `NoBirthStub`
 `sensorml.PredIsHostedBy` foreign-edge claim for the configured System ID
@@ -151,7 +151,7 @@ Framework-shaped gaps are filed upstream on `semstreams`. Gateway-local shims
 are allowed only when they are narrow, non-blocking, and easy to retire.
 
 Current non-blocking asks are tracked in
-`docs/upstream-asks/README.md`. As of Stage 55, they are vocabulary ownership
+`docs/upstream-asks/README.md`. As of Stage 56, they are vocabulary ownership
 asks, not runtime blockers.
 
 ## Consequences
@@ -179,7 +179,7 @@ This ADR's original bootstrap target is closed.
 
 - Code-side: the reference server and gateway package are implemented.
 - Harness-side: `conformance/run.sh` and CI workflow boot the full stack.
-- Validation-side: Stage 55 reports `total=137 passed=137 failed=0 skipped=0`
+- Validation-side: Stage 56 reports `total=137 passed=137 failed=0 skipped=0`
   against the pinned ETS.
 
 Future changes to conformance scope should be recorded as new ADRs or explicit

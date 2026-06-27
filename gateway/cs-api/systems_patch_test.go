@@ -18,6 +18,7 @@ import (
 
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
+	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
@@ -330,8 +331,15 @@ func TestHandleSystemPatch_MalformedJSON_400(t *testing.T) {
 // entity returns 404 (no upsert; partial-update of nothing is
 // meaningless). PUT is the upsert path; PATCH is strict.
 func TestHandleSystemPatch_NotFound(t *testing.T) {
+	replyBody, hdr := encodeClassifiedReply(
+		t,
+		natsclient.ErrorClassInvalid,
+		graph.ErrorCodeEntityNotFound,
+		"not found: "+testPatchID,
+	)
 	fake := &crdFakeRequester{
-		entityReply: []byte("error: not found: " + testPatchID),
+		entityReply:  replyBody,
+		entityHeader: hdr,
 	}
 	c := newComponentWithRequester(t, fake)
 

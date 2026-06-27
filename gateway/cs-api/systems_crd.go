@@ -156,17 +156,19 @@ func (c *Component) replaceEntityTriples(
 		}
 	}
 
+	data, err := classifyMutationReply(reply, "replaceEntityTriples")
+	if err != nil {
+		return err
+	}
+
 	var resp graph.UpdateEntityWithTriplesResponse
-	if err := json.Unmarshal(reply.Data, &resp); err != nil {
+	if err := json.Unmarshal(data, &resp); err != nil {
 		return errs.Wrap(err, "cs-api", "replaceEntityTriples", "decode entity update response")
 	}
-	if resp.Success {
-		if resp.Degraded {
-			c.logger.Warn("entity update committed with degraded read-back", "entity", current.ID, "err", resp.Error)
-		}
-		return nil
+	if resp.Degraded {
+		c.logger.Warn("entity update committed with degraded read-back", "entity", current.ID, "err", resp.DegradedReason)
 	}
-	return mutationFailure("replaceEntityTriples", resp.MutationResponse)
+	return nil
 }
 
 func (c *Component) deleteEntity(ctx context.Context, entityID string, id Identity) error {
@@ -186,14 +188,16 @@ func (c *Component) deleteEntity(ctx context.Context, entityID string, id Identi
 			return errs.Wrap(err, "cs-api", "deleteEntity", "entity delete request")
 		}
 	}
+	data, err := classifyMutationReply(reply, "deleteEntity")
+	if err != nil {
+		return err
+	}
+
 	var resp graph.DeleteEntityResponse
-	if err := json.Unmarshal(reply.Data, &resp); err != nil {
+	if err := json.Unmarshal(data, &resp); err != nil {
 		return errs.Wrap(err, "cs-api", "deleteEntity", "decode entity delete response")
 	}
-	if resp.Success {
-		return nil
-	}
-	return mutationFailure("deleteEntity", resp.MutationResponse)
+	return nil
 }
 
 func uniquePredicates(triples []message.Triple) []string {

@@ -7,7 +7,7 @@ without making semstreams review stale blockers.
 
 ## Open asks
 
-None currently blocking semconnect. As of Stage 55, the CS API gateway is
+None currently blocking semconnect. As of Stage 56, the CS API gateway is
 green against the pinned ETS (`total=137 passed=137 failed=0 skipped=0`).
 
 Non-blocking vocabulary asks now filed upstream:
@@ -27,6 +27,10 @@ Non-blocking vocabulary asks now filed upstream:
 
 ## Resolved in current pins
 
+- `v1.0.0-beta.116`: ADR-060 removes in-body mutation/query error signalling
+  from the current wire contract. semconnect now branches on classified NATS
+  replies and reads mutation/query failure codes from `*errs.ClassifiedError`
+  instead of legacy response-body `Success`, `Error`, or `ErrorCode` fields.
 - `v1.0.0-beta.111`: ADR-056 ownership/projection substrate plus the shared
   projection-normalization seam now covers mutation-lane writes. semconnect
   uses this for SensorML System projections by stamping the

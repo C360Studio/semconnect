@@ -34,12 +34,13 @@ import (
 type crdFakeRequester struct {
 	mu sync.Mutex
 
-	entityReply []byte
-	entityErr   error
-	removeReply []byte
-	removeErr   error
-	batchReply  []byte
-	batchErr    error
+	entityReply  []byte
+	entityHeader nats.Header
+	entityErr    error
+	removeReply  []byte
+	removeErr    error
+	batchReply   []byte
+	batchErr     error
 
 	entityQueryCalls int
 	removeCalls      []graph.RemoveTripleRequest
@@ -73,7 +74,7 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 		if f.entityErr != nil {
 			return nil, f.entityErr
 		}
-		return &nats.Msg{Data: f.entityReply}, nil
+		return &nats.Msg{Data: f.entityReply, Header: f.entityHeader}, nil
 	case SubjectEntityCreateWithTriples, SubjectEntityUpdateWithTriples:
 		f.batchCount++
 		f.batchBody = append([]byte(nil), data...)
@@ -119,9 +120,9 @@ func (f *crdFakeRequester) EnsureStream(_ context.Context, _ jetstream.StreamCon
 
 func encodeRemoveOK(t *testing.T) []byte {
 	t.Helper()
-	resp := graph.RemoveTripleResponse{
-		MutationResponse: graph.MutationResponse{Success: true},
-		Removed:          true,
+	resp := graph.DeleteEntityResponse{
+		MutationResponse: graph.MutationResponse{Timestamp: 1, KVRevision: 1},
+		Deleted:          true,
 	}
 	out, err := json.Marshal(resp)
 	if err != nil {

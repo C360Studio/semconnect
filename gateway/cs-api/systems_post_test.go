@@ -12,6 +12,7 @@ import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/nats-io/nats.go"
 )
 
 // minimalSensorML produces a SensorML PhysicalSystem JSON body with
@@ -56,7 +57,7 @@ func sensorMLWithComponent(uniqueID, label, childID string) []byte {
 func encodeBatchOK(t *testing.T, written int) []byte {
 	t.Helper()
 	resp := graph.CreateEntityWithTriplesResponse{
-		MutationResponse: graph.MutationResponse{Success: true},
+		MutationResponse: graph.MutationResponse{Timestamp: 1, KVRevision: 1},
 		TriplesAdded:     written,
 	}
 	out, err := json.Marshal(resp)
@@ -66,20 +67,17 @@ func encodeBatchOK(t *testing.T, written int) []byte {
 	return out
 }
 
-func encodeEntityMutationFailure(t *testing.T, code, msg string) []byte {
+func encodeEntityMutationFailure(t *testing.T, code, msg string) ([]byte, nats.Header) {
 	t.Helper()
-	resp := graph.CreateEntityWithTriplesResponse{
-		MutationResponse: graph.MutationResponse{
-			Success:   false,
-			Error:     msg,
-			ErrorCode: code,
-		},
-	}
-	out, err := json.Marshal(resp)
+	out, err := json.Marshal(map[string]string{"message": msg})
 	if err != nil {
 		t.Fatalf("encodeEntityMutationFailure: %v", err)
 	}
-	return out
+	return out, nats.Header{
+		natsclient.HeaderStatus:     []string{natsclient.HeaderStatusError},
+		natsclient.HeaderErrorClass: []string{natsclient.ErrorClassInvalid},
+		natsclient.HeaderErrorCode:  []string{code},
+	}
 }
 
 // TestHandleSystemPost_GoldenPath pins the happy-path contract: SensorML in,
@@ -301,9 +299,11 @@ func TestHandleSystemPost_TransientBackend(t *testing.T) {
 // TestHandleSystemPost_InvalidMutation maps entity mutation validation
 // failures from graph-ingest to 400.
 func TestHandleSystemPost_InvalidMutation(t *testing.T) {
+	reply, hdr := encodeEntityMutationFailure(t, graph.ErrorCodeInvalidRequest, "entity ID rejected: pattern mismatch")
 	fake := &fakeRequester{
-		status: natsclient.StatusConnected,
-		reply:  encodeEntityMutationFailure(t, graph.ErrorCodeInvalidRequest, "entity ID rejected: pattern mismatch"),
+		status:      natsclient.StatusConnected,
+		reply:       reply,
+		replyHeader: hdr,
 	}
 	c := newTestComponent(t, fake)
 
@@ -409,13 +409,15 @@ func TestHandleSystemPost_HTTPCounted(t *testing.T) {
 // create-or-fail contract: POST against an existing entity maps to
 // 409 Conflict instead of silently upserting.
 func TestHandleSystemPost_DuplicateCreate409(t *testing.T) {
+	reply, hdr := encodeEntityMutationFailure(
+		t,
+		graph.ErrorCodeEntityExists,
+		"entity already exists: c360.semconnect.systems.csapi.system.precas",
+	)
 	fake := &fakeRequester{
-		status: natsclient.StatusConnected,
-		reply: encodeEntityMutationFailure(
-			t,
-			graph.ErrorCodeEntityExists,
-			"entity already exists: c360.semconnect.systems.csapi.system.precas",
-		),
+		status:      natsclient.StatusConnected,
+		reply:       reply,
+		replyHeader: hdr,
 	}
 	c := newTestComponent(t, fake)
 

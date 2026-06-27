@@ -14,6 +14,7 @@ import (
 
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
+	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
@@ -385,17 +386,19 @@ func (c *Component) createEntityWithTriples(
 		}
 	}
 
+	data, err := classifyMutationReply(reply, op)
+	if err != nil {
+		return err
+	}
+
 	var resp graph.CreateEntityWithTriplesResponse
-	if err := json.Unmarshal(reply.Data, &resp); err != nil {
+	if err := json.Unmarshal(data, &resp); err != nil {
 		return errs.Wrap(err, "cs-api", op, "decode entity create response")
 	}
-	if resp.Success {
-		if resp.Degraded {
-			c.logger.Warn("entity create committed with degraded read-back", "entity", entity.ID, "err", resp.Error)
-		}
-		return nil
+	if resp.Degraded {
+		c.logger.Warn("entity create committed with degraded read-back", "entity", entity.ID, "err", resp.DegradedReason)
 	}
-	return mutationFailure(op, resp.MutationResponse)
+	return nil
 }
 
 func singleSubject(triples []message.Triple) (string, error) {
@@ -436,23 +439,36 @@ func validateProjectedTriples(entityID string, triples []message.Triple) error {
 	return nil
 }
 
-func mutationFailure(op string, resp graph.MutationResponse) error {
-	msg := resp.Error
-	if msg == "" {
-		msg = resp.ErrorCode
+func classifyMutationReply(reply *nats.Msg, op string) ([]byte, error) {
+	data, err := natsclient.ClassifyReply(reply)
+	if err != nil {
+		return nil, mutationFailure(op, err)
 	}
-	if msg == "" {
-		msg = "graph mutation rejected"
+	return data, nil
+}
+
+func mutationFailure(op string, err error) error {
+	if err == nil {
+		return nil
 	}
-	err := errors.New(msg)
-	switch resp.ErrorCode {
-	case graph.ErrorCodeEntityExists:
-		return fmt.Errorf("%w: %s", errEntityConflict, msg)
-	case graph.ErrorCodeEntityNotFound:
-		return fmt.Errorf("%w: %s", errEntityNotFound, msg)
-	case graph.ErrorCodeInvalidRequest, graph.ErrorCodeRevisionMismatch:
+	var ce *errs.ClassifiedError
+	if errors.As(err, &ce) {
+		switch ce.Code {
+		case graph.ErrorCodeEntityExists:
+			return fmt.Errorf("%w: %s", errEntityConflict, err.Error())
+		case graph.ErrorCodeEntityNotFound:
+			return fmt.Errorf("%w: %s", errEntityNotFound, err.Error())
+		case graph.ErrorCodeInvalidRequest, graph.ErrorCodeRevisionMismatch, graph.ErrorCodeOwnerLeaseStale:
+			return errs.WrapInvalid(err, "cs-api", op, "graph rejected entity mutation")
+		case graph.ErrorCodeInternal:
+			return errs.WrapTransient(err, "cs-api", op, "graph backend mutation failed")
+		}
+	}
+	if errs.IsInvalid(err) {
 		return errs.WrapInvalid(err, "cs-api", op, "graph rejected entity mutation")
-	default:
-		return errs.Wrap(err, "cs-api", op, "graph rejected entity mutation")
 	}
+	if errs.IsTransient(err) {
+		return errs.WrapTransient(err, "cs-api", op, "graph backend mutation failed")
+	}
+	return errs.Wrap(err, "cs-api", op, "graph rejected entity mutation")
 }

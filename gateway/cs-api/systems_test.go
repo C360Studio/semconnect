@@ -99,14 +99,25 @@ func encodeReply(t *testing.T, entities []string) []byte {
 	return b
 }
 
-func encodeReplyErr(t *testing.T, msg string) []byte {
+func encodeClassifiedReply(t *testing.T, class, code, msg string) ([]byte, nats.Header) {
 	t.Helper()
-	resp := graph.NewQueryError[graph.PredicateData](msg)
-	b, err := json.Marshal(resp)
+	b, err := json.Marshal(map[string]string{"message": msg})
 	if err != nil {
-		t.Fatalf("encodeReplyErr: %v", err)
+		t.Fatalf("encodeClassifiedReply: %v", err)
 	}
-	return b
+	header := nats.Header{
+		natsclient.HeaderStatus:     []string{natsclient.HeaderStatusError},
+		natsclient.HeaderErrorClass: []string{class},
+	}
+	if code != "" {
+		header[natsclient.HeaderErrorCode] = []string{code}
+	}
+	return b, header
+}
+
+func encodeReplyErr(t *testing.T, msg string) ([]byte, nats.Header) {
+	t.Helper()
+	return encodeClassifiedReply(t, natsclient.ErrorClassTransient, "", msg)
 }
 
 func TestHandleSystems_GoldenPath(t *testing.T) {
@@ -321,10 +332,12 @@ func TestHandleSystems_HEADReturnsHeadersWithoutBody(t *testing.T) {
 }
 
 func TestHandleSystems_BackendErrorClassification(t *testing.T) {
+	classifiedQueryErrorBody, classifiedQueryErrorHeader := encodeReplyErr(t, "internal error")
 	tests := []struct {
 		name      string
 		replyErr  error
 		replyBody []byte
+		replyHdr  nats.Header
 		wantCode  int
 	}{
 		{
@@ -343,8 +356,9 @@ func TestHandleSystems_BackendErrorClassification(t *testing.T) {
 			wantCode: http.StatusInternalServerError,
 		},
 		{
-			name:      "graph-index reports error in response envelope → 503",
-			replyBody: encodeReplyErr(t, "internal error"),
+			name:      "graph-index reports classified transient error → 503",
+			replyBody: classifiedQueryErrorBody,
+			replyHdr:  classifiedQueryErrorHeader,
 			wantCode:  http.StatusServiceUnavailable,
 		},
 	}
@@ -352,9 +366,10 @@ func TestHandleSystems_BackendErrorClassification(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			fake := &fakeRequester{
-				reply:    tt.replyBody,
-				replyErr: tt.replyErr,
-				status:   natsclient.StatusConnected,
+				reply:       tt.replyBody,
+				replyHeader: tt.replyHdr,
+				replyErr:    tt.replyErr,
+				status:      natsclient.StatusConnected,
 			}
 			c := newTestComponent(t, fake)
 			req := httptest.NewRequest(http.MethodGet, "/systems", nil)
@@ -535,11 +550,16 @@ func TestHandleSystem_JSONLD(t *testing.T) {
 }
 
 func TestHandleSystem_NotFound(t *testing.T) {
-	// Legacy request/reply error bodies still map to 404 through
-	// natsclient.ClassifyReply's dual-encoding fallback.
+	body, hdr := encodeClassifiedReply(
+		t,
+		natsclient.ErrorClassInvalid,
+		graph.ErrorCodeEntityNotFound,
+		"not found: acme.ops.robotics.gcs.drone.999",
+	)
 	fake := &fakeRequester{
-		reply:  []byte("error: not found: acme.ops.robotics.gcs.drone.999"),
-		status: natsclient.StatusConnected,
+		reply:       body,
+		replyHeader: hdr,
+		status:      natsclient.StatusConnected,
 	}
 	c := newTestComponent(t, fake)
 	mux := http.NewServeMux()
@@ -711,7 +731,18 @@ func TestClassifyEntityQueryFailure(t *testing.T) {
 			wantNil: true,
 		},
 		{
-			name: "not found wraps errEntityNotFound sentinel",
+			name: "coded not found wraps errEntityNotFound sentinel",
+			err: errs.ClassifiedCode(
+				errs.ErrorInvalid,
+				graph.ErrorCodeEntityNotFound,
+				errors.New("not found: acme.ops.robotics.gcs.drone.999"),
+			),
+			probe: func(err error) bool {
+				return errors.Is(err, errEntityNotFound)
+			},
+		},
+		{
+			name: "legacy not found message wraps errEntityNotFound sentinel",
 			err:  errs.Classified(errs.ErrorInvalid, errors.New("not found: acme.ops.robotics.gcs.drone.999")),
 			probe: func(err error) bool {
 				return errors.Is(err, errEntityNotFound)

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
@@ -98,10 +100,17 @@ func TestHandleDatastreamPatch_IDMismatch_400BeforeFetch(t *testing.T) {
 }
 
 func TestHandleDatastreamPatch_NotFoundNoUpsert(t *testing.T) {
+	replyBody, hdr := encodeClassifiedReply(
+		t,
+		natsclient.ErrorClassInvalid,
+		graph.ErrorCodeEntityNotFound,
+		"not found: "+testDatastreamID,
+	)
 	fake := &crdFakeRequester{
-		entityReply: []byte("error: not found: " + testDatastreamID),
-		removeReply: encodeRemoveOK(t),
-		batchReply:  encodeBatchOK(t, 5),
+		entityReply:  replyBody,
+		entityHeader: hdr,
+		removeReply:  encodeRemoveOK(t),
+		batchReply:   encodeBatchOK(t, 5),
 	}
 	c := newComponentWithRequester(t, fake)
 

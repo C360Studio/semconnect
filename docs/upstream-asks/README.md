@@ -7,8 +7,9 @@ without making semstreams review stale blockers.
 
 ## Open asks
 
-None currently blocking semconnect. As of Stage 56, the CS API gateway is
-green against the pinned ETS (`total=137 passed=137 failed=0 skipped=0`).
+None currently blocking semconnect. As of the 2026-07-06 SemStreams pin
+refresh, the CS API gateway is green against the pinned ETS
+(`total=137 passed=137 failed=0 skipped=0`).
 
 Non-blocking vocabulary asks now filed upstream:
 
@@ -27,6 +28,9 @@ Non-blocking vocabulary asks now filed upstream:
 
 ## Resolved in current pins
 
+- `v1.0.0-beta.141`: includes the SemStreams ENTITY_STATES TTL guardrail fix
+  from gh#484/gh#485. The conformance backend pin now matches this tag so the
+  graph-ingest boot path and gateway module dependency stay aligned.
 - `v1.0.0-beta.116`: ADR-060 removes in-body mutation/query error signalling
   from the current wire contract. semconnect now branches on classified NATS
   replies and reads mutation/query failure codes from `*errs.ClassifiedError`

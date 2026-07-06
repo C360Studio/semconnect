@@ -112,6 +112,25 @@ func TestHandleSystemSubsystemItem_HasCanonicalAndParentLinks(t *testing.T) {
 	}
 }
 
+func TestSystemFromState_HostedByDoesNotEmitParentLink(t *testing.T) {
+	parentID := "c360.semconnect.systems.csapi.system.parent"
+	childID := "c360.semconnect.systems.csapi.system.child"
+	sys := systemFromState(graph.EntityState{
+		ID: childID,
+		Triples: []message.Triple{
+			{Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+			{Predicate: sensorml.PredIsHostedBy, Object: parentID},
+		},
+	})
+
+	if sys.HostedBy != parentID {
+		t.Fatalf("HostedBy: got %q want %q", sys.HostedBy, parentID)
+	}
+	if hasLink(sys.Links, "parent", "/systems/"+parentID) {
+		t.Fatalf("canonical System representation must not emit parent link: %+v", sys.Links)
+	}
+}
+
 func encodeSystemState(t *testing.T, id string, extra []message.Triple) []byte {
 	t.Helper()
 	state := graph.EntityState{

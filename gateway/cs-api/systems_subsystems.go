@@ -133,7 +133,12 @@ func (c *Component) handleSystemSubsystem(w http.ResponseWriter, r *http.Request
 
 	switch media {
 	case MediaJSON:
-		c.writeSystemJSON(w, r, state)
+		c.writeSystemJSONWithLinks(w, r, state, []link{{
+			Href:  "/systems/" + parentID,
+			Rel:   "parent",
+			Type:  string(MediaJSON),
+			Title: "Parent system",
+		}})
 	case MediaSensorML, MediaSensorMLLegacy:
 		c.writeSystemSensorML(w, r, state, media)
 	case MediaJSONLD:

@@ -10,9 +10,9 @@ vocabularies and parsers. `semconnect` composes those primitives into an
 [OGC API Connected Systems v1.0](https://www.ogc.org/standards/ogc-api-connected-systems/)
 REST surface.
 
-The repository is no longer a scaffold. As of Stage 56, `cmd/cs-api-server`
-builds, the conformance harness runs end to end, and the pinned CS API ETS is
-green:
+The repository is no longer a scaffold. As of the 2026-07-06 SemStreams pin
+refresh, `cmd/cs-api-server` builds, the conformance harness runs end to end,
+and the pinned CS API ETS is green:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -20,7 +20,7 @@ total=137 passed=137 failed=0 skipped=0
 
 ## Current Status
 
-- Framework pin: `github.com/c360studio/semstreams v1.0.0-beta.116`.
+- Framework pin: `github.com/c360studio/semstreams v1.0.0-beta.141`.
 - ETS pin: Botts CS API ETS `0.1-SNAPSHOT` at commit `d9caf33`.
 - Reference binary: `cmd/cs-api-server`.
 - Gateway package: `gateway/cs-api`.
@@ -111,9 +111,14 @@ and the
 ## Build And Test
 
 ```bash
+openspec validate --all --strict
 go test ./...
 go build ./...
 ```
+
+OpenSpec CLI 1.5 currently reports `No items found to validate` because this
+repo does not carry a repo-owned `openspec/` project tree; the command remains
+in the local verification set so future spec artifacts fail fast.
 
 Run the reference server against a local NATS:
 

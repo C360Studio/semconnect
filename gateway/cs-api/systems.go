@@ -202,12 +202,6 @@ func systemFromState(state graph.EntityState) system {
 	}
 	if v, ok := firstStringObject(state.Triples, sensorml.PredIsHostedBy); ok {
 		s.HostedBy = v
-		s.Links = append(s.Links, link{
-			Href:  "/systems/" + v,
-			Rel:   "parent",
-			Type:  string(MediaJSON),
-			Title: "Parent system",
-		})
 	}
 	// Surface position from the framework position triple. Object is
 	// the raw GeoJSON-shaped JSON bytes (as string); cast back to
@@ -698,7 +692,12 @@ func isSystemKind(triples []message.Triple) bool {
 // writeSystemJSON emits the v0.1 CS API §7.2 JSON shape (subset of full
 // System resource — populated from triples).
 func (c *Component) writeSystemJSON(w http.ResponseWriter, r *http.Request, state graph.EntityState) {
+	c.writeSystemJSONWithLinks(w, r, state, nil)
+}
+
+func (c *Component) writeSystemJSONWithLinks(w http.ResponseWriter, r *http.Request, state graph.EntityState, extraLinks []link) {
 	sys := systemFromState(state)
+	sys.Links = append(sys.Links, extraLinks...)
 	w.Header().Set("Content-Type", string(MediaJSON))
 	w.Header().Set("X-CS-Reconstructed-Lossy", "true") // see sensorml.go file doc
 	w.WriteHeader(http.StatusOK)

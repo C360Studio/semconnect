@@ -1,0 +1,42 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "handoff": "svelte-review-remediation-to-review",
+  "repository": {
+    "branch": "codex/semstreams-beta147-migration",
+    "baseRevision": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1"
+  },
+  "findings": [
+    {
+      "topic": "complete semantic-ledger catalog coverage",
+      "status": "resolved",
+      "tddRed": "MIGRATED_SEMANTIC_FIELDS export absent",
+      "implementation": "32 explicit labels and descriptions keyed by the frozen architecture ledger",
+      "proof": "ledger-derived test rejects missing, extra, stale, fallback, or incorrectly labeled entries"
+    },
+    {
+      "topic": "controlled-properties semantic shape",
+      "status": "resolved",
+      "tddRed": "demo value was not JSON scalar metadata",
+      "implementation": "serialized ControlledProperty metadata fact with no relationship or edge color",
+      "proof": "test parses the expected metadata array and asserts zero relationships with the scalar predicate"
+    }
+  ],
+  "freshGates": {
+    "svelteCheck": "0 errors and 0 warnings",
+    "build": "passed",
+    "playwright": "7 passed, 0 failed",
+    "semanticLedgerCoverage": "32 explicit, 0 missing, 0 extra",
+    "identityTemplates": "6 valid, 0 invalid",
+    "historicalProductionIdentities": "0 findings",
+    "controlledPropertiesEdgeSemantics": "0 findings",
+    "diffCheck": "passed"
+  },
+  "reviewEvidenceModified": false,
+  "tasksModified": [],
+  "blockers": [],
+  "decision": "ready-for-svelte-rereview",
+  "signedByRole": "svelte-developer",
+  "signedBy": "Codex agent /root/svelte_developer_beta147",
+  "signedAt": "2026-07-18T00:22:36Z"
+}

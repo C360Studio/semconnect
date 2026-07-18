@@ -158,20 +158,6 @@ func TestSystemFromState_SurfacesGeometry(t *testing.T) {
 	}
 }
 
-func TestSystemFromState_SurfacesLegacyGeometryPredicate(t *testing.T) {
-	state := graph.EntityState{
-		ID: "c360.semconnect.systems.csapi.system.legacy",
-		Triples: []message.Triple{
-			{Predicate: "sensorml.process.type", Object: "http://www.w3.org/ns/ssn/System"},
-			{Predicate: legacyPredSystemPosition, Object: `{"type":"Point","coordinates":[1,2]}`},
-		},
-	}
-	sys := systemFromState(state)
-	if string(sys.Geometry) != `{"type":"Point","coordinates":[1,2]}` {
-		t.Errorf("geometry fallback: got %s", string(sys.Geometry))
-	}
-}
-
 // TestHandleSystem_SensorMLContentTypeEchoesNegotiated — pin that
 // the negotiated SensorML form (spec `application/sml+json` vs
 // legacy `application/sensorml+json`) is what comes back as

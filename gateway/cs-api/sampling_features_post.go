@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 func (c *Component) handleSamplingFeaturePost(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +63,7 @@ func (c *Component) handleSamplingFeaturePost(w http.ResponseWriter, r *http.Req
 }
 
 func (c *Component) mintSamplingFeatureEntityID(uniqueID string) string {
-	return c.cfg.SamplingFeatureIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.SamplingFeatureIDPrefix, []byte(uniqueID))
 }
 
 func (c *Component) buildSamplingFeatureTriplesFromFeature(body []byte) (string, []message.Triple, error) {
@@ -99,8 +99,6 @@ func (c *Component) buildSamplingFeatureTriplesFromFeature(body []byte) (string,
 			Object:    feat.Properties.HostedProcedureLink.Href,
 		})
 	}
-	if posTriple, ok := positionTripleFromGeometry(entityID, feat.Geometry); ok {
-		triples = append(triples, posTriple)
-	}
+	triples = append(triples, locationTriplesFromGeometry(entityID, feat.Geometry)...)
 	return entityID, triples, nil
 }

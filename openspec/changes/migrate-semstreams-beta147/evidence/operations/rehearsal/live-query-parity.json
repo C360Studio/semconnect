@@ -1,0 +1,102 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "runId": "2026-07-18T02-03-23Z",
+  "capturedByRole": "program-manager",
+  "normalization": "Canonical jq walk sorted object arrays by id; each normalized JSON response was SHA-256 hashed.",
+  "allCommandsExitZero": true,
+  "allMatched": true,
+  "coverage": {
+    "predicateAndBatch": ["systems_collection", "datastreams_collection"],
+    "entity": ["system_item"],
+    "relationship": ["system_datastreams", "system_subsystems"],
+    "spatial": ["spatial_bbox", "spatial_polygon"],
+    "scopedCollections": [
+      "system_datastreams",
+      "system_subsystems",
+      "controlstream_commands",
+      "system_events"
+    ],
+    "schema": ["datastream_schema"],
+    "observation": ["observations_collection"]
+  },
+  "probes": [
+    {
+      "name": "systems_collection",
+      "beforeSha256": "7e5eb006c6e989e0ca443813601b7d27ad7f393ae44aa463d73a239213c2be5d",
+      "afterSha256": "7e5eb006c6e989e0ca443813601b7d27ad7f393ae44aa463d73a239213c2be5d",
+      "archivedBodySha256": "f7ff8cfbdf70c566d99c7dcaf7f34639ee58423ef72cce8ff461f860180a7fb6"
+    },
+    {
+      "name": "system_item",
+      "beforeSha256": "0582c032ed3d276ebc71cd89bc81525c7feb9ec7da755fe17a138a4be9c2daed",
+      "afterSha256": "0582c032ed3d276ebc71cd89bc81525c7feb9ec7da755fe17a138a4be9c2daed",
+      "archivedBodySha256": "bcce5ff005e684b0f89261d22aebe4c124f8d6d1fea375e8e9a8197ef906b2b6"
+    },
+    {
+      "name": "system_datastreams",
+      "beforeSha256": "879dd2bdcf9436102d79fdbe4def3f42e6ade0727d2efa9400564bddb2239335",
+      "afterSha256": "879dd2bdcf9436102d79fdbe4def3f42e6ade0727d2efa9400564bddb2239335",
+      "archivedBodySha256": "1b62d12664bc939ad447e64fe9a3d087b53ca20e0a8f636127c271a5800a1696"
+    },
+    {
+      "name": "system_subsystems",
+      "beforeSha256": "3289b35023cbd851aa96f1e3116b9b272706f854eda712974358bf72c8546714",
+      "afterSha256": "3289b35023cbd851aa96f1e3116b9b272706f854eda712974358bf72c8546714",
+      "archivedBodySha256": "79c8ddbc600e4aeb5cc2e5499f6c856f4288fbc7b46dcfbe5883375df6e0a78b"
+    },
+    {
+      "name": "datastreams_collection",
+      "beforeSha256": "879dd2bdcf9436102d79fdbe4def3f42e6ade0727d2efa9400564bddb2239335",
+      "afterSha256": "879dd2bdcf9436102d79fdbe4def3f42e6ade0727d2efa9400564bddb2239335",
+      "archivedBodySha256": "1b62d12664bc939ad447e64fe9a3d087b53ca20e0a8f636127c271a5800a1696"
+    },
+    {
+      "name": "datastream_schema",
+      "beforeSha256": "7a3ddbedeb2c8188e68945022bddddc89834037d586ba6309470b61aa6e0d0c9",
+      "afterSha256": "7a3ddbedeb2c8188e68945022bddddc89834037d586ba6309470b61aa6e0d0c9",
+      "archivedBodySha256": "3be37abea4a39d1dbca1c45fa7fab4608fc07ef0a0b81a890f9058b599a2f11a"
+    },
+    {
+      "name": "observations_collection",
+      "beforeSha256": "7176cce5951b52a8ec9cd80feda34c14ee232b298578bbfccd2551deb0fdf882",
+      "afterSha256": "7176cce5951b52a8ec9cd80feda34c14ee232b298578bbfccd2551deb0fdf882",
+      "archivedBodySha256": "e900446610390f8e6df675883b1825ce28183c8aadc2b57741a7e16d8c355e80"
+    },
+    {
+      "name": "spatial_bbox",
+      "beforeSha256": "6156e72268beedc39da21c0304cc20b799b32dfaa39411c66152a8e5e3cc47f3",
+      "afterSha256": "6156e72268beedc39da21c0304cc20b799b32dfaa39411c66152a8e5e3cc47f3",
+      "archivedBodySha256": "555d6753d5d587f973515ab77a7a496e7126a1189a24d95d9033406b300667e8",
+      "populatedFeatureCount": 5
+    },
+    {
+      "name": "spatial_polygon",
+      "beforeSha256": "6156e72268beedc39da21c0304cc20b799b32dfaa39411c66152a8e5e3cc47f3",
+      "afterSha256": "6156e72268beedc39da21c0304cc20b799b32dfaa39411c66152a8e5e3cc47f3",
+      "archivedBodySha256": "555d6753d5d587f973515ab77a7a496e7126a1189a24d95d9033406b300667e8",
+      "populatedFeatureCount": 5
+    },
+    {
+      "name": "controlstream_commands",
+      "beforeSha256": "3a72a39ffe5fc53470b0fc9aeb0bfc55c2328096e1ed58b50a3b5734dbfc023d",
+      "afterSha256": "3a72a39ffe5fc53470b0fc9aeb0bfc55c2328096e1ed58b50a3b5734dbfc023d",
+      "archivedBodySha256": "ff6753a6e4b2d48f1ab0771861a4a1c6907984c2edef50dde7260a0d776bcc6c"
+    },
+    {
+      "name": "system_events",
+      "beforeSha256": "75ab3070afcd02d933bbfb338d194f580c4af2aff87f647dcab13524bc33946a",
+      "afterSha256": "75ab3070afcd02d933bbfb338d194f580c4af2aff87f647dcab13524bc33946a",
+      "archivedBodySha256": "1fe1c189a6e674ec905d25b9c6fbfc28db6db458753f7d88bd77af5ede1f81d1"
+    }
+  ],
+  "archive": {
+    "pre": "conformance/output/replay-2026-07-18T02-03-23Z/pre",
+    "post": "conformance/output/replay-2026-07-18T02-03-23Z/post",
+    "filesPerSide": 11,
+    "recursiveDiffExitCode": 0,
+    "recursiveDiffOutput": "empty"
+  },
+  "gate": "OpenSpec 9.2 and 9.3 query-parity portion",
+  "decision": "pass"
+}

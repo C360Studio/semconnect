@@ -3,6 +3,7 @@ package csapi
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,12 +13,15 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/graph/geo/geojson"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
+	semtypes "github.com/c360studio/semstreams/pkg/types"
+	"github.com/c360studio/semstreams/vocabulary"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 )
@@ -39,9 +43,6 @@ const (
 const (
 	PredSystemPosition = sensorml.PredPosition
 	PredSystemUID      = sensorml.PredUniqueID
-
-	legacyPredSystemPosition = "cs-api.system.position"
-	legacyPredSystemUID      = "cs-api.system.uid"
 )
 
 // jsonNull is the byte-equality target for detecting a literal JSON
@@ -54,11 +55,11 @@ var jsonNull = []byte("null")
 var systemProjectionMessageType = message.Type{Domain: "c360", Category: "csapi.system", Version: "v1"}
 
 func firstSystemPositionObject(triples []message.Triple) (string, bool) {
-	return firstStringObject(triples, PredSystemPosition, legacyPredSystemPosition)
+	return firstStringObject(triples, PredSystemPosition)
 }
 
 func firstSystemUIDObject(triples []message.Triple) (string, bool) {
-	return firstStringObject(triples, PredSystemUID, legacyPredSystemUID)
+	return firstStringObject(triples, PredSystemUID)
 }
 
 // handleSystemPost serves POST /systems — CS API §7.6.
@@ -138,7 +139,7 @@ func (c *Component) handleSystemPost(w http.ResponseWriter, r *http.Request) {
 // The prefix is validated at config time (Validate() in config.go), so
 // this function trusts it.
 func (c *Component) mintSystemEntityID(uniqueID string) string {
-	return c.cfg.SystemIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.SystemIDPrefix, []byte(uniqueID))
 }
 
 // buildSystemTriplesFromSensorML — Stage 8/14 path. Parses body via
@@ -155,11 +156,14 @@ func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []messa
 	entityID := c.mintSystemEntityID(process.Base().UniqueID)
 	asset := sensorml.NewAsset(entityID, process)
 	asset.ChildIDFn = func(localID string) string {
-		return entityID + "_" + uniqueIDToToken(localID)
+		return mintNestedSensorMLEntityID(entityID, localID)
 	}
 	triples := asset.Triples()
 	if len(triples) == 0 {
 		return entityID, nil, errors.New("SensorML process produced no representable triples")
+	}
+	if process.Base().Position != nil {
+		triples = append(triples, pointProjectionTriplesFromGeometry(entityID, process.Base().Position.Raw)...)
 	}
 	return entityID, triples, nil
 }
@@ -233,20 +237,51 @@ func (c *Component) buildSystemTriplesFromFeature(body []byte) (string, []messag
 			Subject: entityID, Predicate: sensorml.PredDescription, Object: feat.Properties.Description,
 		})
 	}
-	if len(feat.Geometry) > 0 && !bytes.Equal(feat.Geometry, jsonNull) {
-		triples = append(triples, message.Triple{
-			Subject: entityID, Predicate: PredSystemPosition, Object: string(feat.Geometry),
-		})
-	}
+	triples = append(triples, locationTriplesFromGeometry(entityID, feat.Geometry)...)
 	if parentID := parentIDFromSystemFeature(feat); parentID != "" {
 		if err := validateEntityID(parentID); err != nil {
 			return "", nil, fmt.Errorf("properties.parent@id invalid: %w", err)
 		}
 		triples = append(triples, message.Triple{
-			Subject: entityID, Predicate: sensorml.PredIsHostedBy, Object: parentID,
+			Subject: entityID, Predicate: sensorml.PredIsHostedBy, Object: parentID, Datatype: message.EntityReferenceDatatype,
 		})
 	}
 	return entityID, triples, nil
+}
+
+// locationTriplesFromGeometry preserves the submitted geometry for CS API /
+// SensorML round-trip and separately projects GeoJSON Points into the public
+// beta.147 predicates consumed by graph-index-spatial. Non-Point geometries
+// remain representable but do not invent a centroid.
+func locationTriplesFromGeometry(entityID string, geometry json.RawMessage) []message.Triple {
+	if len(geometry) == 0 || bytes.Equal(geometry, jsonNull) {
+		return nil
+	}
+	triples := []message.Triple{{
+		Subject: entityID, Predicate: PredSystemPosition, Object: string(geometry),
+	}}
+	return append(triples, pointProjectionTriplesFromGeometry(entityID, geometry)...)
+}
+
+func pointProjectionTriplesFromGeometry(entityID string, geometry json.RawMessage) []message.Triple {
+	geom, err := geojson.UnmarshalGeometry(geometry)
+	if err != nil {
+		return nil
+	}
+	point, ok := geom.(geojson.Point)
+	if !ok || !point.Coordinates.Valid() {
+		return nil
+	}
+	triples := []message.Triple{
+		{Subject: entityID, Predicate: vocabulary.GeoLocationLongitude, Object: point.Coordinates.Lon()},
+		{Subject: entityID, Predicate: vocabulary.GeoLocationLatitude, Object: point.Coordinates.Lat()},
+	}
+	if point.Coordinates.Has3D() {
+		triples = append(triples, message.Triple{
+			Subject: entityID, Predicate: vocabulary.GeoLocationAltitude, Object: point.Coordinates.Alt(),
+		})
+	}
+	return triples
 }
 
 func parentIDFromSystemFeature(feat systemFeatureBody) string {
@@ -259,7 +294,7 @@ func parentIDFromDeploymentFeature(feat systemFeatureBody) string {
 
 func parentIDFromFeature(feat systemFeatureBody, pathMarkers ...string) string {
 	if feat.Properties.ParentID != "" {
-		return strings.TrimSpace(feat.Properties.ParentID)
+		return feat.Properties.ParentID
 	}
 	if feat.Properties.ParentLink == nil {
 		return ""
@@ -312,6 +347,45 @@ func uniqueIDToToken(uniqueID string) string {
 	return s
 }
 
+const (
+	nestedSensorMLDigestDomain = "semconnect:sensorml-child:v1\x00"
+	schemaArtifactDigestDomain = "semconnect:schema-artifact:v1\x00"
+)
+
+// mintEntityID preserves the existing sanitized instance whenever the full
+// six-part ID fits. Overflow uses a full SHA-256 digest of the exact source
+// bytes; no truncation or normalized input participates in the digest.
+func mintEntityID(prefix string, exactSource []byte) string {
+	return mintEntityIDWithToken(prefix, uniqueIDToToken(string(exactSource)), exactSource)
+}
+
+func mintEntityIDWithToken(prefix, ordinaryToken string, digestSource []byte) string {
+	candidate := prefix + "." + ordinaryToken
+	if semtypes.ValidateEntityID(candidate) == nil {
+		return candidate
+	}
+	digest := sha256.Sum256(digestSource)
+	return fmt.Sprintf("%s.h-%x", prefix, digest)
+}
+
+func mintNestedSensorMLEntityID(parentID, localID string) string {
+	separator := strings.LastIndexByte(parentID, '.')
+	if separator < 0 {
+		return parentID + "_" + uniqueIDToToken(localID)
+	}
+	prefix := parentID[:separator]
+	parentInstance := parentID[separator+1:]
+	ordinaryToken := parentInstance + "_" + uniqueIDToToken(localID)
+	digestSource := []byte(nestedSensorMLDigestDomain + parentID + "\x00" + localID)
+	return mintEntityIDWithToken(prefix, ordinaryToken, digestSource)
+}
+
+func mintSchemaArtifactID(prefix, parentID, role string) string {
+	ordinarySource := parentID + "-" + role
+	digestSource := []byte(schemaArtifactDigestDomain + parentID + "\x00" + role)
+	return mintEntityIDWithToken(prefix, uniqueIDToToken(ordinarySource), digestSource)
+}
+
 // ingestTriples creates one entity with its triples through
 // graph.mutation.entity.create_with_triples via NATS request-reply,
 // attaching audit headers from the request identity. Returns a
@@ -353,6 +427,12 @@ func (c *Component) createEntityWithTriples(
 	}
 	if len(entity.Triples) == 0 {
 		entity.Triples = triples
+	}
+	if err := validateProjectedTriples(entity.ID, entity.Triples); err != nil {
+		return errs.WrapInvalid(err, "cs-api", op, "validate final entity state")
+	}
+	if err := validateProjectedTriples(entity.ID, triples); err != nil {
+		return errs.WrapInvalid(err, "cs-api", op, "validate mutation triples")
 	}
 	req := graph.CreateEntityWithTriplesRequest{
 		Entity:  entity,
@@ -435,6 +515,9 @@ func validateProjectedTriples(entityID string, triples []message.Triple) error {
 	}
 	if !hasPrimary {
 		return fmt.Errorf("no triples target primary entity %q", entityID)
+	}
+	if _, err := graph.MarshalEntityState(&graph.EntityState{ID: entityID, Triples: triples}); err != nil {
+		return fmt.Errorf("authoritative entity-state validation: %w", err)
 	}
 	return nil
 }

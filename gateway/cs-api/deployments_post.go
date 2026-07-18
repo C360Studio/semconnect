@@ -19,8 +19,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 // handleDeploymentPost serves POST /deployments.
@@ -70,7 +70,7 @@ func (c *Component) handleDeploymentPost(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *Component) mintDeploymentEntityID(uniqueID string) string {
-	return c.cfg.DeploymentIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.DeploymentIDPrefix, []byte(uniqueID))
 }
 
 // buildDeploymentTriplesFromFeature mirrors the /systems Feature
@@ -111,26 +111,9 @@ func (c *Component) buildDeploymentTriplesFromFeature(body []byte) (string, []me
 			return "", nil, fmt.Errorf("properties.parent@id invalid: %w", err)
 		}
 		triples = append(triples, message.Triple{
-			Subject: entityID, Predicate: predDeploymentParent, Object: parentID,
+			Subject: entityID, Predicate: predDeploymentParent, Object: parentID, Datatype: message.EntityReferenceDatatype,
 		})
 	}
-	if posTriple, ok := positionTripleFromGeometry(entityID, feat.Geometry); ok {
-		triples = append(triples, posTriple)
-	}
+	triples = append(triples, locationTriplesFromGeometry(entityID, feat.Geometry)...)
 	return entityID, triples, nil
-}
-
-// positionTripleFromGeometry is a small shared helper. Both
-// /systems and /deployments use the same predicate so factoring this
-// out reduces duplication. Returns ok=false on missing or literal-
-// null geometry.
-func positionTripleFromGeometry(entityID string, geom json.RawMessage) (message.Triple, bool) {
-	if len(geom) == 0 || string(geom) == "null" {
-		return message.Triple{}, false
-	}
-	return message.Triple{
-		Subject:   entityID,
-		Predicate: PredSystemPosition,
-		Object:    string(geom),
-	}, true
 }

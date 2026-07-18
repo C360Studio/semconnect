@@ -1,18 +1,25 @@
 # ADR-S001 - CS API server scope
 
-- **Status**: Accepted (2026-06-02)
+- **Status**: Accepted (2026-06-02); ownership and current pin amended by ADR-S003
 - **Repo**: `semconnect`
 - **Companion**: [ADR-044 (semstreams)](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
-- **Framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.141`
+- **Historical framework pin**: `github.com/c360studio/semstreams v1.0.0-beta.141`
+- **Amendment**: [ADR-S003](003-semstreams-beta147-product-boundary-migration.md)
+
+> ADR-S003 supersedes this ADR's OGC package-ownership statements and current
+> framework pin. The HTTP scope, conformance claims, auth posture, binary shape,
+> API versioning, and SemStreams graph-backend decision remain in force. The
+> beta.141 pin and 137-test result below are historical baseline evidence.
 
 ## Context
 
-ADR-044 settled the split between framework-shaped primitives (`semstreams`)
-and deployment-shaped concerns (`semconnect`). `semstreams` owns SOSA/SWE/OMS
-vocabularies, SensorML and SWE parsers, GeoJSON helpers, graph mutation/query
-subjects, NATS client helpers, ObjectStore, and artifact storage primitives.
-`semconnect` owns the HTTP gateway that exposes those primitives as OGC API
-Connected Systems.
+ADR-044 originally split framework-shaped primitives (`semstreams`) from
+deployment-shaped concerns (`semconnect`). At this ADR's beta.141 baseline,
+SemStreams still hosted SOSA/SWE/OMS vocabularies, SensorML and SWE parsers,
+GeoJSON helpers, graph mutation/query subjects, NATS client helpers,
+ObjectStore, and artifact storage primitives. ADR-S003 later moves the OGC
+product bundle into semconnect while leaving graph, NATS, JetStream,
+ObjectStore, ownership, and projection in SemStreams.
 
 This ADR records the v0.1 server scope: conformance classes, content
 negotiation, auth posture, conformance-test ownership, Part 3 stance, binary
@@ -148,20 +155,24 @@ requirement.
 
 ### 9. Upstream-Ask Discipline
 
-Framework-shaped gaps are filed upstream on `semstreams`. Gateway-local shims
-are allowed only when they are narrow, non-blocking, and easy to retire.
+Graph, NATS, JetStream, ObjectStore, ownership, and projection gaps are filed
+upstream on SemStreams. OMS, SensorML, SWE Common, SOSA/SWE, CS API vocabulary,
+and other transferred OGC package work is semconnect-owned product work.
+Gateway-local shims remain acceptable only when narrow, non-blocking, and easy
+to retire.
 
-Current non-blocking asks are tracked in
-`docs/upstream-asks/README.md`. As of the 2026-07-06 SemStreams pin refresh,
-they are vocabulary ownership asks, not runtime blockers.
+Current asks and transferred history are tracked in
+`docs/upstream-asks/README.md`. The 2026-07-06 statement that vocabulary asks
+belonged upstream is historical; ADR-S003 transfers that ownership to
+semconnect.
 
 ## Consequences
 
 **Enables:**
 
 - A complete pinned-ETS green CS API v0.1 reference server.
-- Reuse of semstreams primitives without forking parser, vocabulary, graph, or
-  ObjectStore behavior.
+- Reuse of SemStreams graph and storage primitives while semconnect owns its
+  OGC parser, vocabulary, and schema behavior.
 - Clear operator deployment behind existing identity infrastructure.
 - A practical case study for when CS API data belongs in graph and when it
   belongs in ObjectStore-backed artifacts.
@@ -172,7 +183,7 @@ they are vocabulary ownership asks, not runtime blockers.
 - CS API Part 3 pub/sub bindings.
 - In-process JWT verification.
 - Command execution and real feasibility evaluation.
-- Any framework vocabulary expansions still tracked upstream.
+- SWE Common Phase 2 and other separately planned OGC product expansions.
 
 ## Closure
 
@@ -196,3 +207,4 @@ updates to this one.
 - [Botts CS API ETS](https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10)
 - [conformance/README.md](../../conformance/README.md)
 - [docs/upstream-asks/README.md](../upstream-asks/README.md)
+- [ADR-S003 - SemStreams beta.147 product-boundary migration](003-semstreams-beta147-product-boundary-migration.md)

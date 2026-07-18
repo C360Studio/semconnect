@@ -1,4 +1,5 @@
 import type { RuntimeConfig } from '$lib/config/runtimeConfig';
+import { semanticRelationshipLabel } from '$lib/semantics/semanticCatalog';
 import type { DemoEntity, DemoFact, DemoRelationship, ResourceKind, SearchResult } from '$lib/types/demo';
 
 interface BackendTriple {
@@ -236,7 +237,7 @@ function factValue(facts: DemoFact[], predicates: string[]): string | undefined 
 }
 
 function labelFromPredicate(predicate: string): string {
-  return predicate.split(/[./]/).pop()?.replaceAll('_', ' ') ?? predicate;
+  return semanticRelationshipLabel(predicate);
 }
 
 function classificationFromExtensions(extensions: Record<string, unknown> | undefined): {

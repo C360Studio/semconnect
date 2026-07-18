@@ -1,4 +1,5 @@
 import type { DemoEntity, DemoRelationship, TelemetrySample } from '$lib/types/demo';
+import { SEMANTIC_PREDICATES, semanticRelationshipLabel } from '$lib/semantics/semanticCatalog';
 
 const NOW = '2026-06-03T14:30:00.000Z';
 
@@ -26,7 +27,7 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'nominal',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'ssn:System', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'ssn:System', source: 'cs-api' },
         { predicate: 'sensorml.process.uid', object: 'urn:c360:demo:pump-alpha', source: 'semstreams' },
         { predicate: 'sensorml.process.position', object: 'POINT(-90.0715 29.9511)', source: 'semstreams' }
       ]
@@ -39,9 +40,9 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'active',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'ssn:System', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'ssn:System', source: 'cs-api' },
         { predicate: 'sensorml.process.uid', object: 'urn:c360:demo:temp-probe-t17', source: 'semstreams' },
-        { predicate: 'sensorml.system.isHostedBy', object: SYSTEM_PUMP_ID, source: 'semstreams' }
+        { predicate: SEMANTIC_PREDICATES.hostedBy, object: SYSTEM_PUMP_ID, source: 'semstreams' }
       ]
     },
     {
@@ -52,9 +53,9 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'ready',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'ssn:System', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'ssn:System', source: 'cs-api' },
         { predicate: 'sensorml.process.uid', object: 'urn:c360:demo:valve-controller-v2', source: 'semstreams' },
-        { predicate: 'sensorml.system.isHostedBy', object: SYSTEM_PUMP_ID, source: 'semstreams' }
+        { predicate: SEMANTIC_PREDICATES.hostedBy, object: SYSTEM_PUMP_ID, source: 'semstreams' }
       ]
     },
     {
@@ -65,7 +66,7 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'active',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'sosa:ObservableProperty', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'sosa:ObservableProperty', source: 'cs-api' },
         { predicate: 'definition', object: 'https://qudt.org/vocab/quantitykind/Temperature', source: 'demo' }
       ]
     },
@@ -77,7 +78,7 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'active',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'sosa:ObservableProperty', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'sosa:ObservableProperty', source: 'cs-api' },
         { predicate: 'definition', object: 'https://qudt.org/vocab/quantitykind/Pressure', source: 'demo' }
       ]
     },
@@ -89,7 +90,7 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'ready',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'sosa:ObservableProperty', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'sosa:ObservableProperty', source: 'cs-api' },
         { predicate: 'definition', object: 'https://example.c360.dev/props/valve-position', source: 'demo' }
       ]
     },
@@ -101,9 +102,9 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'active',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'csapi:Datastream', source: 'cs-api' },
-        { predicate: 'csapi.datastream.observedProperty', object: PROPERTY_TEMPERATURE_ID, source: 'semstreams' },
-        { predicate: 'csapi.datastream.obsFormat', object: 'application/om+json', source: 'cs-api' }
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'csapi:Datastream', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.datastreamObservedProperty, object: PROPERTY_TEMPERATURE_ID, source: 'semstreams' },
+        { predicate: 'obsFormat', object: 'application/om+json', source: 'cs-api' }
       ]
     },
     {
@@ -114,9 +115,9 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'active',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'csapi:Datastream', source: 'cs-api' },
-        { predicate: 'csapi.datastream.observedProperty', object: PROPERTY_PRESSURE_ID, source: 'semstreams' },
-        { predicate: 'csapi.datastream.obsFormat', object: 'application/om+json', source: 'cs-api' }
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'csapi:Datastream', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.datastreamObservedProperty, object: PROPERTY_PRESSURE_ID, source: 'semstreams' },
+        { predicate: 'obsFormat', object: 'application/om+json', source: 'cs-api' }
       ]
     },
     {
@@ -127,9 +128,18 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'ready',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'csapi:ControlStream', source: 'cs-api' },
-        { predicate: 'csapi.controlstream.commandFormat', object: 'application/swe+json', source: 'cs-api' },
-        { predicate: 'csapi.controlstream.controlledProperties', object: PROPERTY_VALVE_ID, source: 'semstreams' }
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'csapi:ControlStream', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.controlstreamCommandFormat, object: 'application/swe+json', source: 'cs-api' },
+        {
+          predicate: SEMANTIC_PREDICATES.controlstreamControlledProperties,
+          object: JSON.stringify([
+            {
+              definition: 'https://example.c360.dev/props/valve-position',
+              label: 'Valve Position'
+            }
+          ]),
+          source: 'semstreams'
+        }
       ]
     },
     {
@@ -140,7 +150,7 @@ export function createBaseEntities(): DemoEntity[] {
       status: 'ready',
       updatedAt: NOW,
       facts: [
-        { predicate: 'rdf.type', object: 'csapi:Feasibility', source: 'cs-api' },
+        { predicate: SEMANTIC_PREDICATES.processType, object: 'csapi:Feasibility', source: 'cs-api' },
         { predicate: 'cs-api.feasibility.status', object: 'ready', source: 'semstreams' },
         { predicate: 'cs-api.feasibility.params', object: '{"targetPosition":42}', source: 'demo' }
       ]
@@ -150,15 +160,14 @@ export function createBaseEntities(): DemoEntity[] {
 
 export function createBaseRelationships(): DemoRelationship[] {
   return [
-    edge(SYSTEM_TEMP_PROBE_ID, SYSTEM_PUMP_ID, 'sensorml.system.isHostedBy', 'hosted by'),
-    edge(SYSTEM_VALVE_ID, SYSTEM_PUMP_ID, 'sensorml.system.isHostedBy', 'hosted by'),
-    edge(DATASTREAM_TEMP_ID, SYSTEM_TEMP_PROBE_ID, 'csapi.datastream.producedBy', 'produced by'),
-    edge(DATASTREAM_PRESSURE_ID, SYSTEM_PUMP_ID, 'csapi.datastream.producedBy', 'produced by'),
-    edge(DATASTREAM_TEMP_ID, PROPERTY_TEMPERATURE_ID, 'csapi.datastream.observedProperty', 'observes'),
-    edge(DATASTREAM_PRESSURE_ID, PROPERTY_PRESSURE_ID, 'csapi.datastream.observedProperty', 'observes'),
-    edge(CONTROLSTREAM_VALVE_ID, SYSTEM_VALVE_ID, 'csapi.controlstream.controlsSystem', 'controls'),
-    edge(CONTROLSTREAM_VALVE_ID, PROPERTY_VALVE_ID, 'csapi.controlstream.controlledProperty', 'controls property'),
-    edge(FEASIBILITY_VALVE_ID, CONTROLSTREAM_VALVE_ID, 'csapi.feasibility.controlstream', 'for stream')
+    semanticEdge(SYSTEM_TEMP_PROBE_ID, SYSTEM_PUMP_ID, SEMANTIC_PREDICATES.hostedBy),
+    semanticEdge(SYSTEM_VALVE_ID, SYSTEM_PUMP_ID, SEMANTIC_PREDICATES.hostedBy),
+    semanticEdge(DATASTREAM_TEMP_ID, SYSTEM_TEMP_PROBE_ID, SEMANTIC_PREDICATES.datastreamProducedBy),
+    semanticEdge(DATASTREAM_PRESSURE_ID, SYSTEM_PUMP_ID, SEMANTIC_PREDICATES.datastreamProducedBy),
+    semanticEdge(DATASTREAM_TEMP_ID, PROPERTY_TEMPERATURE_ID, SEMANTIC_PREDICATES.datastreamObservedProperty),
+    semanticEdge(DATASTREAM_PRESSURE_ID, PROPERTY_PRESSURE_ID, SEMANTIC_PREDICATES.datastreamObservedProperty),
+    semanticEdge(CONTROLSTREAM_VALVE_ID, SYSTEM_VALVE_ID, SEMANTIC_PREDICATES.controlstreamControlsSystem),
+    semanticEdge(FEASIBILITY_VALVE_ID, CONTROLSTREAM_VALVE_ID, SEMANTIC_PREDICATES.feasibilityControlstream)
   ];
 }
 
@@ -179,7 +188,7 @@ export function observationEntityFromSample(sampleValue: TelemetrySample): DemoE
     status: sampleValue.quality === 'good' ? 'nominal' : 'warning',
     updatedAt: sampleValue.resultTime,
     facts: [
-      { predicate: 'rdf.type', object: 'om:Observation', source: 'cs-api' },
+      { predicate: SEMANTIC_PREDICATES.observationType, object: 'om:Observation', source: 'cs-api' },
       { predicate: 'datastream@id', object: sampleValue.datastreamId, source: 'cs-api' },
       { predicate: 'phenomenonTime', object: sampleValue.phenomenonTime, source: 'cs-api' },
       { predicate: 'resultTime', object: sampleValue.resultTime, source: 'cs-api' },
@@ -246,4 +255,8 @@ function edge(sourceId: string, targetId: string, predicate: string, label: stri
     predicate,
     label
   };
+}
+
+function semanticEdge(sourceId: string, targetId: string, predicate: string): DemoRelationship {
+  return edge(sourceId, targetId, predicate, semanticRelationshipLabel(predicate));
 }

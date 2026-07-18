@@ -1,6 +1,7 @@
 package csapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/c360studio/semstreams/graph/geo/geojson"
+	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/nats-io/nats.go"
 )
@@ -294,21 +296,11 @@ func (c *Component) querySpatialPolygon(ctx context.Context, poly json.RawMessag
 	return c.runSpatialQuery(ctx, subjectSpatialPolygon, body)
 }
 
-// runSpatialQuery handles the shared NATS request/decode for both spatial
-// subjects. The framework returns a bare JSON array on success.
-//
-// Note on the framework-error workaround: graph-index-spatial wraps its
-// handler errors via errs.WrapInvalid, which produces wire replies shaped
-// "error: Component.<method>: <action> failed: …" — NOT the
-// "error: <kind>: …" prefix that graph-ingest emitted before the beta.87
-// classified-error surface. The spatial path still relies on tight client-side
-// validation in parseBBox / parsePolygon so the framework never receives
-// invalid input from us; any "error:" reply from this subject therefore
-// represents a server-side fault and falls through to the generic decode
-// failure → 500 below. Tracked in the upstream issue covering both the
-// error-format divergence and the SpatialResult coordinates gap.
+// runSpatialQuery handles the shared beta.147 NATS contract for both spatial
+// subjects: bare []SpatialResult bytes on success and ADR-060 classification
+// headers on errors.
 func (c *Component) runSpatialQuery(ctx context.Context, subject string, body []byte) ([]spatialResult, error) {
-	respBytes, err := c.nats.Request(ctx, subject, body, c.cfg.QueryTimeout)
+	resp, err := c.nats.RequestWithHeaders(ctx, subject, body, nil, c.cfg.QueryTimeout)
 	if err != nil {
 		switch {
 		case errors.Is(err, nats.ErrNoResponders),
@@ -319,6 +311,15 @@ func (c *Component) runSpatialQuery(ctx context.Context, subject string, body []
 		default:
 			return nil, errs.Wrap(err, "cs-api", "runSpatialQuery", "spatial query")
 		}
+	}
+	respBytes, err := natsclient.ClassifyReply(resp)
+	if err != nil {
+		return nil, errs.Wrap(err, "cs-api", "runSpatialQuery", "spatial handler")
+	}
+	trimmed := bytes.TrimSpace(respBytes)
+	if len(trimmed) == 0 || trimmed[0] != '[' {
+		return nil, errs.Wrap(errors.New("spatial response must be a top-level JSON array"),
+			"cs-api", "runSpatialQuery", "decode spatial response")
 	}
 	var results []spatialResult
 	if err := json.Unmarshal(respBytes, &results); err != nil {

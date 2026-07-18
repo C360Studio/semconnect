@@ -1,0 +1,16 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "source": "openspec/changes/migrate-semstreams-beta147/tasks.md",
+  "taskCount": 58,
+  "normalization": {
+    "algorithm": "sha256-utf8-checkbox-state-normalized-v1",
+    "rule": "Replace only a task line's leading '- [ ]', '- [x]', or '- [X]' marker with '- [ ]'.",
+    "normalizedTaskDefinitionSha256": "1b0fe327a26ae4507caa5531f16ce1b4c5e5492d0ea42368bb4a93bd936a5ab1"
+  },
+  "trustBoundary": {
+    "signed": "task identifiers, ownership, wording, order, commands, and dependency handoffs",
+    "excluded": "live checkbox state",
+    "reason": "Checkbox transitions are execution evidence and must progress without mutating phase-1 approval."
+  }
+}

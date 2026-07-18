@@ -4,18 +4,15 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
-// Predicate-set fixtures the reverse mapping must accept. Both forms must
-// produce the same Process so an operator who indexed via raw rdf.type
-// triples is not penalised relative to one who ingested via sensorml.Asset.
+// Predicate-set fixtures use the sole canonical internal type predicate.
 var (
-	typePredAlias  = sensorml.PredType // "sensorml.process.type"
-	typePredCanon  = "rdf.type"
+	typePredCanon  = sensorml.PredType
 	labelPred      = sensorml.PredLabel
 	descPred       = sensorml.PredDescription
 	defPred        = sensorml.PredDefinition
@@ -31,11 +28,11 @@ var (
 
 func TestReconstruct_PhysicalSystem(t *testing.T) {
 	triples := []message.Triple{
-		{Subject: "drone.001", Predicate: typePredAlias, Object: sosa.SSNSystem},
+		{Subject: "drone.001", Predicate: typePredCanon, Object: sosa.SSNSystem},
 		{Subject: "drone.001", Predicate: labelPred, Object: "ACME Drone 001"},
 		{Subject: "drone.001", Predicate: descPred, Object: "Hex rotor with 4K camera"},
-		{Subject: "drone.001", Predicate: hostsPred, Object: "drone.001.camera"},
-		{Subject: "drone.001", Predicate: hostsPred, Object: "drone.001.battery"},
+		{Subject: "drone.001", Predicate: hostsPred, Object: "drone.001.camera", Datatype: message.EntityReferenceDatatype},
+		{Subject: "drone.001", Predicate: hostsPred, Object: "drone.001.battery", Datatype: message.EntityReferenceDatatype},
 		{Subject: "drone.001", Predicate: attachedPred, Object: "http://example.org/platforms/uav"},
 	}
 
@@ -72,10 +69,10 @@ func TestReconstruct_PhysicalSystem(t *testing.T) {
 
 func TestReconstruct_PhysicalComponent(t *testing.T) {
 	triples := []message.Triple{
-		{Subject: "drone.001.camera", Predicate: typePredCanon, Object: sosa.Sensor}, // canonical rdf.type alias
+		{Subject: "drone.001.camera", Predicate: typePredCanon, Object: sosa.Sensor},
 		{Subject: "drone.001.camera", Predicate: labelPred, Object: "Forward Camera"},
 		{Subject: "drone.001.camera", Predicate: procPred, Object: "http://example.org/procedures/4k-imaging"},
-		{Subject: "drone.001.camera", Predicate: hostedByPred, Object: "drone.001"},
+		{Subject: "drone.001.camera", Predicate: hostedByPred, Object: "drone.001", Datatype: message.EntityReferenceDatatype},
 		{Subject: "drone.001.camera", Predicate: identifierPred, Object: "SN-2026-A2391"},
 	}
 
@@ -95,9 +92,20 @@ func TestReconstruct_PhysicalComponent(t *testing.T) {
 	}
 }
 
+func TestReconstruct_RejectsRDFTypeCompatibilityRead(t *testing.T) {
+	triples := []message.Triple{{
+		Subject:   "drone.001.camera",
+		Predicate: "rdf.type",
+		Object:    sosa.Sensor,
+	}}
+	if _, err := reconstructProcessFromTriples(triples, "drone.001.camera"); err == nil {
+		t.Fatal("rdf.type compatibility state must not reconstruct")
+	}
+}
+
 func TestReconstruct_SimpleProcess(t *testing.T) {
 	triples := []message.Triple{
-		{Subject: "proc.calibration", Predicate: typePredAlias, Object: sosa.Procedure},
+		{Subject: "proc.calibration", Predicate: typePredCanon, Object: sosa.Procedure},
 		{Subject: "proc.calibration", Predicate: labelPred, Object: "Calibration Routine"},
 		{Subject: "proc.calibration", Predicate: procPred, Object: "http://example.org/procedures/calibration"},
 		// no hasSubSystem → SimpleProcess
@@ -119,9 +127,9 @@ func TestReconstruct_AggregateProcessDisambiguatesViaSubSystem(t *testing.T) {
 	// Same rdf:type IRI (sosa:Procedure) as SimpleProcess; disambiguated
 	// solely by presence of hasSubSystem triples.
 	triples := []message.Triple{
-		{Subject: "pipeline.weather", Predicate: typePredAlias, Object: sosa.Procedure},
-		{Subject: "pipeline.weather", Predicate: subSystemPred, Object: "step.parse"},
-		{Subject: "pipeline.weather", Predicate: subSystemPred, Object: "step.smooth"},
+		{Subject: "pipeline.weather", Predicate: typePredCanon, Object: sosa.Procedure},
+		{Subject: "pipeline.weather", Predicate: subSystemPred, Object: "step.parse", Datatype: message.EntityReferenceDatatype},
+		{Subject: "pipeline.weather", Predicate: subSystemPred, Object: "step.smooth", Datatype: message.EntityReferenceDatatype},
 	}
 	proc, err := reconstructProcessFromTriples(triples, "pipeline.weather")
 	if err != nil {
@@ -151,7 +159,7 @@ func TestReconstruct_RejectsUnsupportedType(t *testing.T) {
 	// rdf:type IRI outside the four CS-API-critical-path kinds — graceful
 	// error rather than silently emitting a wrong SensorML doc.
 	triples := []message.Triple{
-		{Subject: "x.y", Predicate: typePredAlias, Object: "http://example.org/some/exotic/type"},
+		{Subject: "x.y", Predicate: typePredCanon, Object: "http://example.org/some/exotic/type"},
 	}
 	if _, err := reconstructProcessFromTriples(triples, "x.y"); err == nil {
 		t.Errorf("expected error for unsupported rdf:type, got nil")
@@ -225,9 +233,9 @@ func TestReconstruct_MarshalsToValidSensorMLJSON(t *testing.T) {
 	// framework's MarshalJSON and the result decodes back via
 	// sensorml.UnmarshalProcess. Pins the SensorML JSON wire shape.
 	triples := []message.Triple{
-		{Subject: "drone.001", Predicate: typePredAlias, Object: sosa.SSNSystem},
+		{Subject: "drone.001", Predicate: typePredCanon, Object: sosa.SSNSystem},
 		{Subject: "drone.001", Predicate: labelPred, Object: "ACME Drone 001"},
-		{Subject: "drone.001", Predicate: hostsPred, Object: "drone.001.camera"},
+		{Subject: "drone.001", Predicate: hostsPred, Object: "drone.001.camera", Datatype: message.EntityReferenceDatatype},
 	}
 	proc, err := reconstructProcessFromTriples(triples, "drone.001")
 	if err != nil {
@@ -252,7 +260,7 @@ func TestReconstruct_NumericIdentifierValuePreserved(t *testing.T) {
 	// numbers, float timestamps, etc. The reverse mapping must NOT coerce
 	// these to strings (would corrupt the type signal).
 	triples := []message.Triple{
-		{Subject: "drone.001", Predicate: typePredAlias, Object: sosa.SSNSystem},
+		{Subject: "drone.001", Predicate: typePredCanon, Object: sosa.SSNSystem},
 		{Subject: "drone.001", Predicate: identifierPred, Object: 42},      // int identifier
 		{Subject: "drone.001", Predicate: identifierPred, Object: "SN-A1"}, // string identifier
 		{Subject: "drone.001", Predicate: identifierPred, Object: 3.14},    // float identifier
@@ -281,7 +289,7 @@ func TestReconstruct_NonStringLabelSilentlyDropped(t *testing.T) {
 	// (operator bug) is silently dropped rather than coerced. This pins
 	// that behavior so a future "be more permissive" change is explicit.
 	triples := []message.Triple{
-		{Subject: "drone.001", Predicate: typePredAlias, Object: sosa.SSNSystem},
+		{Subject: "drone.001", Predicate: typePredCanon, Object: sosa.SSNSystem},
 		{Subject: "drone.001", Predicate: labelPred, Object: 42}, // operator bug: int label
 		{Subject: "drone.001", Predicate: descPred, Object: "A valid description"},
 	}
@@ -303,8 +311,8 @@ func TestReconstruct_MultiTypeClassifiesByFirstMatch(t *testing.T) {
 	// Deterministic only modulo triple emission order — future-self
 	// should not depend on this across framework versions.
 	triples := []message.Triple{
-		{Subject: "x.001", Predicate: typePredAlias, Object: sosa.SSNSystem},
-		{Subject: "x.001", Predicate: typePredAlias, Object: sosa.Sensor},
+		{Subject: "x.001", Predicate: typePredCanon, Object: sosa.SSNSystem},
+		{Subject: "x.001", Predicate: typePredCanon, Object: sosa.Sensor},
 		{Subject: "x.001", Predicate: labelPred, Object: "Dual-typed thing"},
 	}
 	proc, err := reconstructProcessFromTriples(triples, "x.001")
@@ -321,7 +329,7 @@ func TestReconstruct_MinimalValidEntity(t *testing.T) {
 	// types must produce well-formed output. This is what Team Engine's
 	// conformance suite is most likely to throw at us first.
 	triples := []message.Triple{
-		{Subject: "minimal.001", Predicate: typePredAlias, Object: sosa.SSNSystem},
+		{Subject: "minimal.001", Predicate: typePredCanon, Object: sosa.SSNSystem},
 	}
 	proc, err := reconstructProcessFromTriples(triples, "minimal.001")
 	if err != nil {
@@ -347,7 +355,7 @@ func TestSystemReconstructionFromState_RejectsEmpty(t *testing.T) {
 	if _, err := systemReconstructionFromState(graph.EntityState{}); err == nil {
 		t.Errorf("expected error for empty state, got nil")
 	}
-	if _, err := systemReconstructionFromState(graph.EntityState{ID: "x"}); err == nil {
+	if _, err := systemReconstructionFromState(graph.EntityState{ID: "acme.ops.robotics.gcs.system.empty"}); err == nil {
 		t.Errorf("expected error for state with no triples, got nil")
 	}
 }

@@ -1,0 +1,28 @@
+schema: spec-driven
+
+context: |
+  semconnect is a Go 1.22 OGC API Connected Systems gateway with a Svelte 5/TypeScript UI.
+  SemStreams supplies the graph, NATS, JetStream, ObjectStore, and governed semantic-state substrate.
+  The external Botts OGC CS API ETS is the conformance authority; the current baseline is
+  137 passed, 0 failed, 0 skipped.
+  Follow repository AGENTS.md, ADRs under docs/adr, conventional commits, TDD, and formal
+  architect/developer/reviewer/documentation handoffs.
+  Internal graph predicates are exactly three lower-kebab ASCII segments. Graph EntityIDs and
+  entity references use the exact six-part SemStreams contract. External OGC JSON member names
+  and RDF/JSON-LD IRIs remain standards-shaped at system boundaries.
+
+rules:
+  proposal:
+    - State non-goals and compatibility risks explicitly.
+    - Identify external conformance claims that must not be weakened.
+  specs:
+    - Use normative MUST/SHALL language and Given/When/Then scenarios.
+    - Specify failure behavior and prove invalid input causes no backend I/O.
+    - Separate internal graph contracts from external OGC wire contracts.
+  design:
+    - Record package provenance, ownership boundaries, cutover, rollback, and data preservation.
+    - Cross-reference the governing ADR for durable architectural decisions.
+  tasks:
+    - Order tasks by architect, developer, reviewer, and technical-writer handoffs.
+    - Include exact automated evidence for every acceptance gate.
+    - Require a fresh external ETS result of 137 passed, 0 failed, 0 skipped without test or claim weakening.

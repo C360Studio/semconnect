@@ -1,0 +1,60 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "handoff": "architecture-remediation-to-go-reviewer",
+  "reviewFinding": "GO-REV-004",
+  "repository": {
+    "branch": "codex/semstreams-beta147-migration",
+    "baseRevisionAtRemediation": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1"
+  },
+  "decision": "ready-for-reviewer-rereview",
+  "problem": {
+    "summary": "The phase-1 evidence bundle checksummed live tasks.md checkbox state.",
+    "impact": "Valid execution progress invalidated the architecture signature without changing its contract."
+  },
+  "resolution": {
+    "immutableSignedInputs": [
+      "ADR-S003",
+      "OpenSpec proposal",
+      "OpenSpec design",
+      "all four capability specs",
+      "seven-tree provenance manifest and generator",
+      "32-correction semantic ledger",
+      "public compatibility matrix",
+      "cutover manifest schema and non-destructive template",
+      "normalized task-contract snapshot",
+      "architecture evidence validator and index"
+    ],
+    "excludedMutableState": [
+      "openspec/changes/migrate-semstreams-beta147/tasks.md checkbox markers"
+    ],
+    "taskDefinitionDriftDetection": {
+      "snapshot": "openspec/changes/migrate-semstreams-beta147/evidence/architecture/task-contract.snapshot.json",
+      "taskCount": 58,
+      "algorithm": "sha256-utf8-checkbox-state-normalized-v1",
+      "normalizedTaskDefinitionSha256": "1b0fe327a26ae4507caa5531f16ce1b4c5e5492d0ea42368bb4a93bd936a5ab1",
+      "rule": "Only leading recognized task checkbox markers are normalized; every other byte remains signed."
+    }
+  },
+  "reviewAssertions": [
+    "Live checkbox progression does not change the immutable evidence bundle checksum.",
+    "Task identifiers, owners, wording, commands, order, and handoffs remain drift-detected.",
+    "The live tasks.md path is absent from evidence-checksums.sha256.",
+    "The task-contract snapshot is present in evidence-checksums.sha256.",
+    "Production execution remains P0-blocked and unauthorized."
+  ],
+  "productionGate": {
+    "id": "SEMSTREAMS-BETA147-PRODUCTION-CUTOVER",
+    "status": "P0-BLOCKED",
+    "executionAuthorized": false
+  },
+  "signature": {
+    "type": "architect-remediation-evidence-bundle-attestation",
+    "signedByRole": "architect",
+    "signedBy": "Codex architect agent /root/architect_beta_delta",
+    "signedAt": "2026-07-18T00:55:16Z",
+    "decision": "ready-for-reviewer-rereview",
+    "evidenceBundleSha256": "3c5df54c501c4ab7961a7afdc9e1f86ab385770e2f147bc630ad61827a5d62dd",
+    "productionAuthorization": "withheld-p0-blocked"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "manifestVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "template": true,
+  "immutable": false,
+  "environment": {
+    "name": "REQUIRED_ENVIRONMENT",
+    "natsContext": "REQUIRED_NATS_CONTEXT",
+    "natsAccount": "REQUIRED_NATS_ACCOUNT",
+    "natsServer": "REQUIRED_NATS_SERVER",
+    "maintenanceWindow": "REQUIRED_MAINTENANCE_WINDOW"
+  },
+  "deploymentValues": {
+    "semconnectRevision": "REQUIRED_SEMCONNECT_REVISION",
+    "semstreamsVersion": "v1.0.0-beta.147",
+    "semstreamsCommit": "5cc22c109594e48b7f1cec04bcaaf0106d85495a",
+    "backendImage": "REQUIRED_BACKEND_IMAGE_DIGEST",
+    "backendCommit": "5cc22c109594e48b7f1cec04bcaaf0106d85495a",
+    "activeWriters": ["REQUIRED_COMPLETE_WRITER_INVENTORY"]
+  },
+  "destructiveScope": [],
+  "retainedState": [
+    {
+      "kind": "stream",
+      "renderedName": "REQUIRED_OBSERVATION_STREAM",
+      "account": "REQUIRED_NATS_ACCOUNT",
+      "preCutoverCount": 0,
+      "identityImpact": "review-required",
+      "probe": "REQUIRED_OBSERVATION_REPLAY_PROBE"
+    },
+    {
+      "kind": "object-store",
+      "renderedName": "REQUIRED_SCHEMA_ARTIFACT_STORE",
+      "account": "REQUIRED_NATS_ACCOUNT",
+      "preCutoverCount": 0,
+      "identityImpact": "review-required",
+      "probe": "REQUIRED_ARTIFACT_READ_PROBE"
+    }
+  ],
+  "authoritativeSource": {
+    "uri": "REQUIRED_AUTHORITATIVE_SOURCE_URI",
+    "revision": "REQUIRED_SOURCE_REVISION",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "expectedEntityCount": 0,
+    "owner": "REQUIRED_SOURCE_OWNER",
+    "reseedCommand": "REQUIRED_LITERAL_RESEED_COMMAND"
+  },
+  "readiness": {
+    "entityStatesBucket": "REQUIRED_ENTITY_STATES_BUCKET",
+    "capturedRevision": 0,
+    "statusProbe": "REQUIRED_INDEX_STATUS_PROBE",
+    "parityProbes": ["REQUIRED_QUERY_PARITY_PROBE_SET"],
+    "replayProbe": "REQUIRED_NO_WRITE_RESTART_REPLAY_PROBE"
+  },
+  "rollback": {
+    "owner": "REQUIRED_ROLLBACK_OWNER",
+    "strategy": "stop-writers-correct-source-repeat-reviewed-clean-rebuild",
+    "oldBinaryOnChangedAccount": "prohibited",
+    "triggers": [
+      "state-count-mismatch",
+      "index-readiness-stall",
+      "query-or-replay-parity-delta",
+      "external-conformance-failure"
+    ]
+  },
+  "approvals": [],
+  "p0Gate": {
+    "id": "SEMSTREAMS-BETA147-PRODUCTION-CUTOVER",
+    "status": "blocked",
+    "blockingConditions": [
+      "render-deployment-values",
+      "enumerate-literal-destructive-scope",
+      "verify-retained-state-and-identity-impact",
+      "freeze-authoritative-source-revision-count-and-checksum",
+      "name-rollback-owner",
+      "complete-rehearsal-and-evidence-gates",
+      "collect-architect-product-owner-operator-approvals"
+    ]
+  },
+  "execution": {
+    "authorized": false,
+    "goNoGoDecision": "pending"
+  }
+}

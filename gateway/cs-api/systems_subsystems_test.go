@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 func TestBuildSystemTriplesFromFeature_PreservesParentRelation(t *testing.T) {
@@ -32,6 +32,35 @@ func TestBuildSystemTriplesFromFeature_PreservesParentRelation(t *testing.T) {
 	if got, ok := firstStringObject(triples, sensorml.PredIsHostedBy); !ok || got != parentID {
 		t.Fatalf("parent relation triple: got %q ok=%v triples=%+v", got, ok, triples)
 	}
+	for _, triple := range triples {
+		if triple.Predicate == sensorml.PredIsHostedBy && triple.Datatype != message.EntityReferenceDatatype {
+			t.Fatalf("parent relation datatype: got %q want %q", triple.Datatype, message.EntityReferenceDatatype)
+		}
+	}
+}
+
+func TestHandleSystemPost_RejectsWhitespacePaddedExplicitParentIDBeforeIO(t *testing.T) {
+	fake := &fakeRequester{}
+	c := newTestComponent(t, fake)
+	body := []byte(`{
+		"type":"Feature",
+		"properties":{
+			"uid":"child",
+			"parent@id":" c360.semconnect.systems.csapi.system.parent "
+		}
+	}`)
+
+	req := httptest.NewRequest(http.MethodPost, "/systems", strings.NewReader(string(body)))
+	req.Header.Set("Content-Type", string(MediaGeoJSON))
+	rr := httptest.NewRecorder()
+	c.handleSystemPost(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+	if fake.gotSubject != "" || len(fake.gotBody) != 0 {
+		t.Fatalf("NATS called for invalid explicit parent@id: subject=%q body=%s", fake.gotSubject, fake.gotBody)
+	}
 }
 
 func TestHandleSystemSubsystems_ReturnsHostedSystems(t *testing.T) {
@@ -44,7 +73,7 @@ func TestHandleSystemSubsystems_ReturnsHostedSystems(t *testing.T) {
 			parentID: encodeSystemState(t, parentID, nil),
 			childID: encodeSystemState(t, childID, []message.Triple{
 				{Predicate: sensorml.PredLabel, Object: "Child system"},
-				{Predicate: sensorml.PredIsHostedBy, Object: parentID},
+				{Predicate: sensorml.PredIsHostedBy, Object: parentID, Datatype: message.EntityReferenceDatatype},
 			}),
 			otherID: encodeSystemState(t, otherID, nil),
 		},
@@ -82,7 +111,7 @@ func TestHandleSystemSubsystemItem_HasCanonicalAndParentLinks(t *testing.T) {
 			parentID: encodeSystemState(t, parentID, nil),
 			childID: encodeSystemState(t, childID, []message.Triple{
 				{Predicate: sensorml.PredLabel, Object: "Child system"},
-				{Predicate: sensorml.PredIsHostedBy, Object: parentID},
+				{Predicate: sensorml.PredIsHostedBy, Object: parentID, Datatype: message.EntityReferenceDatatype},
 			}),
 		},
 	}
@@ -119,7 +148,7 @@ func TestSystemFromState_HostedByDoesNotEmitParentLink(t *testing.T) {
 		ID: childID,
 		Triples: []message.Triple{
 			{Predicate: sensorml.PredType, Object: sosa.SSNSystem},
-			{Predicate: sensorml.PredIsHostedBy, Object: parentID},
+			{Predicate: sensorml.PredIsHostedBy, Object: parentID, Datatype: message.EntityReferenceDatatype},
 		},
 	})
 

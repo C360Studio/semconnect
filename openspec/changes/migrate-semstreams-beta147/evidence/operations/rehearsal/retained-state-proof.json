@@ -1,0 +1,40 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "runId": "2026-07-18T02-03-23Z",
+  "identityImpact": "none",
+  "observation": {
+    "stream": "CS_API_OBSERVATIONS",
+    "messagesBeforeRestart": 1,
+    "messagesAfterRestart": 1,
+    "subjectsBeforeRestart": 1,
+    "subjectsAfterRestart": 1,
+    "lastSequenceBeforeRestart": 1,
+    "lastSequenceAfterRestart": 1,
+    "payloadId": "ets-observation-001",
+    "subject": "cs-api.observations.c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+    "apiResponseHashMatched": true,
+    "apiResponseSha256": "7176cce5951b52a8ec9cd80feda34c14ee232b298578bbfccd2551deb0fdf882"
+  },
+  "artifacts": {
+    "stream": "OBJ_CS_API_ARTIFACTS",
+    "logicalObjectsBeforeRestart": 2,
+    "logicalObjectsAfterRestart": 2,
+    "messagesBeforeRestart": 4,
+    "messagesAfterRestart": 4,
+    "subjectsBeforeRestart": 4,
+    "subjectsAfterRestart": 4,
+    "lastSequenceBeforeRestart": 4,
+    "lastSequenceAfterRestart": 4,
+    "resultSchemaKey": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_datastream_weather-temperature-01-resultSchema.json",
+    "commandSchemaKey": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema.json",
+    "resultSchemaApiResponseHashMatched": true,
+    "resultSchemaApiResponseSha256": "7a3ddbedeb2c8188e68945022bddddc89834037d586ba6309470b61aa6e0d0c9"
+  },
+  "limitations": [
+    "The disposable run compared runtime counts and readable normalized API responses across restart.",
+    "It did not capture per-object raw ObjectStore byte hashes or a production pre-cutover inventory.",
+    "Production therefore still requires its deployment-specific retained-state probes and approvals."
+  ],
+  "decision": "disposable-restart-identity-and-readability-pass; production-no-go"
+}

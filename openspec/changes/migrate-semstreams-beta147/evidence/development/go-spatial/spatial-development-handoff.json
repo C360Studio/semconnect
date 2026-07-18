@@ -1,0 +1,100 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "handoff": "go-developer-to-go-reviewer-and-program-manager",
+  "scope": "beta.147 spatial response classification, public geo projection, and coded entity-not-found cleanup",
+  "decision": "ready-for-narrow-rereview",
+  "files": [
+    {
+      "path": "gateway/cs-api/spatial.go",
+      "sha256": "9d3696138a116acdfa81a93bc0b2ca68006e9042f6795555e34561e77d046930"
+    },
+    {
+      "path": "gateway/cs-api/spatial_test.go",
+      "sha256": "3a0259135094cbfc09c13058338d76d8003375ddeb0d4aee3ac297b46f721680"
+    },
+    {
+      "path": "gateway/cs-api/spatial_projection_test.go",
+      "sha256": "95d6d0709a8c21a3d2732a82f47b6473a177b20d6768e8b16a1f126861295b2e"
+    },
+    {
+      "path": "gateway/cs-api/systems_post.go",
+      "sha256": "f70cd96031321eff66a9bc233baaf97d12d13e08c2ff1c2c678907be53a0b703"
+    },
+    {
+      "path": "gateway/cs-api/systems_patch.go",
+      "sha256": "30362822d10f40d9218eae5eb69107d4ab6c973674f0bb24598a4957ef7303cc"
+    },
+    {
+      "path": "gateway/cs-api/deployments_post.go",
+      "sha256": "e99a9c48d135063d7af87670e978162b826ed3ae3d1fdab3926a20afdf4b0055"
+    },
+    {
+      "path": "gateway/cs-api/sampling_features_post.go",
+      "sha256": "4ae8505cad5732992375d413c868ca8f1ec4519cb37916fb9a4586e077c1940a"
+    },
+    {
+      "path": "gateway/cs-api/systems.go",
+      "sha256": "086d23a072ff382087237b3fcf9d2974991b44d88fbb39915ff7f754cbbc888a"
+    },
+    {
+      "path": "gateway/cs-api/systems_test.go",
+      "sha256": "4b0750a7b457c2175823d3222d373b6c23e677c9368a4c92efe79670d622295d"
+    },
+    {
+      "path": "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/wire-capture.md",
+      "sha256": "bcdde4883da692c3e5d7b0382a8bac866e64bc4a9500405e494c59196eee4a16"
+    },
+    {
+      "path": "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/tdd-record.md",
+      "sha256": "40c6902e900ae21e913ff4e10119a34b57b6f726999d42374dfce8537761a45c"
+    },
+    {
+      "path": "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/source-audit.md",
+      "sha256": "ead1591587428fd0e086b9c3bfe317f08f1c68f68b0bb68b565f63173a5519a7"
+    },
+    {
+      "path": "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/verification.md",
+      "sha256": "73eb876894874730a68e8fb6028dd3fc15bf881988e163df00387c13876d60dc"
+    }
+  ],
+  "implementedScope": [
+    "strict beta.147 bare-array spatial success decoding",
+    "explicit rejection of null, whitespace-null, object, empty, and other non-array spatial success payloads",
+    "ADR-060 spatial handler error classification via response headers",
+    "Point-only projection to public geo.location predicates for System Feature, System SensorML, Deployment Feature, and Sampling Feature writes",
+    "lossless sensorml.process.position preservation for CS API and SensorML reads",
+    "stale coordinate removal on System PATCH geometry replacement",
+    "graph.ErrorCodeEntityNotFound-only 404 mapping with body-text fallback removed"
+  ],
+  "verification": {
+    "focusedTests": "pass",
+    "allNonRealNATSCsAPITests": "pass",
+    "allNonRealNATSGoTests": "pass",
+    "fullGoBuild": "pass",
+    "fullGoVet": "pass",
+    "sourceFallbackAudit": "pass-zero-matches",
+    "diffCheck": "pass",
+    "unfilteredRealNATSTests": "pass-external-root-corroboration",
+    "unfilteredRaceTests": "pass-external-root-corroboration",
+    "externalETS": "not-run-by-design"
+  },
+  "liveEvidence": {
+    "successfulSpatialHeaders": "none",
+    "successfulSpatialBody": "[]",
+    "classifiedFailureHeaders": {
+      "X-Status": "error",
+      "X-Error-Class": "transient"
+    },
+    "diagnosis": "classified error body was mis-decoded only because the byte-only request call discarded headers"
+  },
+  "signature": {
+    "type": "go-developer-source-bundle-attestation",
+    "signedByRole": "go-developer",
+    "signedBy": "Codex agent /root/architect_beta_delta",
+    "signedAt": "2026-07-18T01:59:15Z",
+    "decision": "ready-for-narrow-rereview",
+    "sourceBundleSha256": "7aff5daa1643bb2969c955a0f64ad9fa31f3b9bdb8bc9ab30de3b2c6e05e0a20",
+    "productionAuthorization": "withheld-program-manager-operator-validation-required"
+  }
+}

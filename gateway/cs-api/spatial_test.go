@@ -298,32 +298,60 @@ func TestHandleAreas_TransientBackendIs503(t *testing.T) {
 	}
 }
 
-func TestHandleAreas_UnstructuredFrameworkErrorBecomes500(t *testing.T) {
-	// graph-index-spatial wraps via errs.WrapInvalid which produces wire
-	// replies shaped "error: Component.handleQueryBoundsNATS: invalid
-	// request failed: ..." — different prefix structure from
-	// graph-ingest's "error: not found: ..." / "error: invalid request: ..."
-	// legacy shapes. Tight client-side validation
-	// (parseBBox / parsePolygon) means we should never put invalid input
-	// on the wire in the first place — but if the framework does emit an
-	// error: reply for any other reason, it surfaces as a 500 (decode
-	// failure of the supposed []spatialResult). This test pins that today's
-	// behavior; the wire format will improve once upstream ships structured
-	// request-reply errors.
-	fake := &fakeRequester{
-		reply:  []byte("error: Component.handleQueryBoundsNATS: invalid request failed: missing field"),
-		status: natsclient.StatusConnected,
+func TestHandleAreas_ClassifiedBackendErrors(t *testing.T) {
+	tests := []struct {
+		name       string
+		errClass   string
+		wantStatus int
+	}{
+		{name: "invalid", errClass: "invalid", wantStatus: http.StatusBadRequest},
+		{name: "transient", errClass: "transient", wantStatus: http.StatusServiceUnavailable},
+		{name: "fatal", errClass: "fatal", wantStatus: http.StatusInternalServerError},
 	}
-	c := newTestComponent(t, fake)
-	mux := http.NewServeMux()
-	c.RegisterHTTPHandlers("", mux)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fake := &fakeRequester{
+				reply: []byte(`{"message":"spatial query failed"}`),
+				replyHeader: nats.Header{
+					natsclient.HeaderStatus:     []string{natsclient.HeaderStatusError},
+					natsclient.HeaderErrorClass: []string{tt.errClass},
+				},
+				status: natsclient.StatusConnected,
+			}
+			c := newTestComponent(t, fake)
+			mux := http.NewServeMux()
+			c.RegisterHTTPHandlers("", mux)
 
-	req := httptest.NewRequest(http.MethodGet, "/areas?bbox=0,0,1,1", nil)
-	rr := httptest.NewRecorder()
-	mux.ServeHTTP(rr, req)
+			req := httptest.NewRequest(http.MethodGet, "/areas?bbox=0,0,1,1", nil)
+			rr := httptest.NewRecorder()
+			mux.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusInternalServerError {
-		t.Errorf("status: got %d want 500 (unstructured framework error → decode failure); body=%s", rr.Code, rr.Body.String())
+			if rr.Code != tt.wantStatus {
+				t.Errorf("status: got %d want %d; body=%s", rr.Code, tt.wantStatus, rr.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandleAreas_MalformedSuccessBodyBecomes500(t *testing.T) {
+	for _, body := range []string{`{"data":[]}`, `null`, " \n\tnull\r "} {
+		t.Run(body, func(t *testing.T) {
+			fake := &fakeRequester{
+				reply:  []byte(body),
+				status: natsclient.StatusConnected,
+			}
+			c := newTestComponent(t, fake)
+			mux := http.NewServeMux()
+			c.RegisterHTTPHandlers("", mux)
+
+			req := httptest.NewRequest(http.MethodGet, "/areas?bbox=0,0,1,1", nil)
+			rr := httptest.NewRecorder()
+			mux.ServeHTTP(rr, req)
+
+			if rr.Code != http.StatusInternalServerError {
+				t.Errorf("status: got %d want 500; body=%s", rr.Code, rr.Body.String())
+			}
+		})
 	}
 }
 

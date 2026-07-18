@@ -27,11 +27,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // procedureCollection mirrors systemCollection. CS API §6 uses the
@@ -105,7 +105,7 @@ func procedureFromState(state graph.EntityState) procedure {
 // isProcedureKind reports whether the entity's rdf:type is
 // sosa.Procedure. Symmetric with isSystemKind / isDatastreamKind.
 func isProcedureKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	if !ok {
 		return false
 	}

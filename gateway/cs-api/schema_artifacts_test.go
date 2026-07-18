@@ -7,11 +7,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
-	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 	"github.com/nats-io/nats.go/jetstream"
 )
 
@@ -68,6 +69,9 @@ func TestCreateSchemaArtifact_StoresBytesAndCreatesTypedEntity(t *testing.T) {
 	}
 	if rel.Predicate != csapivocab.HasResultSchema {
 		t.Errorf("relationship predicate: got %q want %q", rel.Predicate, csapivocab.HasResultSchema)
+	}
+	if rel.Datatype != message.EntityReferenceDatatype {
+		t.Errorf("relationship datatype: got %q want %q", rel.Datatype, message.EntityReferenceDatatype)
 	}
 	artifactID, ok := rel.Object.(string)
 	if !ok || artifactID == "" {

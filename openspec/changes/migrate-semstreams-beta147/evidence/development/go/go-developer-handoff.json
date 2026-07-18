@@ -1,0 +1,40 @@
+{
+  "change": "migrate-semstreams-beta147",
+  "role": "go-developer",
+  "status": "ready-for-go-rereview",
+  "sourceTransfer": "openspec/changes/migrate-semstreams-beta147/evidence/development/go/transfer/exact-transfer.json",
+  "failingFirst": "openspec/changes/migrate-semstreams-beta147/evidence/development/go/failing-first/package-boundary.json",
+  "semanticEvidence": "openspec/changes/migrate-semstreams-beta147/evidence/development/go/semantic-contracts.json",
+  "qualityEvidence": "openspec/changes/migrate-semstreams-beta147/evidence/development/go/integration-and-quality.json",
+  "implementedScope": [
+    "seven product-owned OGC package trees transferred from the frozen provenance commit",
+    "all removed SemStreams imports replaced without a compatibility facade",
+    "explicit OMS registry composition",
+    "all 32 frozen semantic corrections",
+    "beta147 authoritative final-state validation before I/O",
+    "canonical relationship @id typing and literal external hrefs",
+    "public beta147 entity and prefix validators",
+    "bounded deterministic resource, child, and schema-artifact minting",
+    "legacy system uid/position fallback removal",
+    "beta147 module and conformance backend pin alignment",
+    "real NATS, JetStream, ObjectStore, projection, envelope, and error-classification verification"
+  ],
+  "knownRisks": [
+    "The graph-state cutover remains destructive and P0-blocked until the immutable deployment manifest and approvals exist.",
+    "A fresh-volume external 137/0/0 ETS run is an operator/program-manager release gate and is not claimed by this developer handoff."
+  ],
+  "remediation": {
+    "review": "openspec/changes/migrate-semstreams-beta147/evidence/review/go/review.json",
+    "failingFirst": "openspec/changes/migrate-semstreams-beta147/evidence/development/go/failing-first/review-remediation.json",
+    "resolved": [
+      "GO-REV-001: exact invalid Datastream IDs and explicit parent@id references reject before I/O; minting is omitted-ID or UID-derived only",
+      "GO-REV-002: operational rdf.type alias and dual-read removed with negative runtime and source tests",
+      "GO-REV-003: exact upstream MIT 2025 C360 notice preserved and hashed without modifying the project LICENSE",
+      "GO-REV-005: EntityState relationship fixtures use @id and a registry-driven fixture audit enforces the contract",
+      "GO-REV-006: non-empty caller Observation IDs validate before JetStream publish"
+    ],
+    "licenseEvidence": "openspec/changes/migrate-semstreams-beta147/evidence/development/go/transfer/license-provenance.json",
+    "developerOwnedFindingsOpen": []
+  },
+  "developerBlockers": []
+}

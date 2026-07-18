@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,12 +12,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
+	"github.com/c360studio/semstreams/vocabulary"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
@@ -390,11 +393,62 @@ func TestHandleSystems_BackendErrorClassification(t *testing.T) {
 // wire. The Stage-4 fetchEntity expects raw EntityState JSON (no envelope).
 func encodeEntityState(t *testing.T, state graph.EntityState) []byte {
 	t.Helper()
+	auditEntityStateFixture(t, state)
 	b, err := json.Marshal(state)
 	if err != nil {
 		t.Fatalf("encodeEntityState: %v", err)
 	}
 	return b
+}
+
+func auditEntityStateFixture(t *testing.T, state graph.EntityState) {
+	t.Helper()
+	for _, violation := range entityStateFixtureViolations(state) {
+		t.Error(violation)
+	}
+}
+
+func entityStateFixtureViolations(state graph.EntityState) []string {
+	var violations []string
+	for index, triple := range state.Triples {
+		metadata := vocabulary.GetPredicateMetadata(triple.Predicate)
+		if metadata == nil || metadata.DataType != message.EntityReferenceDatatype {
+			continue
+		}
+		if triple.Datatype != message.EntityReferenceDatatype {
+			violations = append(violations, fmt.Sprintf(
+				"EntityState fixture %q triple[%d] predicate %q: datatype got %q want %q",
+				state.ID, index, triple.Predicate, triple.Datatype, message.EntityReferenceDatatype))
+		}
+	}
+	return violations
+}
+
+func TestEntityStateFixtureAuditUsesRegisteredRelationshipMetadata(t *testing.T) {
+	entityID := "acme.ops.robotics.gcs.datastream.fixture"
+	targetID := "acme.ops.robotics.gcs.system.target"
+	invalid := graph.EntityState{ID: entityID, Triples: []message.Triple{{
+		Subject: entityID, Predicate: csapivocab.ProducedBy, Object: targetID,
+	}}}
+	if got := entityStateFixtureViolations(invalid); len(got) != 1 {
+		t.Fatalf("registered relationship without @id: got violations=%v want one", got)
+	}
+
+	valid := invalid
+	valid.Triples = append([]message.Triple(nil), invalid.Triples...)
+	valid.Triples[0].Datatype = message.EntityReferenceDatatype
+	if got := entityStateFixtureViolations(valid); len(got) != 0 {
+		t.Fatalf("canonical relationship fixture: violations=%v", got)
+	}
+
+	literal := graph.EntityState{ID: entityID, Triples: []message.Triple{{
+		Subject:   entityID,
+		Predicate: csapivocab.DeploymentDeployedSystems,
+		Object:    "/systems/acme.ops.robotics.gcs.system.external",
+	}}}
+	if got := entityStateFixtureViolations(literal); len(got) != 0 {
+		t.Fatalf("registered literal href must remain untyped: violations=%v", got)
+	}
 }
 
 func droneState() graph.EntityState {
@@ -404,7 +458,7 @@ func droneState() graph.EntityState {
 			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredType, Object: sosa.SSNSystem},
 			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredLabel, Object: "ACME Drone 001"},
 			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredDescription, Object: "Hex rotor"},
-			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredHosts, Object: "acme.ops.robotics.gcs.drone.001.camera"},
+			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredHosts, Object: "acme.ops.robotics.gcs.drone.001.camera", Datatype: message.EntityReferenceDatatype},
 		},
 	}
 }
@@ -624,15 +678,15 @@ func TestHandleSystem_NonSystemEntity404sConsistentlyAcrossMedia(t *testing.T) {
 	// divergent response per media (406 SensorML / degraded JSON / empty
 	// JSON-LD); review M-3 made it consistent.
 	stateMissingType := graph.EntityState{
-		ID: "acme.x",
+		ID: "acme.ops.robotics.gcs.system.x",
 		Triples: []message.Triple{
-			{Subject: "acme.x", Predicate: sensorml.PredLabel, Object: "Mystery"},
+			{Subject: "acme.ops.robotics.gcs.system.x", Predicate: sensorml.PredLabel, Object: "Mystery"},
 		},
 	}
 	stateWrongKind := graph.EntityState{
-		ID: "acme.y",
+		ID: "acme.ops.robotics.gcs.system.y",
 		Triples: []message.Triple{
-			{Subject: "acme.y", Predicate: sensorml.PredType, Object: "http://example.org/types/Observation"},
+			{Subject: "acme.ops.robotics.gcs.system.y", Predicate: sensorml.PredType, Object: "http://example.org/types/Observation"},
 		},
 	}
 
@@ -666,9 +720,9 @@ func TestHandleSystem_MinimalValidEntity_AllMedia(t *testing.T) {
 	// empty-bodies, no 500). This is what Team Engine's conformance
 	// suite is most likely to throw first.
 	state := graph.EntityState{
-		ID: "acme.minimal.001",
+		ID: "acme.ops.robotics.gcs.system.minimal",
 		Triples: []message.Triple{
-			{Subject: "acme.minimal.001", Predicate: sensorml.PredType, Object: sosa.SSNSystem},
+			{Subject: "acme.ops.robotics.gcs.system.minimal", Predicate: sensorml.PredType, Object: sosa.SSNSystem},
 		},
 	}
 
@@ -682,7 +736,7 @@ func TestHandleSystem_MinimalValidEntity_AllMedia(t *testing.T) {
 			mux := http.NewServeMux()
 			c.RegisterHTTPHandlers("", mux)
 
-			req := httptest.NewRequest(http.MethodGet, "/systems/acme.minimal.001", nil)
+			req := httptest.NewRequest(http.MethodGet, "/systems/acme.ops.robotics.gcs.system.minimal", nil)
 			req.Header.Set("Accept", string(mt))
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
@@ -716,9 +770,8 @@ func TestHandleSystem_BackendTransientErrorClassifiedAs503(t *testing.T) {
 }
 
 func TestClassifyEntityQueryFailure(t *testing.T) {
-	// Direct unit cover for the CS API mapping that remains after
-	// semstreams beta.87's header-classified error boundary. "Not found"
-	// is still a gateway-level distinction inside the Invalid class.
+	// The beta.147 contract uses the graph error code, not body text, to
+	// distinguish a missing entity from other Invalid failures.
 	tests := []struct {
 		name    string
 		err     error
@@ -742,10 +795,10 @@ func TestClassifyEntityQueryFailure(t *testing.T) {
 			},
 		},
 		{
-			name: "legacy not found message wraps errEntityNotFound sentinel",
+			name: "uncoded not found text remains Invalid",
 			err:  errs.Classified(errs.ErrorInvalid, errors.New("not found: acme.ops.robotics.gcs.drone.999")),
 			probe: func(err error) bool {
-				return errors.Is(err, errEntityNotFound)
+				return errs.IsInvalid(err) && !errors.Is(err, errEntityNotFound)
 			},
 		},
 		{

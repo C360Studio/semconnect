@@ -1,0 +1,28 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "runId": "2026-07-18T02-03-23Z",
+  "environment": "production",
+  "decision": "no-go",
+  "executionAuthorized": false,
+  "passedDisposableGates": ["9.2", "9.3", "9.4", "9.5"],
+  "openGates": ["8.3", "9.1", "9.6", "9.7", "9.8"],
+  "blockingConditions": [
+    "No deployment-specific immutable production manifest or five approvals exist.",
+    "The disposable fresh-volume run did not execute the exact stop/wipe/reseed manifest required by task 9.1.",
+    "The beta.147 shutdown emitted two ERROR records because heartbeat was already stopped.",
+    "Production deployment values, maintenance window, rollback owner, counts, commands, and approvals are absent."
+  ],
+  "positiveEvidence": {
+    "externalConformance": "137 passed, 0 failed, 0 skipped",
+    "initialReadiness": "80/80",
+    "preRestartReadiness": "118/118",
+    "postRestartReadiness": "118/118",
+    "normalizedQueryHashesMatched": 11,
+    "foreignEdgeBake": "pass",
+    "noWeakeningReview": "approved"
+  },
+  "issuedByRoles": ["program-manager", "technical-writer"],
+  "approverSignatures": [],
+  "signatureNote": "No production approvals are implied by this no-go record."
+}

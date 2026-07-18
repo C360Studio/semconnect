@@ -17,10 +17,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // ssnDeployment is the SSN class IRI for Deployment entities.
@@ -100,7 +100,7 @@ func deploymentFromState(state graph.EntityState) deployment {
 // isDeploymentKind reports whether the entity's rdf:type is the
 // SSN Deployment class.
 func isDeploymentKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	if !ok {
 		return false
 	}

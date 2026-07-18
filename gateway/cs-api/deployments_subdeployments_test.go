@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 func TestBuildDeploymentTriplesFromFeature_PreservesParentRelation(t *testing.T) {
@@ -30,6 +30,11 @@ func TestBuildDeploymentTriplesFromFeature_PreservesParentRelation(t *testing.T)
 	if got, ok := firstStringObject(triples, predDeploymentParent); !ok || got != parentID {
 		t.Fatalf("parent relation triple: got %q ok=%v triples=%+v", got, ok, triples)
 	}
+	for _, triple := range triples {
+		if triple.Predicate == predDeploymentParent && triple.Datatype != message.EntityReferenceDatatype {
+			t.Fatalf("parent relation datatype: got %q want %q", triple.Datatype, message.EntityReferenceDatatype)
+		}
+	}
 }
 
 func TestHandleDeploymentSubdeployments_ReturnsChildDeployments(t *testing.T) {
@@ -42,7 +47,7 @@ func TestHandleDeploymentSubdeployments_ReturnsChildDeployments(t *testing.T) {
 			parentID: encodeDeploymentState(t, parentID, nil),
 			childID: encodeDeploymentState(t, childID, []message.Triple{
 				{Predicate: sensorml.PredLabel, Object: "Child deployment"},
-				{Predicate: predDeploymentParent, Object: parentID},
+				{Predicate: predDeploymentParent, Object: parentID, Datatype: message.EntityReferenceDatatype},
 			}),
 			otherID: encodeDeploymentState(t, otherID, nil),
 		},

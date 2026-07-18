@@ -12,17 +12,31 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-As of the 2026-07-06 SemStreams pin refresh, the pinned suite is green:
+The disposable migration candidate run on 2026-07-18 against SemStreams
+beta.147 is:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
 ```
 
-The current pins are:
+The migration candidate pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.141` at `d46c07a3a32a28259fd1c571a0445b140c8405e8`.
+- semstreams backend `v1.0.0-beta.147` at
+  `5cc22c109594e48b7f1cec04bcaaf0106d85495a`.
+
+The run reached graph-index revision `80/80` before Team Engine and `118/118`
+after the ETS writes. A no-write backend restart returned to `118/118` and all
+eleven normalized query hashes matched. The foreign-edge bake passed. Runtime
+evidence is indexed under
+`openspec/changes/migrate-semstreams-beta147/evidence/operations/rehearsal/`.
+
+This does not authorize production. The shutdown emitted two heartbeat
+already-stopped ERROR records, and the immutable cutover rehearsal,
+production manifest, and deployment approvals remain open. Independent review
+found no ETS filtering, fixture weakening, OAS relaxation, or claim reduction.
+The 2026-07-06 beta.141 result remains historical release evidence.
 
 The run exercises real gateway/framework behavior:
 
@@ -65,6 +79,8 @@ Outputs land in `conformance/output/` (gitignored):
 - `summary.txt` - human-readable TestNG counts.
 - `compose-build-<UTC>.log` - image build logs.
 - `seed-<UTC>.log` - fixture POST responses and readiness probes.
+- `seed-evidence/index-readiness-<UTC>.jsonl` - revision-based graph-index
+  status samples.
 - `teamengine-container-<UTC>.log` - Team Engine logs.
 - `cs-api-server-container-<UTC>.log` - gateway logs.
 - `semstreams-backend-container-<UTC>.log` - framework backend logs.
@@ -92,10 +108,12 @@ The seed phase creates the resource graph that the ETS reads back:
 - ControlStreams, command schemas, Commands, and Command Feasibility metadata.
 - SystemEvents.
 
-The seed phase is intentionally fatal: if a fixture cannot be created or
-cannot be observed through the corresponding read endpoint, the suite does not
-start. That keeps failures shaped like gateway/framework regressions instead
-of cascading Team Engine skips.
+The seed phase is intentionally fatal: if a fixture cannot be created, cannot
+be observed through the corresponding read endpoint, or the graph index does
+not reach the captured post-seed `ENTITY_STATES` revision, the suite does not
+start. Collection polling remains query evidence; health checks and fixed
+delays do not substitute for the revision gate. This keeps failures shaped like
+gateway/framework regressions instead of cascading Team Engine skips.
 
 ## Bumping Pins
 
@@ -110,9 +128,9 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_COMMIT=d46c07a3a32a28259fd1c571a0445b140c8405e8
-SEMSTREAMS_COMMIT_DATE=2026-07-05
-SEMSTREAMS_VERSION=v1.0.0-beta.141
+SEMSTREAMS_COMMIT=5cc22c109594e48b7f1cec04bcaaf0106d85495a
+SEMSTREAMS_COMMIT_DATE=2026-07-17
+SEMSTREAMS_VERSION=v1.0.0-beta.147
 ```
 
 Bumping is intentional, not auto-pulled.
@@ -139,6 +157,13 @@ gateway's compiled wire expectations match the running backend.
    `SEMSTREAMS_VERSION`.
 5. Run `go test ./...`, `go build ./...`, and `./conformance/run.sh`.
 6. Include the framework delta and conformance result in the PR description.
+
+For a graph-state-breaking release such as beta.147, the pin procedure is not
+the deployment procedure. Follow ADR-S003 and
+`openspec/changes/migrate-semstreams-beta147/`: use a deployment-specific
+manifest, stop every writer, remove only approved incompatible graph state,
+reseed canonically, and prove revision/query/replay parity. Never start
+beta.147 on retained beta.141 graph state or beta.141 on rebuilt beta.147 state.
 
 ## NATS Config
 

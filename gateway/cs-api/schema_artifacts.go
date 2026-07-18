@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
-	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 )
 
 const schemaArtifactContentType = string(MediaJSON)
@@ -40,17 +40,8 @@ func (c *Component) createSchemaArtifact(
 		return message.Triple{}, errs.WrapInvalid(errors.New("SWE schema required"), "cs-api", "createSchemaArtifact", "build artifact")
 	}
 
-	storePtr := c.schemaArtifacts.Load()
-	if storePtr == nil || *storePtr == nil {
-		return message.Triple{}, errs.WrapTransient(errors.New("schema artifact object store not initialized"), "cs-api", "createSchemaArtifact", "store schema")
-	}
-
 	artifactID := c.mintSchemaArtifactEntityID(parentID, role)
 	key := schemaArtifactObjectKey(artifactID)
-	if _, err := (*storePtr).PutBytes(ctx, key, []byte(canonical)); err != nil {
-		return message.Triple{}, classifyJetStreamErr(err, "createSchemaArtifact", "store schema")
-	}
-
 	triples := []message.Triple{
 		{Subject: artifactID, Predicate: sensorml.PredType, Object: csapivocab.SWESchemaDocument},
 	}
@@ -63,6 +54,17 @@ func (c *Component) createSchemaArtifact(
 			ContentType:     schemaArtifactContentType,
 			Size:            int64(len(canonical)),
 		},
+	}
+	if err := validateProjectedTriples(artifactID, triples); err != nil {
+		return message.Triple{}, errs.WrapInvalid(err, "cs-api", "createSchemaArtifact", "validate final artifact state")
+	}
+
+	storePtr := c.schemaArtifacts.Load()
+	if storePtr == nil || *storePtr == nil {
+		return message.Triple{}, errs.WrapTransient(errors.New("schema artifact object store not initialized"), "cs-api", "createSchemaArtifact", "store schema")
+	}
+	if _, err := (*storePtr).PutBytes(ctx, key, []byte(canonical)); err != nil {
+		return message.Triple{}, classifyJetStreamErr(err, "createSchemaArtifact", "store schema")
 	}
 	if err := c.createEntityWithTriples(ctx, entity, triples, id, "createSchemaArtifact"); err != nil {
 		if !errors.Is(err, errEntityConflict) {
@@ -77,7 +79,7 @@ func (c *Component) createSchemaArtifact(
 			return message.Triple{}, err
 		}
 	}
-	return message.Triple{Subject: parentID, Predicate: relationshipPredicate, Object: artifactID}, nil
+	return message.Triple{Subject: parentID, Predicate: relationshipPredicate, Object: artifactID, Datatype: message.EntityReferenceDatatype}, nil
 }
 
 func (c *Component) readSchemaArtifact(ctx context.Context, triples []message.Triple, relationshipPredicate string) (json.RawMessage, bool, error) {
@@ -113,12 +115,12 @@ func (c *Component) readSchemaArtifact(ctx context.Context, triples []message.Tr
 }
 
 func isSWESchemaArtifact(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	return ok && typeIRI == csapivocab.SWESchemaDocument
 }
 
 func (c *Component) mintSchemaArtifactEntityID(parentID, role string) string {
-	return c.cfg.SchemaArtifactIDPrefix + "." + uniqueIDToToken(parentID+"-"+role)
+	return mintSchemaArtifactID(c.cfg.SchemaArtifactIDPrefix, parentID, role)
 }
 
 func schemaArtifactObjectKey(artifactID string) string {

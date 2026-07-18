@@ -10,12 +10,11 @@ import (
 	"bytes"
 	"encoding/json"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/pkg/swecommon"
+	"github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/pkg/swecommon"
-	"github.com/c360studio/semstreams/vocabulary/csapi"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // DatastreamTypeIRI is the rdf:type Object value for Datastream entities.
@@ -36,8 +35,8 @@ const PredDatastreamSystem = csapi.ProducedBy
 const PredDatastreamSchema = csapi.HasResultSchema
 
 const (
-	predDatastreamPhenomenonTime = "cs-api.datastream.phenomenonTime"
-	predDatastreamResultTime     = "cs-api.datastream.resultTime"
+	predDatastreamPhenomenonTime = csapi.DatastreamPhenomenonTime
+	predDatastreamResultTime     = csapi.DatastreamResultTime
 )
 
 // Datastream is the v0.1 JSON shape for CS API §10 Datastream resources.
@@ -113,7 +112,7 @@ func datastreamFromState(state graph.EntityState) Datastream {
 		d.SystemID = v
 		d.SystemLink = &link{Href: "/systems/" + v, Rel: "system", Type: string(MediaJSON), Title: v}
 	}
-	if v, ok := firstStringObject(state.Triples, sosa.ObservedProperty); ok {
+	if v, ok := firstStringObject(state.Triples, csapi.ObservedProperty); ok {
 		d.ObservedProperty = v
 		d.ObservedProps = []observedProperty{{Definition: v}}
 	}
@@ -144,7 +143,7 @@ func datastreamFromState(state graph.EntityState) Datastream {
 // isDatastreamKind reports whether the entity's rdf:type maps to our
 // minted Datastream IRI. Symmetric with isSystemKind in systems.go.
 func isDatastreamKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	if !ok {
 		return false
 	}
@@ -176,10 +175,10 @@ func datastreamToTriples(entityID string, d *Datastream) []message.Triple {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: sensorml.PredDescription, Object: d.Description})
 	}
 	if d.System != "" {
-		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredDatastreamSystem, Object: d.System})
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredDatastreamSystem, Object: d.System, Datatype: message.EntityReferenceDatatype})
 	}
 	if d.ObservedProperty != "" {
-		triples = append(triples, message.Triple{Subject: entityID, Predicate: sosa.ObservedProperty, Object: d.ObservedProperty})
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: csapi.ObservedProperty, Object: d.ObservedProperty})
 	}
 	if d.PhenomenonTime != "" {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: predDatastreamPhenomenonTime, Object: d.PhenomenonTime})

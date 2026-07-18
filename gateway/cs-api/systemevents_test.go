@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 const (
@@ -27,7 +27,7 @@ func systemEventState(t *testing.T) []byte {
 		ID: testSystemEventID,
 		Triples: []message.Triple{
 			{Subject: testSystemEventID, Predicate: sensorml.PredType, Object: SystemEventTypeIRI},
-			{Subject: testSystemEventID, Predicate: PredSystemEventSystem, Object: testEventSystemID},
+			{Subject: testSystemEventID, Predicate: PredSystemEventSystem, Object: testEventSystemID, Datatype: message.EntityReferenceDatatype},
 			{Subject: testSystemEventID, Predicate: predSystemEventTime, Object: "2026-05-19T12:00:00Z"},
 			{Subject: testSystemEventID, Predicate: predSystemEventType, Object: "SystemChanged"},
 			{Subject: testSystemEventID, Predicate: predSystemEventMessage, Object: "System booted"},
@@ -77,7 +77,7 @@ func TestHandleSystemEvents_AdvancedFilterByEventType(t *testing.T) {
 		ID: otherID,
 		Triples: []message.Triple{
 			{Subject: otherID, Predicate: sensorml.PredType, Object: SystemEventTypeIRI},
-			{Subject: otherID, Predicate: PredSystemEventSystem, Object: testEventSystemID},
+			{Subject: otherID, Predicate: PredSystemEventSystem, Object: testEventSystemID, Datatype: message.EntityReferenceDatatype},
 			{Subject: otherID, Predicate: predSystemEventTime, Object: "2026-05-19T12:01:00Z"},
 			{Subject: otherID, Predicate: predSystemEventType, Object: "Maintenance"},
 		},
@@ -140,7 +140,7 @@ func TestHandleSystemScopedEvents_FiltersBySystem(t *testing.T) {
 		ID: otherID,
 		Triples: []message.Triple{
 			{Subject: otherID, Predicate: sensorml.PredType, Object: SystemEventTypeIRI},
-			{Subject: otherID, Predicate: PredSystemEventSystem, Object: "c360.semconnect.systems.csapi.system.other"},
+			{Subject: otherID, Predicate: PredSystemEventSystem, Object: "c360.semconnect.systems.csapi.system.other", Datatype: message.EntityReferenceDatatype},
 			{Subject: otherID, Predicate: predSystemEventTime, Object: "2026-05-19T12:01:00Z"},
 			{Subject: otherID, Predicate: predSystemEventType, Object: "SystemChanged"},
 		},

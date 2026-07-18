@@ -11,14 +11,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/graph/geo/geojson"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/errs"
 	"github.com/c360studio/semstreams/vocabulary/export"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 	"github.com/nats-io/nats.go"
 )
 
@@ -678,7 +678,7 @@ func (c *Component) handleSystem(w http.ResponseWriter, r *http.Request) {
 // /systems-shaped serialization should POST to /procedures and
 // be read back via /procedures/{id}.
 func isSystemKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	if !ok {
 		return false
 	}
@@ -763,6 +763,9 @@ func (c *Component) writeSystemJSONLD(w http.ResponseWriter, r *http.Request, st
 // uniformly with other input-side failures. Other NATS sentinels follow the
 // Stage-2/3 pattern: ErrNoResponders / timeouts → Transient → 503.
 func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntityState, error) {
+	if err := validateEntityID(id); err != nil {
+		return graph.EntityState{}, errs.WrapInvalid(err, "cs-api", "fetchEntity", "validate entity id")
+	}
 	reqBody, err := json.Marshal(struct {
 		ID string `json:"id"`
 	}{ID: id})
@@ -800,6 +803,11 @@ func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntitySta
 // The backend returns partial successes by omitting missing IDs, so callers
 // receive a map and decide whether a miss should skip or degrade a row.
 func (c *Component) fetchEntitiesBatch(ctx context.Context, ids []string) (map[string]graph.EntityState, error) {
+	for index, id := range ids {
+		if err := validateEntityID(id); err != nil {
+			return nil, errs.WrapInvalid(err, "cs-api", "fetchEntitiesBatch", fmt.Sprintf("validate entity id at index %d", index))
+		}
+	}
 	statesByID := make(map[string]graph.EntityState, len(ids))
 	for start := 0; start < len(ids); start += entityBatchChunkSize {
 		end := start + entityBatchChunkSize
@@ -860,14 +868,10 @@ func (c *Component) fetchEntitiesBatch(ctx context.Context, ids []string) (map[s
 var errEntityNotFound = errors.New("cs-api: entity not found")
 var errEntityConflict = errors.New("cs-api: entity already exists")
 
-// classifyEntityQueryFailure maps semstreams' header-classified
-// graph.query.entity handler errors into CS API HTTP semantics. beta.87
-// carries X-Error-Class via natsclient.ClassifyReply, but "not found" is
-// intentionally still a gateway-level distinction within the Invalid class.
-//
-// During the additive #93 window, ClassifyReply also handles legacy
-// "error: ..." bodies from older handlers, so the mapping remains backward
-// compatible with pre-beta.87 replies.
+// classifyEntityQueryFailure maps beta.147's header-classified
+// graph.query.entity errors into CS API HTTP semantics. Not-found is a
+// gateway-level HTTP distinction within the Invalid class and is identified
+// exclusively by the public graph error code.
 func classifyEntityQueryFailure(err error) error {
 	if err == nil {
 		return nil
@@ -876,10 +880,7 @@ func classifyEntityQueryFailure(err error) error {
 	if errors.As(err, &ce) && ce.Code == graph.ErrorCodeEntityNotFound {
 		return fmt.Errorf("%w: %s", errEntityNotFound, err.Error())
 	}
-	tail := strings.TrimPrefix(err.Error(), "error: ")
 	switch {
-	case strings.HasPrefix(tail, "not found:"):
-		return fmt.Errorf("%w: %s", errEntityNotFound, tail)
 	case errs.IsInvalid(err):
 		return errs.WrapInvalid(err, "cs-api", "fetchEntity", "bad query")
 	case errs.IsTransient(err):

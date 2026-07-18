@@ -1,0 +1,16 @@
+{
+  "change": "migrate-semstreams-beta147",
+  "reviewDecision": "changes-requested",
+  "reviewEvidence": "openspec/changes/migrate-semstreams-beta147/evidence/review/go/review.json",
+  "redCommand": "go test ./gateway/cs-api -run 'TestHandleDatastreamPost_InvalidExplicitIDRejectsBeforeIO|TestBuildSystemTriplesFromFeature_RejectsWhitespacePaddedExplicitParentID|TestReconstruct_RejectsRDFTypeCompatibilityRead|TestCanonicalTypeReadHasNoCompatibilityAliasSource|TestHandleObservationsPost_InvalidCallerObservationIDRejectsBeforePublish|TestHandleDatastreams_GoldenPath|TestHandleControlStreams_GoldenPath|TestHandleSystemEvents_GoldenPath|TestHandleFeasibilities_GoldenPath' -count=1",
+  "redExitCode": 1,
+  "redFindings": [
+    "invalid explicit Datastream ID returned 201 and was normalized",
+    "whitespace-padded explicit parent@id was trimmed and accepted",
+    "rdf.type compatibility state reconstructed successfully and typeAliases remained in source",
+    "five invalid caller Observation IDs returned 201 and published",
+    "ControlStream, Feasibility, and SystemEvent fixtures omitted @id"
+  ],
+  "greenCommand": "go test -count=1 ./gateway/cs-api ./parser/sensorml -run 'TestHandleDatastreamPost_InvalidExplicitIDRejectsBeforeIO|TestHandleSystemPost_RejectsWhitespacePaddedExplicitParentIDBeforeIO|TestReconstruct_RejectsRDFTypeCompatibilityRead|TestCanonicalTypeReadHasNoCompatibilityAliasSource|TestHandleObservationsPost_InvalidCallerObservationIDRejectsBeforePublish|TestEntityStateFixtureAuditUsesRegisteredRelationshipMetadata|TestTransferredPackageLicenseNoticePreserved|TestEntityRelationshipsAreRegisteredAsIDs'",
+  "greenExitCode": 0
+}

@@ -1,0 +1,65 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "runId": "2026-07-18T02-03-23Z",
+  "noInterveningWrite": true,
+  "capturedByRole": "program-manager",
+  "initialReadiness": {
+    "indexedRevision": 80,
+    "targetRevision": 80,
+    "artifact": "conformance/output/seed-evidence/index-readiness-2026-07-18T02-03-23Z.jsonl",
+    "sha256": "d1b9e46493e2975bfe3e0b624d67650bf380adf09fd6eace3396514a3d68e6e4"
+  },
+  "preRestartReadiness": {
+    "indexedRevision": 118,
+    "targetRevision": 118,
+    "artifact": "conformance/output/seed-evidence/index-readiness-pre-restart-2026-07-18T02-03-23Z.jsonl",
+    "sha256": "94958a1f8fce46a87e4035295922c2995012e0815e95169871501d22a63d9d1d"
+  },
+  "firstPostRestartReadiness": {
+    "indexedRevision": 118,
+    "targetRevision": 118,
+    "artifact": "conformance/output/seed-evidence/index-readiness-post-restart-2026-07-18T02-03-23Z.jsonl",
+    "sha256": "caa4804eb6b4858563db1a9da8f42626eece1e8c734474c68bd114e2384a68e0"
+  },
+  "postRestartReadiness": {
+    "indexedRevision": 118,
+    "targetRevision": 118,
+    "artifact": "conformance/output/seed-evidence/index-readiness-post-restart-archived-2026-07-18T02-03-23Z.jsonl",
+    "sha256": "9adfd4d3120bc99b51759b6725311da6052f3d682557293216670d67dd9b22a3"
+  },
+  "queryParity": "live-query-parity.json",
+  "resourceInventory": "runtime-resource-inventory.json",
+  "firstRestartLog": {
+    "artifact": "conformance/output/semstreams-backend-restart-2026-07-18T02-03-23Z.log",
+    "sha256": "38426276d0bb63d43b34c13e850aa86236a05664a0164a041a2ae49b18a14d2b",
+    "lineCount": 118
+  },
+  "restartLog": {
+    "artifact": "conformance/output/semstreams-backend-restart-archived-2026-07-18T02-03-23Z.log",
+    "sha256": "b905725bb93b78c2cb2b1b3316907b4be9ce499ddf99dead655f51ec4fe0e0f9",
+    "lineCount": 118,
+    "shutdownErrorRepeated": true
+  },
+  "archivedQueryCorpus": {
+    "pre": "conformance/output/replay-2026-07-18T02-03-23Z/pre",
+    "post": "conformance/output/replay-2026-07-18T02-03-23Z/post",
+    "normalizedBodiesPerSide": 11,
+    "recursiveDiffCommand": "diff -ru conformance/output/replay-2026-07-18T02-03-23Z/pre conformance/output/replay-2026-07-18T02-03-23Z/post",
+    "recursiveDiffExitCode": 0,
+    "recursiveDiffOutput": "empty"
+  },
+  "authoritativeStateMatched": true,
+  "retainedStateMatched": true,
+  "allElevenNormalizedQueriesMatched": true,
+  "shutdownLogsClean": false,
+  "shutdownAnomaly": "shutdown-anomaly.md",
+  "reviewReconciliation": {
+    "artifact": "openspec/changes/migrate-semstreams-beta147/evidence/review/final-conformance/approval.json",
+    "initialReviewerScope": "The reviewer first verified readiness without an archived pre/post body corpus and correctly left the query-equivalence caveat open.",
+    "laterEvidence": "The program-manager capture archives all eleven normalized bodies on both sides, full hashes, zero exit codes, and an empty recursive diff.",
+    "finalReviewerDisposition": "The amended signed review binds all 22 body hashes and marks task 9.3 evidence satisfied."
+  },
+  "gate": "OpenSpec 9.3",
+  "decision": "pass-with-recorded-shutdown-anomaly; production-no-go"
+}

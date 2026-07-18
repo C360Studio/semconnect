@@ -11,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 func TestHandleDatastreamPatch_NameAndSchema(t *testing.T) {
@@ -55,8 +55,8 @@ func TestHandleDatastreamPatch_NameAndSchema(t *testing.T) {
 	if got[PredDatastreamSystem] != testSystemRef {
 		t.Errorf("system preserved: got %q", got[PredDatastreamSystem])
 	}
-	if got[sosa.ObservedProperty] != "http://www.w3.org/ns/sosa/Property/Temperature" {
-		t.Errorf("observedProperty preserved: got %q", got[sosa.ObservedProperty])
+	if got[csapivocab.ObservedProperty] != "http://www.w3.org/ns/sosa/Property/Temperature" {
+		t.Errorf("observedProperty preserved: got %q", got[csapivocab.ObservedProperty])
 	}
 	artifactID := got[PredDatastreamSchema]
 	if artifactID == "" {

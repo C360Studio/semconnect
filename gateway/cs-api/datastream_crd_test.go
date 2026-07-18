@@ -11,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 	"github.com/nats-io/nats.go"
 )
 
@@ -61,8 +61,8 @@ func existingDatastreamState(id string) graph.EntityState {
 			{Subject: id, Predicate: sensorml.PredType, Object: DatastreamTypeIRI},
 			{Subject: id, Predicate: sensorml.PredLabel, Object: "Old name"},
 			{Subject: id, Predicate: sensorml.PredDescription, Object: "Old description"},
-			{Subject: id, Predicate: PredDatastreamSystem, Object: testSystemRef},
-			{Subject: id, Predicate: sosa.ObservedProperty, Object: "http://www.w3.org/ns/sosa/Property/Temperature"},
+			{Subject: id, Predicate: PredDatastreamSystem, Object: testSystemRef, Datatype: message.EntityReferenceDatatype},
+			{Subject: id, Predicate: csapivocab.ObservedProperty, Object: "http://www.w3.org/ns/sosa/Property/Temperature"},
 		},
 	}
 }

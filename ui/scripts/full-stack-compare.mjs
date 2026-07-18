@@ -13,6 +13,15 @@ const REPO_ROOT = path.resolve(UI_DIR, '..');
 const DEMO_PREFIX = 'c360.demo.water.plant';
 const GRAPH_PREFIX = DEMO_PREFIX;
 const DEFAULT_SEMSTREAMS_DIR = path.resolve(REPO_ROOT, '..', 'semstreams');
+const DIGEST_INSTANCE_BYTES = 66;
+const ID_PREFIX_TEMPLATES = {
+  system_id_prefix: { template: '${DEMO_PREFIX}.system', resolved: `${DEMO_PREFIX}.system` },
+  datastream_id_prefix: { template: '${DEMO_PREFIX}.datastream', resolved: `${DEMO_PREFIX}.datastream` },
+  controlstream_id_prefix: { template: '${DEMO_PREFIX}.controlstream', resolved: `${DEMO_PREFIX}.controlstream` },
+  command_id_prefix: { template: '${DEMO_PREFIX}.command', resolved: `${DEMO_PREFIX}.command` },
+  feasibility_id_prefix: { template: '${DEMO_PREFIX}.feasibility', resolved: `${DEMO_PREFIX}.feasibility` },
+  schema_artifact_id_prefix: { template: '${DEMO_PREFIX}.schema', resolved: `${DEMO_PREFIX}.schema` }
+};
 
 const PROFILE_CONFIG = {
   statistical: {
@@ -57,6 +66,10 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
     printHelp();
+    return;
+  }
+  if (options.validateIdentities) {
+    printIdentityClassifications();
     return;
   }
 
@@ -109,7 +122,8 @@ function parseArgs(argv) {
     uiPort: numberFromEnv('SEMFLOW_UI_PORT', 5179),
     csApiPort: numberFromEnv('SEMFLOW_CS_API_PORT', 48080),
     proxyPort: numberFromEnv('SEMFLOW_PROXY_PORT', 48081),
-    help: false
+    help: false,
+    validateIdentities: false
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -146,6 +160,9 @@ function parseArgs(argv) {
       case '-h':
         options.help = true;
         break;
+      case '--validate-identities':
+        options.validateIdentities = true;
+        break;
       default:
         throw new Error(`unknown argument: ${arg}`);
     }
@@ -176,6 +193,7 @@ Options:
   --cs-api-port PORT                   semconnect CS API host port. Default: 48080.
   --proxy-port PORT                    Caddy browser/proxy port. Default: 48081.
   --ui-semantic-assist                 Also route UI semembed/seminstruct assist in semantic profile.
+  --validate-identities                Validate and classify the six rendered entity-ID prefixes, then exit.
   --no-screenshots                     Skip Playwright screenshots.
   --keep-stack                         Leave the last compose stack running.
   --help                               Show this help.
@@ -183,6 +201,47 @@ Options:
 The runner uses semstreams/docker/compose/tiered.yml, adds semconnect plus a
 Caddy browser proxy, and tears the stack down between profiles because the
 statistical and semantic tiers share NATS buckets.`);
+}
+
+function printIdentityClassifications() {
+  const classifications = Object.entries(ID_PREFIX_TEMPLATES).map(([configKey, identity]) =>
+    classifyEntityPrefix(configKey, identity)
+  );
+  const invalid = classifications.filter((classification) => classification.classification !== 'valid-five-part-prefix');
+
+  console.log(JSON.stringify({
+    contract: {
+      parts: 5,
+      segmentPattern: '^[A-Za-z0-9][A-Za-z0-9_-]*$',
+      maxEntityBytes: 256,
+      reservedInstanceBytes: DIGEST_INSTANCE_BYTES
+    },
+    classifications
+  }, null, 2));
+
+  if (invalid.length > 0) {
+    throw new Error(`invalid demo entity-ID prefixes: ${invalid.map((item) => item.configKey).join(', ')}`);
+  }
+}
+
+function classifyEntityPrefix(configKey, identity) {
+  const parts = identity.resolved.split('.');
+  const bytes = Buffer.byteLength(identity.resolved, 'utf8');
+  const digestEntityBytes = bytes + 1 + DIGEST_INSTANCE_BYTES;
+  const valid =
+    parts.length === 5 &&
+    parts.every((part) => /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(part)) &&
+    digestEntityBytes <= 256;
+
+  return {
+    configKey,
+    template: identity.template,
+    resolved: identity.resolved,
+    parts: parts.length,
+    prefixBytes: bytes,
+    digestEntityBytes,
+    classification: valid ? 'valid-five-part-prefix' : 'invalid-five-part-prefix'
+  };
 }
 
 function expandProfiles(profile) {
@@ -207,12 +266,12 @@ async function writeRunFiles(runDir, options) {
     nats_url: 'nats://nats:4222',
     bind_address: ':8080',
     log_level: 'info',
-    system_id_prefix: `${DEMO_PREFIX}.system`,
-    datastream_id_prefix: `${DEMO_PREFIX}.datastream`,
-    controlstream_id_prefix: `${DEMO_PREFIX}.controlstream`,
-    command_id_prefix: `${DEMO_PREFIX}.command`,
-    feasibility_id_prefix: `${DEMO_PREFIX}.feasibility`,
-    schema_artifact_id_prefix: `${DEMO_PREFIX}.schema`
+    system_id_prefix: ID_PREFIX_TEMPLATES.system_id_prefix.resolved,
+    datastream_id_prefix: ID_PREFIX_TEMPLATES.datastream_id_prefix.resolved,
+    controlstream_id_prefix: ID_PREFIX_TEMPLATES.controlstream_id_prefix.resolved,
+    command_id_prefix: ID_PREFIX_TEMPLATES.command_id_prefix.resolved,
+    feasibility_id_prefix: ID_PREFIX_TEMPLATES.feasibility_id_prefix.resolved,
+    schema_artifact_id_prefix: ID_PREFIX_TEMPLATES.schema_artifact_id_prefix.resolved
   };
 
   const compose = `services:

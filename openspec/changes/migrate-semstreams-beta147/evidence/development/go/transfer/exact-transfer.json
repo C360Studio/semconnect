@@ -1,0 +1,12 @@
+{
+  "sourceRepository": "/Users/coby/Code/c360/semstreams",
+  "sourceCommit": "c8f0b92edf5ad5b491d5f4e81891bec817fae3cd",
+  "destinationRepository": "/Users/coby/Code/c360/semconnect",
+  "manifest": "openspec/changes/migrate-semstreams-beta147/evidence/architecture/provenance-manifest.json",
+  "treeCount": 7,
+  "fileCount": 55,
+  "manifestChecksumMismatches": 0,
+  "sourceDestinationFileCountDelta": 0,
+  "modesPreservedBy": "git archive",
+  "status": "exact-before-semantic-corrections"
+}

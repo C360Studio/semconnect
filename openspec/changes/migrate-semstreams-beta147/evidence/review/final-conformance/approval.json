@@ -1,0 +1,147 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "review": "final-conformance-no-weakening",
+  "task": "9.5",
+  "reviewerRole": "go-reviewer",
+  "reviewer": "Codex agent /root/svelte_developer_beta147",
+  "reviewedAt": "2026-07-18T02:11:11Z",
+  "decision": "approved",
+  "externalResult": {
+    "report": "conformance/output/testng-report-2026-07-18T02-03-23Z.xml",
+    "suite": "ogcapi-connectedsystems10-0.1-SNAPSHOT",
+    "test": "Conformance Classes - Core + SystemFeatures + Common + Subsystems + Procedures + Deployments + SamplingFeatures + PropertyDefinitions + Subdeployments + GeoJSON + SensorML + AdvancedFiltering + CreateReplaceDelete + Update + Part2ApiCommon + Part2Datastream + Part2ControlStream + Part2Feasibility + Part2SystemEvent + Part2AdvancedFiltering (OGC 23-001 /conf/core, /conf/system, /conf/subsystem, /conf/procedure, /conf/deployment, /conf/sf, /conf/property, /conf/subdeployment, /conf/geojson, /conf/sensorml, /conf/advanced-filtering, /conf/create-replace-delete, /conf/update; OGC 23-002 /conf/api-common, /conf/datastream, /conf/controlstream, /conf/feasibility, /conf/system-event, /conf/advanced-filtering; OGC 19-072 /conf/common)",
+    "total": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "nonConfigPassMethods": 137,
+    "nonConfigFailMethods": 0,
+    "nonConfigSkipMethods": 0,
+    "configPassMethods": 23,
+    "classCount": 23
+  },
+  "antiWeakening": {
+    "etsPin": {
+      "decision": "approved",
+      "commit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+      "tree": "875847e194ffdb2aef2b617c9a9a0d9add037331",
+      "unchangedFromRepositoryBase": true,
+      "vendorHeadMatchesPin": true,
+      "vendorTrackedDiff": false,
+      "vendorCachedDiff": false,
+      "vendorUntrackedFiles": false
+    },
+    "teamEngineInvocation": {
+      "decision": "approved",
+      "suiteCode": "ogcapi-connectedsystems10",
+      "parameters": [
+        "iut=http://cs-api-server:8080",
+        "mutation-tests-enabled=true",
+        "mutation-iut-policy=dedicated-mutable-iut"
+      ],
+      "includeExcludeOrGroupFilter": false,
+      "skipFlag": false,
+      "mutationLifecycleDisabled": false
+    },
+    "fixtures": {
+      "decision": "approved",
+      "onlyChangedTrackedFixture": "conformance/fixtures/system.sml.json",
+      "change": "adds uniqueId urn:ets:system:weather-station-01 for deterministic retained-state identity",
+      "removedFixtureAssertionsOrIntent": false
+    },
+    "openAPI": {
+      "decision": "approved",
+      "addedLines": 10,
+      "removedLines": 10,
+      "classification": "description-only alignment: removes legacy position text, documents strict client ID handling, and updates canonical lower-kebab predicate names",
+      "removedPathOrOperation": false,
+      "relaxedRequiredSchema": false
+    },
+    "claimedConformance": {
+      "decision": "approved",
+      "source": "gateway/cs-api/conformance.go",
+      "sourceChanged": false,
+      "claimCount": 25,
+      "claimRemoved": false,
+      "claimHiddenFromETS": false
+    },
+    "testReport": {
+      "decision": "approved",
+      "rootAttributesMatchMethodCounts": true,
+      "expectedSuiteIdentityPresent": true,
+      "allExpectedTestClassesPresent": true,
+      "failedOrSkippedMethod": false
+    },
+    "spatialAndLegacyAudit": {
+      "decision": "approved",
+      "reviewArtifact": "openspec/changes/migrate-semstreams-beta147/evidence/review/go-spatial/approval.json",
+      "strictBareArrayAndHeaderClassification": true,
+      "legacyPredicateOrBodyFallbackFound": false,
+      "postRestartLiveSpatialFeatureCount": 5,
+      "postRestartGeometryType": "Point"
+    }
+  },
+  "noWriteReplayReview": {
+    "preRestart": {
+      "targetRevision": 118,
+      "indexedRevision": 118,
+      "ready": true
+    },
+    "postRestart": {
+      "targetRevision": 118,
+      "indexedRevision": 118,
+      "ready": true,
+      "archivedEvidence": "conformance/output/seed-evidence/index-readiness-post-restart-archived-2026-07-18T02-03-23Z.jsonl",
+      "sha256": "9adfd4d3120bc99b51759b6725311da6052f3d682557293216670d67dd9b22a3"
+    },
+    "revisionInvariant": "pass",
+    "postRestartSpatialProbe": "pass-five-stable-Point-features",
+    "replayCorpus": "conformance/output/replay-2026-07-18T02-03-23Z",
+    "normalizedBodiesPerSide": 11,
+    "archivedPreRestartQueryBodies": true,
+    "archivedPostRestartQueryBodies": true,
+    "recursiveDiff": "pass-exit-0",
+    "equivalentQueryBodyHashComparison": "pass-all-11-pairs-identical",
+    "task9_3EvidenceDisposition": "satisfied",
+    "task9_3CheckboxModifiedByThisReview": false,
+    "assessment": "Revision persistence and normalized predicate, relationship, entity, collection, spatial, scoped, schema, and observation query equivalence are independently proven across the no-write restart."
+  },
+  "upstreamProductionReadinessConcern": {
+    "component": "semstreams beta.147 heartbeat lifecycle",
+    "firstObservedAt": "2026-07-18T02:05:46.765135969Z",
+    "archivedRepeatObservedAt": "2026-07-18T02:14:58.296894377Z",
+    "archivedLog": "conformance/output/semstreams-backend-restart-archived-2026-07-18T02-03-23Z.log",
+    "archivedLogSha256": "b905725bb93b78c2cb2b1b3316907b4be9ce499ddf99dead655f51ec4fe0e0f9",
+    "severity": "production-readiness-concern",
+    "logLevel": "ERROR",
+    "message": "Service stop failed",
+    "error": "heartbeat service not running (status: stopped)",
+    "aggregateError": "graceful shutdown failed: stop errors: [failed to stop service heartbeat: heartbeat service not running (status: stopped)]",
+    "classification": "The shutdown path appears to stop heartbeat twice or treats an already-stopped service as an error. The archived repeated restart recovered, post-restart index readiness returned 118/118, and all 11 normalized replay bodies remained identical, so this did not create or conceal the 137/0/0 result or corrupt replay state. It remains an upstream lifecycle/idempotence concern that must be resolved or explicitly dispositioned before production authorization.",
+    "hiddenOrDowngraded": false,
+    "externalConformanceImpact": "none-observed",
+    "productionAuthorizationImpact": "production-remains-unauthorized"
+  },
+  "evidence": {
+    "audit": "audit.md",
+    "hashes": "evidence-hashes.sha256"
+  },
+  "findings": [],
+  "limits": {
+    "task9_1MarkedComplete": false,
+    "task9_2MarkedComplete": false,
+    "task9_3MarkedComplete": false,
+    "task9_3EvidenceReviewedAsSatisfied": true,
+    "task9_4MarkedComplete": false,
+    "productionAuthorization": "withheld",
+    "reason": "Task 9.5 proves only that the external green result was not obtained by weakening the ETS, fixtures, API contract, or claims. The no-write replay evidence is now complete, but operational approvals and the heartbeat lifecycle concern remain outside this approval."
+  },
+  "signature": {
+    "type": "go-reviewer-final-conformance-approval",
+    "signedByRole": "go-reviewer",
+    "signedBy": "Codex agent /root/svelte_developer_beta147",
+    "signedAt": "2026-07-18T02:11:11Z",
+    "decision": "approved-task-9.5-only"
+  }
+}

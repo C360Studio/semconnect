@@ -1,0 +1,103 @@
+{
+  "change": "migrate-semstreams-beta147",
+  "semstreams": {
+    "version": "v1.0.0-beta.147",
+    "commit": "5cc22c109594e48b7f1cec04bcaaf0106d85495a",
+    "module": "go.mod",
+    "backendPin": "conformance/.ets-pin"
+  },
+  "environment": {
+    "goVersion": "go1.26.4",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "cgoEnabled": true,
+    "goCache": "/private/tmp/semconnect-go-cache"
+  },
+  "commands": [
+    {
+      "command": "git ls-files '*.go' | xargs gofmt -l",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "rg --files -g '*.go' -0 | xargs -0 gofmt -l",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go vet ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go vet -tags=integration ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go test -count=1 ./...",
+      "exitCode": 0,
+      "result": "all 9 package targets passed"
+    },
+    {
+      "command": "go test -race -count=1 ./...",
+      "exitCode": 0,
+      "result": "all 9 package targets passed"
+    },
+    {
+      "command": "go test -tags=integration -count=1 ./...",
+      "exitCode": 0,
+      "result": "all 9 package targets passed"
+    },
+    {
+      "command": "go build ./...",
+      "exitCode": 0,
+      "result": "passed; sandbox emitted a non-fatal module stat-cache permission warning"
+    },
+    {
+      "command": "go test -count=1 ./message/oms ./parser/sensorml ./pkg/swecommon ./vocabulary/...",
+      "exitCode": 0,
+      "result": "all 7 transferred package targets passed"
+    },
+    {
+      "command": "go run github.com/c360studio/semstreams/cmd/predicate-audit message parser pkg vocabulary gateway cmd conformance/fixtures conformance/compose.semstreams.config.json",
+      "exitCode": 0,
+      "output": "predicate audit passed: 95 structured candidates across 8 roots"
+    },
+    {
+      "command": "go run github.com/c360studio/semstreams/cmd/entity-id-audit@v1.0.0-beta.147 .",
+      "exitCode": 0,
+      "output": "entity ID audit passed: 28 structured candidates across 1 roots"
+    },
+    {
+      "command": "go run github.com/c360studio/semstreams/cmd/entity-id-audit --include-untracked .",
+      "exitCode": 0,
+      "output": "entity ID audit passed: 31 structured candidates across 1 roots"
+    }
+  ],
+  "realNats": {
+    "testFile": "gateway/cs-api/nats_integration_test.go",
+    "tests": [
+      "TestRealNATSEntityMutationCarriesCanonicalFinalState",
+      "TestRealNATSJetStreamAndObjectStoreLifecycle"
+    ],
+    "proved": [
+      "production beta147 natsclient connection and request/reply",
+      "authoritative entity-state validation on the received mutation",
+      "canonical @id foreign relationship on mutation and query",
+      "coded not-found error classification across NATS headers",
+      "projection ownership buckets and NoBirthStub contract binding",
+      "observation subject and ogc.oms.v3 BaseMessage envelope through real JetStream",
+      "schema bytes round-trip through the real ObjectStore",
+      "forwarded-user audit header on the mutation request"
+    ],
+    "executionNote": "Local execution requires loopback permission; the managed workspace sandbox denies bind without escalation."
+  },
+  "ruleEventAudit": {
+    "command": "rg -n -i 'rule[-_. ]?processor|rule[-_. ]?pack|graph\\.events\\.|graph[-_. ]?event|newgraph.*event' cmd gateway message parser pkg vocabulary conformance/fixtures conformance/compose.semstreams.config.json",
+    "exitCode": 1,
+    "matches": 0,
+    "disposition": "not-applicable",
+    "rationale": "The release source set contains CS API SystemEvent resources but no SemStreams rule processor configuration, rule pack, graph-event constructor, or graph.events.* consumer. This is an audited N/A, not a waived migration item."
+  }
+}

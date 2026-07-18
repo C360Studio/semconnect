@@ -9,9 +9,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
+	semtypes "github.com/c360studio/semstreams/pkg/types"
 	"github.com/nats-io/nats.go"
 )
 
@@ -188,10 +190,10 @@ func TestHandleSystemPost_SensorMLComponentForeignEdgeForwarded(t *testing.T) {
 	childID := body.ID + "_" + uniqueIDToToken("camera")
 	var sawHost, sawHostedBy bool
 	for _, tr := range sent.Triples {
-		if tr.Subject == body.ID && tr.Predicate == sensorml.PredHosts && tr.Object == childID {
+		if tr.Subject == body.ID && tr.Predicate == sensorml.PredHosts && tr.Object == childID && tr.Datatype == message.EntityReferenceDatatype {
 			sawHost = true
 		}
-		if tr.Subject == childID && tr.Predicate == sensorml.PredIsHostedBy && tr.Object == body.ID {
+		if tr.Subject == childID && tr.Predicate == sensorml.PredIsHostedBy && tr.Object == body.ID && tr.Datatype == message.EntityReferenceDatatype {
 			sawHostedBy = true
 		}
 	}
@@ -344,7 +346,7 @@ func TestHandleSystemPost_AuditHeadersPropagate(t *testing.T) {
 
 // TestUniqueIDToToken_EdgeCases pins the sanitizer behavior under inputs
 // that the SensorML spec permits but our entity-ID grammar does not. The
-// minted token MUST satisfy entityIDTokenRegex (validated end-to-end in
+// minted token MUST satisfy the authoritative entity-ID contract (validated end-to-end in
 // the golden path, but pinned per-input here so a refactor that breaks
 // the round-trip fails loudly on a single check.
 func TestUniqueIDToToken_EdgeCases(t *testing.T) {
@@ -372,8 +374,8 @@ func TestUniqueIDToToken_EdgeCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := uniqueIDToToken(tt.input)
-			if !entityIDTokenRegex.MatchString(got) {
-				t.Errorf("token %q does not satisfy entityIDTokenRegex", got)
+			if err := semtypes.ValidateEntityID(DefaultConfig().SystemIDPrefix + "." + got); err != nil {
+				t.Errorf("token %q does not satisfy the entity-ID contract: %v", got, err)
 			}
 			if tt.want != "" && got != tt.want {
 				t.Errorf("token: got %q want %q", got, tt.want)

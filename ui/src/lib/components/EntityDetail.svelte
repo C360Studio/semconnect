@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Activity, BrainCircuit, Database, GitBranch, Link2 } from '@lucide/svelte';
+  import { semanticField } from '$lib/semantics/semanticCatalog';
   import type { DemoEntity, DemoRelationship } from '$lib/types/demo';
   import { colorForKind } from '$lib/utils/colors';
 
@@ -43,8 +44,9 @@
       <h3>Graph Facts</h3>
       <ul>
         {#each entity.facts as fact}
+          {@const field = semanticField(fact.predicate)}
           <li>
-            <span>{fact.predicate}</span>
+            <span title={field.description}>{field.label}</span>
             <strong>{fact.object}</strong>
             <em>{fact.source}</em>
           </li>

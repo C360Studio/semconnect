@@ -8,6 +8,18 @@ how the gateway was built; use [README.md](../README.md),
 [AGENTS.md](../AGENTS.md), and [conformance/README.md](../conformance/README.md)
 for the current operating picture.
 
+That green result is the 2026-07-06 beta.141 historical baseline. ADR-S003 and
+`openspec/changes/migrate-semstreams-beta147/` govern the current beta.147
+product-boundary migration. In particular, references below to SemStreams
+owning OMS, SensorML, SWE Common, SOSA/SWE, or CS API vocabulary describe the
+historical build sequence; those packages are now semconnect-owned.
+
+The disposable beta.147 run on 2026-07-18 passed the external ETS at
+`137 passed, 0 failed, 0 skipped`, revision readiness, foreign-edge, and
+archived no-write query replay gates. Independent review found no conformance
+weakening. Production remains no-go pending the immutable stop/wipe/reseed
+rehearsal, heartbeat shutdown-error disposition, and deployment approvals.
+
 The framework half of [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
 (Phases 2-6) is complete and merged on `semstreams` main.
 Everything `semconnect` builds on consumes those primitives as

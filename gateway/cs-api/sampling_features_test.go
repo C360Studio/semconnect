@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 const testSamplingFeatureID = "c360.semconnect.systems.csapi.samplingfeature.alpha"
@@ -167,6 +167,9 @@ func TestHandleSamplingFeaturePost_Feature(t *testing.T) {
 		}
 		if tr.Predicate == predSamplingFeatureHostedProcedure {
 			sawHostedProcedure = true
+			if tr.Datatype != "" {
+				t.Errorf("hosted-procedure href must remain a literal, got datatype %q", tr.Datatype)
+			}
 		}
 	}
 	if !sawSampleType {

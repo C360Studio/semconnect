@@ -12,11 +12,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // TestBuildSystemTriplesFromSensorML_EmitsUIDTriple — POST SensorML
@@ -112,22 +112,6 @@ func TestSystemFromState_SurfacesUIDOnAllThreeFields(t *testing.T) {
 	}
 	if s.Label != "Stage 18 Drone" {
 		t.Errorf("top-level label: got %q want %q", s.Label, "Stage 18 Drone")
-	}
-}
-
-func TestSystemFromState_SurfacesLegacyUIDPredicate(t *testing.T) {
-	const id = "acme.ops.robotics.gcs.drone.legacy"
-	const uid = "urn:example:legacy:uid"
-	state := graph.EntityState{
-		ID: id,
-		Triples: []message.Triple{
-			{Subject: id, Predicate: sensorml.PredType, Object: sosa.SSNSystem},
-			{Subject: id, Predicate: legacyPredSystemUID, Object: uid},
-		},
-	}
-	s := systemFromState(state)
-	if s.UID != uid || s.UniqueID != uid || s.FeatureProperties == nil || s.FeatureProperties.UID != uid {
-		t.Errorf("legacy uid fallback: got %+v want uid %q on all read fields", s, uid)
 	}
 }
 

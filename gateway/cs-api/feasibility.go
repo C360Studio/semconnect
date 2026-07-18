@@ -13,21 +13,22 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 const (
 	// semstreams does not yet expose a CS API Feasibility vocabulary term.
 	// Keep the local type IRI explicit so it is easy to retire when the
 	// framework grows one.
-	FeasibilityTypeIRI = "https://c360studio.com/semconnect/vocab/cs-api/Feasibility"
+	FeasibilityTypeIRI = csapivocab.Feasibility
 
-	PredFeasibilityControlStream = "cs-api.feasibility.controlstream"
-	predFeasibilityStatus        = "cs-api.feasibility.status"
-	predFeasibilityParams        = "cs-api.feasibility.params"
-	predFeasibilityResult        = "cs-api.feasibility.result"
+	PredFeasibilityControlStream = csapivocab.FeasibilityControlStream
+	predFeasibilityStatus        = csapivocab.FeasibilityStatus
+	predFeasibilityParams        = csapivocab.FeasibilityParams
+	predFeasibilityResult        = csapivocab.FeasibilityResult
 )
 
 type feasibilityCollection struct {
@@ -101,7 +102,7 @@ func feasibilityFromState(state graph.EntityState) feasibility {
 }
 
 func isFeasibilityKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	return ok && typeIRI == FeasibilityTypeIRI
 }
 
@@ -322,7 +323,7 @@ func (c *Component) handleFeasibilityPost(w http.ResponseWriter, r *http.Request
 }
 
 func (c *Component) mintFeasibilityEntityID(uniqueID string) string {
-	return c.cfg.FeasibilityIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.FeasibilityIDPrefix, []byte(uniqueID))
 }
 
 func (c *Component) buildFeasibilityTriples(body []byte) (string, []message.Triple, error) {
@@ -357,7 +358,7 @@ func (c *Component) buildFeasibilityTriples(body []byte) (string, []message.Trip
 	}
 	triples := []message.Triple{
 		{Subject: entityID, Predicate: sensorml.PredType, Object: FeasibilityTypeIRI},
-		{Subject: entityID, Predicate: PredFeasibilityControlStream, Object: in.ControlStreamID},
+		{Subject: entityID, Predicate: PredFeasibilityControlStream, Object: in.ControlStreamID, Datatype: message.EntityReferenceDatatype},
 		{Subject: entityID, Predicate: predFeasibilityStatus, Object: in.Status},
 	}
 	if len(in.Params) > 0 && string(in.Params) != "null" {

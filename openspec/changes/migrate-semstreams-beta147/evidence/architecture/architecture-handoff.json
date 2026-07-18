@@ -1,0 +1,86 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "handoff": "architecture-to-development",
+  "repository": {
+    "branch": "codex/semstreams-beta147-migration",
+    "baseRevisionAtHandoff": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1"
+  },
+  "recipients": [
+    "go-developer",
+    "svelte-developer",
+    "go-reviewer",
+    "svelte-reviewer",
+    "technical-writer",
+    "operator"
+  ],
+  "decision": "approved-for-implementation",
+  "references": {
+    "adr": {
+      "path": "docs/adr/003-semstreams-beta147-product-boundary-migration.md",
+      "sha256": "3e0b20d68a16c1e33c4528c0054a8d4359ca1236ee8d855d1eb892c5d94f6147"
+    },
+    "openSpecChange": {
+      "id": "migrate-semstreams-beta147",
+      "proposalSha256": "f13df52d5a8e7d767a14ff000f5880de5420a7f5ca887b93c591269738606067",
+      "designSha256": "3c929df618d75c32ff29aae834861e637f625cca7f0bf9c3628430c2e41cb54b",
+      "taskContract": {
+        "path": "openspec/changes/migrate-semstreams-beta147/evidence/architecture/task-contract.snapshot.json",
+        "normalizedTaskDefinitionSha256": "1b0fe327a26ae4507caa5531f16ce1b4c5e5492d0ea42368bb4a93bd936a5ab1",
+        "liveCheckboxState": "excluded-mutable-execution-evidence"
+      },
+      "validation": "valid-4-of-4-artifacts-complete"
+    },
+    "provenanceManifest": {
+      "path": "openspec/changes/migrate-semstreams-beta147/evidence/architecture/provenance-manifest.json",
+      "sourceCommit": "c8f0b92edf5ad5b491d5f4e81891bec817fae3cd",
+      "sha256": "3619515a04826b37bfbaa8db9301781da22807c44af5f2219b312d5e0c71a844"
+    },
+    "semanticLedger": {
+      "path": "openspec/changes/migrate-semstreams-beta147/evidence/architecture/semantic-ledger.json",
+      "sha256": "5c497a0568d58453566f7112709a5118e76f9ca91359470a2d68f6d507c8cd8e",
+      "corrections": 32,
+      "compatibilityDisposition": "no-alias-no-dual-read-no-dual-write"
+    },
+    "compatibilityMatrix": {
+      "path": "openspec/changes/migrate-semstreams-beta147/evidence/architecture/compatibility-matrix.md",
+      "sha256": "dfd1ec3b933e90678cc4cf83aaa50647f130c59c49a7d5ce69c092b6328df1eb"
+    },
+    "cutoverContract": {
+      "schemaSha256": "d9fa3c931ee60a5b4f1cd0b361e0d1c2ec1bb3af31f344e7ae0d17b6ec91a312",
+      "templateSha256": "8d6480b8cb5805b82fdf4a9bca846f47e2b01df8dca41d0861fb8dc92dfcf88f"
+    }
+  },
+  "developerMandate": [
+    "execute tasks 2.1 onward in dependency order with failing-first tests",
+    "preserve exact package provenance and record import-only versus semantic divergence",
+    "apply all 32 semantic corrections without aliases or dual reads",
+    "preserve the public compatibility matrix and collect its required evidence",
+    "return formal developer and reviewer handoffs before release planning"
+  ],
+  "productionGate": {
+    "id": "SEMSTREAMS-BETA147-PRODUCTION-CUTOVER",
+    "priority": "P0",
+    "status": "P0-BLOCKED",
+    "executionAuthorized": false,
+    "requiredBeforeGo": [
+      "render and freeze all deployment-specific values",
+      "enumerate literal destructive scope without wildcards or unresolved variables",
+      "prove retained observation and artifact state has no identity impact",
+      "freeze authoritative source revision, checksum, counts, and reseed command",
+      "name rollback owner and rehearse the reviewed clean-rebuild strategy",
+      "prove index revision readiness plus live and no-write restart parity",
+      "archive fresh external ETS 137 passed, 0 failed, 0 skipped without weakening",
+      "collect architect, product-owner, operator, and two destructive-reviewer approvals"
+    ]
+  },
+  "signature": {
+    "type": "architect-evidence-bundle-attestation-v2",
+    "signedByRole": "architect",
+    "signedBy": "Codex architect agent /root/architect_beta_delta",
+    "signedAt": "2026-07-18T00:55:16Z",
+    "decision": "approved-for-implementation",
+    "evidenceBundleSha256": "3c5df54c501c4ab7961a7afdc9e1f86ab385770e2f147bc630ad61827a5d62dd",
+    "productionAuthorization": "withheld-p0-blocked"
+  }
+}

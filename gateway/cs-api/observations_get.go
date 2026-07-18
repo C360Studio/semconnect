@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/c360studio/semconnect/pkg/swecommon"
 	"github.com/c360studio/semstreams/pkg/errs"
-	"github.com/c360studio/semstreams/pkg/swecommon"
 	"github.com/nats-io/nats.go"
 )
 
@@ -118,7 +118,7 @@ func (c *Component) handleObservationGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	obsID := r.PathValue("obsID")
-	if err := validateEntityID(obsID); err != nil {
+	if err := validateOpaqueResourceID(obsID); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid observation id: "+err.Error())
 		return
 	}

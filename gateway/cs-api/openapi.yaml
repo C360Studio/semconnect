@@ -216,9 +216,8 @@ paths:
       description: |-
         Returns a `SystemCollection` of `System` entities (default,
         `application/json`) or an RFC 7946 `FeatureCollection` with
-        per-system geometry recovered from the `sensorml.process.position`
-        triple (`application/geo+json`, Stage 15; legacy
-        `cs-api.system.position` triples are still read).
+        per-system geometry recovered from the canonical
+        `sensorml.process.position` triple (`application/geo+json`, Stage 15).
 
         No SensorML `SystemCollection` wrapper exists; SensorML is
         per-item via `GET /systems/{id}`.
@@ -686,8 +685,9 @@ paths:
       description: |-
         Accepts CS API §10 Datastream JSON. Validates the `system`
         reference (6-part SemStreams shape strict) and
-        `observedProperty` (non-empty IRI). Honors a client-supplied
-        6-part `id` verbatim — otherwise mints from
+        `observedProperty` (non-empty IRI). Honors a valid client-supplied
+        6-part `id` verbatim, rejects an invalid non-empty ID without
+        normalization, and mints only when `id` is omitted, using
         `cfg.DatastreamIDPrefix`. Optional `schema` is a SWE Common
         DataRecord JSON schema used by observation SWE encoders.
       tags: [Datastreams]
@@ -2742,12 +2742,12 @@ components:
             definition:  {type: string, format: uri, description: Optional Procedure definition; preserved as `sensorml.PredDefinition` on /procedures Feature POST.}
             "deployedSystems@link":
               type: array
-              description: Optional Stage 46 Deployment association mapping; hrefs are stored on `cs-api.deployment.deployedSystems`.
+              description: Optional Stage 46 Deployment association mapping; hrefs are stored on `cs-api.deployment.deployed-systems`.
               items: {$ref: "#/components/schemas/Link"}
             "hostedProcedure@link":
               allOf:
                 - {$ref: "#/components/schemas/Link"}
-              description: Optional Stage 46 SamplingFeature association mapping; href is stored on `cs-api.samplingfeature.hostedProcedure`.
+              description: Optional Stage 46 SamplingFeature association mapping; href is stored on `cs-api.samplingfeature.hosted-procedure`.
             "parent@id":
               type: string
               description: |-
@@ -2860,7 +2860,7 @@ components:
             "deployedSystems@link":
               type: array
               items: {$ref: "#/components/schemas/Link"}
-              description: Stage 46 property-level association mapping recovered from `cs-api.deployment.deployedSystems`.
+              description: Stage 46 property-level association mapping recovered from `cs-api.deployment.deployed-systems`.
         geometry:
           type: object
           description: GeoJSON geometry — deploy site location, round-tripped via `sensorml.process.position`.
@@ -2915,7 +2915,7 @@ components:
             "hostedProcedure@link":
               allOf:
                 - {$ref: "#/components/schemas/Link"}
-              description: Stage 46 property-level association mapping recovered from `cs-api.samplingfeature.hostedProcedure`.
+              description: Stage 46 property-level association mapping recovered from `cs-api.samplingfeature.hosted-procedure`.
         geometry:
           type: object
           description: GeoJSON geometry for the sampled feature or site.
@@ -3309,7 +3309,7 @@ components:
       type: object
       required: [name, system, observedProperty]
       properties:
-        id:               {type: string, description: Optional client-supplied 6-part ID; minted otherwise.}
+        id:               {type: string, description: Optional client-supplied 6-part ID. Invalid non-empty values are rejected; the server mints only when omitted.}
         name:             {type: string}
         description:      {type: string}
         system:           {type: string, description: 6-part SemStreams system ID (strict).}

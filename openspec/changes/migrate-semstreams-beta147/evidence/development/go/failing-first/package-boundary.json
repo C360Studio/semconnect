@@ -1,0 +1,12 @@
+{
+  "command": "go test ./gateway/cs-api -run TestSemStreamsProductBoundaryIsLocallyOwned -count=1",
+  "exitCode": 1,
+  "capturedAt": "2026-07-17",
+  "expectedFailure": true,
+  "summary": {
+    "missingOwnedPackageTrees": 7,
+    "removedFrameworkImportsFound": true
+  },
+  "test": "TestSemStreamsProductBoundaryIsLocallyOwned",
+  "purpose": "Archive the failing package-ownership/import boundary before the exact source transfer."
+}

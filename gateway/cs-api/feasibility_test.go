@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 const testFeasibilityID = "c360.semconnect.systems.csapi.feasibility.ptz001"
@@ -23,7 +23,7 @@ func feasibilityState(t *testing.T) []byte {
 		ID: testFeasibilityID,
 		Triples: []message.Triple{
 			{Subject: testFeasibilityID, Predicate: sensorml.PredType, Object: FeasibilityTypeIRI},
-			{Subject: testFeasibilityID, Predicate: PredFeasibilityControlStream, Object: testControlStreamID},
+			{Subject: testFeasibilityID, Predicate: PredFeasibilityControlStream, Object: testControlStreamID, Datatype: message.EntityReferenceDatatype},
 			{Subject: testFeasibilityID, Predicate: predFeasibilityStatus, Object: "completed"},
 			{Subject: testFeasibilityID, Predicate: predFeasibilityParams, Object: `{"pan":10}`},
 			{Subject: testFeasibilityID, Predicate: predFeasibilityResult, Object: `{"feasible":true}`},
@@ -69,7 +69,7 @@ func TestHandleControlStreamFeasibility_UsesSingularNormativePath(t *testing.T) 
 		ID: otherID,
 		Triples: []message.Triple{
 			{Subject: otherID, Predicate: sensorml.PredType, Object: FeasibilityTypeIRI},
-			{Subject: otherID, Predicate: PredFeasibilityControlStream, Object: "c360.semconnect.systems.csapi.controlstream.other"},
+			{Subject: otherID, Predicate: PredFeasibilityControlStream, Object: "c360.semconnect.systems.csapi.controlstream.other", Datatype: message.EntityReferenceDatatype},
 			{Subject: otherID, Predicate: predFeasibilityStatus, Object: "rejected"},
 		},
 	})

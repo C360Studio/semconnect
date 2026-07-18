@@ -16,8 +16,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/c360studio/semstreams/vocabulary"
 )
 
 // handleSystemPatch serves PATCH /systems/{id} — CS API §7.6.
@@ -151,8 +152,9 @@ func mergePatchSystemTriples(entityID string, existing []message.Triple, feat sy
 	hasName := feat.Properties.Name != ""
 	hasDescription := feat.Properties.Description != ""
 	hasGeometry := len(feat.Geometry) > 0 && !bytes.Equal(feat.Geometry, jsonNull)
+	pointProjection := pointProjectionTriplesFromGeometry(entityID, feat.Geometry)
 
-	out := make([]message.Triple, 0, len(existing)+3)
+	out := make([]message.Triple, 0, len(existing)+6)
 	var sawLabel, sawDescription, sawPosition bool
 	for _, t := range existing {
 		switch t.Predicate {
@@ -174,13 +176,22 @@ func mergePatchSystemTriples(entityID string, existing []message.Triple, feat sy
 				})
 				continue
 			}
-		case PredSystemPosition, legacyPredSystemPosition:
+		case PredSystemPosition:
 			sawPosition = true
 			if hasGeometry {
 				out = append(out, message.Triple{
 					Subject: entityID, Predicate: PredSystemPosition,
 					Object: string(feat.Geometry),
 				})
+				continue
+			}
+		case vocabulary.GeoLocationLatitude,
+			vocabulary.GeoLocationLongitude,
+			vocabulary.GeoLocationAltitude:
+			if hasGeometry {
+				// A geometry replacement owns the complete spatial projection.
+				// Drop every prior coordinate before appending the new Point
+				// projection; a non-Point replacement intentionally appends none.
 				continue
 			}
 		}
@@ -204,6 +215,9 @@ func mergePatchSystemTriples(entityID string, existing []message.Triple, feat sy
 			Subject: entityID, Predicate: PredSystemPosition,
 			Object: string(feat.Geometry),
 		})
+	}
+	if hasGeometry {
+		out = append(out, pointProjection...)
 	}
 	return out
 }

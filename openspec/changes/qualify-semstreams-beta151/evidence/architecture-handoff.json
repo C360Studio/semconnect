@@ -2,7 +2,7 @@
   "formatVersion": "1.0.0",
   "change": "qualify-semstreams-beta151",
   "handoff": "architect-to-go-developer-operator-reviewer-technical-writer",
-  "decision": "approved-for-implementation-not-production",
+  "decision": "approved-greenfield-contract-not-production",
   "dependsOn": "qualify-semstreams-beta149",
   "targetResolution": {
     "requested": "515",
@@ -47,7 +47,7 @@
       "semconnect triple-lane publishers",
       "Graphable traffic on _semconnect.unused.ingest"
     ],
-    "architectureDisposition": "No graph-layout migration or compatibility path. Strengthen cutover with retained-state structural scan, direct atomic rejection probes, trusted-RMW poison proof, and positive foreign-edge bake."
+    "architectureDisposition": "Greenfield deployment on a new NATS namespace. No migration reseed, destructive operation, old-state input, retained-state compatibility path, or prior-deployment rollback. The canonical fixture is first-start smoke input only."
   },
   "requiredGates": [
     "module, tag, commit, source, image, and conformance identities align exactly to beta.151",
@@ -55,15 +55,15 @@
     "failing-then-passing pin and structural TDD evidence is archived",
     "focused upstream PR 554, PR 567, PR 561, graph-index, and lifecycle tests pass",
     "Go unit, race, integration, vet, integration-vet, and build gates pass",
-    "retained ENTITY_STATES scan covers every record with zero structural violations",
+    "typed first-start preflight proves the target NATS namespace has zero JetStream state",
     "invalid direct mutations are rejected atomically without byte or revision change",
     "trusted owner RMW cannot launder resident poison",
-    "normal SIGTERM exits zero and no-write restart reaches captured graph revision",
-    "normalized replay and positively exercised foreign-edge evidence remain equivalent",
+    "the exact Compose bundle stops normally without volume removal and restarts over the same named volume",
+    "canonical collection and item results remain byte-identical across restart",
     "fresh external ETS reports exactly 137 passed, 0 failed, 0 skipped",
     "ETS, fixtures, OpenAPI, claims, filters, skips, and parser are not weakened",
-    "immutable cutover manifest is complete and content-addressed",
-    "architect, product-owner, and operator explicitly authorize production"
+    "approval-free greenfield manifest is complete and content-addressed",
+    "product-owner and operator separately decide task 6.4 over the same manifest SHA-256"
   ],
   "attestationScope": {
     "policy": "Only immutable architecture contract inputs are signed. Mutable execution and evidence state is excluded so normal workflow progress cannot stale the architect attestation.",
@@ -75,15 +75,15 @@
       },
       {
         "path": "openspec/changes/qualify-semstreams-beta151/proposal.md",
-        "sha256": "a4e277796999591249952255838b20a89f176ada82c44e80885b6c93483d7754"
+        "sha256": "6bcca349106ed8ec32b9fc5a5a5c30335aeaf65930f82df3364988e2fbeb12f6"
       },
       {
         "path": "openspec/changes/qualify-semstreams-beta151/design.md",
-        "sha256": "db77eaf24d2b43790bc6ec539023fbe8bf109737ddc568841ae2f39f0a06d3a3"
+        "sha256": "ee21584035346438d00594cba5b0b303247406d860667c9859743fccdc8d667f"
       },
       {
         "path": "openspec/changes/qualify-semstreams-beta151/specs/semstreams-beta151-qualification/spec.md",
-        "sha256": "80031dc083f8f33aa9123c193ded22720f8fa4f1d58abc625341aace0c1c172e"
+        "sha256": "76e30d7c76d84c8331610038111c75fbc11aac1d333a9619cf502d8de779aa23"
       }
     ],
     "mutableWorkflowState": [
@@ -99,12 +99,20 @@
       }
     ]
   },
-  "signature": {
+  "historicalSignature": {
     "type": "architect-source-bundle-attestation",
     "signedByRole": "architect",
     "signedBy": "Codex agent /root/architect_beta_delta",
     "signedAt": "2026-07-18T15:53:07Z",
     "sourceBundleSha256": "8fdb5624b424bb9b5f3ff3416afec96757dac16a4d3953debfb055a8ac5d4d44",
-    "productionAuthorization": "withheld"
+    "productionAuthorization": "withheld",
+    "scope": "Superseded pre-greenfield source bundle; retained without rewriting its signed digest."
+  },
+  "greenfieldAmendment": {
+    "status": "current-committed-contract",
+    "recordedAt": "2026-07-18T18:32:07Z",
+    "semconnectCommit": "dc657825af421874f9e56b04874479b4cf644eb1",
+    "sourceBundleSha256": "44387885198770f98765e0219110a40f6ff5357eebdaab228f0f718512378c1e",
+    "productionAuthorization": "withheld-pending-detached-task-6.4-decisions"
   }
 }

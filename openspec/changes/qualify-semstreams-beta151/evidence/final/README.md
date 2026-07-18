@@ -23,10 +23,11 @@ was exercised with zero unclaimed and zero dropped edges. The earlier
 
 ## Production disposition
 
-The retained-state migration contract was superseded by the product owner's
-clean-NATS pre-v1 decision. The active task 6.3 artifact is a greenfield
-Compose manifest; task 6.4 requires only product-owner and operator decisions
-over its exact hash. Production remains no-go until those decisions exist.
+Task 6.3 is complete. The approval-free greenfield manifest is
+`greenfield-production-manifest.json`, SHA-256
+`dbddd8dfb85f65e3746f8c6f8496bc9c779707d172101fc54ea17093bb707ca8`.
+Task 6.4 requires detached product-owner and operator decisions over exactly
+that digest. Production remains unauthorized until both decisions are `go`.
 
 ## Evidence map
 
@@ -35,12 +36,17 @@ over its exact hash. Production remains no-go until those decisions exist.
 - `external-image-identities.json` — live image and fresh-volume identities.
 - `no-weakening-audit.md` — technical-writer comparison and final reviewer
   approval.
+- `greenfield-production-manifest.json` — immutable task 6.3 source, image,
+  deployment, fresh-state, seed, readiness, shutdown, restart, and
+  qualification record. It contains no task 6.4 decisions.
+- `greenfield-evidence-index.md` — concise map of the manifest's bound proof
+  and explicit greenfield-only scope.
 - `frontend-disposition.json` — frontend N/A evidence.
 - `production-no-action-record.json` — receipt of the operator's explicit
   no-production-action attestation before the greenfield amendment.
-- `evidence-hashes.sha256` — hashes the final evidence inputs that precede the
-  technical-writer handoff.
-- `technical-writer-handoff.json` — signed closeout and production hold.
+- `evidence-hashes.sha256` — hashes the final technical and greenfield task
+  6.3 evidence. It excludes itself and the mutable task checklist.
+- `technical-writer-handoff.json` — task 6.3 closeout and task 6.4 hold.
 
 Supporting role evidence remains in sibling directories: architecture and Go
 development handoffs, the 81-file operator rehearsal bundle, and final Go

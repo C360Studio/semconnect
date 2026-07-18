@@ -52,11 +52,11 @@
 
 - [x] 6.1 **program manager** runs fresh-volume external conformance and archives exactly `137/0/0` with exact pins.
 - [x] 6.2 **technical-writer/go-reviewer** prove no ETS, fixture, OpenAPI, claim, filter, skip, or parser weakening.
-- [ ] 6.3 **go-developer/operator/technical-writer** implement, independently verify, and hash the greenfield production
+- [x] 6.3 **go-developer/operator/technical-writer** implement, independently verify, and hash the greenfield production
   Compose bundle and approval-free manifest. Evidence SHALL cover exact NATS/SemStreams beta.151/semconnect inputs,
   persistent named storage, non-secret config and the internal-only topology's explicit no-secret boundary,
   empty-namespace preflight, canonical seed, layered health/query readiness, clean Compose stop/start without volume
-  removal, persistence parity, and the accepted `137/0/0` qualification. No migration, wipe, retained-state
+  removal, persistence parity, and the accepted `137/0/0` qualification. No migration, old-state reseed, wipe, retained-state
   compatibility, or old-state rollback artifact is required.
 - [ ] 6.4 **product owner/operator** each record explicit `go` or `no-go` over the same immutable task 6.3 manifest
   SHA-256. One person may hold both roles only through separate role-specific attestations; any missing/stale/mismatched

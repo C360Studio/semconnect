@@ -1,0 +1,184 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "recordType": "approval-free-immutable-greenfield-production-manifest",
+  "scope": {
+    "deployment": "first greenfield semconnect deployment on a new NATS namespace",
+    "task6.3": "complete",
+    "task6.4": "requires detached product-owner and operator decisions over this file's SHA-256",
+    "productionAuthorization": "withheld-pending-task-6.4",
+    "embeddedDecisionRecords": 0
+  },
+  "source": {
+    "semconnect": {
+      "commit": "dc657825af421874f9e56b04874479b4cf644eb1",
+      "tree": "88d12aa7e27eda1892b8f963d46a48d9d5437741",
+      "committedAt": "2026-07-18T18:32:07Z"
+    },
+    "semstreams": {
+      "module": "github.com/c360studio/semstreams",
+      "tag": "v1.0.0-beta.151",
+      "tagObject": "784f22dc8d549d7781b88a2878bb679112aad494",
+      "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+      "tree": "120eeb353afb7d07aa1b3180de05f75494bac1a8"
+    }
+  },
+  "images": {
+    "evidencePath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/images.txt",
+    "evidenceSha256": "1b7629ded2a1843b0684f439dcedf2d7b5d2ebd4018b2e5db5f85d748f751df5",
+    "platform": "arm64/linux",
+    "nats": {
+      "reference": "nats:2.10-alpine",
+      "digest": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927",
+      "imageId": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927"
+    },
+    "semstreams": {
+      "reference": "semconnect-semstreams:v1.0.0-beta.151",
+      "imageId": "sha256:f6a1f52b327d7fb136df6106c40b0faeba4ecc51f4590e733caaabc10e918f35"
+    },
+    "semconnect": {
+      "reference": "semconnect-cs-api:beta.151",
+      "imageId": "sha256:baa6ca23068dd72222e0c61af94ea865b98b8a3dd12d2f13e27ab6f1d99b0750"
+    },
+    "canonicalSmoke": {
+      "reference": "semconnect-canonical-smoke:beta.151",
+      "imageId": "sha256:41e334851b17100d962980709bb62ef77d7b4e38d2f0c9bd322e75216c72886f"
+    }
+  },
+  "buildInputs": {
+    "evidencePath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/inputs.sha256",
+    "evidenceSha256": "894a3d6a260a5680e04f85c7e83893f97aa9c5dcd47038214059f3e37e4367e6",
+    "files": [
+      {"path": "Dockerfile", "sha256": "e1ae7733f632e83278254f41bba3baa477bff7ea850150712f28c4802cf09093"},
+      {"path": "deploy/compose.yml", "sha256": "25482db8be750698683fb0a578d990556898dd3ed00201ebc35399b0e0fc9f57"},
+      {"path": "deploy/nats.conf", "sha256": "8257769b76f9056c87b1ceee5b97bfbba9d3fc6d5869ed69aaa8fa4792dbcb29"},
+      {"path": "deploy/semconnect.json", "sha256": "06163dd8a67580779478eeb992cba4be1be0c9f665f278c1f0cddfd72c0f32f2"},
+      {"path": "deploy/semstreams.json", "sha256": "bc2e796721b8c5b99714ac125bd5a06057b91f1298b6fbebe0a24b7ac7884348"},
+      {"path": "deploy/canonical-system.v1.json", "sha256": "f97a073028ff56ef344708889e8f49e53f659b4c2113b2cf1a47766302d5bfe1"},
+      {"path": "deploy/probe/Dockerfile", "sha256": "7868e1cedf3a8df8bb248491dd93accc9b8b3c97e396464ebf78c86f7bda52d6"},
+      {"path": "deploy/probe/main.go", "sha256": "eabf8d31dca0cb5158cbe302180cdf251860d04bb404ff19ef980817229f9711"},
+      {"path": "deploy/verify-persistence.sh", "sha256": "944b816997f4b5555d09d4f3322a8946fb8e4895dc53054b53720cfb57b516dd"}
+    ]
+  },
+  "renderedDeployment": {
+    "composePath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/compose.rendered.yml",
+    "composeSha256": "a86d670d38f32599a9b28d48bf95bdf6e85f92196e97cb0424a161b56ed3269f",
+    "composeDigestPath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/compose.rendered.sha256",
+    "composeDigestFileSha256": "37fea643b569a8d6b28923591e6d935f82e6d323fd7cc20e43cfba7f60060d85",
+    "project": "semconnect",
+    "csApi": {
+      "containerPort": 8080,
+      "publishedRehearsalPort": 18080
+    },
+    "nats": {
+      "url": "nats://nats:4222",
+      "account": "$G",
+      "domain": "default (unset)",
+      "credentials": "none",
+      "publishedHostPorts": [],
+      "network": "semconnect_backend",
+      "networkInternal": true
+    },
+    "persistentVolume": {
+      "composeKey": "semconnect-nats-data",
+      "renderedName": "semconnect-beta151-rehearsal-5",
+      "mount": "/data"
+    },
+    "securityBoundary": "NATS is reachable only by services on the private internal Compose network."
+  },
+  "greenfieldProof": {
+    "command": "SEMCONNECT_PORT=18080 SEMCONNECT_NATS_VOLUME=semconnect-beta151-rehearsal-5 ./deploy/verify-persistence.sh",
+    "zeroState": {
+      "type": "typed-nats-jetstream-summary",
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/first-start-jsz.json",
+      "sha256": "332344a84266a9c80b0120bda36a4ca79a2734f1c50e7e1c93a9f767a226b38c",
+      "account": "$G",
+      "domain": "default (unset)",
+      "streams": 0,
+      "consumers": 0,
+      "messages": 0,
+      "bytes": 0,
+      "result": "pass-empty-before-semstreams-start"
+    },
+    "canonicalSeed": {
+      "sourcePath": "deploy/canonical-system.v1.json",
+      "sourceSha256": "f97a073028ff56ef344708889e8f49e53f659b4c2113b2cf1a47766302d5bfe1",
+      "entityId": "c360.semconnect.systems.csapi.system.v1",
+      "expectedCount": 1,
+      "beforePath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/before-restart.json",
+      "beforeSha256": "be60e53908d29de622da5f6877b6ba6294429aef2d5ffdb861b0097c1cf249cb",
+      "afterPath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/after-restart.json",
+      "afterSha256": "be60e53908d29de622da5f6877b6ba6294429aef2d5ffdb861b0097c1cf249cb",
+      "itemSha256": "29aa791b31dfa40c1f14cd5ac8768a4a2cdb9c0e8ca17324cb321f76138e169b",
+      "numberMatchedBeforeAndAfter": 1,
+      "numberReturnedBeforeAndAfter": 1
+    },
+    "readiness": {
+      "natsHealth": "pass",
+      "jetstreamAvailable": true,
+      "semstreamsHealth": "pass",
+      "semconnectHealth": "pass",
+      "indexedCollectionQuery": "pass",
+      "directItemQuery": "pass"
+    },
+    "shutdown": {
+      "method": "docker compose stop semconnect semstreams nats",
+      "scope": "current rehearsal containers only",
+      "volumeRemoval": false,
+      "forcedKill": false,
+      "statePath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/normal-stop-state.txt",
+      "stateSha256": "059eaaa6e0e584fe2afef6e9240e0a36ca632b3c8f13637d20600930e00a7a68",
+      "semconnect": {"exitCode": 0, "oomKilled": false},
+      "semstreams": {"exitCode": 0, "oomKilled": false},
+      "nats": {"exitCode": 1, "oomKilled": false, "pinnedImageSignalStatus": true},
+      "natsLogPath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/nats-stop.log",
+      "natsLogSha256": "4275479809b41d21c3a3260f58089c54981c5210dd0677e1b090b617f773f988",
+      "jetstreamShutdownComplete": true,
+      "serverExitRecorded": true
+    },
+    "restartPersistence": {
+      "volumeBeforePath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/volume-before.txt",
+      "volumeAfterPath": "openspec/changes/qualify-semstreams-beta151/evidence/operations/greenfield-compose/volume-after.txt",
+      "volumeEvidenceSha256": "94de57d5e9766693f49f3f5b94feb0daabc64fbaea7fe0867d7909c28f7f5749",
+      "sameVolume": true,
+      "sameCanonicalProof": true,
+      "result": "pass"
+    }
+  },
+  "qualification": {
+    "externalConformance": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/external-conformance.json",
+      "sha256": "7e199367e37fea6fd9a89589122ef1f12ddc72919c9fe3a39f55e9f7330b233f",
+      "runId": "2026-07-18T17-09-45Z",
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0
+    },
+    "noWeakening": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/no-weakening-audit.md",
+      "sha256": "57f626586f5f2f1d8a3459bfa3e64d5ae4a2f51c62e7953b8f41470918e0e399",
+      "result": "pass"
+    },
+    "independentTechnicalReview": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/review/go/review.json",
+      "sha256": "e7feab916ec22e84dc9073b90fae227777491d57c5f44b6c69c47ed9c24b78f9",
+      "decision": "approved-tasks-5.1-through-5.4-and-6.2",
+      "productionAuthorization": false
+    }
+  },
+  "excludedScope": {
+    "migration": "none",
+    "migrationReseeding": "none-canonicalSeed-is-first-start-smoke-input-only",
+    "oldStateInput": "none",
+    "retainedStateCompatibility": "none",
+    "destructiveOperations": "none",
+    "wipeOrVolumeRemoval": "none",
+    "oldDeploymentRollback": "none-no-prior-production-deployment",
+    "compatibilityFallback": "forbidden"
+  },
+  "integrity": {
+    "hashAlgorithm": "SHA-256",
+    "serialization": "exact checked-in UTF-8 bytes",
+    "manifestDigestLocation": "openspec/changes/qualify-semstreams-beta151/evidence/final/evidence-hashes.sha256"
+  }
+}

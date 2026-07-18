@@ -2,9 +2,9 @@
   "formatVersion": "1.0.0",
   "change": "qualify-semstreams-beta151",
   "handoff": "technical-writer-to-program-manager",
-  "decision": "technical-candidate-qualified-production-no-go",
-  "completedTasks": ["6.1", "6.2", "6.5"],
-  "openTasks": ["6.3", "6.4"],
+  "decision": "task-6.3-greenfield-manifest-complete-production-pending-task-6.4",
+  "completedTasks": ["6.1", "6.2", "6.3", "6.5"],
+  "openTasks": ["6.4"],
   "qualifyingRunId": "2026-07-18T17-09-45Z",
   "externalConformance": "137 passed, 0 failed, 0 skipped",
   "noWeakening": "approved-by-technical-writer-and-go-reviewer",
@@ -34,7 +34,7 @@
   "roleHandoffs": {
     "architect": {
       "path": "openspec/changes/qualify-semstreams-beta151/evidence/architecture-handoff.json",
-      "sha256": "9aa619f3b9796e72b449e6e8f36f6a00725dab19e6c2e6774de25a6ec9a33a18"
+      "sha256": "14a18ef572d2921c6b343f81856a1f934730419964733c1eafd9bc17cee07dc6"
     },
     "goDeveloper": {
       "path": "openspec/changes/qualify-semstreams-beta151/evidence/development/go/go-developer-handoff.json",
@@ -53,21 +53,22 @@
   },
   "evidenceManifest": {
     "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/evidence-hashes.sha256",
-    "sha256": "7910811cdd33ff6c4857448949c3cb813fa92d9bbe87ffd769045aa8202be3ca",
-    "filesVerified": 8,
+    "sha256": "ffbf4460e7c9269d07495107a6ad8eebd234649ca03e548d7828b8c1fc49eacf",
+    "filesVerified": 22,
     "excludes": ["technical-writer-handoff.json", "tasks.md"]
   },
   "production": {
     "manifestSnapshot": {
-      "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/production-cutover-manifest.blocked.json",
-      "sha256": "73cb520681c5b5a9b65558cd7827cdce392044fabd221c8e23f65be7b9d2431c"
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/greenfield-production-manifest.json",
+      "sha256": "dbddd8dfb85f65e3746f8c6f8496bc9c779707d172101fc54ea17093bb707ca8",
+      "embeddedDecisionRecords": 0
     },
-    "task6.3Complete": false,
+    "task6.3Complete": true,
     "task6.4Complete": false,
     "task6.5Complete": true,
     "actionTaken": false,
     "authorization": "withheld",
-    "decision": "no-go-missing-literal-deployment-values-and-approvals"
+    "decision": "pending-detached-product-owner-and-operator-decisions-over-manifest-sha256"
   },
   "historicalEvidence": {
     "signedBeta147Modified": false,
@@ -78,7 +79,7 @@
     "type": "technical-writer-final-technical-qualification-attestation",
     "signedByRole": "technical-writer",
     "signedBy": "Codex agent /root/technical_writer_beta147",
-    "signedAt": "2026-07-18T17:19:29Z",
+    "signedAt": "2026-07-18T18:35:05Z",
     "candidateQualification": "approved",
     "productionAuthorization": "withheld"
   }

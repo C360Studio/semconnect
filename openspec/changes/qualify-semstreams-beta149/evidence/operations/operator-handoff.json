@@ -1,0 +1,78 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "handoff": "operator-to-go-reviewer-technical-writer-program-manager",
+  "decision": "approved-for-review-not-production",
+  "completedTasks": ["3.1", "3.2", "3.3", "3.4"],
+  "qualifyingRunId": "2026-07-18T10-52-31Z",
+  "supersededRunId": "2026-07-18T10-35-05Z",
+  "supersededRunDisposition": "non-qualifying and excluded from this handoff and checksum manifest",
+  "outcomes": {
+    "finalNormalizedSourceBound": true,
+    "freshDisposableStack": "pass",
+    "canonicalFixturesSeeded": "pass",
+    "authoritativeTargetRevision": 118,
+    "writerFreeze": "pass",
+    "normalSigtermExitCode": 0,
+    "oomKilled": false,
+    "containerError": "",
+    "forcedKillOrTimeout": false,
+    "issue549Signatures": 0,
+    "shutdownErrorLines": 0,
+    "postRestartReadiness": "118/118",
+    "normalizedBeta147EquivalentProbes": "11/11 exact",
+    "additionalArtifactProbe": "1/1 exact",
+    "retainedObservation": "pass",
+    "retainedObjectStoreArtifacts": "pass",
+    "retainedAuthoritativeGraphState": "pass",
+    "writesOrReseedsAfterFreeze": 0,
+    "teamEngineLeftStopped": true,
+    "reviewStackLeftRunning": ["nats", "semstreams-backend", "cs-api-server"]
+  },
+  "sourceRuntimeBinding": {
+    "preBuildAttestationSignedAt": "2026-07-18T10:39:30Z",
+    "preBuildEvidenceBundleSha256": "b12f6f9daa8e8d81397b832f252df430bde5354cc17a78048a14c378096030fd",
+    "goModSha256": "a41ce208147b015cd6e93d048481b847f6bee2b12d439bc8fb4196107d3fc530",
+    "goSumSha256": "6fb8194f5b78f830fed0fd8c28c9308d910ffe94d6cd50968128f92860a1960a",
+    "etsPinSha256": "bf219bfdb0845b01ed4c8f6429280f39d8b2e75a51c3dd42d64fb17bb54e3ba0",
+    "semstreamsVendorCommit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2",
+    "iutImageId": "sha256:0a0e73312b4dbd0c1b3b89b7c53f58b81c78b486dbbaee779aabe1a251adf864",
+    "backendImageId": "sha256:b04da49c64399ebba54eab05223536d9530bf500e59dcef3ec2fc6a7f23cee3f"
+  },
+  "keyEvidence": [
+    {
+      "path": "build-provenance.json",
+      "sha256": "a3172b212ec7162af95d9d1773764647f1470e52f2620da3ee41418d46af197c"
+    },
+    {
+      "path": "shutdown-metadata.json",
+      "sha256": "adf4d4cc7d61b4bfb674c5aff80a3c476e627a5fe6f2eaa7b2d1eb627ea1a484"
+    },
+    {
+      "path": "shutdown-window.log",
+      "sha256": "7c8e11de03daaf65befe80d6dce5ca9bad4c7d15254333fa2a3de32316ba387c"
+    },
+    {
+      "path": "writer-freeze.json",
+      "sha256": "283011c1383574f3b8aabe43e845e6c751b6d2b00fc547b39771372eb26d406a"
+    },
+    {
+      "path": "replay-summary.json",
+      "sha256": "d4620617fab3e16441baea95efad516ca2f4cfbc86c91bd283065e99938825b6"
+    },
+    {
+      "path": "source-identity.json",
+      "sha256": "012565402eaa6d354efb127b71e3dec5eeed96884f6f615b2744b4fe7a1c6dd5"
+    }
+  ],
+  "signature": {
+    "type": "operator-runtime-and-evidence-attestation",
+    "signedByRole": "operator",
+    "signedBy": "Codex agent /root/operator_beta149",
+    "signedAt": "2026-07-18T11:03:18Z",
+    "evidenceHashManifest": "evidence-hashes.sha256",
+    "evidenceHashManifestSha256": "884bc46a3b69f24d97961c4b82284cd3396935572964e8e172671e6d53d27355",
+    "qualifyingRunOnly": true,
+    "productionAuthorization": "withheld"
+  }
+}

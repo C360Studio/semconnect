@@ -47,7 +47,8 @@ fi
 # shellcheck disable=SC1090
 . "$PIN_FILE"
 for var in ETS_GIT_URL ETS_COMMIT ETS_CODE TE_USER TE_PASS \
-           SEMSTREAMS_GIT_URL SEMSTREAMS_COMMIT; do
+           SEMSTREAMS_GIT_URL SEMSTREAMS_VERSION SEMSTREAMS_TAG_OBJECT \
+           SEMSTREAMS_COMMIT; do
     if [[ -z "${!var:-}" ]]; then
         echo "[run.sh] FATAL: $PIN_FILE missing $var" >&2
         exit 1
@@ -94,6 +95,9 @@ ETS_VENDOR_DIR="$SCRIPT_DIR/.vendor/ets"
 # sufficient and faster. Same .vendor/ pattern keeps both vendor dirs
 # under one gitignored umbrella.
 SEMSTREAMS_VENDOR_DIR="$SCRIPT_DIR/.vendor/semstreams"
+
+# shellcheck source=lib/vendor_identity.sh
+. "$SCRIPT_DIR/lib/vendor_identity.sh"
 
 # Health timing — generous because cold Maven build is ~5–6 minutes.
 HEALTH_TIMEOUT_S="${CONFORMANCE_HEALTH_TIMEOUT_S:-900}"
@@ -165,45 +169,70 @@ wait_for_seeded_collection() {
 }
 
 ensure_ets_vendor() {
-    if [[ -d "$ETS_VENDOR_DIR/.git" ]]; then
-        local current
-        current="$(git -C "$ETS_VENDOR_DIR" rev-parse HEAD 2>/dev/null || true)"
-        if [[ "$current" == "$ETS_COMMIT" ]]; then
-            log "  ETS vendor already at pinned SHA — reusing $ETS_VENDOR_DIR"
-            return
-        fi
-        log "  ETS vendor at ${current:-<unknown>}; resetting to $ETS_COMMIT"
-        rm -rf "$ETS_VENDOR_DIR"
+    if git_source_matches_commit "$ETS_VENDOR_DIR" "$ETS_COMMIT"; then
+        log "  ETS vendor is clean at pinned SHA — reusing $ETS_VENDOR_DIR"
+        return
     fi
-    log "  cloning $ETS_GIT_URL @ $ETS_COMMIT into $ETS_VENDOR_DIR"
-    mkdir -p "$(dirname "$ETS_VENDOR_DIR")"
-    # Shallow clone with --filter=blob:none keeps history+SCM metadata cheap
-    # while still satisfying buildnumber-maven-plugin (which only needs HEAD).
-    git clone --filter=blob:none "$ETS_GIT_URL" "$ETS_VENDOR_DIR" >/dev/null 2>&1 \
+
+    # This is an ignored, harness-owned build input. Validate its exact path
+    # before replacement so source refresh cannot expand into a broad target.
+    if [[ "$ETS_VENDOR_DIR" != "$SCRIPT_DIR/.vendor/ets" ]]; then
+        die "refusing to refresh unexpected ETS vendor path: $ETS_VENDOR_DIR"
+    fi
+
+    local vendor_parent
+    local refresh_dir
+    vendor_parent="$(dirname "$ETS_VENDOR_DIR")"
+    mkdir -p "$vendor_parent"
+    refresh_dir="$(mktemp -d "$vendor_parent/.ets-refresh.XXXXXX")"
+
+    log "  materialising clean $ETS_GIT_URL @ $ETS_COMMIT"
+    # Keep a real, non-shallow Git checkout. The partial-clone filter avoids
+    # downloading unused blobs while retaining the history and SCM metadata
+    # required by the ETS buildnumber-maven-plugin.
+    git clone --filter=blob:none "$ETS_GIT_URL" "$refresh_dir/source" >/dev/null 2>&1 \
         || die "git clone $ETS_GIT_URL failed"
-    git -C "$ETS_VENDOR_DIR" checkout --quiet "$ETS_COMMIT" \
+    git -C "$refresh_dir/source" checkout --quiet "$ETS_COMMIT" \
         || die "git checkout $ETS_COMMIT failed (does the SHA exist on the remote?)"
+    git_source_matches_commit "$refresh_dir/source" "$ETS_COMMIT" \
+        || die "materialized ETS source does not match clean pinned commit $ETS_COMMIT"
+
+    rm -rf -- "$ETS_VENDOR_DIR"
+    mv "$refresh_dir/source" "$ETS_VENDOR_DIR"
+    rmdir "$refresh_dir"
 }
 
 ensure_semstreams_vendor() {
-    if [[ -d "$SEMSTREAMS_VENDOR_DIR/.git" ]]; then
-        local current
-        current="$(git -C "$SEMSTREAMS_VENDOR_DIR" rev-parse HEAD 2>/dev/null || true)"
-        if [[ "$current" == "$SEMSTREAMS_COMMIT" ]]; then
-            log "  semstreams vendor already at pinned SHA — reusing $SEMSTREAMS_VENDOR_DIR"
-            return
-        fi
-        log "  semstreams vendor at ${current:-<unknown>}; resetting to $SEMSTREAMS_COMMIT"
-        rm -rf "$SEMSTREAMS_VENDOR_DIR"
+    if git_source_matches_commit "$SEMSTREAMS_VENDOR_DIR" "$SEMSTREAMS_COMMIT"; then
+        log "  semstreams vendor is clean at pinned SHA — reusing $SEMSTREAMS_VENDOR_DIR"
+        return
     fi
-    log "  cloning $SEMSTREAMS_GIT_URL @ $SEMSTREAMS_COMMIT into $SEMSTREAMS_VENDOR_DIR"
-    mkdir -p "$(dirname "$SEMSTREAMS_VENDOR_DIR")"
+
+    # This is an ignored, harness-owned build input. Validate its exact path
+    # before replacement so source refresh cannot expand into a broad target.
+    if [[ "$SEMSTREAMS_VENDOR_DIR" != "$SCRIPT_DIR/.vendor/semstreams" ]]; then
+        die "refusing to refresh unexpected semstreams vendor path: $SEMSTREAMS_VENDOR_DIR"
+    fi
+
+    local vendor_parent
+    local refresh_dir
+    vendor_parent="$(dirname "$SEMSTREAMS_VENDOR_DIR")"
+    mkdir -p "$vendor_parent"
+    refresh_dir="$(mktemp -d "$vendor_parent/.semstreams-refresh.XXXXXX")"
+
+    log "  materialising clean $SEMSTREAMS_GIT_URL @ $SEMSTREAMS_COMMIT"
     # Shallow clone — framework Dockerfile reads source only, no SCM
     # metadata needed.
-    git clone --filter=blob:none "$SEMSTREAMS_GIT_URL" "$SEMSTREAMS_VENDOR_DIR" >/dev/null 2>&1 \
+    git clone --filter=blob:none "$SEMSTREAMS_GIT_URL" "$refresh_dir/source" >/dev/null 2>&1 \
         || die "git clone $SEMSTREAMS_GIT_URL failed"
-    git -C "$SEMSTREAMS_VENDOR_DIR" checkout --quiet "$SEMSTREAMS_COMMIT" \
+    git -C "$refresh_dir/source" checkout --quiet "$SEMSTREAMS_COMMIT" \
         || die "git checkout $SEMSTREAMS_COMMIT failed (does the SHA exist on the remote?)"
+    git_source_matches_commit "$refresh_dir/source" "$SEMSTREAMS_COMMIT" \
+        || die "materialized semstreams source does not match clean pinned commit $SEMSTREAMS_COMMIT"
+
+    rm -rf -- "$SEMSTREAMS_VENDOR_DIR"
+    mv "$refresh_dir/source" "$SEMSTREAMS_VENDOR_DIR"
+    rmdir "$refresh_dir"
 }
 
 # Seed CS-API fixtures so the Botts ETS @BeforeClass loaders

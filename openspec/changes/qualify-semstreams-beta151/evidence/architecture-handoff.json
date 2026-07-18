@@ -1,0 +1,110 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "handoff": "architect-to-go-developer-operator-reviewer-technical-writer",
+  "decision": "approved-for-implementation-not-production",
+  "dependsOn": "qualify-semstreams-beta149",
+  "targetResolution": {
+    "requested": "515",
+    "interpretedCandidate": "v1.0.0-beta.515",
+    "resolution": "v1.0.0-beta.151",
+    "evidence": "Exact GitHub remote tag query on 2026-07-18 returned no beta.515 tag and beta.151 as latest."
+  },
+  "upstream": {
+    "baseline": {
+      "version": "v1.0.0-beta.149",
+      "tagObject": "7c0c5aae9c02d148e118627b18281f34d9adf2f8",
+      "commit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2"
+    },
+    "intermediate": {
+      "version": "v1.0.0-beta.150",
+      "tagObject": "cb42ac3d9743134f1a9194fba2824424833669f7",
+      "commit": "d058bddfae0326487f0a86023ffe3d155992fd87"
+    },
+    "target": {
+      "version": "v1.0.0-beta.151",
+      "tagObject": "784f22dc8d549d7781b88a2878bb679112aad494",
+      "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc"
+    },
+    "materialChanges": {
+      "structuralGate": "PR #554 at d058bddfae0326487f0a86023ffe3d155992fd87",
+      "ruleShutdown": "PR #561 at ce130e34f4d0127920effa0a676c59a35e8559ea",
+      "trustedOwnerRMW": "PR #567 at ac75c322140fb2a6b55759d07a79874b4cb4d9cc"
+    },
+    "commitDispositionCount": 9
+  },
+  "exposure": {
+    "live": [
+      "graph.mutation.entity.create_with_triples structural gate",
+      "graph.mutation.entity.update_with_triples structural gate and owner RMW",
+      "graph.mutation.entity.delete without predicate payload",
+      "graph-index retained-state replay"
+    ],
+    "absent": [
+      "rule component",
+      "agentic-loop and agentic-tools components",
+      "research-graph components",
+      "semconnect triple-lane publishers",
+      "Graphable traffic on _semconnect.unused.ingest"
+    ],
+    "architectureDisposition": "No graph-layout migration or compatibility path. Strengthen cutover with retained-state structural scan, direct atomic rejection probes, trusted-RMW poison proof, and positive foreign-edge bake."
+  },
+  "requiredGates": [
+    "module, tag, commit, source, image, and conformance identities align exactly to beta.151",
+    "all nine upstream commits have reviewed live or absent disposition",
+    "failing-then-passing pin and structural TDD evidence is archived",
+    "focused upstream PR 554, PR 567, PR 561, graph-index, and lifecycle tests pass",
+    "Go unit, race, integration, vet, integration-vet, and build gates pass",
+    "retained ENTITY_STATES scan covers every record with zero structural violations",
+    "invalid direct mutations are rejected atomically without byte or revision change",
+    "trusted owner RMW cannot launder resident poison",
+    "normal SIGTERM exits zero and no-write restart reaches captured graph revision",
+    "normalized replay and positively exercised foreign-edge evidence remain equivalent",
+    "fresh external ETS reports exactly 137 passed, 0 failed, 0 skipped",
+    "ETS, fixtures, OpenAPI, claims, filters, skips, and parser are not weakened",
+    "immutable cutover manifest is complete and content-addressed",
+    "architect, product-owner, and operator explicitly authorize production"
+  ],
+  "attestationScope": {
+    "policy": "Only immutable architecture contract inputs are signed. Mutable execution and evidence state is excluded so normal workflow progress cannot stale the architect attestation.",
+    "bundleHashAlgorithm": "SHA-256 of the ordered shasum -a 256 output for immutableContractFiles, using the listed repository-relative paths",
+    "immutableContractFiles": [
+      {
+        "path": "openspec/changes/qualify-semstreams-beta151/.openspec.yaml",
+        "sha256": "d2e7b73a7b2e897c05c7ea76bbceb8800ffdfc47087eccf38e623380ebdc7b2b"
+      },
+      {
+        "path": "openspec/changes/qualify-semstreams-beta151/proposal.md",
+        "sha256": "a4e277796999591249952255838b20a89f176ada82c44e80885b6c93483d7754"
+      },
+      {
+        "path": "openspec/changes/qualify-semstreams-beta151/design.md",
+        "sha256": "db77eaf24d2b43790bc6ec539023fbe8bf109737ddc568841ae2f39f0a06d3a3"
+      },
+      {
+        "path": "openspec/changes/qualify-semstreams-beta151/specs/semstreams-beta151-qualification/spec.md",
+        "sha256": "80031dc083f8f33aa9123c193ded22720f8fa4f1d58abc625341aace0c1c172e"
+      }
+    ],
+    "mutableWorkflowState": [
+      {
+        "path": "openspec/changes/qualify-semstreams-beta151/tasks.md",
+        "classification": "mutable workflow checklist",
+        "excludedFromSourceBundle": true
+      },
+      {
+        "path": "openspec/changes/qualify-semstreams-beta151/evidence/",
+        "classification": "mutable execution, review, operator, documentation, and production-decision evidence",
+        "excludedFromSourceBundle": true
+      }
+    ]
+  },
+  "signature": {
+    "type": "architect-source-bundle-attestation",
+    "signedByRole": "architect",
+    "signedBy": "Codex agent /root/architect_beta_delta",
+    "signedAt": "2026-07-18T15:53:07Z",
+    "sourceBundleSha256": "8fdb5624b424bb9b5f3ff3416afec96757dac16a4d3953debfb055a8ac5d4d44",
+    "productionAuthorization": "withheld"
+  }
+}

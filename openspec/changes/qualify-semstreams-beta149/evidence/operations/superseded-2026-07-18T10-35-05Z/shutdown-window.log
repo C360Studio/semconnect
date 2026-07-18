@@ -1,0 +1,10 @@
+2026-07-18T10:43:52.883404626Z {"time":"2026-07-18T10:43:52.883083668Z","level":"INFO","msg":"Received shutdown signal","service":"semstreams","version":"dev","pid":1}
+2026-07-18T10:43:52.883489084Z {"time":"2026-07-18T10:43:52.883339293Z","level":"INFO","msg":"Metrics service stopped","service":"semstreams","version":"dev","pid":1}
+2026-07-18T10:43:52.883505251Z {"time":"2026-07-18T10:43:52.883471959Z","level":"INFO","msg":"MessageLogger stopped","service":"semstreams","version":"dev","pid":1,"source":"message-logger"}
+2026-07-18T10:43:52.884266293Z {"time":"2026-07-18T10:43:52.883498834Z","level":"INFO","msg":"Heartbeat service stopping","service":"semstreams","version":"dev","pid":1,"source":"heartbeat"}
+2026-07-18T10:43:52.884300584Z {"time":"2026-07-18T10:43:52.884020543Z","level":"INFO","msg":"graph-query coordinator stopped","service":"semstreams","version":"dev","pid":1,"component":"graph-query"}
+2026-07-18T10:43:52.884970335Z {"time":"2026-07-18T10:43:52.884793793Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-index","component":"graph-index"}
+2026-07-18T10:43:52.884983126Z {"time":"2026-07-18T10:43:52.884833918Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-index-temporal","component":"graph-index-temporal"}
+2026-07-18T10:43:52.884985001Z {"time":"2026-07-18T10:43:52.884835626Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-index-spatial","component":"graph-index-spatial"}
+2026-07-18T10:43:52.884992960Z {"time":"2026-07-18T10:43:52.884800918Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-ingest","component":"graph-ingest"}
+2026-07-18T10:43:52.884994210Z {"time":"2026-07-18T10:43:52.884916751Z","level":"INFO","msg":"SemStreams shutdown complete","service":"semstreams","version":"dev","pid":1}

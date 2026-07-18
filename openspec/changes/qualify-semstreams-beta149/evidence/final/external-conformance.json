@@ -1,0 +1,90 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "qualifyingRunId": "2026-07-18T10-52-31Z",
+  "freshDisposableVolume": true,
+  "decision": "pass-candidate-qualification-not-production",
+  "results": {
+    "total": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "nonConfigPassed": 137,
+    "nonConfigFailed": 0,
+    "nonConfigSkipped": 0,
+    "configPassed": 23,
+    "classes": 23,
+    "foreignEdgeBake": "pass",
+    "initialGraphIndexReadiness": "80/80"
+  },
+  "pins": {
+    "repositorySourceRevision": "95d6a6161374f45465f92bd491ba5b64fed30572",
+    "semstreamsVersion": "v1.0.0-beta.149",
+    "semstreamsCommit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2",
+    "etsCommit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+    "etsTree": "875847e194ffdb2aef2b617c9a9a0d9add037331",
+    "teamEngineVersion": "5.6.1"
+  },
+  "sourceHashes": {
+    "go.mod": "a41ce208147b015cd6e93d048481b847f6bee2b12d439bc8fb4196107d3fc530",
+    "go.sum": "6fb8194f5b78f830fed0fd8c28c9308d910ffe94d6cd50968128f92860a1960a",
+    "conformance/.ets-pin": "bf219bfdb0845b01ed4c8f6429280f39d8b2e75a51c3dd42d64fb17bb54e3ba0"
+  },
+  "images": {
+    "semstreamsBackend": "sha256:b04da49c64399ebba54eab05223536d9530bf500e59dcef3ec2fc6a7f23cee3f",
+    "csApiServer": "sha256:0a0e73312b4dbd0c1b3b89b7c53f58b81c78b486dbbaee779aabe1a251adf864",
+    "teamEngine": "sha256:04bcbe1a70942334bc97dd1f6b15bf699e66bf98db4b8b80a964051013b54fb9",
+    "nats": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927"
+  },
+  "artifacts": [
+    {
+      "path": "conformance/output/summary.txt",
+      "sha256": "7142d2831ff7b7312da92d0958e9d8e8fd51c4f30520699a7c7bcac1b84bd417"
+    },
+    {
+      "path": "conformance/output/testng-report-2026-07-18T10-52-31Z.xml",
+      "sha256": "5a07a87a9032e0170f10298a685c20d351ec7d991fae035e8f75c1b23f61c407"
+    },
+    {
+      "path": "conformance/output/compose-build-2026-07-18T10-52-31Z.log",
+      "sha256": "8abcd2026c649d14375fb21d88d75b0279ff0c0b5eb13a494e2f799153faf2e9"
+    },
+    {
+      "path": "conformance/output/teamengine-container-2026-07-18T10-52-31Z.log",
+      "sha256": "ba8b0995c4aae449afe85bf48d412adb521155e5b4d13fda46394ec0822ac51b"
+    },
+    {
+      "path": "conformance/output/cs-api-server-container-2026-07-18T10-52-31Z.log",
+      "sha256": "d1e1cd158e3cfccfdd9026f8ecf89e6c88c93513681eb92647bb7c1fb22b5b7b"
+    },
+    {
+      "path": "conformance/output/semstreams-backend-container-2026-07-18T10-52-31Z.log",
+      "sha256": "3cf9c54153b2f5a3059dee436e9c9ae042220b72b7dd83065cf0629cb8a3e1ec"
+    },
+    {
+      "path": "conformance/output/seed-2026-07-18T10-52-31Z.log",
+      "sha256": "c237855a602e490b54c5011630e0212f03dc78999cf104b1431f7dc2dc2be521"
+    },
+    {
+      "path": "conformance/output/seed-evidence/index-readiness-2026-07-18T10-52-31Z.jsonl",
+      "sha256": "d4810e01564d3329ecef7b83c6fc11e504120b2e1f8f84891dacaaa8ef2263a9"
+    },
+    {
+      "path": "conformance/output/foreign-edge-bake-2026-07-18T10-52-31Z.txt",
+      "sha256": "0ad7246f832d7ff2373d89dc927a285cd62b381501e295a2c2302db713d27b0b"
+    }
+  ],
+  "runtimeEvidence": {
+    "operatorManifest": "openspec/changes/qualify-semstreams-beta149/evidence/operations/evidence-hashes.sha256",
+    "operatorManifestSha256": "884bc46a3b69f24d97961c4b82284cd3396935572964e8e172671e6d53d27355",
+    "operatorManifestFilesVerified": 70,
+    "reviewerApproval": "openspec/changes/qualify-semstreams-beta149/evidence/review/go/review.json",
+    "reviewerApprovalSha256": "f57198e78e2bf750f1a3199c0e04a2e52eb550d874f9247fbd8726505700c1b6"
+  },
+  "supersededRun": {
+    "runId": "2026-07-18T10-35-05Z",
+    "qualificationAuthority": false,
+    "reason": "built before final go.sum normalization and developer re-attestation"
+  },
+  "productionAuthorization": "withheld"
+}

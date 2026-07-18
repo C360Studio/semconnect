@@ -1,0 +1,1245 @@
+{
+  "memory": 268104,
+  "storage": 415373,
+  "reserved_memory": 73400320,
+  "reserved_storage": 629145600,
+  "accounts": 1,
+  "ha_assets": 0,
+  "api": {
+    "total": 1453,
+    "errors": 108
+  },
+  "server_id": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR",
+  "now": "2026-07-18T10:42:59.460647088Z",
+  "config": {
+    "max_memory": 1073741824,
+    "max_storage": 10737418240,
+    "store_dir": "/data/jetstream",
+    "sync_interval": 120000000000,
+    "compress_ok": true
+  },
+  "streams": 28,
+  "consumers": 13,
+  "messages": 1433,
+  "bytes": 683477,
+  "account_details": [
+    {
+      "name": "$G",
+      "id": "$G",
+      "memory": 268104,
+      "storage": 415373,
+      "reserved_memory": 18446744073709551615,
+      "reserved_storage": 18446744073709551615,
+      "accounts": 0,
+      "ha_assets": 0,
+      "api": {
+        "total": 1453,
+        "errors": 108
+      },
+      "stream_detail": [
+        {
+          "name": "KV_AGENT_LOOPS",
+          "created": "2026-07-18T10:37:11.002508676Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_AGENT_LOOPS",
+            "subjects": [
+              "$KV.AGENT_LOOPS.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 86400000000000,
+            "max_msgs_per_subject": 10,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_OWNER_PRESENCE",
+          "created": "2026-07-18T10:37:11.004749093Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_OWNER_PRESENCE",
+            "description": "ADR-056 owner liveness heartbeats — bucket-TTL staleness backstop",
+            "subjects": [
+              "$KV.OWNER_PRESENCE.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 120000000000,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 1,
+            "bytes": 87,
+            "first_seq": 13,
+            "first_ts": "2026-07-18T10:42:41.008620593Z",
+            "last_seq": 13,
+            "last_ts": "2026-07-18T10:42:41.008620593Z",
+            "num_subjects": 1,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_TEMPORAL_INDEX",
+          "created": "2026-07-18T10:37:11.11266126Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_TEMPORAL_INDEX",
+            "description": "Temporal index for time-based queries",
+            "subjects": [
+              "$KV.TEMPORAL_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 1,
+            "bytes": 2366,
+            "first_seq": 80,
+            "first_ts": "2026-07-18T10:37:29.637830546Z",
+            "last_seq": 80,
+            "last_ts": "2026-07-18T10:37:29.637830546Z",
+            "num_subjects": 1,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_ENTITY_SUFFIX_INDEX",
+          "created": "2026-07-18T10:37:11.114120593Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_ENTITY_SUFFIX_INDEX",
+            "description": "Suffix-to-full-ID reverse index for partial entity ID resolution",
+            "subjects": [
+              "$KV.ENTITY_SUFFIX_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 50,
+            "bytes": 6837,
+            "first_seq": 2,
+            "first_ts": "2026-07-18T10:37:19.11210643Z",
+            "last_seq": 72,
+            "last_ts": "2026-07-18T10:37:29.648808296Z",
+            "num_subjects": 50,
+            "num_deleted": 21,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "CS_API_OBSERVATIONS",
+          "created": "2026-07-18T10:37:16.584721721Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "CS_API_OBSERVATIONS",
+            "description": "cs-api observations published via POST /datastreams/{id}/observations",
+            "subjects": [
+              "cs-api.observations.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 2592000000000000,
+            "max_msgs_per_subject": -1,
+            "max_msg_size": -1,
+            "discard": "old",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": false,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": false,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 1,
+            "bytes": 720,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:20.1890235Z",
+            "last_seq": 1,
+            "last_ts": "2026-07-18T10:37:20.1890235Z",
+            "num_subjects": 1,
+            "consumer_count": 3
+          }
+        },
+        {
+          "name": "HEALTH",
+          "created": "2026-07-18T10:37:10.979858093Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "HEALTH",
+            "subjects": [
+              "health.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": 10485760,
+            "max_age": 300000000000,
+            "max_msgs_per_subject": -1,
+            "max_msg_size": -1,
+            "discard": "old",
+            "storage": "memory",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": false,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": false,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 660,
+            "bytes": 265262,
+            "first_seq": 106,
+            "first_ts": "2026-07-18T10:38:00.66671838Z",
+            "last_seq": 765,
+            "last_ts": "2026-07-18T10:42:56.119640378Z",
+            "num_subjects": 11,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "GOVERNANCE_VERDICT_AUDIT",
+          "created": "2026-07-18T10:37:10.980809635Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "GOVERNANCE_VERDICT_AUDIT",
+            "subjects": [
+              "governance.verdict.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": 524288000,
+            "max_age": 7776000000000000,
+            "max_msgs_per_subject": -1,
+            "max_msg_size": -1,
+            "discard": "old",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": false,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": false,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_OWNER_CLAIMS",
+          "created": "2026-07-18T10:37:11.00424301Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_OWNER_CLAIMS",
+            "description": "ADR-056 owner-claim registry — single _registry epoch key (no TTL)",
+            "subjects": [
+              "$KV.OWNER_CLAIMS.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 10,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 2,
+            "bytes": 1439,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:11.005913926Z",
+            "last_seq": 2,
+            "last_ts": "2026-07-18T10:37:16.590106679Z",
+            "num_subjects": 1,
+            "consumer_count": 1
+          }
+        },
+        {
+          "name": "KV_OUTGOING_INDEX",
+          "created": "2026-07-18T10:37:11.113501302Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_OUTGOING_INDEX",
+            "description": "Graph index bucket: outgoing_index",
+            "subjects": [
+              "$KV.OUTGOING_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 33,
+            "bytes": 19881,
+            "first_seq": 27,
+            "first_ts": "2026-07-18T10:37:19.947774833Z",
+            "last_seq": 118,
+            "last_ts": "2026-07-18T10:37:29.653525504Z",
+            "num_subjects": 33,
+            "num_deleted": 59,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_COMPONENT_STATUS",
+          "created": "2026-07-18T10:37:11.114870302Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_COMPONENT_STATUS",
+            "description": "Component lifecycle status tracking",
+            "subjects": [
+              "$KV.COMPONENT_STATUS.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 5,
+            "bytes": 1256,
+            "first_seq": 3,
+            "first_ts": "2026-07-18T10:37:11.117387968Z",
+            "last_seq": 30,
+            "last_ts": "2026-07-18T10:42:58.41000967Z",
+            "num_subjects": 5,
+            "num_deleted": 23,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_PREDICATE_INDEX",
+          "created": "2026-07-18T10:37:11.116537177Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_PREDICATE_INDEX",
+            "description": "Graph index bucket: predicate_index",
+            "subjects": [
+              "$KV.PREDICATE_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 232,
+            "bytes": 30760,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:19.115082055Z",
+            "last_seq": 253,
+            "last_ts": "2026-07-18T10:37:29.437711213Z",
+            "num_subjects": 232,
+            "num_deleted": 21,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_CONTEXT_INDEX",
+          "created": "2026-07-18T10:37:11.11764626Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_CONTEXT_INDEX",
+            "description": "Triple context provenance index",
+            "subjects": [
+              "$KV.CONTEXT_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 87,
+            "bytes": 21467,
+            "first_seq": 59,
+            "first_ts": "2026-07-18T10:37:19.949816541Z",
+            "last_seq": 268,
+            "last_ts": "2026-07-18T10:37:29.648486088Z",
+            "num_subjects": 87,
+            "num_deleted": 123,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_NAME_INDEX",
+          "created": "2026-07-18T10:37:11.11826776Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_NAME_INDEX",
+            "description": "Name/title → entities index for deterministic name lookup",
+            "subjects": [
+              "$KV.NAME_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "FLOWS",
+          "created": "2026-07-18T10:37:10.980510635Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "FLOWS",
+            "subjects": [
+              "flows.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": 10485760,
+            "max_age": 300000000000,
+            "max_msgs_per_subject": -1,
+            "max_msg_size": -1,
+            "discard": "old",
+            "storage": "memory",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": false,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": false,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_semstreams_config",
+          "created": "2026-07-18T10:37:10.993268051Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_semstreams_config",
+            "description": "SemStreams runtime configuration",
+            "subjects": [
+              "$KV.semstreams_config.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 5,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 13,
+            "bytes": 3282,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:10.995536343Z",
+            "last_seq": 13,
+            "last_ts": "2026-07-18T10:37:10.996549801Z",
+            "num_subjects": 13,
+            "consumer_count": 5
+          }
+        },
+        {
+          "name": "KV_semstreams_flows",
+          "created": "2026-07-18T10:37:11.001054051Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_semstreams_flows",
+            "description": "Visual flow definitions and metadata",
+            "subjects": [
+              "$KV.semstreams_flows.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 10,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "COMPONENT_CAPABILITIES",
+          "created": "2026-07-18T10:37:11.111483343Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "COMPONENT_CAPABILITIES",
+            "subjects": [
+              "processor.capabilities.*",
+              "input.capabilities.*",
+              "output.capabilities.*",
+              "storage.capabilities.*",
+              "gateway.capabilities.*"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 3600000000000,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "old",
+            "storage": "memory",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": false,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": false,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 5,
+            "bytes": 2842,
+            "first_seq": 51,
+            "first_ts": "2026-07-18T10:42:41.115840927Z",
+            "last_seq": 55,
+            "last_ts": "2026-07-18T10:42:41.116460718Z",
+            "num_subjects": 5,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_SPATIAL_INDEX",
+          "created": "2026-07-18T10:37:11.11377401Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_SPATIAL_INDEX",
+            "description": "Spatial index for geospatial queries",
+            "subjects": [
+              "$KV.SPATIAL_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 2,
+            "bytes": 1022,
+            "first_seq": 13,
+            "first_ts": "2026-07-18T10:37:29.206458838Z",
+            "last_seq": 22,
+            "last_ts": "2026-07-18T10:37:29.633453546Z",
+            "num_subjects": 2,
+            "num_deleted": 8,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_GRAPH_INGEST_APPLIED_SEQ",
+          "created": "2026-07-18T10:37:11.115091427Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_GRAPH_INGEST_APPLIED_SEQ",
+            "description": "graph-ingest redelivery guard: (entityID/streamName) -\u003e last-applied stream sequence (ADR-072)",
+            "subjects": [
+              "$KV.GRAPH_INGEST_APPLIED_SEQ.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "OBJ_CS_API_ARTIFACTS",
+          "created": "2026-07-18T10:37:16.586383929Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "OBJ_CS_API_ARTIFACTS",
+            "description": "cs-api canonical SWE schema artifacts",
+            "subjects": [
+              "$O.CS_API_ARTIFACTS.C.\u003e",
+              "$O.CS_API_ARTIFACTS.M.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": -1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 4,
+            "bytes": 1678,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:19.9281735Z",
+            "last_seq": 4,
+            "last_ts": "2026-07-18T10:37:23.073055251Z",
+            "num_subjects": 4,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "METRICS",
+          "created": "2026-07-18T10:37:10.980208468Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "METRICS",
+            "subjects": [
+              "metrics.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": 52428800,
+            "max_age": 300000000000,
+            "max_msgs_per_subject": -1,
+            "max_msg_size": -1,
+            "discard": "old",
+            "storage": "memory",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": false,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": false,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_FLOW_TEMPLATES",
+          "created": "2026-07-18T10:37:11.00171826Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_FLOW_TEMPLATES",
+            "description": "Parameterised flow definitions (templates)",
+            "subjects": [
+              "$KV.FLOW_TEMPLATES.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 5,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_ENTITY_STATES",
+          "created": "2026-07-18T10:37:11.003262176Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_ENTITY_STATES",
+            "subjects": [
+              "$KV.ENTITY_STATES.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 3,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 67,
+            "bytes": 171797,
+            "first_seq": 21,
+            "first_ts": "2026-07-18T10:37:19.929308Z",
+            "last_seq": 118,
+            "last_ts": "2026-07-18T10:37:29.648476671Z",
+            "num_subjects": 33,
+            "num_deleted": 31,
+            "consumer_count": 4
+          }
+        },
+        {
+          "name": "KV_TEMPORAL_INDEX_REVERSE",
+          "created": "2026-07-18T10:37:11.114339802Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_TEMPORAL_INDEX_REVERSE",
+            "description": "Temporal index reverse map (entity -\u003e current time bucket) for stale-entry cleanup",
+            "subjects": [
+              "$KV.TEMPORAL_INDEX_REVERSE.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 19,
+            "bytes": 2312,
+            "first_seq": 18,
+            "first_ts": "2026-07-18T10:37:19.938115625Z",
+            "last_seq": 80,
+            "last_ts": "2026-07-18T10:37:29.637908171Z",
+            "num_subjects": 19,
+            "num_deleted": 44,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_INCOMING_INDEX",
+          "created": "2026-07-18T10:37:11.114504093Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_INCOMING_INDEX",
+            "description": "Graph index bucket: incoming_index",
+            "subjects": [
+              "$KV.INCOMING_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 154,
+            "bytes": 32777,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:19.119786597Z",
+            "last_seq": 168,
+            "last_ts": "2026-07-18T10:37:29.647250004Z",
+            "num_subjects": 154,
+            "num_deleted": 14,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_ALIAS_INDEX",
+          "created": "2026-07-18T10:37:11.115359343Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_ALIAS_INDEX",
+            "description": "Graph index bucket: alias_index",
+            "subjects": [
+              "$KV.ALIAS_INDEX.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 1,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 0,
+            "bytes": 0,
+            "first_seq": 0,
+            "first_ts": "0001-01-01T00:00:00Z",
+            "last_seq": 0,
+            "last_ts": "0001-01-01T00:00:00Z",
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "LOGS",
+          "created": "2026-07-18T10:37:10.981534218Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "LOGS",
+            "subjects": [
+              "logs.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": 104857600,
+            "max_age": 3600000000000,
+            "max_msgs_per_subject": -1,
+            "max_msg_size": -1,
+            "discard": "old",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": false,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": false,
+            "deny_purge": false,
+            "allow_rollup_hdrs": false,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 95,
+            "bytes": 115126,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:10.992758051Z",
+            "last_seq": 95,
+            "last_ts": "2026-07-18T10:37:19.6699645Z",
+            "num_subjects": 12,
+            "consumer_count": 0
+          }
+        },
+        {
+          "name": "KV_PERSONAS",
+          "created": "2026-07-18T10:37:10.999533801Z",
+          "cluster": {
+            "leader": "NAC5AIJIGIK77GPUM7LUEZT7G4TQU4UKWSIAHP72LUH2BRVXCRADKOWR"
+          },
+          "config": {
+            "name": "KV_PERSONAS",
+            "description": "Agent-role prompt-fragment definitions",
+            "subjects": [
+              "$KV.PERSONAS.\u003e"
+            ],
+            "retention": "limits",
+            "max_consumers": -1,
+            "max_msgs": -1,
+            "max_bytes": -1,
+            "max_age": 0,
+            "max_msgs_per_subject": 5,
+            "max_msg_size": -1,
+            "discard": "new",
+            "storage": "file",
+            "num_replicas": 1,
+            "duplicate_window": 120000000000,
+            "compression": "none",
+            "allow_direct": true,
+            "mirror_direct": false,
+            "sealed": false,
+            "deny_delete": true,
+            "deny_purge": false,
+            "allow_rollup_hdrs": true,
+            "consumer_limits": {}
+          },
+          "state": {
+            "messages": 2,
+            "bytes": 2566,
+            "first_seq": 1,
+            "first_ts": "2026-07-18T10:37:11.000196676Z",
+            "last_seq": 2,
+            "last_ts": "2026-07-18T10:37:11.000346301Z",
+            "num_subjects": 2,
+            "consumer_count": 0
+          }
+        }
+      ]
+    }
+  ],
+  "total": 1
+}

@@ -1,0 +1,70 @@
+{
+  "formatVersion": "1.0.0",
+  "positiveProof": {
+    "signedHandoff": "../development/go/go-developer-handoff.json",
+    "signedHandoffSha256": "d4d3e8c9f088fee8e0da77e5e110a35b47ceec53259319f777be12c1c3875bb8",
+    "signedAt": "2026-07-18T16:36:17Z",
+    "evidenceBundleSha256": "bb81bbba709a67c6580cc893274aa9f7d2dc79775e6dce3d7277592da361f9e0",
+    "integrationSource": "gateway/cs-api/beta151_structural_integration_test.go",
+    "integrationSourceSha256": "3fdf7ffde2186e33236df6b6c5e2018c8e0b04d983c0db5331f0c961dd5093d9",
+    "proofReport": "../development/go/structural-and-rmw-proof.md",
+    "transport": "isolated NATS JetStream using production mutation subjects",
+    "outcomes": [
+      "reject_invalid_predicate_atomically",
+      "reject_invalid_entity_ID_atomically",
+      "reject_invalid_entity_reference_atomically",
+      "resident_poison_is_not_laundered",
+      "remove_no-op_does_not_write"
+    ],
+    "countThreePass": true
+  },
+  "qualifyingStack": {
+    "liveInvalidMutationCount": 0,
+    "reason": "positive invalid-input proof ran against isolated NATS so the retained qualifying bucket was never contaminated",
+    "preMetrics": {
+      "path": "pre/raw/backend-metrics.prom",
+      "sha256": "eb9c0c2d7122de81bbdcab80da1e5392ed449ab3551984de5a23045ac26e0e1d"
+    },
+    "postMetrics": {
+      "path": "post/raw/backend-metrics.prom",
+      "sha256": "94b9cf99e4953a0a5d6fca07384bfa08e58697df66cf6d3acb4646fb72aaaa66"
+    },
+    "preExtractedRelevantSeries": {
+      "path": "pre/structural-foreign-metrics.prom",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seriesCount": 0
+    },
+    "postExtractedRelevantSeries": {
+      "path": "post/structural-foreign-metrics.prom",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "seriesCount": 0
+    },
+    "preBackendWindow": {
+      "path": "pre/raw/backend-window.log",
+      "sha256": "da66bc627553f59b57340e34c554d6f78427d9e6061369b04e9af82db55b7425",
+      "rejectionMatches": 0,
+      "errorLevelMatches": 0
+    },
+    "postBackendWindow": {
+      "path": "post/raw/backend-window.log",
+      "sha256": "f0d308cae26a500157d4a3f00b81c60ca3c33afe8dbc859496f5609d0d4e0ca9",
+      "rejectionMatches": 0,
+      "errorLevelMatches": 0
+    },
+    "entityStateBefore": {
+      "lastSequence": 118,
+      "messages": 67,
+      "bytes": 171797,
+      "zeroPoison": true
+    },
+    "entityStateAfter": {
+      "lastSequence": 118,
+      "messages": 67,
+      "bytes": 171797,
+      "zeroPoison": true
+    },
+    "stateEqualIgnoringCaptureTime": true
+  },
+  "filterVerification": "filter-verification.md",
+  "expectationMet": true
+}

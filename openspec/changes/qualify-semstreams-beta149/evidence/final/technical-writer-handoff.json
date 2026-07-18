@@ -1,0 +1,76 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "handoff": "technical-writer-to-program-manager",
+  "decision": "candidate-qualified-production-withheld",
+  "completedTasks": ["5.1", "5.2", "5.3", "5.5"],
+  "openTasks": ["5.4"],
+  "qualifyingRunId": "2026-07-18T10-52-31Z",
+  "externalConformance": "137 passed, 0 failed, 0 skipped",
+  "noWeakening": "approved-by-technical-writer-and-go-reviewer",
+  "frontendDisposition": "not-applicable",
+  "currentDocumentationUpdated": [
+    {
+      "path": "README.md",
+      "sha256": "91d263216c26bb89c84c919104885aec8a734ff95be634b93c2a1c666bdab243"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "8f2cfc7309654e1ce66d9f9ae4bbb982c38140027b850145816d7c61184f21c3"
+    },
+    {
+      "path": "conformance/README.md",
+      "sha256": "e3a5ac83bb036fbc5fe2cd11ca58c26ccf1c8d43e2c2f612f1c662f4b6a3ab6d"
+    },
+    {
+      "path": "docs/000-getting-started.md",
+      "sha256": "6f0fdbdb2cff5cbc28410ac82d43b4cff8775140ab9a802b97bc9ddc2c33afc0"
+    },
+    {
+      "path": "docs/upstream-asks/README.md",
+      "sha256": "10619be3117a4741212d35459367af3c13fabccc41514ace66583dcd0b9033a9"
+    }
+  ],
+  "roleHandoffs": {
+    "architect": {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/architecture-handoff.json",
+      "sha256": "ef72de0bcb48771fa2d41682ca35c8a766bfd68635ebf5c4e165bdd6f1ea2c9b"
+    },
+    "goDeveloper": {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/development/go/go-developer-handoff.json",
+      "sha256": "093211565727024a64841900236a7a30bc1fe6180a272ab360069ca1103c33a0"
+    },
+    "operator": {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/operations/operator-handoff.json",
+      "sha256": "913cc8c5693b4619e49700f41cbef062884771490a4963473137d6a4b49c92cc"
+    },
+    "goReviewer": {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/review/go/review.json",
+      "sha256": "f57198e78e2bf750f1a3199c0e04a2e52eb550d874f9247fbd8726505700c1b6"
+    }
+  },
+  "evidenceManifest": {
+    "path": "openspec/changes/qualify-semstreams-beta149/evidence/final/evidence-hashes.sha256",
+    "sha256": "9c78dbc17c9110a32b681b3618e5fe2f0798030027b5703003eecb8a9e433703",
+    "filesVerified": 4,
+    "excludes": ["technical-writer-handoff.json", "tasks.md"]
+  },
+  "historicalEvidence": {
+    "signedBeta147Modified": false,
+    "supersededBeta149RunHasQualificationAuthority": false
+  },
+  "production": {
+    "task5.4Complete": false,
+    "actionTaken": false,
+    "authorization": "withheld",
+    "remainingGate": "explicit architect/product-owner/operator decision after inherited ADR-S003 manifest and approvals"
+  },
+  "signature": {
+    "type": "technical-writer-final-qualification-attestation",
+    "signedByRole": "technical-writer",
+    "signedBy": "Codex agent /root/technical_writer_beta147",
+    "signedAt": "2026-07-18T11:09:47Z",
+    "candidateQualification": "approved",
+    "productionAuthorization": "withheld"
+  }
+}

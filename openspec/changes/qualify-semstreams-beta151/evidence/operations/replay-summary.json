@@ -1,0 +1,52 @@
+{
+  "formatVersion": "1.0.0",
+  "qualifyingRunId": "2026-07-18T16-40-05Z",
+  "frozenTargetRevision": 118,
+  "pre": {
+    "capturedAt": "2026-07-18T16:48:54Z",
+    "readiness": "pre/index-readiness.jsonl",
+    "indexedRevision": 118,
+    "targetRevision": 118,
+    "normalizedProbeCount": 12,
+    "entityState": {
+      "messages": 67,
+      "bytes": 171797,
+      "firstSequence": 21,
+      "lastSequence": 118,
+      "subjects": 33,
+      "deletedSequenceGaps": 31
+    },
+    "observations": {"messages": 1, "bytes": 720, "lastSequence": 1, "subjects": 1},
+    "objectStore": {"messages": 4, "bytes": 1678, "lastSequence": 4, "subjects": 4},
+    "spatialIndex": {"messages": 2, "bytes": 1022, "lastSequence": 22, "deletedSequenceGaps": 8}
+  },
+  "post": {
+    "capturedAt": "2026-07-18T16:51:17Z",
+    "readiness": "post/index-readiness.jsonl",
+    "indexedRevision": 118,
+    "targetRevision": 118,
+    "normalizedProbeCount": 12,
+    "entityState": {
+      "messages": 67,
+      "bytes": 171797,
+      "firstSequence": 21,
+      "lastSequence": 118,
+      "subjects": 33,
+      "deletedSequenceGaps": 31
+    },
+    "observations": {"messages": 1, "bytes": 720, "lastSequence": 1, "subjects": 1},
+    "objectStore": {"messages": 4, "bytes": 1678, "lastSequence": 4, "subjects": 4},
+    "spatialIndex": {"messages": 2, "bytes": 1022, "lastSequence": 27, "deletedSequenceGaps": 13}
+  },
+  "comparisons": {
+    "normalizedProbeDiffCount": 0,
+    "entityStateDiffIgnoringCapturedAt": 0,
+    "entityStateUnchanged": true,
+    "observationsUnchanged": true,
+    "objectStoreUnchanged": true,
+    "spatialApiResponsesUnchanged": true,
+    "spatialIndexRevisionOnlyRebuilt": true,
+    "writesBetweenFreezeAndReadiness": 0
+  },
+  "result": "PASS"
+}

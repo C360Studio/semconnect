@@ -1,0 +1,539 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "role": "go-reviewer",
+  "reviewedAt": "2026-07-18T17:15:29Z",
+  "repositoryHead": "95d6a6161374f45465f92bd491ba5b64fed30572",
+  "decision": "approved-tasks-5.1-through-5.4-and-6.2",
+  "approval": {
+    "task5.1": true,
+    "task5.2": true,
+    "task5.3": true,
+    "task5.4": true,
+    "task6.2": true,
+    "production": false
+  },
+  "pins": {
+    "module": "github.com/c360studio/semstreams v1.0.0-beta.151",
+    "conformanceVersion": "v1.0.0-beta.151",
+    "annotatedTagObject": "784f22dc8d549d7781b88a2878bb679112aad494",
+    "peeledCommit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+    "sourceTree": "120eeb353afb7d07aa1b3180de05f75494bac1a8",
+    "beta515RemoteRefPresent": false,
+    "beta150TagObject": "cb42ac3d9743134f1a9194fba2824424833669f7",
+    "beta150PeeledCommit": "d058bddfae0326487f0a86023ffe3d155992fd87"
+  },
+  "commitDispositions": [
+    {
+      "commit": "d058bddfae0326487f0a86023ffe3d155992fd87",
+      "change": "PR #554 fail-closed structural gate and canonical producer predicates",
+      "disposition": "live on entity create/update-with-triples; directly qualified"
+    },
+    {
+      "commit": "fa8e90edf55773cc4faa0adc8876c6aa3f87fca3",
+      "change": "archive and synchronize structural OpenSpec",
+      "disposition": "contract and documentation only"
+    },
+    {
+      "commit": "58893068929369dc96772a6fcd11eed7cc9a92bd",
+      "change": "await authoritative graph-index and rule state in tests",
+      "disposition": "test-only; focused graph-index proof passed"
+    },
+    {
+      "commit": "cb74a6de8e0eebb2d922ac610e58ee3438a633b3",
+      "change": "rule test watcher race fix",
+      "disposition": "test-only; rule is not configured"
+    },
+    {
+      "commit": "ce130e34f4d0127920effa0a676c59a35e8559ea",
+      "change": "PR #561 detached rule-state persistence",
+      "disposition": "rule is not configured; focused regression passed"
+    },
+    {
+      "commit": "31f16c983768be220ce06e35e944cf9e8299227b",
+      "change": "graph-retention adversarial review",
+      "disposition": "documentation only"
+    },
+    {
+      "commit": "c5b29a3b3d46c2e2b2a1050a60f538c2b49d6aa6",
+      "change": "graph-index CI smoke timing headroom",
+      "disposition": "test-only; focused smoke passed"
+    },
+    {
+      "commit": "386979089decc3f0dcbc182f9cf53e6a0d7df6fe",
+      "change": "canonical shared agent skills and adapters",
+      "disposition": "repository tooling only"
+    },
+    {
+      "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+      "change": "PR #567 trusted decode for graph-ingest owner RMW reads",
+      "disposition": "live on update/RMW; directly qualified"
+    }
+  ],
+  "exposure": {
+    "configuredComponents": [
+      "graph-ingest",
+      "graph-index",
+      "graph-index-spatial",
+      "graph-index-temporal",
+      "graph-query"
+    ],
+    "productionMutationSubjects": [
+      "graph.mutation.entity.create_with_triples",
+      "graph.mutation.entity.update_with_triples",
+      "graph.mutation.entity.delete"
+    ],
+    "graphableInput": "_semconnect.unused.ingest",
+    "graphablePublisherPresent": false,
+    "ruleConfigured": false,
+    "changedAgenticOrResearchProducerConfigured": false,
+    "changedProducerInProductionDependencyGraph": false,
+    "sharedAgenticInterfacesTransitivelyCompiled": true,
+    "compatibilityOrLegacyCodeAdded": false
+  },
+  "sourceIntegrity": {
+    "headAndCleanStatusRequired": true,
+    "gitStatusFailureFailsClosed": true,
+    "trackedUntrackedIgnoredAndSubmoduleDriftRejected": true,
+    "semstreamsVendor": {
+      "refreshTarget": "conformance/.vendor/semstreams",
+      "refreshTargetExactPathGuard": true,
+      "cloneAndVerificationPrecedeReplacement": true,
+      "materializedVendorClean": true,
+      "materializedVendorCommit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+      "materializedVendorTree": "120eeb353afb7d07aa1b3180de05f75494bac1a8"
+    },
+    "etsVendor": {
+      "refreshTarget": "conformance/.vendor/ets",
+      "refreshTargetExactPathGuard": true,
+      "cloneAndVerificationPrecedeReplacement": true,
+      "realGitCheckoutPreserved": true,
+      "shallow": false,
+      "materializedVendorClean": true,
+      "materializedVendorCommit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+      "materializedVendorTree": "875847e194ffdb2aef2b617c9a9a0d9add037331"
+    },
+    "externalAuthorityWeakening": false
+  },
+  "structuralProof": {
+    "downstreamLiveNatsRuns": 3,
+    "validCreateAndUpdate": true,
+    "claimedNoBirthForeignEdge": true,
+    "invalidPredicateAtomic": true,
+    "invalidEntityIdAtomic": true,
+    "invalidEntityReferenceAtomic": true,
+    "residentPoisonResetRequiredAndUnchanged": true,
+    "removeNoOpNoWrite": true,
+    "upstreamInvalidCreate": true,
+    "upstreamWholeBatchAtomic": true,
+    "upstreamWireClassificationAndMetrics": true,
+    "allTrustedRmwLanes": true,
+    "graphIndexRestartParity": true
+  },
+  "resolvedFindings": [
+    {
+      "id": "B151-GO-REV-001",
+      "finding": "A failing git status was swallowed and could be interpreted as a clean vendor tree.",
+      "resolution": "Status exit is preserved and fails closed; a corrupt-index regression reproduces and closes the old behavior."
+    },
+    {
+      "id": "B151-GO-REV-002",
+      "finding": "The developer evidence bundle algorithm was ambiguous and its claimed hash was not reproducible.",
+      "resolution": "The handoff now specifies exact workdir, files, basenames, order, locale, exclusions, and command; the reviewer reproduced the bundle."
+    },
+    {
+      "id": "B151-GO-REV-003",
+      "finding": "The ETS vendor path still reused a checkout by matching HEAD alone, so a dirty test authority could enter an external build.",
+      "resolution": "Before any external run, ETS reuse and refresh were moved onto the shared fail-closed clean-source and validated narrow replacement path."
+    },
+    {
+      "id": "B151-GO-REV-004",
+      "finding": "Run 2026-07-18T17-06-05Z created its fresh stack and began TestNG before task 5.4 reviewer approval was signed.",
+      "resolution": "The run was denied final authority and replaced by post-approval fresh-volume run 2026-07-18T17-09-45Z."
+    }
+  ],
+  "evidenceIntegrity": {
+    "architectBundleSha256": "8fdb5624b424bb9b5f3ff3416afec96757dac16a4d3953debfb055a8ac5d4d44",
+    "architectHandoffSha256": "9aa619f3b9796e72b449e6e8f36f6a00725dab19e6c2e6774de25a6ec9a33a18",
+    "developerSourceHashesMatch": true,
+    "developerEvidenceHashesMatch": true,
+    "developerBundleAlgorithmReproduced": true,
+    "developerBundleSha256": "bb81bbba709a67c6580cc893274aa9f7d2dc79775e6dce3d7277592da361f9e0",
+    "developerHandoffSha256": "d4d3e8c9f088fee8e0da77e5e110a35b47ceec53259319f777be12c1c3875bb8"
+  },
+  "operatorEvidenceIntegrity": {
+    "qualifyingRunId": "2026-07-18T16-40-05Z",
+    "manifestEntryCount": 81,
+    "manifestSha256": "e40e3b524ee79df0e5a78dc7cc7540e486bb1e65efea8a616c2dd7c81c80c4db",
+    "allManifestEntriesVerified": true,
+    "operatorHandoffSha256": "dbff45e4b928a17cbd9b4bfb2669bb7fdb3c3f8c5f5ac1ad7fdb31047442c2ff",
+    "buildLogSha256": "1228937e69873463a63d9c4a98890d40c7a8f9abc936ba9b3661c50cd780e6b9",
+    "buildPostdatesSignedDeveloperHandoff": true,
+    "semstreamsSourceCleanAndExact": true,
+    "etsSourceCleanAndExact": true,
+    "reviewedSourceHashesMatch": true,
+    "backendImageId": "sha256:08db471f5574eedd9c96c4f8641e187a04a2ac6b3b9bccd4ca8b0ea29d76f9f8",
+    "iutImageId": "sha256:4618f678131da97cfb69dfc76523deb77aa108e9760ad7fc17f09a1cad5fde41",
+    "liveContainerAndImageIdentitiesMatch": true
+  },
+  "runtimeProof": {
+    "retainedState": {
+      "bucket": "ENTITY_STATES",
+      "stream": "KV_ENTITY_STATES",
+      "validator": "graph.UnmarshalEntityState (beta.151 authoritative decoder)",
+      "scannerReadsDirectSequenceSpan": true,
+      "scannerFailsClosedOnReadOrDecodeFailure": true,
+      "firstSequence": 21,
+      "lastSequence": 118,
+      "retainedRecords": 67,
+      "decodedPutRecords": 63,
+      "deleteTombstones": 4,
+      "unknownOperationRecords": 0,
+      "streamSubjects": 33,
+      "currentKeys": 29,
+      "deletedSequenceGaps": 31,
+      "computedMissingSequences": 31,
+      "violations": 0,
+      "coverageComplete": true,
+      "liveReviewerRescanMatchesIgnoringCaptureTime": true
+    },
+    "writerFreeze": {
+      "teamengineStoppedBeforeBackendSignal": true,
+      "iutStoppedBeforeBackendSignal": true,
+      "natsRemainedRunning": true,
+      "frozenEntityRevision": 118
+    },
+    "shutdown": {
+      "backendContainerId": "7b8039c779f7ea0f9fd4c925562119a638d52c687a4ea883f8f5f69956ca19a2",
+      "signal": "SIGTERM",
+      "exitCode": 0,
+      "oomKilled": false,
+      "dockerError": "",
+      "restartCountAtExit": 0,
+      "forcedKill": false,
+      "boundedLogLines": 10,
+      "errorLevelMatches": 0,
+      "beta149IssueSignatureMatches": 0,
+      "filterMatchesArchivedBeta149Failure": true,
+      "shutdownCompleteLogged": true
+    },
+    "replay": {
+      "archivedPreReadiness": "118/118 stable in two samples",
+      "archivedPostReadiness": "118/118 stable in two samples",
+      "freshReviewerReadiness": "118/118 stable in two samples",
+      "normalizedProbeCount": 12,
+      "normalizedProbeDiffCount": 0,
+      "entityStateUnchanged": true,
+      "observationsUnchanged": true,
+      "objectStoreUnchanged": true,
+      "spatialIndexRevisionOnlyRebuilt": true,
+      "spatialApiResponsesUnchanged": true,
+      "hiddenGraphWrites": 0
+    },
+    "structuralAndForeign": {
+      "structuralFilterMatchesExactBeta151Source": true,
+      "qualifyingStackStructuralRejections": 0,
+      "positiveStructuralProofComesFromSignedIsolatedLiveNatsRun": true,
+      "hostedChildLaneFired": 1,
+      "foreignEdgeUnclaimed": 0,
+      "foreignEdgeDropped": 0,
+      "claimedEdgeSequence": 113,
+      "claimedEdgeCurrentBeforeAndAfterRestart": true
+    }
+  },
+  "externalInformativeOnly": {
+    "runId": "2026-07-18T16-40-05Z",
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "finalAuthority": false,
+    "freshExternalRunRequiredAfterReviewApproval": true
+  },
+  "procedurallySupersededExternalRun": {
+    "runId": "2026-07-18T17-06-05Z",
+    "result": "137/0/0",
+    "qualificationAuthority": false,
+    "reason": "fresh stack and TestNG began before task 5.4 reviewer approval was signed"
+  },
+  "externalConformanceReview": {
+    "runId": "2026-07-18T17-09-45Z",
+    "postdatesTask5.4Approval": true,
+    "suiteStartedAt": "2026-07-18T17:14:07Z",
+    "suiteFinishedAt": "2026-07-18T17:14:09Z",
+    "rawTestng": {
+      "path": "conformance/output/testng-report-2026-07-18T17-09-45Z.xml",
+      "sha256": "ce0a91161c2d391ff2055e93a3409f59129f1a7c88a11c45b7630b31640f58c3",
+      "rootAttributes": "137/137/0/0",
+      "nonConfigMethods": 137,
+      "nonConfigPass": 137,
+      "nonConfigFail": 0,
+      "nonConfigSkip": 0,
+      "unknownStatus": 0,
+      "uniqueTestNames": 137,
+      "configPassMethods": 23,
+      "classCount": 23,
+      "testAndConfigNameSetsMatchAcceptedBeta149": true
+    },
+    "pins": {
+      "semstreamsVersion": "v1.0.0-beta.151",
+      "semstreamsCommit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+      "semstreamsTree": "120eeb353afb7d07aa1b3180de05f75494bac1a8",
+      "semstreamsVendorClean": true,
+      "etsCommit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+      "etsTree": "875847e194ffdb2aef2b617c9a9a0d9add037331",
+      "etsVendorClean": true
+    },
+    "images": {
+      "semstreamsBackend": "sha256:3ec453f0f255dbcc67a4d36dd1e02ed3839e6decc5e87bbd71c8b997344c51cd",
+      "csApiServer": "sha256:7eba1cea1e8f259fa018a213734cbbea7beaf37fc2157bc8519ddb817d305a86",
+      "teamengine": "sha256:e87d6dcf0a71d50f17eadfef2dd4ab933e671059e4746146ef49754d7fc7999c",
+      "nats": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927",
+      "buildExportsMatchRunningContainers": true
+    },
+    "freshStack": {
+      "networkId": "7b7ef1903ad31e0ba985cefbf9f37537aad80e27224df8c089d21164fc5e2b9c",
+      "networkCreatedAt": "2026-07-18T17:13:44.115053006Z",
+      "volume": "semconnect-conformance_nats-data",
+      "volumeCreatedAt": "2026-07-18T17:13:44Z",
+      "natsContainer": "b2d28223259ec1e8bd1375fc13a58dfa549eaa4479d619bc2a28e882aa70b401",
+      "backendContainer": "25799f450d06188bfd8ae4eda4c0778120f70dff68f10c85a8886e80742d09ec",
+      "iutContainer": "7f3453722bb4b7adc8ca4f312f107ea31b5314d0fd6315fdae1d4337aed88af9",
+      "teamengineContainer": "bc0ea6b1296b789012086c0cae18db7d88efc013ce50465629cbb09338429f91",
+      "allContainersCreatedAt17_13_44Z": true
+    },
+    "readiness": {
+      "path": "conformance/output/seed-evidence/index-readiness-2026-07-18T17-09-45Z.jsonl",
+      "sha256": "67ccb44b680ac58a04f3c76063dce2574b7a91b63f184393265a0b0f21bbe4d4",
+      "stableSamples": 2,
+      "indexedRevision": 80,
+      "targetRevision": 80
+    },
+    "foreignEdgeBake": {
+      "path": "conformance/output/foreign-edge-bake-2026-07-18T17-09-45Z.txt",
+      "sha256": "0be2f0d222b7ebed75c78d9f32cd44b7308004dbca41fe50c8da03105c5ed891",
+      "result": "PASS",
+      "laneFired": 1,
+      "unclaimed": 0,
+      "dropped": 0
+    },
+    "artifacts": {
+      "summarySha256": "65cd649e3a5b906b703d2ba7d65b5085a0814e7961123a7866c66469a098cf32",
+      "buildLogSha256": "1d065a312a33f5787fde619aa7fd417f347df43833fca21d11d33a85c238ea50",
+      "seedLogSha256": "302f7a56b786ce4418c02c3eefceb78d5d5d54c765aaa5b5b516207f12de290f",
+      "backendLogSha256": "fdc746b96db008e9383dc57fb10f2c00c2fbe9334e0a30491362c9e3f08be2b8",
+      "iutLogSha256": "6a0288579464ae45eee5538b04473327a7ec050519c787a5b0dd3d146250718e",
+      "teamengineLogSha256": "1a13dd4ad5a948d491a9947ad4094f1fff535098fe6cdbdd3b5585aed643f8c3"
+    },
+    "qualificationAuthority": true,
+    "productionAuthorization": false
+  },
+  "noWeakeningAudit": {
+    "acceptedBaseline": "95d6a6161374f45465f92bd491ba5b64fed30572 with accepted beta.149 evidence",
+    "etsPinAndTreeUnchanged": true,
+    "existingTestsUnchanged": true,
+    "newTestsOnlyStrengthenPinVendorAndStructuralProof": true,
+    "fixtureIntentUnchanged": true,
+    "fixtureFileSetAndBytesUnchanged": true,
+    "openApiUnchanged": true,
+    "openApiSha256": "183d72922aca3079fae33d7c332b0c04212b0cc002169bb65d33bf0eaebcba90",
+    "conformanceClaimsUnchanged": true,
+    "conformanceClaimsSha256": "8d4345841e2e232af3fed6bc2fb7b0f1ae8d1b5426be94e0cdd261bdfb3319bd",
+    "composeAndWorkflowUnchanged": true,
+    "mutationTestsEnabled": true,
+    "mutationPolicy": "dedicated-mutable-iut",
+    "includeExcludeGroupFilterPresent": false,
+    "skipSelectorPresent": false,
+    "seedThroughParserAndExitSemanticsUnchanged": true,
+    "seedThroughParserTailSha256": "8b977da43d27a87fed240a691db874b0f24077ff3ddded4eaa1f9caebf1d1496",
+    "intendedHarnessChanges": [
+      "beta.151 identity preflight",
+      "fail-closed clean vendor reuse and narrow validated replacement"
+    ],
+    "resultAccountingReproducedFromRawXml": true,
+    "externalAuthorityWeakening": false
+  },
+  "independentCommands": [
+    {
+      "command": "git ls-remote --tags exact beta.149, beta.150, beta.151, and beta.515 refs",
+      "exitCode": 0,
+      "result": "all recorded tag objects and peeled commits matched; beta.515 returned no ref"
+    },
+    {
+      "command": "go test ./conformance -run 'Test(SemStreamsPins|ActiveModule|ShellAssignments|HarnessVendor|HarnessETSVendor|GitSource)' -count=1 -v",
+      "exitCode": 0,
+      "result": "pin, parser, both vendor-use paths, drift, and corrupt-index tests passed"
+    },
+    {
+      "command": "go test -tags=integration ./gateway/cs-api -run '^TestBeta151StructuralMutationContract$' -count=3 -v",
+      "exitCode": 0,
+      "result": "three independent live-NATS runs passed"
+    },
+    {
+      "command": "focused upstream PR #554 unit and live-wire tests",
+      "exitCode": 0,
+      "result": "valid, invalid, create, update, batch, wire, metric, and claimed-edge tests passed"
+    },
+    {
+      "command": "focused upstream PR #567 graph and graph-ingest integration tests",
+      "exitCode": 0,
+      "result": "trusted decode, five poison RMW lanes, classification, and no-op tests passed"
+    },
+    {
+      "command": "focused upstream PR #561 rule persistence test",
+      "exitCode": 0,
+      "result": "detached post-action persistence passed"
+    },
+    {
+      "command": "go test -tags=integration ./processor/graph-index -run '^TestIntegration_PredicateLayoutSmoke$' -count=1 -v",
+      "exitCode": 0,
+      "result": "both codecs passed throughput, query, churn, restart, and resource checks"
+    },
+    {
+      "command": "focused upstream beta.149 lifecycle regression set",
+      "exitCode": 0,
+      "result": "heartbeat, metrics, service manager, and BaseService tests passed; synthetic boom remained observable"
+    },
+    {
+      "command": "go test ./...",
+      "exitCode": 0
+    },
+    {
+      "command": "go test -race ./...",
+      "exitCode": 0
+    },
+    {
+      "command": "go test -tags=integration ./...",
+      "exitCode": 0
+    },
+    {
+      "command": "go vet ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go vet -tags=integration ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go build ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go mod tidy -diff",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go mod verify",
+      "exitCode": 0,
+      "output": "all modules verified"
+    },
+    {
+      "command": "bash -n conformance/run.sh conformance/lib/vendor_identity.sh",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "git diff accepted source -- ETS pin, fixtures, OpenAPI, claims, selectors, mutation flags, and parser",
+      "exitCode": 0,
+      "result": "ETS authority and conformance scope unchanged; only fail-closed vendor materialization changed"
+    },
+    {
+      "command": "wc/shasum and shasum -a 256 -c operator evidence manifest",
+      "exitCode": 0,
+      "result": "81 entries; manifest e40e3b524ee79df0e5a78dc7cc7540e486bb1e65efea8a616c2dd7c81c80c4db; all entries verified"
+    },
+    {
+      "command": "independent retained-state JSON arithmetic and scanner-source review",
+      "exitCode": 0,
+      "result": "67 retained = 63 decoded PUT + 4 DEL; span 98 - 67 = 31 gaps = NumDeleted; 29 latest current PUT keys; zero invalid or unknown operations"
+    },
+    {
+      "command": "go run ./openspec/changes/qualify-semstreams-beta151/evidence/operations/retained-scan against live reviewer stack",
+      "exitCode": 0,
+      "result": "67 records, 63 decoded, 4 tombstones, 29 keys, revision 118, zero violations; sealed post report matches except capture time"
+    },
+    {
+      "command": "go run ./conformance/cmd/index-readiness against live reviewer stack",
+      "exitCode": 0,
+      "result": "stable target 118 and indexed 118 after two samples"
+    },
+    {
+      "command": "independent pre/post normalized payload and retained-resource comparison",
+      "exitCode": 0,
+      "result": "12 payload hashes equal; entity state, observations, and ObjectStore exact; spatial revision-only rebuild with equal public payloads"
+    },
+    {
+      "command": "independent beta.151 source, archived beta.149, shutdown-window, metrics, and backend-window filter checks",
+      "exitCode": 0,
+      "result": "filters match authoritative source and known beta.149 failure; beta.151 shutdown/replay windows contain no issue signatures or ERROR records"
+    },
+    {
+      "command": "docker ps/inspect plus read-only live JetStream inventory",
+      "exitCode": 0,
+      "result": "exact containers/images retained; backend and NATS healthy, IUT read-only, TeamEngine stopped 143, ENTITY_STATES still 67 messages/171797 bytes/revision 118"
+    },
+    {
+      "command": "xmllint independent TestNG root, method, status, class, and unique-name counts for 2026-07-18T17-09-45Z",
+      "exitCode": 0,
+      "result": "root 137/137/0/0; 137 unique non-config PASS, zero FAIL/SKIP/unknown; 23 config PASS methods and 23 classes"
+    },
+    {
+      "command": "diff sorted non-config and config TestNG method names against accepted beta.149 report",
+      "exitCode": 0,
+      "result": "exact 137-test and 23-config-method name sets"
+    },
+    {
+      "command": "docker inspect authoritative run containers, images, volume, and network",
+      "exitCode": 0,
+      "result": "fresh network, volume, and four containers created 2026-07-18T17:13:44Z; build-export image IDs match running containers"
+    },
+    {
+      "command": "git rev-parse/status for SemStreams and ETS vendors plus build-log source-copy/build/export inspection",
+      "exitCode": 0,
+      "result": "clean exact beta.151 ac75c322/tree 120eeb35 and unchanged ETS d9caf33/tree 875847e; exported images match live stack"
+    },
+    {
+      "command": "git diff and byte-hash accepted baseline fixtures, OpenAPI, claims, compose, workflow, tests, selectors, mutation flags, and parser tail",
+      "exitCode": 0,
+      "result": "only intended beta.151 identity and fail-closed vendor hardening differ; no authority or scope weakening"
+    },
+    {
+      "command": "independent SHA-256 of authoritative TestNG, summary, build, seed, readiness, bake, and three container logs",
+      "exitCode": 0,
+      "result": "all hashes recorded in externalConformanceReview"
+    },
+    {
+      "command": "openspec validate qualify-semstreams-beta151 --strict",
+      "exitCode": 0,
+      "output": "Change 'qualify-semstreams-beta151' is valid"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "pendingReview": [
+    "immutable cutover manifest and named production approvals"
+  ],
+  "handoff": {
+    "nextRole": "program-manager/technical-writer",
+    "localGoGate": "approved",
+    "runtimeGate": "approved",
+    "externalQualificationMayProceed": true,
+    "preReviewExternalRunIsFinalAuthority": false,
+    "externalConformanceGate": "approved-137-0-0-without-weakening",
+    "candidateQualification": "approved-for-manifest-and-named-approvals",
+    "productionAuthorization": "withheld"
+  },
+  "signature": {
+    "type": "go-reviewer-final-technical-qualification-attestation",
+    "signedByRole": "go-reviewer",
+    "signedBy": "Codex agent /root/go_reviewer_beta149",
+    "signedAt": "2026-07-18T17:15:29Z",
+    "productionAuthorization": "withheld"
+  }
+}

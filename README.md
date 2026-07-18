@@ -11,8 +11,9 @@ CS API vocabulary, GeoJSON boundary behavior, and the HTTP gateway that composes
 [OGC API Connected Systems v1.0](https://www.ogc.org/standards/ogc-api-connected-systems/)
 REST surface.
 
-The repository is no longer a scaffold. A fresh disposable migration run on
-2026-07-18 against SemStreams beta.147 produced:
+The repository is no longer a scaffold. The authoritative post-review
+fresh-volume qualification run on 2026-07-18 against SemStreams beta.151
+produced:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -20,16 +21,19 @@ total=137 passed=137 failed=0 skipped=0
 
 ## Current Status
 
-- Migration candidate: SemStreams `v1.0.0-beta.147` at
-  `5cc22c109594e48b7f1cec04bcaaf0106d85495a`.
+- Dependency candidate: SemStreams `v1.0.0-beta.151` at
+  `ac75c322140fb2a6b55759d07a79874b4cb4d9cc`.
 - ETS pin: Botts CS API ETS `0.1-SNAPSHOT` at commit `d9caf33`.
 - Reference binary: `cmd/cs-api-server`.
 - Gateway package: `gateway/cs-api`.
 - Conformance harness: `conformance/run.sh`.
-- Go and UI implementation reviews are approved. The fresh beta.147 ETS run,
-  revision readiness, and no-write query replay gates pass. Production remains
-  no-go pending the immutable cutover rehearsal, shutdown-error disposition,
-  and deployment approvals. Independent review found no conformance weakening.
+- The beta.151 pin, structural fail-closed, trusted-RMW, local, clean
+  normal-SIGTERM, retained-state, readiness, no-write replay, foreign-edge, and
+  external ETS gates pass. This dependency-only change has no frontend/Svelte
+  delta. The pre-v1 production target is a clean-NATS Compose deployment with
+  no migration path. Production remains no-go until the greenfield bundle
+  manifest receives the task 6.4 product-owner and operator decisions.
+- Greenfield Compose bundle and persistence verifier: `deploy/`.
 - Open product and framework asks are tracked in
   [docs/upstream-asks/README.md](docs/upstream-asks/README.md).
 
@@ -177,6 +181,10 @@ semantic-vs-statistical comparison notes, and the CS API ID mapping.
   product ownership, semantic identity, and cutover decision.
 - [beta.147 OpenSpec change](openspec/changes/migrate-semstreams-beta147/) -
   detailed beta.147 migration specification, tasks, and evidence.
+- [beta.149 OpenSpec change](openspec/changes/qualify-semstreams-beta149/) -
+  historical dependency, shutdown, replay, and conformance qualification.
+- [beta.151 OpenSpec change](openspec/changes/qualify-semstreams-beta151/) -
+  current structural, retained-state, replay, and conformance qualification.
 - [conformance/README.md](conformance/README.md) - local conformance runner,
   pins, and bump procedure.
 - [docs/upstream-asks/README.md](docs/upstream-asks/README.md) - current

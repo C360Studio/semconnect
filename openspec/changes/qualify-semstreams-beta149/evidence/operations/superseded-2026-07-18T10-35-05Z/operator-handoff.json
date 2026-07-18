@@ -1,0 +1,60 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "handoff": "operator-to-go-reviewer-technical-writer-program-manager",
+  "decision": "approved-for-review-not-production",
+  "completedTasks": ["3.1", "3.2", "3.3", "3.4"],
+  "runId": "2026-07-18T10-35-05Z",
+  "outcomes": {
+    "freshDisposableStack": "pass",
+    "canonicalFixturesSeeded": "pass",
+    "authoritativeTargetRevision": 118,
+    "writerFreeze": "pass",
+    "normalSigtermExitCode": 0,
+    "oomKilled": false,
+    "containerError": "",
+    "forcedKillOrTimeout": false,
+    "issue549Signatures": 0,
+    "shutdownErrorLines": 0,
+    "postRestartReadiness": "118/118",
+    "normalizedBeta147EquivalentProbes": "11/11 exact",
+    "additionalArtifactProbe": "1/1 exact",
+    "retainedObservation": "pass",
+    "retainedObjectStoreArtifacts": "pass",
+    "retainedAuthoritativeGraphState": "pass",
+    "writesOrReseedsAfterFreeze": 0,
+    "teamEngineLeftStopped": true,
+    "reviewStackLeftRunning": ["nats", "semstreams-backend", "cs-api-server"]
+  },
+  "keyEvidence": [
+    {
+      "path": "shutdown-metadata.json",
+      "sha256": "3ba0e06684348b249ee20a81156558d28551147e2fd3f883658e35f1350f6bdc"
+    },
+    {
+      "path": "shutdown-window.log",
+      "sha256": "6a0a42bbd7504dd132d968c2f6b042331c96b731c632a150b92495177289fb3d"
+    },
+    {
+      "path": "writer-freeze.json",
+      "sha256": "71c416c062d4c8a1480a94da5d549881b6bbf0b7fb475f74b84d8c454f333b8e"
+    },
+    {
+      "path": "replay-summary.json",
+      "sha256": "c2ec03619e204af7ea2d66e169140cec467a82eff0923d0d38b083bf608b30b8"
+    },
+    {
+      "path": "source-identity.json",
+      "sha256": "da0469afa3f0d07dfb328e08ef0c51ba55ba558b8bfae7ffc3c8027f9a17421e"
+    }
+  ],
+  "signature": {
+    "type": "operator-runtime-and-evidence-attestation",
+    "signedByRole": "operator",
+    "signedBy": "Codex agent /root/operator_beta149",
+    "signedAt": "2026-07-18T10:49:29Z",
+    "evidenceHashManifest": "evidence-hashes.sha256",
+    "evidenceHashManifestSha256": "4db6f98338d805667abc5b5b49a9f2b6e1888a41b8ec4beeab2055719cf1f93f",
+    "productionAuthorization": "withheld"
+  }
+}

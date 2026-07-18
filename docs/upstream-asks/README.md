@@ -9,10 +9,12 @@ resolved or transferred history without presenting it as an upstream blocker.
 
 ## Open asks
 
-No SemStreams framework ask currently blocks the beta.147 implementation. The
-2026-07-06 CS API result (`total=137 passed=137 failed=0 skipped=0`) is the
-beta.141 historical baseline; fresh beta.147 conformance remains a release
-gate.
+No SemStreams framework ask currently blocks the beta.151 dependency
+candidate. Its structural fail-closed and trusted-RMW changes passed retained
+state, atomic-rejection, replay, and the authoritative post-review external run
+at `total=137 passed=137 failed=0 skipped=0`. Production is still gated by missing
+literal ADR-S003 deployment-manifest values and approvals, not by an open
+framework implementation ask.
 
 Transferred product-boundary history:
 

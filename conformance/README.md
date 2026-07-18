@@ -12,8 +12,8 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-The disposable migration candidate run on 2026-07-18 against SemStreams
-beta.147 is:
+The authoritative post-review fresh-volume run `2026-07-18T17-09-45Z`
+against SemStreams beta.151 is:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -23,20 +23,24 @@ The migration candidate pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.147` at
-  `5cc22c109594e48b7f1cec04bcaaf0106d85495a`.
+- semstreams backend `v1.0.0-beta.151` at
+  `ac75c322140fb2a6b55759d07a79874b4cb4d9cc`.
 
-The run reached graph-index revision `80/80` before Team Engine and `118/118`
-after the ETS writes. A no-write backend restart returned to `118/118` and all
-eleven normalized query hashes matched. The foreign-edge bake passed. Runtime
-evidence is indexed under
-`openspec/changes/migrate-semstreams-beta147/evidence/operations/rehearsal/`.
+The run reached graph-index revision `80/80` before Team Engine and the
+foreign-edge bake passed with the hosted-child lane exercised. The reviewed
+same-stack beta.151 rehearsal scanned retained `ENTITY_STATES` with zero poison,
+froze writers at `118/118`, stopped the backend with normal SIGTERM and exit
+code zero, returned to `118/118`, and reproduced all 12 normalized probes
+without writes. Structural rejection and trusted-RMW atomicity gates also
+passed. Evidence is indexed under
+`openspec/changes/qualify-semstreams-beta151/evidence/`.
 
-This does not authorize production. The shutdown emitted two heartbeat
-already-stopped ERROR records, and the immutable cutover rehearsal,
-production manifest, and deployment approvals remain open. Independent review
-found no ETS filtering, fixture weakening, OAS relaxation, or claim reduction.
-The 2026-07-06 beta.141 result remains historical release evidence.
+This does not authorize production. The inherited ADR-S003 immutable cutover
+manifest, literal deployment values, product-owner/operator approvals, and
+production execution/archive remain open. The beta.141, beta.147, and beta.149
+results remain historical evidence; their signed records are not rewritten.
+The earlier beta.151 run `2026-07-18T17-06-05Z` is also non-authoritative
+rehearsal evidence because it began before final reviewer signature.
 
 The run exercises real gateway/framework behavior:
 

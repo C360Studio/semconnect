@@ -1,0 +1,81 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "handoff": "go-developer-to-go-reviewer-operator-technical-writer",
+  "decision": "approved-for-review-not-production",
+  "completedTasks": ["2.1", "2.2", "2.3", "2.4", "2.5"],
+  "pin": {
+    "module": "github.com/c360studio/semstreams",
+    "version": "v1.0.0-beta.149",
+    "commit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2",
+    "commitDate": "2026-07-18",
+    "alignmentTest": "conformance/pin_alignment_test.go"
+  },
+  "outcomes": {
+    "failingFirst": "pass",
+    "finalPinAlignment": "pass",
+    "unrelatedDeltaConsumerAudit": "not-configured-or-directly-invoked; transitive-compilation-qualified",
+    "focusedUpstreamLifecycle": "pass",
+    "unit": "pass",
+    "race": "pass",
+    "integration": "pass",
+    "vet": "pass",
+    "integrationVet": "pass",
+    "build": "pass",
+    "compatibilityCodeAdded": false
+  },
+  "sourceFiles": [
+    {
+      "path": "go.mod",
+      "sha256": "a41ce208147b015cd6e93d048481b847f6bee2b12d439bc8fb4196107d3fc530"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "6fb8194f5b78f830fed0fd8c28c9308d910ffe94d6cd50968128f92860a1960a"
+    },
+    {
+      "path": "conformance/.ets-pin",
+      "sha256": "bf219bfdb0845b01ed4c8f6429280f39d8b2e75a51c3dd42d64fb17bb54e3ba0"
+    },
+    {
+      "path": "conformance/pin_alignment_test.go",
+      "sha256": "35a080307d8cf8b6dc598f681d40ae7ccd5e8be523e57f00c28e94b5cdd1c0ef"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/development/go/delta-audit.md",
+      "sha256": "78f1961404415950459c35d93b13d37ae3e19be87405f28018f97f88b6249ea2"
+    },
+    {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/development/go/failing-first.md",
+      "sha256": "205910c4e32d405675f2a652fc72b4528a3c03c3ce8607cf294ab2de2f4d7094"
+    },
+    {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/development/go/normalization-remediation.md",
+      "sha256": "4f185a1139cc8d1098c03c89bdf41c7a77c8d1584bd1efedac21b5e0964080a1"
+    },
+    {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/development/go/pin-alignment.md",
+      "sha256": "0f4d1ec009128e2d24cfcdeec5a5b1db616a8b2bad21b18672f4473b47bd9d99"
+    },
+    {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/development/go/upstream-lifecycle.md",
+      "sha256": "9a8b3d70a188c79785294566be5252944b95c3a2c2fb25f632eb942148fd807c"
+    },
+    {
+      "path": "openspec/changes/qualify-semstreams-beta149/evidence/development/go/verification.md",
+      "sha256": "3be4674c060267431e34e03073d7a88ee58fe8cf75ab712950d0c25c79f37ceb"
+    }
+  ],
+  "signature": {
+    "type": "go-developer-source-and-evidence-attestation",
+    "signedByRole": "go-developer",
+    "signedBy": "Codex agent /root/go_developer_beta149",
+    "signedAt": "2026-07-18T10:39:30Z",
+    "evidenceBundleAlgorithm": "SHA-256 of sorted per-file 'sha256  path' manifest lines; handoff excluded",
+    "evidenceBundleCommand": "find openspec/changes/qualify-semstreams-beta149/evidence/development/go -maxdepth 1 -type f ! -name go-developer-handoff.json -print | sort | xargs sha256sum | sha256sum",
+    "evidenceBundleSha256": "b12f6f9daa8e8d81397b832f252df430bde5354cc17a78048a14c378096030fd",
+    "productionAuthorization": "withheld"
+  }
+}

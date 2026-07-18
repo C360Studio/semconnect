@@ -5,6 +5,8 @@
 - **Framework target**: `github.com/c360studio/semstreams v1.0.0-beta.147`
 - **Source provenance**: SemStreams commit `c8f0b92edf5ad5b491d5f4e81891bec817fae3cd`
 - **Execution contract**: `openspec/changes/migrate-semstreams-beta147/`
+- **Greenfield amendment**: Pre-v1 production is greenfield-only (2026-07-18); the beta.151 production contract is
+  `openspec/changes/qualify-semstreams-beta151/`.
 
 ## Context
 
@@ -114,3 +116,56 @@ The architecture is approved for implementation subject to the OpenSpec acceptan
 authorization remains blocked until the exact manifest, fresh-volume rehearsal, retained-state proof, and rollback
 owner are reviewed and signed by the product owner and operator.
 
+## Greenfield pre-v1 production amendment (2026-07-18)
+
+The product owner has constrained pre-v1 semconnect production to a new deployment with a clean NATS account and new
+persistent storage. This amendment supersedes this ADR's stop/wipe/reseed and old-state rollback procedure for the
+active beta.151 production gate. The original procedure and its signed beta.147/beta.149 evidence remain historical
+records of the migration analysis; they are not production prerequisites for a greenfield deployment.
+
+### No migration or compatibility scope
+
+The operator SHALL refuse first-start authorization if the target NATS account/domain or persistent volume already
+contains semconnect graph, index, observation, or artifact resources. The bundle SHALL NOT inspect old state to make
+it usable, delete old resources, translate predicates, dual-read, dual-write, or run a reseed. Discovery of
+pre-existing target state is a no-go requiring a separate architecture decision.
+
+### Production topology and persistence
+
+The active deliverable is a production Compose bundle containing NATS with JetStream, SemStreams beta.151, and
+semconnect. Source revisions, image digests, base images, configuration, and the rendered Compose model SHALL be
+content-addressed and reproducible. NATS SHALL use an explicit persistent file-store volume. `ENTITY_STATES`, graph
+indexes, CS API observations, and schema artifacts SHALL survive normal service and host-compose restarts that do not
+remove the volume.
+
+Checked-in configuration SHALL contain no production credentials. The default bundle's NATS listener is reachable
+only on the private Compose network, so this greenfield topology has no NATS secret interface. If an operator exposes
+NATS beyond that boundary, doing so requires a separate security decision and credential interface before startup.
+
+### First-start and readiness proof
+
+The operator SHALL prove the target namespace is empty, start the exact bundle, run the versioned canonical seed, and
+capture expected entity/resource counts and representative query results. NATS health and JetStream availability,
+SemStreams process health, semconnect health, and discovery of the canonical entity through the graph-index-backed
+collection query are separate gates. Dependency startup order and fixed sleeps are not readiness evidence.
+
+The operator SHALL then stop the Compose services cleanly without removing storage, verify SemStreams and semconnect
+exit zero and NATS completes JetStream shutdown without OOM, restart them over the same volume, and prove equivalent
+counts and normalized collection/item query results. This is a greenfield persistence test, not retained-state
+compatibility or migration replay.
+
+The accepted fresh-volume beta.151 `137 passed, 0 failed, 0 skipped` result and no-weakening review remain the external
+behavior authority; production does not rerun or redefine that suite merely to render deployment values.
+
+### Right-sized production decision
+
+Task 6.3 produces and verifies one immutable production-bundle manifest binding the Compose/config hashes, committed
+source and image digests, the explicit internal-only/no-secret boundary, published CS API port, persistent volume,
+first-start seed, health/readiness commands, restart-persistence evidence, and the accepted external qualification.
+It contains no destructive commands, old-state inventory, migration reseed, or old-binary rollback procedure.
+
+Task 6.4 requires explicit `go` from the named product owner and operator over that exact manifest hash. One person may
+hold both roles only when two role-specific attestations explicitly record both authorities. Destructive reviewers and
+a separate production architect signature are not required; architecture approval is this amendment plus the active
+OpenSpec contract. Any missing approval, hash mismatch, non-empty target, config failure, readiness stall,
+persistence delta, or changed bundle input is no-go. A go authorizes only the stated first greenfield deployment.

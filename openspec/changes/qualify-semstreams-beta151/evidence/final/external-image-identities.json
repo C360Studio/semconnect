@@ -1,0 +1,40 @@
+{
+  "formatVersion": "1.0.0",
+  "qualifyingRunId": "2026-07-18T17-09-45Z",
+  "capturedFromLiveContainersAtCloseout": true,
+  "images": [
+    {
+      "service": "semstreams-backend",
+      "id": "sha256:3ec453f0f255dbcc67a4d36dd1e02ed3839e6decc5e87bbd71c8b997344c51cd",
+      "createdAt": "2026-07-18T17:11:07.500462544Z",
+      "os": "linux",
+      "architecture": "arm64"
+    },
+    {
+      "service": "cs-api-server",
+      "id": "sha256:7eba1cea1e8f259fa018a213734cbbea7beaf37fc2157bc8519ddb817d305a86",
+      "createdAt": "2026-07-18T16:40:17.964624883Z",
+      "os": "linux",
+      "architecture": "arm64"
+    },
+    {
+      "service": "teamengine",
+      "id": "sha256:e87d6dcf0a71d50f17eadfef2dd4ab933e671059e4746146ef49754d7fc7999c",
+      "createdAt": "2026-07-18T17:13:42.521286922Z",
+      "os": "linux",
+      "architecture": "arm64"
+    },
+    {
+      "service": "nats",
+      "id": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927",
+      "createdAt": "2026-01-28T02:18:52.222183645Z",
+      "os": "linux",
+      "architecture": "arm64"
+    }
+  ],
+  "volume": {
+    "name": "semconnect-conformance_nats-data",
+    "createdAt": "2026-07-18T17:13:44Z",
+    "driver": "local"
+  }
+}

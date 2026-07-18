@@ -1,0 +1,10 @@
+{"time":"2026-07-18T16:50:07.075672753Z","level":"INFO","msg":"Received shutdown signal","service":"semstreams","version":"dev","pid":1}
+{"time":"2026-07-18T16:50:07.075772169Z","level":"INFO","msg":"Metrics service stopped","service":"semstreams","version":"dev","pid":1}
+{"time":"2026-07-18T16:50:07.075851586Z","level":"INFO","msg":"MessageLogger stopped","service":"semstreams","version":"dev","pid":1,"source":"message-logger"}
+{"time":"2026-07-18T16:50:07.075907669Z","level":"INFO","msg":"Heartbeat service stopping","service":"semstreams","version":"dev","pid":1,"source":"heartbeat"}
+{"time":"2026-07-18T16:50:07.075989253Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-index-temporal","component":"graph-index-temporal"}
+{"time":"2026-07-18T16:50:07.075990544Z","level":"INFO","msg":"graph-query coordinator stopped","service":"semstreams","version":"dev","pid":1,"component":"graph-query"}
+{"time":"2026-07-18T16:50:07.076124544Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-index-spatial","component":"graph-index-spatial"}
+{"time":"2026-07-18T16:50:07.076118336Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-ingest","component":"graph-ingest"}
+{"time":"2026-07-18T16:50:07.076169544Z","level":"INFO","msg":"component stopped gracefully","service":"semstreams","version":"dev","pid":1,"component":"graph-index","component":"graph-index"}
+{"time":"2026-07-18T16:50:07.076203836Z","level":"INFO","msg":"SemStreams shutdown complete","service":"semstreams","version":"dev","pid":1}

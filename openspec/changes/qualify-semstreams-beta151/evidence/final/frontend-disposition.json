@@ -1,0 +1,21 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "role": "technical-writer",
+  "decision": "not-applicable",
+  "reason": "Beta.151 changes the Go framework dependency, conformance source-integrity guard, and backend structural qualification tests. It changes no browser contract, Svelte source, TypeScript type, UI dependency, or interaction.",
+  "evidence": {
+    "repositoryBase": "95d6a6161374f45465f92bd491ba5b64fed30572",
+    "uiDiffExitCode": 0,
+    "uiTrackedChanges": 0,
+    "openApiChanged": false,
+    "conformanceClaimsChanged": false,
+    "publicCsApiProductionCodeChanged": false
+  },
+  "requiredLanes": {
+    "svelteDeveloper": false,
+    "svelteReviewer": false,
+    "browserOrAccessibilityRegression": false
+  },
+  "productionAuthorization": "withheld"
+}

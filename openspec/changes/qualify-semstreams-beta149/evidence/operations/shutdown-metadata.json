@@ -1,0 +1,43 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "runId": "2026-07-18T10-52-31Z",
+  "service": "semstreams-backend",
+  "containerId": "0296d781a90bb8de578e2d5b745322e65cf1451718407776994fcafb1e1e37ec",
+  "imageId": "sha256:b04da49c64399ebba54eab05223536d9530bf500e59dcef3ec2fc6a7f23cee3f",
+  "containerStartedAt": "2026-07-18T10:52:42.07243376Z",
+  "sigtermRequestedAt": "2026-07-18T10:57:50Z",
+  "containerFinishedAt": "2026-07-18T10:57:50.694799625Z",
+  "composeStopCompletedAt": "2026-07-18T10:57:50Z",
+  "stopTimeoutSeconds": 30,
+  "exitCode": 0,
+  "oomKilled": false,
+  "containerError": "",
+  "restartCount": 0,
+  "dockerEvents": [
+    {
+      "action": "kill",
+      "signal": 15,
+      "meaning": "the requested normal SIGTERM sent by docker compose stop",
+      "timeNano": 1784372270691246792
+    },
+    {
+      "action": "stop",
+      "timeNano": 1784372270765480167
+    },
+    {
+      "action": "die",
+      "exitCode": 0,
+      "execDurationSeconds": 308,
+      "timeNano": 1784372270768571167
+    }
+  ],
+  "sigkillEventPresent": false,
+  "timeoutOrForcedKill": false,
+  "shutdownWindow": {
+    "from": "2026-07-18T10:57:49Z",
+    "artifact": "shutdown-window.log",
+    "lineCount": 10
+  },
+  "decision": "pass-normal-sigterm-clean-exit"
+}

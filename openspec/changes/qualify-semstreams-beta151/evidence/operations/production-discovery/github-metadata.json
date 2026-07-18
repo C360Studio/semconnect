@@ -1,0 +1,68 @@
+{
+  "formatVersion": "1.0.0",
+  "capturedAt": "2026-07-18T17:32:13Z",
+  "source": "GitHub REST API through authenticated read-only gh api commands",
+  "semconnect": {
+    "repository": "C360Studio/semconnect",
+    "visibility": "public",
+    "defaultBranch": "main",
+    "mainSha": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1",
+    "mainTreeSha": "d5ae4f4a63cce568de4f6773852bdf3e9c8e53be",
+    "mainCommittedAt": "2026-07-06T19:25:04Z",
+    "environmentCount": 0,
+    "deploymentCount": 0,
+    "releaseCount": 0,
+    "repositoryVariableCount": 0,
+    "repositorySecretNameCount": 0,
+    "workflowCount": 1,
+    "workflows": [
+      {
+        "id": 277920855,
+        "name": "conformance",
+        "path": ".github/workflows/conformance.yml",
+        "state": "active",
+        "deploymentEnvironment": null,
+        "permissions": "contents: read",
+        "classification": "disposable conformance only; no deploy or image publish job"
+      }
+    ],
+    "latestObservedWorkflowRun": {
+      "id": 28817449309,
+      "runNumber": 142,
+      "name": "conformance",
+      "event": "push",
+      "headSha": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1",
+      "conclusion": "success",
+      "createdAt": "2026-07-06T19:25:08Z",
+      "classification": "test execution, not production deployment"
+    },
+    "remoteMainDeploymentPathAudit": {
+      "productionDescriptorCount": 0,
+      "onlyOperationalWorkflow": ".github/workflows/conformance.yml",
+      "otherDeploymentNamedPaths": "OGC API domain source and gateway implementation, not infrastructure"
+    },
+    "containerPackageListing": {
+      "available": false,
+      "httpStatus": 403,
+      "missingScope": "read:packages"
+    }
+  },
+  "semops": {
+    "repository": "C360Studio/semops",
+    "visibility": "public",
+    "defaultBranch": "main",
+    "environmentCount": 0,
+    "deploymentCount": 0,
+    "workflowCount": 0,
+    "repositoryVariableCount": 0,
+    "repositorySecretNameCount": 0,
+    "deploymentFiles": ["deploy/caddy/Caddyfile"],
+    "classification": "greenfield/local smoke product; not an authoritative semconnect production deployment source"
+  },
+  "organizationMetadataGaps": {
+    "actionVariableNames": "HTTP 403; requires organization administrator or fine-grained permission",
+    "actionSecretNames": "HTTP 403; requires organization administrator or fine-grained permission",
+    "containerPackages": "HTTP 403; current token lacks read:packages"
+  },
+  "result": "GitHub exposes no semconnect production environment, deployment, release, or publishing workflow"
+}

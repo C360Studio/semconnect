@@ -1,0 +1,21 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "role": "technical-writer",
+  "decision": "not-applicable",
+  "reason": "The change aligns the Go SemStreams dependency and conformance backend pin and adds a Go pin-alignment test. It changes no browser contract, Svelte source, TypeScript type, UI dependency, or user interaction.",
+  "evidence": {
+    "acceptedBaseline": "95d6a6161374f45465f92bd491ba5b64fed30572",
+    "uiDiffExitCode": 0,
+    "uiTrackedChanges": 0,
+    "publicCsApiContractChanged": false,
+    "openApiChanged": false,
+    "conformanceClaimsChanged": false
+  },
+  "requiredLanes": {
+    "svelteDeveloper": false,
+    "svelteReviewer": false,
+    "browserOrAccessibilityRegression": false
+  },
+  "productionAuthorization": "withheld"
+}

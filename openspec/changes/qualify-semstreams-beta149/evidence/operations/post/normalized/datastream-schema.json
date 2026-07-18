@@ -1,0 +1,17 @@
+{
+  "obsFormat": "application/json",
+  "resultSchema": {
+    "fields": [
+      {
+        "name": "time",
+        "type": "Time"
+      },
+      {
+        "name": "temperature",
+        "type": "Quantity",
+        "uomCode": "Cel"
+      }
+    ],
+    "type": "DataRecord"
+  }
+}

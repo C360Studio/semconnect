@@ -1,0 +1,25 @@
+{
+  "formatVersion": "1.0.0",
+  "boundary": "all HTTP graph writers stopped before backend SIGTERM",
+  "teamengine": {
+    "containerId": "2cf74ee60c47e547f9bd17fb69b741a57a28245c54739b81a6b3e770da0db247",
+    "stopRequestedAt": "2026-07-18T16:49:32Z",
+    "finishedAt": "2026-07-18T16:49:33.002256459Z",
+    "exitCode": 143,
+    "oomKilled": false,
+    "error": "",
+    "leftStoppedForReview": true
+  },
+  "csApiServer": {
+    "containerId": "9be13abbd4c0b2a80dac4752139da2851d81f9ad5c0b8aca7ffdfc229d83f3bd",
+    "stopRequestedAt": "2026-07-18T16:49:46Z",
+    "finishedAt": "2026-07-18T16:49:46.840432382Z",
+    "exitCode": 0,
+    "oomKilled": false,
+    "error": ""
+  },
+  "frozenEntityRevision": 118,
+  "backendSignalAt": "2026-07-18T16:50:07Z",
+  "writersFrozenBeforeBackendSignal": true,
+  "natsRemainedRunning": true
+}

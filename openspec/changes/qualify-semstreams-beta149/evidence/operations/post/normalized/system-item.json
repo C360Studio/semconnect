@@ -1,0 +1,57 @@
+{
+  "definition": "http://www.w3.org/ns/ssn/System",
+  "description": "Minimal PhysicalSystem fixture used by the Stage 6 conformance harness. The Botts CS API ETS will POST this to the IUT once SensorML write paths land in the suite.",
+  "geometry": {
+    "coordinates": [
+      -122.4194,
+      37.7749,
+      10.0
+    ],
+    "type": "Point"
+  },
+  "id": "c360.semconnect.systems.csapi.system.weather-station-01",
+  "identifiers": [
+    "WS-CONF-0001"
+  ],
+  "label": "Conformance weather station",
+  "links": [
+    {
+      "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+      "rel": "self",
+      "type": "application/json"
+    },
+    {
+      "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+      "rel": "canonical",
+      "type": "application/json"
+    },
+    {
+      "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+      "rel": "alternate",
+      "type": "application/sml+json"
+    },
+    {
+      "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+      "rel": "alternate",
+      "type": "application/ld+json"
+    },
+    {
+      "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01/datastreams",
+      "rel": "datastreams",
+      "type": "application/json"
+    },
+    {
+      "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01/controlstreams",
+      "rel": "controlstreams",
+      "type": "application/json"
+    }
+  ],
+  "properties": {
+    "description": "Minimal PhysicalSystem fixture used by the Stage 6 conformance harness. The Botts CS API ETS will POST this to the IUT once SensorML write paths land in the suite.",
+    "name": "Conformance weather station",
+    "uid": "urn:ets:system:weather-station-01"
+  },
+  "type": "System",
+  "uid": "urn:ets:system:weather-station-01",
+  "uniqueId": "urn:ets:system:weather-station-01"
+}

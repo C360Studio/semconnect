@@ -1,0 +1,17 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "recordType": "technical-writer-receipt-of-operator-attestation",
+  "receivedAt": "2026-07-18T17:10:50Z",
+  "receivedFrom": "Codex agent /root acting as program manager",
+  "originalAttestingRole": "operator",
+  "operatorFinalReportStatement": "No production action was taken.",
+  "corroboratingEvidence": {
+    "path": "openspec/changes/qualify-semstreams-beta151/evidence/operations/operator-handoff.json",
+    "sha256": "dbff45e4b928a17cbd9b4bfb2669bb7fdb3c3f8c5f5ac1ad7fdb31047442c2ff",
+    "productionActionAuthorized": false,
+    "operatorDisposition": "PASS for independent review; no production authorization"
+  },
+  "scope": "Proves OpenSpec task 6.5 only; it is not a manifest approval or production go decision.",
+  "recordedBy": "Codex agent /root/technical_writer_beta147"
+}

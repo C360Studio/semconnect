@@ -1,0 +1,46 @@
+{
+  "items": [
+    {
+      "eventTime": "2026-05-19T12:00:00Z",
+      "eventType": "SystemChanged",
+      "id": "c360.semconnect.systems.csapi.systemevent.00Z",
+      "links": [
+        {
+          "href": "/systemEvents/c360.semconnect.systems.csapi.systemevent.00Z",
+          "rel": "self",
+          "type": "application/json"
+        },
+        {
+          "href": "/systemEvents/c360.semconnect.systems.csapi.systemevent.00Z",
+          "rel": "canonical",
+          "type": "application/json"
+        },
+        {
+          "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01/events/c360.semconnect.systems.csapi.systemevent.00Z",
+          "rel": "alternate",
+          "type": "application/json"
+        }
+      ],
+      "message": "Conformance seed system event",
+      "payload": {
+        "status": "nominal"
+      },
+      "source": "ets",
+      "system@id": "c360.semconnect.systems.csapi.system.weather-station-01",
+      "system@link": {
+        "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+        "rel": "system",
+        "title": "c360.semconnect.systems.csapi.system.weather-station-01",
+        "type": "application/json"
+      },
+      "time": "2026-05-19T12:00:00Z"
+    }
+  ],
+  "links": [
+    {
+      "href": "/systemEvents",
+      "rel": "self",
+      "type": "application/json"
+    }
+  ]
+}

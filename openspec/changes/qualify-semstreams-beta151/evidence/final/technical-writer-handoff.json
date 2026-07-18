@@ -1,0 +1,85 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "handoff": "technical-writer-to-program-manager",
+  "decision": "technical-candidate-qualified-production-no-go",
+  "completedTasks": ["6.1", "6.2", "6.5"],
+  "openTasks": ["6.3", "6.4"],
+  "qualifyingRunId": "2026-07-18T17-09-45Z",
+  "externalConformance": "137 passed, 0 failed, 0 skipped",
+  "noWeakening": "approved-by-technical-writer-and-go-reviewer",
+  "frontendDisposition": "not-applicable",
+  "currentDocumentationUpdated": [
+    {
+      "path": "README.md",
+      "sha256": "b3d8d5488ab7bf7ec20a53d1f971136af73d04e95b4dc0907ac7d2d59f522dda"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "c957c0e4b4edf12868ff8a8050b1ed643bfa30bec6ee11314f74a13976f0ea13"
+    },
+    {
+      "path": "conformance/README.md",
+      "sha256": "385892019da82c1ceda4bf258fa9f14bb7fb752a330d1239bec49ca8910d963f"
+    },
+    {
+      "path": "docs/000-getting-started.md",
+      "sha256": "0a71d52d3558f50dd10ada1421553cac057e642555155a7f7a43858d33c1ff43"
+    },
+    {
+      "path": "docs/upstream-asks/README.md",
+      "sha256": "91a29bbddf1e3ec90b92f5e6821ed4612cce7911e1ff6e267ab0af15f4475dd9"
+    }
+  ],
+  "roleHandoffs": {
+    "architect": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/architecture-handoff.json",
+      "sha256": "9aa619f3b9796e72b449e6e8f36f6a00725dab19e6c2e6774de25a6ec9a33a18"
+    },
+    "goDeveloper": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/development/go/go-developer-handoff.json",
+      "sha256": "d4d3e8c9f088fee8e0da77e5e110a35b47ceec53259319f777be12c1c3875bb8"
+    },
+    "operator": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/operations/operator-handoff.json",
+      "sha256": "dbff45e4b928a17cbd9b4bfb2669bb7fdb3c3f8c5f5ac1ad7fdb31047442c2ff",
+      "evidenceManifestSha256": "e40e3b524ee79df0e5a78dc7cc7540e486bb1e65efea8a616c2dd7c81c80c4db",
+      "evidenceManifestFiles": 81
+    },
+    "goReviewer": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/review/go/review.json",
+      "sha256": "e7feab916ec22e84dc9073b90fae227777491d57c5f44b6c69c47ed9c24b78f9"
+    }
+  },
+  "evidenceManifest": {
+    "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/evidence-hashes.sha256",
+    "sha256": "7910811cdd33ff6c4857448949c3cb813fa92d9bbe87ffd769045aa8202be3ca",
+    "filesVerified": 8,
+    "excludes": ["technical-writer-handoff.json", "tasks.md"]
+  },
+  "production": {
+    "manifestSnapshot": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/production-cutover-manifest.blocked.json",
+      "sha256": "73cb520681c5b5a9b65558cd7827cdce392044fabd221c8e23f65be7b9d2431c"
+    },
+    "task6.3Complete": false,
+    "task6.4Complete": false,
+    "task6.5Complete": true,
+    "actionTaken": false,
+    "authorization": "withheld",
+    "decision": "no-go-missing-literal-deployment-values-and-approvals"
+  },
+  "historicalEvidence": {
+    "signedBeta147Modified": false,
+    "signedBeta149Modified": false,
+    "preApprovalBeta151RunHasQualificationAuthority": false
+  },
+  "signature": {
+    "type": "technical-writer-final-technical-qualification-attestation",
+    "signedByRole": "technical-writer",
+    "signedBy": "Codex agent /root/technical_writer_beta147",
+    "signedAt": "2026-07-18T17:19:29Z",
+    "candidateQualification": "approved",
+    "productionAuthorization": "withheld"
+  }
+}

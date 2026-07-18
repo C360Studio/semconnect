@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-07-18T10:42:01Z",
+  "expectedSemstreams": {
+    "commit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2",
+    "version": "v1.0.0-beta.149"
+  },
+  "repository": {
+    "branch": "codex/semstreams-beta147-migration",
+    "head": "95d6a6161374f45465f92bd491ba5b64fed30572"
+  },
+  "sourceHashes": {
+    "conformance/.ets-pin": "bf219bfdb0845b01ed4c8f6429280f39d8b2e75a51c3dd42d64fb17bb54e3ba0",
+    "conformance/compose.cs-api.config.json": "06163dd8a67580779478eeb992cba4be1be0c9f665f278c1f0cddfd72c0f32f2",
+    "conformance/compose.semstreams.config.json": "8f1ff9e8a10c90c4cec0fc15d087cd4007304bba1e283e01957b45d9876ad6d7",
+    "conformance/compose.yml": "820d6a7b2322743ef3de02f0093ffe191967fc2e6043b2454cbb5026d096f7f4",
+    "go.mod": "a41ce208147b015cd6e93d048481b847f6bee2b12d439bc8fb4196107d3fc530",
+    "go.sum": "6fb8194f5b78f830fed0fd8c28c9308d910ffe94d6cd50968128f92860a1960a"
+  },
+  "upstreamVendors": {
+    "ets": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+    "semstreams": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2"
+  }
+}

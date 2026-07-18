@@ -1,0 +1,46 @@
+{
+  "buildLog": {
+    "path": "conformance/output/compose-build-2026-07-18T16-40-05Z.log",
+    "sha256": "1228937e69873463a63d9c4a98890d40c7a8f9abc936ba9b3661c50cd780e6b9"
+  },
+  "capturedAt": "2026-07-18T16:47:52Z",
+  "expectedSemstreams": {
+    "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+    "sourceTree": "120eeb353afb7d07aa1b3180de05f75494bac1a8",
+    "tagObject": "784f22dc8d549d7781b88a2878bb679112aad494",
+    "version": "v1.0.0-beta.151"
+  },
+  "preBuildAttestation": {
+    "evidenceBundleSha256": "bb81bbba709a67c6580cc893274aa9f7d2dc79775e6dce3d7277592da361f9e0",
+    "path": "openspec/changes/qualify-semstreams-beta151/evidence/development/go/go-developer-handoff.json",
+    "sha256": "d4d3e8c9f088fee8e0da77e5e110a35b47ceec53259319f777be12c1c3875bb8",
+    "signedAt": "2026-07-18T16:36:17Z"
+  },
+  "qualifyingRunId": "2026-07-18T16-40-05Z",
+  "repository": {
+    "branch": "codex/semstreams-beta147-migration",
+    "head": "95d6a6161374f45465f92bd491ba5b64fed30572"
+  },
+  "sourceHashes": {
+    "conformance/.ets-pin": "c1558148ebd2eef82872e65b4623382857afa1a6fedc642ac357c7694dfa3e06",
+    "conformance/compose.cs-api.config.json": "06163dd8a67580779478eeb992cba4be1be0c9f665f278c1f0cddfd72c0f32f2",
+    "conformance/compose.semstreams.config.json": "8f1ff9e8a10c90c4cec0fc15d087cd4007304bba1e283e01957b45d9876ad6d7",
+    "conformance/compose.yml": "820d6a7b2322743ef3de02f0093ffe191967fc2e6043b2454cbb5026d096f7f4",
+    "conformance/run.sh": "4ebfcabbf8f4640642185d37d70ecd7c1593be5c7963e776c07a181341eba724",
+    "go.mod": "a66dd5e1e279836ff745b8f15d0c4e3ebca9c89eb1818c24414a88b8b8cc6362",
+    "go.sum": "e03ab0a5565ba46062811325e5b386f58f6b8bf28f2a53684920be3732fdafb5"
+  },
+  "upstreamVendors": {
+    "ets": {
+      "cleanMaterializedSource": true,
+      "commit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+      "drift": ""
+    },
+    "semstreams": {
+      "cleanMaterializedSource": true,
+      "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+      "drift": "",
+      "tree": "120eeb353afb7d07aa1b3180de05f75494bac1a8"
+    }
+  }
+}

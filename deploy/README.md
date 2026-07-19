@@ -1,7 +1,10 @@
 # Greenfield Compose deployment
 
-This bundle starts the complete pre-v1 semconnect product surface: NATS with JetStream, SemStreams beta.151, and the
+This bundle starts the complete pre-v1 semconnect product surface: NATS with JetStream, SemStreams beta.153, and the
 semconnect CS API. It is for a new NATS volume only. It has no state-import, upgrade, or old-state path.
+
+The beta.153 bundle passed clean-volume startup, canonical query readiness, normal stop, same-volume restart,
+persistence parity, and unchanged external `137/0/0`. It is production-ready for this greenfield pre-v1 scope.
 
 NATS is internal-only on the private Compose network and publishes no host ports, so it has no NATS credentials or
 secret inputs. Publishing NATS outside that network is a different security design and is not
@@ -25,8 +28,8 @@ waits for collection/query readiness, stops all three services normally, restart
 compares the normalized query proof byte-for-byte:
 
 ```sh
-SEMCONNECT_NATS_VOLUME=semconnect-beta151-rehearsal \
-  EVIDENCE_DIR=/tmp/semconnect-beta151-evidence \
+SEMCONNECT_NATS_VOLUME=semconnect-beta153-rehearsal \
+  EVIDENCE_DIR=/tmp/semconnect-beta153-evidence \
   ./deploy/verify-persistence.sh
 ```
 

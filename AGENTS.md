@@ -4,19 +4,18 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Repository status
 
-**Current dependency qualification:** ADR-S003 and the signed beta.147
-migration remain the product-boundary and graph-cutover foundation.
-`openspec/changes/qualify-semstreams-beta151/` qualifies SemStreams
-`v1.0.0-beta.151` at `ac75c322140fb2a6b55759d07a79874b4cb4d9cc` as the
-current candidate. The authoritative post-review fresh-volume 2026-07-18 run
-passed external `137/0/0`. Foreign-edge, structural fail-closed, trusted-RMW,
-clean normal SIGTERM, retained-state, revision-readiness, and no-write replay
-gates pass.
-Frontend/Svelte is N/A for this dependency-only delta. Production remains
-no-go while the greenfield Compose bundle is independently reviewed and its
-task 6.3 manifest awaits product-owner/operator decisions under task 6.4. No
-old NATS state or migration is in production scope. The Stage 55 result below
-is the beta.141 historical baseline.
+**Current dependency qualification:** ADR-S003 remains the durable
+product-boundary foundation; its beta.147 graph migration is historical.
+`openspec/changes/qualify-semstreams-beta153/` qualifies SemStreams
+`v1.0.0-beta.153` at `d2654e5a027138b8a9056863da5ed463ef767f37` as the
+qualified pin. Exact pin alignment, the live per-entity structural regression,
+full Go test/race/vet/build, focused upstream gates, clean-volume Compose
+persistence, and unchanged external `137/0/0` all pass. Independent review
+found no legacy/compatibility code or conformance weakening. Beta.151 remains a
+qualified historical baseline. Frontend/Svelte is N/A for this dependency-only
+delta. The greenfield Compose bundle is production-ready for standard startup
+on clean NATS; no migration, runtime manifest, or product-owner hash approval
+is in scope. The Stage 55 result below is the beta.141 historical baseline.
 
 **Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 + 51 + 52 + 53 + 54 + 55 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
@@ -112,9 +111,9 @@ is the beta.141 historical baseline.
   **Disposable beta.147 outcome (2026-07-18): `total=137 passed=137 failed=0 skipped=0`.**
   **Final-source beta.149 outcome (2026-07-18): `total=137 passed=137 failed=0 skipped=0`.**
   **Post-review beta.151 outcome (2026-07-18): `total=137 passed=137 failed=0 skipped=0`.**
-  Independent task 9.5 review found no ETS, fixture, OAS, or claim weakening.
-  This is not production authorization; the cutover and deployment gates above
-  remain open.
+  **Qualified beta.153 outcome (2026-07-19): `total=137 passed=137 failed=0 skipped=0`.**
+  Independent review found no ETS, fixture, OAS, claim, filter, skip, parser,
+  or harness weakening.
   Zero failures against our claimed conformance set. Stage 44 declares Part 2
   Datastreams/Observations and verifies the read-only surface: full Datastream collection
   items, canonical item reads, schema wrapper, global/nested Observation collections, and

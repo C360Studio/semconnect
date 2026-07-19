@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -22,11 +23,11 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-// TestBeta151StructuralMutationContract drives semconnect's real System
-// projection and adversarial requests through beta.151 graph-ingest over live
+// TestBeta153StructuralMutationContract drives semconnect's real System
+// projection and adversarial requests through beta.153 graph-ingest over live
 // NATS. Local preflight validation is valuable, but this test proves the shared
 // persistence choke point independently rejects malformed direct callers.
-func TestBeta151StructuralMutationContract(t *testing.T) {
+func TestBeta153StructuralMutationContract(t *testing.T) {
 	ctx := t.Context()
 	testNATS := natsclient.NewTestClient(t, natsclient.WithKV())
 	client := testNATS.Client
@@ -38,7 +39,7 @@ func TestBeta151StructuralMutationContract(t *testing.T) {
 	if err := gateway.bindProjectionContracts(ctx); err != nil {
 		t.Fatalf("bind System projection contract: %v", err)
 	}
-	store := startBeta151GraphIngest(t, ctx, client, testNATS.GetNativeConnection())
+	store := startBeta153GraphIngest(t, ctx, client, testNATS.GetNativeConnection())
 
 	fixture := filepath.Join("..", "..", "conformance", "fixtures", "system-hosted.sml.json")
 	body, err := os.ReadFile(fixture)
@@ -86,7 +87,7 @@ func TestBeta151StructuralMutationContract(t *testing.T) {
 	validUpdate := graph.UpdateEntityWithTriplesRequest{
 		Entity: &graph.EntityState{ID: parentID},
 		AddTriples: []message.Triple{{
-			Subject: parentID, Predicate: "sensorml.process.label", Object: "beta.151 validated",
+			Subject: parentID, Predicate: "sensorml.process.label", Object: "beta.153 validated",
 		}},
 	}
 	requestMutation(t, ctx, client, graphingest.SubjectEntityUpdateWithTriples, validUpdate)
@@ -95,9 +96,81 @@ func TestBeta151StructuralMutationContract(t *testing.T) {
 	if err := graph.UnmarshalEntityState(updated.Value(), &updatedState); err != nil {
 		t.Fatalf("validate updated parent: %v", err)
 	}
-	if !hasExactTriple(updatedState.Triples, parentID, "sensorml.process.label", "beta.151 validated") {
+	if !hasExactTriple(updatedState.Triples, parentID, "sensorml.process.label", "beta.153 validated") {
 		t.Fatalf("valid update was not persisted unchanged: %+v", updatedState.Triples)
 	}
+
+	t.Run("poison is scoped to one entity and out-of-band repair recovers without restart", func(t *testing.T) {
+		const isolatedID = "c360.semconnect.systems.csapi.system.isolated"
+		requestMutation(t, ctx, client, graphingest.SubjectEntityCreateWithTriples,
+			graph.CreateEntityWithTriplesRequest{
+				Entity: &graph.EntityState{ID: isolatedID, MessageType: systemProjectionMessageType},
+				Triples: []message.Triple{{
+					Subject: isolatedID, Predicate: "sensorml.process.label", Object: "beta.153 isolated",
+				}},
+			})
+
+		canonical := getKVEntry(t, ctx, store.kv, isolatedID)
+		canonicalBytes := bytes.Clone(canonical.Value())
+		poison := graph.EntityState{
+			ID:          isolatedID,
+			MessageType: systemProjectionMessageType,
+			Triples: []message.Triple{{
+				Subject: isolatedID, Predicate: "Invalid.Resident.Predicate", Object: "poison",
+			}},
+		}
+		poisonBytes, err := json.Marshal(poison)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := store.kv.Put(ctx, isolatedID, poisonBytes); err != nil {
+			t.Fatalf("poison isolated entity out-of-band: %v", err)
+		}
+
+		parentBytes, err := queryEntity(t, ctx, client, parentID)
+		if err != nil {
+			t.Fatalf("healthy entity %s became unreadable after poisoning %s: %v", parentID, isolatedID, err)
+		}
+		var healthy graph.EntityState
+		if err := graph.UnmarshalEntityState(parentBytes, &healthy); err != nil {
+			t.Fatalf("decode healthy entity %s: %v", parentID, err)
+		}
+		if healthy.ID != parentID {
+			t.Fatalf("healthy query returned entity %q, want %q", healthy.ID, parentID)
+		}
+
+		_, err = queryEntity(t, ctx, client, isolatedID)
+		var classified *errs.ClassifiedError
+		if !errors.As(err, &classified) || classified.Class != errs.ErrorFatal ||
+			classified.Code != graph.ErrorCodeGraphStateResetRequired {
+			t.Fatalf("poisoned entity query = %v, want fatal %s classification",
+				err, graph.ErrorCodeGraphStateResetRequired)
+		}
+		_, err = queryEntities(t, ctx, client, isolatedID)
+		if !errors.As(err, &classified) || classified.Class != errs.ErrorFatal ||
+			classified.Code != graph.ErrorCodeGraphStateResetRequired {
+			t.Fatalf("poisoned aggregate query = %v, want fatal %s classification",
+				err, graph.ErrorCodeGraphStateResetRequired)
+		}
+		if !strings.Contains(err.Error(), isolatedID) {
+			t.Fatalf("poisoned aggregate error %q does not name scoped entity %s", err, isolatedID)
+		}
+
+		if _, err := store.kv.Put(ctx, isolatedID, canonicalBytes); err != nil {
+			t.Fatalf("repair isolated entity out-of-band: %v", err)
+		}
+		repairedBytes, err := queryEntity(t, ctx, client, isolatedID)
+		if err != nil {
+			t.Fatalf("out-of-band repaired entity did not recover without graph-ingest restart: %v", err)
+		}
+		var repaired graph.EntityState
+		if err := graph.UnmarshalEntityState(repairedBytes, &repaired); err != nil {
+			t.Fatalf("decode repaired entity: %v", err)
+		}
+		if !hasExactTriple(repaired.Triples, isolatedID, "sensorml.process.label", "beta.153 isolated") {
+			t.Fatalf("repaired entity did not restore canonical state: %+v", repaired.Triples)
+		}
+	})
 
 	for _, test := range []struct {
 		name   string
@@ -198,17 +271,17 @@ func TestBeta151StructuralMutationContract(t *testing.T) {
 	})
 }
 
-type beta151GraphStore struct {
+type beta153GraphStore struct {
 	kv     jetstream.KeyValue
 	stream jetstream.Stream
 }
 
-func startBeta151GraphIngest(
+func startBeta153GraphIngest(
 	t *testing.T,
 	ctx context.Context,
 	client *natsclient.Client,
 	rawConnection *nats.Conn,
-) beta151GraphStore {
+) beta153GraphStore {
 	t.Helper()
 
 	config := graphingest.DefaultConfig()
@@ -251,10 +324,10 @@ func startBeta151GraphIngest(
 	if err != nil {
 		t.Fatalf("open entity-state stream: %v", err)
 	}
-	return beta151GraphStore{kv: kv, stream: stream}
+	return beta153GraphStore{kv: kv, stream: stream}
 }
 
-func (s beta151GraphStore) lastRevision(t *testing.T, ctx context.Context) uint64 {
+func (s beta153GraphStore) lastRevision(t *testing.T, ctx context.Context) uint64 {
 	t.Helper()
 	info, err := s.stream.Info(ctx)
 	if err != nil {
@@ -283,6 +356,34 @@ func requestMutation(t *testing.T, ctx context.Context, client *natsclient.Clien
 		t.Fatalf("request %s: %v", subject, err)
 	}
 	return response
+}
+
+func queryEntity(
+	t *testing.T,
+	ctx context.Context,
+	client *natsclient.Client,
+	entityID string,
+) ([]byte, error) {
+	t.Helper()
+	payload, err := json.Marshal(map[string]string{"id": entityID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return client.RequestClassified(ctx, "graph.ingest.query.entity", payload, 2*time.Second)
+}
+
+func queryEntities(
+	t *testing.T,
+	ctx context.Context,
+	client *natsclient.Client,
+	entityIDs ...string,
+) ([]byte, error) {
+	t.Helper()
+	payload, err := json.Marshal(map[string][]string{"ids": entityIDs})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return client.RequestClassified(ctx, "graph.ingest.query.batch", payload, 2*time.Second)
 }
 
 func mutationError(t *testing.T, ctx context.Context, client *natsclient.Client, subject string, request any) error {

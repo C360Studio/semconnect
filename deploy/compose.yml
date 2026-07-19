@@ -17,9 +17,9 @@ services:
     networks: [backend]
 
   semstreams:
-    image: semconnect-semstreams:v1.0.0-beta.151
+    image: semconnect-semstreams:v1.0.0-beta.153
     build:
-      context: https://github.com/C360Studio/semstreams.git#ac75c322140fb2a6b55759d07a79874b4cb4d9cc
+      context: https://github.com/C360Studio/semstreams.git#d2654e5a027138b8a9056863da5ed463ef767f37
       dockerfile_inline: |
         FROM golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 AS builder
         RUN apk add --no-cache git ca-certificates tzdata
@@ -30,9 +30,9 @@ services:
         RUN CGO_ENABLED=0 go build \
             -trimpath \
             -ldflags="-w -s \
-              -X main.Version=v1.0.0-beta.151 \
-              -X main.GitCommit=ac75c322140fb2a6b55759d07a79874b4cb4d9cc \
-              -X main.BuildTime=2026-07-18T00:00:00Z" \
+              -X main.Version=v1.0.0-beta.153 \
+              -X main.GitCommit=d2654e5a027138b8a9056863da5ed463ef767f37 \
+              -X main.BuildTime=2026-07-19T00:00:00Z" \
             -o /build/semstreams-bin ./cmd/semstreams
 
         FROM alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS production
@@ -62,7 +62,7 @@ services:
     networks: [backend]
 
   semconnect:
-    image: semconnect-cs-api:beta.151
+    image: semconnect-cs-api:beta.153
     build:
       context: ..
       dockerfile: Dockerfile
@@ -87,7 +87,7 @@ services:
 
   canonical-smoke:
     profiles: ["smoke"]
-    image: semconnect-canonical-smoke:beta.151
+    image: semconnect-canonical-smoke:beta.153
     build:
       context: ..
       dockerfile: deploy/probe/Dockerfile
@@ -101,7 +101,7 @@ services:
 
   greenfield-preflight:
     profiles: ["smoke"]
-    image: semconnect-canonical-smoke:beta.151
+    image: semconnect-canonical-smoke:beta.153
     build:
       context: ..
       dockerfile: deploy/probe/Dockerfile

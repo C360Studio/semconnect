@@ -22,14 +22,19 @@ closed; it did not authorize production.
 
 The dependent beta.149 qualification subsequently passed `137/0/0` and closed
 the beta.147 heartbeat shutdown blocker. It remains signed historical evidence.
-The current OpenSpec change, `openspec/changes/qualify-semstreams-beta151/`,
-qualifies beta.151's structural fail-closed and trusted-RMW changes. Its
-authoritative post-review fresh-volume run passed `137/0/0`; retained-state,
-normal-SIGTERM, readiness, no-write replay, and foreign-edge gates pass.
-Frontend/Svelte is N/A because the public CS API and UI did not change.
-Production remains governed by the unmodified ADR-S003 manifest and approval
-requirements, which are incomplete.
-The earlier beta.151 `17-06-05Z` run remains pre-approval rehearsal evidence.
+Beta.151 then passed its authoritative post-review fresh-volume `137/0/0` run,
+retained-state, normal-SIGTERM, readiness, no-write replay, and foreign-edge
+gates. It is the current qualified historical baseline.
+
+The active OpenSpec change,
+`openspec/changes/qualify-semstreams-beta153/`, qualifies beta.153's graph-ingest
+bug and performance fixes. Its exact pin, live per-entity structural regression,
+full Go test/race/vet/build, focused upstream, clean-volume Compose persistence,
+and unchanged external `137/0/0` gates pass. Independent review found no
+legacy/compatibility code or conformance weakening. Frontend/Svelte is N/A
+because the public CS API and UI did not change. The beta.153 Compose bundle is
+production-ready for standard startup on clean NATS; there is no migration,
+runtime manifest, or product-owner hash approval.
 
 The framework half of [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
 (Phases 2-6) is complete and merged on `semstreams` main.

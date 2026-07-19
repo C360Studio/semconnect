@@ -11,9 +11,10 @@ import (
 const (
 	semstreamsModule     = "github.com/c360studio/semstreams"
 	semstreamsRepository = "https://github.com/C360Studio/semstreams.git"
-	semstreamsVersion    = "v1.0.0-beta.151"
-	semstreamsTagObject  = "784f22dc8d549d7781b88a2878bb679112aad494"
-	semstreamsCommit     = "ac75c322140fb2a6b55759d07a79874b4cb4d9cc"
+	semstreamsVersion    = "v1.0.0-beta.153"
+	semstreamsTagObject  = "ee011caee8a137b8dfb01d7634e9bb09519818b8"
+	semstreamsCommit     = "d2654e5a027138b8a9056863da5ed463ef767f37"
+	semstreamsTree       = "dc7422aa9fd93ec446dca73a33e0c602b6601111"
 )
 
 func TestSemStreamsPinsAreAligned(t *testing.T) {
@@ -59,7 +60,8 @@ func TestSemStreamsPinsAreAligned(t *testing.T) {
 		"SEMSTREAMS_VERSION":     semstreamsVersion,
 		"SEMSTREAMS_TAG_OBJECT":  semstreamsTagObject,
 		"SEMSTREAMS_COMMIT":      semstreamsCommit,
-		"SEMSTREAMS_COMMIT_DATE": "2026-07-18",
+		"SEMSTREAMS_TREE":        semstreamsTree,
+		"SEMSTREAMS_COMMIT_DATE": "2026-07-19",
 	} {
 		values := assignments[key]
 		if len(values) != 1 || values[0] != want {
@@ -72,16 +74,16 @@ func TestActiveModuleRequirementsRejectTextualFalsePositives(t *testing.T) {
 	t.Parallel()
 
 	contents := `
-// require github.com/c360studio/semstreams v1.0.0-beta.151
+// require github.com/c360studio/semstreams v1.0.0-beta.153
 require (
-	github.com/c360studio/semstreams v1.0.0-beta.151
+	github.com/c360studio/semstreams v1.0.0-beta.153
 )
 require github.com/c360studio/semstreams v1.0.0-beta.149 // duplicate active requirement
 `
 
 	got := activeModuleRequirements(contents, semstreamsModule)
 	if len(got) != 2 || got[0] != semstreamsVersion || got[1] != "v1.0.0-beta.149" {
-		t.Fatalf("active requirements = %q, want beta.151 and beta.149 without commented occurrence", got)
+		t.Fatalf("active requirements = %q, want beta.153 and beta.149 without commented occurrence", got)
 	}
 }
 
@@ -90,7 +92,7 @@ func TestShellAssignmentsPreserveDuplicateEffectivePins(t *testing.T) {
 
 	assignments := shellAssignments(`
 # SEMSTREAMS_VERSION=v1.0.0-beta.149
-SEMSTREAMS_VERSION=v1.0.0-beta.151
+SEMSTREAMS_VERSION=v1.0.0-beta.153
 SEMSTREAMS_VERSION=v1.0.0-beta.150
 `)
 	got := assignments["SEMSTREAMS_VERSION"]

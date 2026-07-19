@@ -1,0 +1,533 @@
+teamengine-1  | NOTE: Picked up JDK_JAVA_OPTIONS:  --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+teamengine-1  | 19-Jul-2026 13:29:22.382 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/8.5.100
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Mar 19 2024 13:54:42 UTC
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 8.5.100.0
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            6.12.76-linuxkit
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          aarch64
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /opt/java/openjdk
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           17.0.10+7
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Eclipse Adoptium
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/tomcat
+teamengine-1  | 19-Jul-2026 13:29:22.384 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/tomcat
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms1024m
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx2048m
+teamengine-1  | 19-Jul-2026 13:29:22.385 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -DTE_BASE=/usr/local/tomcat/te_base
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dlog4j2.formatMsgNoLookups=true
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dignore.endorsed.dirs=
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local/tomcat
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local/tomcat
+teamengine-1  | 19-Jul-2026 13:29:22.386 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local/tomcat/temp
+teamengine-1  | 19-Jul-2026 13:29:22.387 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [1.2.39] using APR version [1.7.0].
+teamengine-1  | 19-Jul-2026 13:29:22.387 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR capabilities: IPv6 [true], sendfile [true], accept filters [false], random [true], UDS [{4}].
+teamengine-1  | 19-Jul-2026 13:29:22.387 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR/OpenSSL configuration: useAprConnector [false], useOpenSSL [true]
+teamengine-1  | 19-Jul-2026 13:29:22.388 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.2 15 Mar 2022]
+teamengine-1  | 19-Jul-2026 13:29:22.405 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+teamengine-1  | 19-Jul-2026 13:29:22.418 INFO [main] org.apache.catalina.startup.Catalina.load Initialization processed in 267 ms
+teamengine-1  | 19-Jul-2026 13:29:22.433 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+teamengine-1  | 19-Jul-2026 13:29:22.433 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/8.5.100]
+teamengine-1  | 19-Jul-2026 13:29:22.436 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/usr/local/tomcat/webapps/teamengine]
+teamengine-1  | 19-Jul-2026 13:29:22.445 WARNING [localhost-startStop-1] org.apache.catalina.startup.SetContextPropertiesRule.begin [SetContextPropertiesRule]{Context} Setting property 'processTlds' to 'false' did not find a matching property.
+teamengine-1  | 19-Jul-2026 13:29:22.445 WARNING [localhost-startStop-1] org.apache.catalina.startup.SetContextPropertiesRule.begin [SetContextPropertiesRule]{Context} Setting property 'aliases' to '/docs=/usr/local/tomcat/te_base/resources/docs,/about=/usr/local/tomcat/te_base/scripts,/reports=/usr/local/tomcat/te_base/users,/site=/usr/local/tomcat/te_base/resources/site' did not find a matching property.
+teamengine-1  | 19-Jul-2026 13:29:22.446 WARNING [localhost-startStop-1] org.apache.tomcat.util.digester.SetPropertiesRule.begin [SetPropertiesRule]{Context/Realm} Setting property 'root' to '/usr/local/tomcat/te_base/users' did not find a matching property.
+teamengine-1  | Jul 19, 2026 1:29:23 PM org.apache.tomcat.dbcp.dbcp2.BasicDataSourceFactory getObjectInstance
+teamengine-1  | WARNING: Name = EPSG Property maxActive is not used in DBCP2, use maxTotal instead. maxTotal default value is 8. You have set value of "8" for "maxActive" property, which is being ignored.
+teamengine-1  | 19-Jul-2026 13:29:23.918 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/usr/local/tomcat/webapps/teamengine] has finished in [1,481] ms
+teamengine-1  | 19-Jul-2026 13:29:23.919 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+teamengine-1  | 19-Jul-2026 13:29:23.923 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in 1505 ms
+teamengine-1  | 19-Jul-2026 13:29:32.960 WARNING [http-nio-8080-exec-4] org.apache.catalina.connector.Response.setContentType The encoding ['utf-8'] is not recognised by the JRE
+teamengine-1  | 	java.lang.IllegalArgumentException: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1  | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:479)
+teamengine-1  | 		at org.apache.catalina.connector.Response.setContentType(Response.java:760)
+teamengine-1  | 		at org.apache.catalina.connector.Response.checkSpecialHeader(Response.java:1055)
+teamengine-1  | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1037)
+teamengine-1  | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1016)
+teamengine-1  | 		at org.apache.catalina.connector.ResponseFacade.addHeader(ResponseFacade.java:406)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeHeaders(WebComponent.java:340)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeStatusAndHeaders(WebComponent.java:328)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.initiate(WebComponent.java:319)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.write(WebComponent.java:299)
+teamengine-1  | 		at com.sun.jersey.spi.container.ContainerResponse$CommittingOutputStream.write(ContainerResponse.java:135)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.writeBytes(Unknown Source)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.implFlushBuffer(Unknown Source)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.implFlush(Unknown Source)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.flush(Unknown Source)
+teamengine-1  | 		at java.base/java.io.OutputStreamWriter.flush(Unknown Source)
+teamengine-1  | 		at java.base/java.io.BufferedWriter.flush(Unknown Source)
+teamengine-1  | 		at net.sf.saxon.event.XMLEmitter.close(XMLEmitter.java:262)
+teamengine-1  | 		at net.sf.saxon.event.UncommittedSerializer.close(UncommittedSerializer.java:53)
+teamengine-1  | 		at net.sf.saxon.event.ProxyReceiver.close(ProxyReceiver.java:90)
+teamengine-1  | 		at net.sf.saxon.dom.DOMSender.send(DOMSender.java:100)
+teamengine-1  | 		at net.sf.saxon.dom.DOMObjectModel.sendSource(DOMObjectModel.java:112)
+teamengine-1  | 		at net.sf.saxon.event.Sender.send(Sender.java:218)
+teamengine-1  | 		at net.sf.saxon.IdentityTransformer.transform(IdentityTransformer.java:29)
+teamengine-1  | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:208)
+teamengine-1  | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:172)
+teamengine-1  | 		at com.sun.jersey.spi.container.ContainerResponse.write(ContainerResponse.java:302)
+teamengine-1  | 		at com.sun.jersey.server.impl.application.WebApplicationImpl._handleRequest(WebApplicationImpl.java:1510)
+teamengine-1  | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1419)
+teamengine-1  | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1409)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent.service(WebComponent.java:409)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:558)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:733)
+teamengine-1  | 		at javax.servlet.http.HttpServlet.service(HttpServlet.java:583)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:212)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1  | 		at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1  | 		at com.occamlab.te.realm.RestAuthenticationFilter.doFilter(RestAuthenticationFilter.java:72)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1  | 		at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+teamengine-1  | 		at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+teamengine-1  | 		at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+teamengine-1  | 		at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+teamengine-1  | 		at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+teamengine-1  | 		at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:679)
+teamengine-1  | 		at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+teamengine-1  | 		at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+teamengine-1  | 		at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:617)
+teamengine-1  | 		at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+teamengine-1  | 		at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:934)
+teamengine-1  | 		at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1690)
+teamengine-1  | 		at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+teamengine-1  | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+teamengine-1  | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+teamengine-1  | 		at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+teamengine-1  | 		at java.base/java.lang.Thread.run(Unknown Source)
+teamengine-1  | 	Caused by: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1  | 		at org.apache.tomcat.util.buf.B2CConverter.getCharsetLower(B2CConverter.java:85)
+teamengine-1  | 		at org.apache.tomcat.util.buf.B2CConverter.getCharset(B2CConverter.java:63)
+teamengine-1  | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:477)
+teamengine-1  | 		... 58 more
+teamengine-1  | log4j:WARN No appenders could be found for logger (Jena).
+teamengine-1  | log4j:WARN Please initialize the log4j system properly.
+teamengine-1  | log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+teamengine-1  | Jul 19, 2026 1:29:33 PM org.glassfish.jersey.client.innate.inject.NonInjectionManager <init>
+teamengine-1  | WARNING: Jersey-HK2 module is missing. Falling back to injection-less client. Injection may not be supported on the client.
+teamengine-1  | Jul 19, 2026 1:29:33 PM org.glassfish.jersey.message.internal.MessagingBinders$EnabledProvidersBinder bindToBinder
+teamengine-1  | WARNING: A class jakarta.activation.DataSource for a default provider MessageBodyWriter<jakarta.activation.DataSource> was not found. The provider is not available.
+teamengine-1  | [Fatal Error] entity-5529467651008396114.tmp:1:1: Content is not allowed in prolog.
+teamengine-1  | Request: GET http://cs-api-server:8080
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/api
+teamengine-1  | 	Accept=*/*
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/collections
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/?f=json
+teamengine-1  | 	Accept=*/*
+teamengine-1  | Request: GET http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Part 2 API Common group reached runtime after Core/Common prerequisites resolved.
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/commands?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systemEvents?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | IUT declares both /conf/datastream and /conf/api-common; full-class prerequisite is visible.
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/schema
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations/ets-observation-001
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/datastreams?limit=100
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/commands?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | IUT declares both /conf/controlstream and /conf/api-common; full-class prerequisite is visible.
+teamengine-1  | Request: GET http://cs-api-server:8080/controls/c360.semconnect.systems.csapi.controlstream.ptz-01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/schema
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/commands?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/commands?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/controlstreams?limit=100
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstream/c360.semconnect.systems.csapi.controlstream.ptz-01/feasibility?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/feasibility?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/feasibility/c360.semconnect.systems.csapi.feasibility.ets-ptz-001
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/collections?limit=100
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/collections/all_feasibility/items?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | IUT declares both /conf/feasibility and /conf/controlstream; full-class prerequisite is visible.
+teamengine-1  | Request: GET http://cs-api-server:8080/feasibility?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/feasibility/c360.semconnect.systems.csapi.feasibility.ets-ptz-001/result?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/feasibility?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/feasibility/c360.semconnect.systems.csapi.feasibility.ets-ptz-001/status?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/collections
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01/subsystems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.hosted-platform-bake-01/subsystems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/subsystems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/subsystems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/samplingFeatures
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/samplingFeatures/c360.semconnect.systems.csapi.samplingfeature.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/properties
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/geo+json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1  | 	Accept=application/geo+json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1  | 	Accept=application/geo+json
+teamengine-1  | Request: GET http://cs-api-server:8080/samplingFeatures?limit=1
+teamengine-1  | 	Accept=application/geo+json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: POST http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | 	Content-Type=application/geo+json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.ced53cf9-d73d-4562-b238-cf1f053d8e9c
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.ced53cf9-d73d-4562-b238-cf1f053d8e9c
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/samplingFeatures?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/samplingFeatures/c360.semconnect.systems.csapi.samplingfeature.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/sml+json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=application/sml+json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1  | 	Accept=application/sml+json
+teamengine-1  | Deployment SensorML representation source: direct Accept application/sml+json (http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01)
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1  | 	Accept=application/sml+json
+teamengine-1  | Procedure SensorML representation source: direct Accept application/sml+json (http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01)
+teamengine-1  | Request: GET http://cs-api-server:8080/properties?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature
+teamengine-1  | 	Accept=application/sml+json
+teamengine-1  | Property SensorML representation source: direct Accept application/sml+json (http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature)
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1  | 	Accept=application/sml+json
+teamengine-1  | Request: POST http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | 	Content-Type=application/sml+json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.042a310e-26a7-44e8-8846-a74eae1ab8c7
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.042a310e-26a7-44e8-8846-a74eae1ab8c7
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1  | 	Accept=application/sml+json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?geom=POLYGON%28%28-180%20-90%2C180%20-90%2C180%2090%2C-180%2090%2C-180%20-90%29%29
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?id=c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?q=Conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: OPTIONS http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=*/*
+teamengine-1  | Request: OPTIONS http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=*/*
+teamengine-1  | Request: POST http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | 	Content-Type=application/json
+teamengine-1  | Request: PUT http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.a110836a-bc7c-41e1-ab50-04c60b7a615e
+teamengine-1  | 	Accept=application/json
+teamengine-1  | 	Content-Type=application/json
+teamengine-1  | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.a110836a-bc7c-41e1-ab50-04c60b7a615e
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systemEvents?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systemEvents/c360.semconnect.systems.csapi.systemevent.00Z
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/collections?limit=100
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/collections/all_system_events/items?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | IUT declares /conf/system-event, /conf/api-common, and Part 1 /conf/system prerequisites.
+teamengine-1  | Request: GET http://cs-api-server:8080/systemEvents?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01/events?limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | IUT declares Part 2 /conf/advanced-filtering and its visible prerequisite classes.
+teamengine-1  | Request: GET http://cs-api-server:8080/commands?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/commands?issueTime=2026-05-19T12%3A00%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/commands?executionTime=2026-05-19T12%3A01%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/commands?statusCode=accepted&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/commands?sender=ets&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?controlledProperty=http%3A%2F%2Fsensorml.com%2Font%2Fswe%2Fproperty%2FPanAngle&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?issueTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/controlstreams?executionTime=2026-06-02T18%3A05%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams?observedProperty=http%3A%2F%2Fwww.w3.org%2Fns%2Fsosa%2FProperty%2FAirTemperature&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams?phenomenonTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/datastreams?resultTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations?phenomenonTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/observations?resultTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systemEvents?limit=10
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systemEvents?eventType=SystemChanged&limit=2
+teamengine-1  | 	Accept=application/json
+teamengine-1  | SensorML representation source: direct Accept application/sml+json on selected system (http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01)
+teamengine-1  | Request: GET http://cs-api-server:8080/conformance
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: OPTIONS http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=*/*
+teamengine-1  | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: OPTIONS http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1  | 	Accept=*/*
+teamengine-1  | Request: POST http://cs-api-server:8080/systems
+teamengine-1  | 	Accept=application/json
+teamengine-1  | 	Content-Type=application/json
+teamengine-1  | Request: PATCH http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.1b625542-298e-4e8a-ac3a-6d946e2ed6aa
+teamengine-1  | 	Accept=application/json
+teamengine-1  | 	Content-Type=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.1b625542-298e-4e8a-ac3a-6d946e2ed6aa
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.1b625542-298e-4e8a-ac3a-6d946e2ed6aa
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01/subdeployments
+teamengine-1  | 	Accept=application/json
+teamengine-1  | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.child01
+teamengine-1  | 	Accept=application/json
+teamengine-1  | 19-Jul-2026 13:29:35.373 WARNING [http-nio-8080-exec-6] org.apache.catalina.connector.Response.setContentType The encoding ['utf-8'] is not recognised by the JRE
+teamengine-1  | 	java.lang.IllegalArgumentException: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1  | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:479)
+teamengine-1  | 		at org.apache.catalina.connector.Response.setContentType(Response.java:760)
+teamengine-1  | 		at org.apache.catalina.connector.Response.checkSpecialHeader(Response.java:1055)
+teamengine-1  | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1037)
+teamengine-1  | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1016)
+teamengine-1  | 		at org.apache.catalina.connector.ResponseFacade.addHeader(ResponseFacade.java:406)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeHeaders(WebComponent.java:340)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeStatusAndHeaders(WebComponent.java:328)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.initiate(WebComponent.java:319)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.write(WebComponent.java:299)
+teamengine-1  | 		at com.sun.jersey.spi.container.ContainerResponse$CommittingOutputStream.write(ContainerResponse.java:135)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.writeBytes(Unknown Source)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.implWrite(Unknown Source)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.implWrite(Unknown Source)
+teamengine-1  | 		at java.base/sun.nio.cs.StreamEncoder.write(Unknown Source)
+teamengine-1  | 		at java.base/java.io.OutputStreamWriter.write(Unknown Source)
+teamengine-1  | 		at java.base/java.io.BufferedWriter.flushBuffer(Unknown Source)
+teamengine-1  | 		at java.base/java.io.BufferedWriter.write(Unknown Source)
+teamengine-1  | 		at java.base/java.io.Writer.write(Unknown Source)
+teamengine-1  | 		at net.sf.saxon.event.XMLEmitter.writeCharSequence(XMLEmitter.java:622)
+teamengine-1  | 		at net.sf.saxon.event.XMLEmitter.writeEscape(XMLEmitter.java:715)
+teamengine-1  | 		at net.sf.saxon.event.XMLEmitter.writeAttribute(XMLEmitter.java:474)
+teamengine-1  | 		at net.sf.saxon.event.XMLEmitter.attribute(XMLEmitter.java:395)
+teamengine-1  | 		at net.sf.saxon.event.ProxyReceiver.attribute(ProxyReceiver.java:154)
+teamengine-1  | 		at net.sf.saxon.event.ProxyReceiver.attribute(ProxyReceiver.java:154)
+teamengine-1  | 		at net.sf.saxon.event.ReceivingContentHandler.startElement(ReceivingContentHandler.java:361)
+teamengine-1  | 		at org.apache.xerces.parsers.AbstractSAXParser.startElement(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.parsers.AbstractXMLDocumentParser.emptyElement(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.impl.XMLNSDocumentScannerImpl.scanStartElement(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.impl.XMLDocumentFragmentScannerImpl$FragmentContentDispatcher.dispatch(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.impl.XMLDocumentFragmentScannerImpl.scanDocument(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.parsers.XML11Configuration.parse(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.parsers.XML11Configuration.parse(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.parsers.XMLParser.parse(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.parsers.AbstractSAXParser.parse(Unknown Source)
+teamengine-1  | 		at org.apache.xerces.jaxp.SAXParserImpl$JAXPSAXParser.parse(Unknown Source)
+teamengine-1  | 		at net.sf.saxon.event.Sender.sendSAXSource(Sender.java:371)
+teamengine-1  | 		at net.sf.saxon.event.Sender.send(Sender.java:164)
+teamengine-1  | 		at net.sf.saxon.IdentityTransformer.transform(IdentityTransformer.java:29)
+teamengine-1  | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:208)
+teamengine-1  | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:172)
+teamengine-1  | 		at com.sun.jersey.spi.container.ContainerResponse.write(ContainerResponse.java:302)
+teamengine-1  | 		at com.sun.jersey.server.impl.application.WebApplicationImpl._handleRequest(WebApplicationImpl.java:1510)
+teamengine-1  | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1419)
+teamengine-1  | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1409)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.WebComponent.service(WebComponent.java:409)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:558)
+teamengine-1  | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:733)
+teamengine-1  | 		at javax.servlet.http.HttpServlet.service(HttpServlet.java:583)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:212)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1  | 		at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1  | 		at com.occamlab.te.realm.RestAuthenticationFilter.doFilter(RestAuthenticationFilter.java:72)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1  | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1  | 		at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+teamengine-1  | 		at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+teamengine-1  | 		at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+teamengine-1  | 		at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+teamengine-1  | 		at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+teamengine-1  | 		at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:679)
+teamengine-1  | 		at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+teamengine-1  | 		at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+teamengine-1  | 		at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:617)
+teamengine-1  | 		at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+teamengine-1  | 		at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:934)
+teamengine-1  | 		at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1690)
+teamengine-1  | 		at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+teamengine-1  | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+teamengine-1  | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+teamengine-1  | 		at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+teamengine-1  | 		at java.base/java.lang.Thread.run(Unknown Source)
+teamengine-1  | 	Caused by: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1  | 		at org.apache.tomcat.util.buf.B2CConverter.getCharsetLower(B2CConverter.java:85)
+teamengine-1  | 		at org.apache.tomcat.util.buf.B2CConverter.getCharset(B2CConverter.java:63)
+teamengine-1  | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:477)
+teamengine-1  | 		... 73 more

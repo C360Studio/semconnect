@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	beta151Commit = "ac75c322140fb2a6b55759d07a79874b4cb4d9cc"
-	natsDigest    = "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927"
+	beta153Version = "v1.0.0-beta.153"
+	beta153Commit  = "d2654e5a027138b8a9056863da5ed463ef767f37"
+	natsDigest     = "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927"
 )
 
 func TestComposeIsGreenfieldProductionTopology(t *testing.T) {
@@ -41,8 +42,11 @@ func TestComposeIsGreenfieldProductionTopology(t *testing.T) {
 	}
 
 	semstreams := services["semstreams"].(map[string]any)
+	if got := semstreams["image"]; got != "semconnect-semstreams:"+beta153Version {
+		t.Errorf("SemStreams image = %v, want beta.153 release tag", got)
+	}
 	build := mapping(t, semstreams, "build")
-	wantContext := "https://github.com/C360Studio/semstreams.git#" + beta151Commit
+	wantContext := "https://github.com/C360Studio/semstreams.git#" + beta153Commit
 	if build["context"] != wantContext {
 		t.Errorf("SemStreams build context = %v, want %s", build["context"], wantContext)
 	}
@@ -50,6 +54,20 @@ func TestComposeIsGreenfieldProductionTopology(t *testing.T) {
 	if !ok || !strings.Contains(inline, "0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2") ||
 		!strings.Contains(inline, "28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b") {
 		t.Error("SemStreams build does not pin both base images by digest")
+	}
+	for _, want := range []string{"-X main.Version=" + beta153Version, "-X main.GitCommit=" + beta153Commit} {
+		if !strings.Contains(inline, want) {
+			t.Errorf("SemStreams build metadata lacks %q", want)
+		}
+	}
+	for service, want := range map[string]string{
+		"semconnect":           "semconnect-cs-api:beta.153",
+		"canonical-smoke":      "semconnect-canonical-smoke:beta.153",
+		"greenfield-preflight": "semconnect-canonical-smoke:beta.153",
+	} {
+		if got := services[service].(map[string]any)["image"]; got != want {
+			t.Errorf("%s image = %v, want %s", service, got, want)
+		}
 	}
 	if strings.Contains(strings.ToLower(readFile(t, "compose.yml")), "teamengine") {
 		t.Error("production bundle includes TeamEngine/conformance authority")

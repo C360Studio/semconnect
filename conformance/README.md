@@ -12,35 +12,37 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-The authoritative post-review fresh-volume run `2026-07-18T17-09-45Z`
-against SemStreams beta.151 is:
+The authoritative beta.153 fresh-volume run `2026-07-19T13-27-02Z` is:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
 ```
 
-The migration candidate pins are:
+The qualified pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.151` at
-  `ac75c322140fb2a6b55759d07a79874b4cb4d9cc`.
+- semstreams backend `v1.0.0-beta.153` at
+  `d2654e5a027138b8a9056863da5ed463ef767f37`.
 
-The run reached graph-index revision `80/80` before Team Engine and the
-foreign-edge bake passed with the hosted-child lane exercised. The reviewed
-same-stack beta.151 rehearsal scanned retained `ENTITY_STATES` with zero poison,
-froze writers at `118/118`, stopped the backend with normal SIGTERM and exit
-code zero, returned to `118/118`, and reproduced all 12 normalized probes
-without writes. Structural rejection and trusted-RMW atomicity gates also
-passed. Evidence is indexed under
-`openspec/changes/qualify-semstreams-beta151/evidence/`.
+The run reached graph-index revision `80/80` before Team Engine. The foreign-edge
+bake passed with the hosted-child lane exercised and both unclaimed and dropped
+counts at zero. Exact pin alignment, the live per-entity structural regression,
+full Go test/race/vet/build, focused upstream gates, and clean-volume Compose
+persistence also pass. Independent review found no ETS, fixture, OpenAPI,
+declaration, filter, skip, parser, or harness weakening. The conformance stack
+was torn down after evidence capture.
 
-This does not authorize production. The inherited ADR-S003 immutable cutover
-manifest, literal deployment values, product-owner/operator approvals, and
-production execution/archive remain open. The beta.141, beta.147, and beta.149
-results remain historical evidence; their signed records are not rewritten.
-The earlier beta.151 run `2026-07-18T17-06-05Z` is also non-authoritative
-rehearsal evidence because it began before final reviewer signature.
+Beta.151 is the qualified historical baseline; beta.141, beta.147, and beta.149
+results also remain historical evidence. Their records are not rewritten.
+Pre-v1 production is standard Compose on a clean NATS volume. The beta.153
+bundle is production-ready without a runtime manifest or product-owner hash
+approval gate.
+
+Beta.153 evidence is under
+`openspec/changes/qualify-semstreams-beta153/evidence/`, including the
+ordinary external record `external-conformance.json` with archived artifact
+hashes.
 
 The run exercises real gateway/framework behavior:
 
@@ -132,9 +134,11 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_COMMIT=5cc22c109594e48b7f1cec04bcaaf0106d85495a
-SEMSTREAMS_COMMIT_DATE=2026-07-17
-SEMSTREAMS_VERSION=v1.0.0-beta.147
+SEMSTREAMS_TAG_OBJECT=ee011caee8a137b8dfb01d7634e9bb09519818b8
+SEMSTREAMS_COMMIT=d2654e5a027138b8a9056863da5ed463ef767f37
+SEMSTREAMS_TREE=dc7422aa9fd93ec446dca73a33e0c602b6601111
+SEMSTREAMS_COMMIT_DATE=2026-07-19
+SEMSTREAMS_VERSION=v1.0.0-beta.153
 ```
 
 Bumping is intentional, not auto-pulled.
@@ -157,17 +161,14 @@ gateway's compiled wire expectations match the running backend.
 2. Run `go mod tidy`.
 3. Resolve the tag commit SHA. Tags are annotated, so distinguish the tag
    object SHA from the commit SHA.
-4. Edit `SEMSTREAMS_COMMIT`, `SEMSTREAMS_COMMIT_DATE`, and
-   `SEMSTREAMS_VERSION`.
+4. Edit `SEMSTREAMS_TAG_OBJECT`, `SEMSTREAMS_COMMIT`, `SEMSTREAMS_TREE`,
+   `SEMSTREAMS_COMMIT_DATE`, and `SEMSTREAMS_VERSION`.
 5. Run `go test ./...`, `go build ./...`, and `./conformance/run.sh`.
 6. Include the framework delta and conformance result in the PR description.
 
-For a graph-state-breaking release such as beta.147, the pin procedure is not
-the deployment procedure. Follow ADR-S003 and
-`openspec/changes/migrate-semstreams-beta147/`: use a deployment-specific
-manifest, stop every writer, remove only approved incompatible graph state,
-reseed canonically, and prove revision/query/replay parity. Never start
-beta.147 on retained beta.141 graph state or beta.141 on rebuilt beta.147 state.
+The beta.147 migration procedure is historical. Current pre-v1 production is a
+greenfield deployment: use `deploy/compose.yml` only with a clean NATS volume.
+The bundle does not migrate, delete, translate, or import old state.
 
 ## NATS Config
 

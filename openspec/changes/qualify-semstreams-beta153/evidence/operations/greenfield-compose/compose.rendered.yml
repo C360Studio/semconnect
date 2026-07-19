@@ -1,0 +1,136 @@
+name: semconnect
+services:
+  nats:
+    command:
+      - -c
+      - /etc/nats/nats.conf
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O - http://localhost:8222/healthz >/dev/null || exit 1
+      timeout: 3s
+      interval: 5s
+      retries: 20
+      start_period: 5s
+    image: nats:2.10-alpine@sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927
+    networks:
+      backend: null
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: semconnect-nats-data
+        target: /data
+        volume: {}
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/nats.conf
+        target: /etc/nats/nats.conf
+        read_only: true
+        bind: {}
+  semconnect:
+    build:
+      context: /Users/coby/Code/c360/semconnect
+      dockerfile: Dockerfile
+    command:
+      - -config
+      - /etc/semconnect/config.json
+    depends_on:
+      nats:
+        condition: service_healthy
+        required: true
+      semstreams:
+        condition: service_healthy
+        required: true
+    healthcheck:
+      test:
+        - CMD
+        - /usr/local/bin/cs-api-server
+        - -healthcheck
+      timeout: 3s
+      interval: 5s
+      retries: 20
+      start_period: 5s
+    image: semconnect-cs-api:beta.153
+    networks:
+      backend: null
+      public: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "18081"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/semconnect.json
+        target: /etc/semconnect/config.json
+        read_only: true
+        bind: {}
+  semstreams:
+    build:
+      context: https://github.com/C360Studio/semstreams.git#d2654e5a027138b8a9056863da5ed463ef767f37
+      dockerfile_inline: |
+        FROM golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 AS builder
+        RUN apk add --no-cache git ca-certificates tzdata
+        WORKDIR /build
+        COPY go.mod go.sum ./
+        RUN go mod download
+        COPY . .
+        RUN CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags="-w -s \
+              -X main.Version=v1.0.0-beta.153 \
+              -X main.GitCommit=d2654e5a027138b8a9056863da5ed463ef767f37 \
+              -X main.BuildTime=2026-07-19T00:00:00Z" \
+            -o /build/semstreams-bin ./cmd/semstreams
+
+        FROM alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS production
+        RUN apk add --no-cache ca-certificates tzdata wget
+        RUN addgroup -S -g 1000 semstreams && \
+            adduser -S -u 1000 -G semstreams -h /app semstreams
+        WORKDIR /app
+        COPY --from=builder --chown=semstreams:semstreams /build/semstreams-bin /app/semstreams
+        RUN mkdir -p /etc/semstreams /data && chown -R semstreams:semstreams /etc/semstreams /data
+        USER semstreams
+        EXPOSE 8090 9090
+        ENTRYPOINT ["/app/semstreams"]
+      target: production
+    command:
+      - -config
+      - /etc/semstreams/config.json
+      - -debug-port
+      - "0"
+    depends_on:
+      nats:
+        condition: service_healthy
+        required: true
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:8090/health
+      timeout: 3s
+      interval: 5s
+      retries: 30
+      start_period: 20s
+    image: semconnect-semstreams:v1.0.0-beta.153
+    networks:
+      backend: null
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/semstreams.json
+        target: /etc/semstreams/config.json
+        read_only: true
+        bind: {}
+networks:
+  backend:
+    name: semconnect_backend
+    internal: true
+  public:
+    name: semconnect_public
+volumes:
+  semconnect-nats-data:
+    name: semconnect-beta153-rehearsal-1

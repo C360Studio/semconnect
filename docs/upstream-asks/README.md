@@ -9,12 +9,14 @@ resolved or transferred history without presenting it as an upstream blocker.
 
 ## Open asks
 
-No SemStreams framework ask currently blocks the beta.151 dependency
-candidate. Its structural fail-closed and trusted-RMW changes passed retained
-state, atomic-rejection, replay, and the authoritative post-review external run
-at `total=137 passed=137 failed=0 skipped=0`. Production is still gated by missing
-literal ADR-S003 deployment-manifest values and approvals, not by an open
-framework implementation ask.
+No SemStreams framework ask currently blocks the beta.153 dependency
+pin. Exact alignment, the live per-entity structural regression, full Go
+test/race/vet/build, focused upstream, clean-volume Compose persistence, and
+unchanged external `137/0/0` gates pass. Independent review found no
+legacy/compatibility code or conformance weakening. Beta.151 remains a
+qualified historical baseline. The beta.153 greenfield bundle is
+production-ready for standard Compose on clean NATS and has no migration or
+runtime-unused manifest approval gate.
 
 Transferred product-boundary history:
 

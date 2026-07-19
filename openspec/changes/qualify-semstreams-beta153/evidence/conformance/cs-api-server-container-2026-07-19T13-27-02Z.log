@@ -1,0 +1,12 @@
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.907438969Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.908851719Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.908913011Z","level":"INFO","msg":"connected to NATS","url":"nats://nats:4222"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.908970261Z","level":"INFO","msg":"initialized","component":"cs-api"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.911528927Z","level":"INFO","msg":"Using existing KV bucket","bucket":"OWNER_CLAIMS"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.912057219Z","level":"INFO","msg":"Using existing KV bucket","bucket":"OWNER_PRESENCE"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.915440302Z","level":"INFO","msg":"bound cs-api System projection contract","component":"cs-api","owner":"cs-api-systems","producer":"c360.csapi.system.v1","system_pattern":"c360.semconnect.systems.csapi.system.*"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.919219511Z","level":"INFO","msg":"started","component":"cs-api","standalone":true}
+cs-api-server-1  | {"time":"2026-07-19T13:29:21.919246636Z","level":"INFO","msg":"HTTP server listening","component":"cs-api","bind":"[::]:8080"}
+cs-api-server-1  | {"time":"2026-07-19T13:29:26.492683179Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","limit":100,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}
+cs-api-server-1  | {"time":"2026-07-19T13:29:34.183165752Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","limit":2,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}
+cs-api-server-1  | {"time":"2026-07-19T13:29:34.192630252Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","limit":10,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}

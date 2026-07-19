@@ -1,0 +1,43 @@
+{
+  "recordType": "semstreams-beta153-architecture-handoff",
+  "recordedAt": "2026-07-19",
+  "role": "architect",
+  "decision": "approved-for-implementation-and-qualification",
+  "target": {
+    "version": "v1.0.0-beta.153",
+    "tagObject": "ee011caee8a137b8dfb01d7634e9bb09519818b8",
+    "peeledCommit": "d2654e5a027138b8a9056863da5ed463ef767f37",
+    "sourceTree": "dc7422aa9fd93ec446dca73a33e0c602b6601111"
+  },
+  "baseline": {
+    "version": "v1.0.0-beta.151",
+    "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+    "sourceTree": "120eeb353afb7d07aa1b3180de05f75494bac1a8"
+  },
+  "risk": {
+    "highest": [
+      "graph-ingest per-entity poison response",
+      "graph-ingest contract-guard watcher retirement",
+      "predicate-validation memoization and write-path pass collapse"
+    ],
+    "favorableUnused": ["rule Health and DataFlow race fix"],
+    "unused": [
+      "rule length_gte and length_lte",
+      "agentic-loop terminal-reason fact",
+      "fusion graph projection facet"
+    ]
+  },
+  "requiredGates": [
+    "exact module, conformance, Compose, test, documentation, commit, and tree alignment",
+    "no compatibility, migration, legacy, dual-path, or relaxed-validation code",
+    "full downstream Go test, race, vet, and build",
+    "live-NATS structural mutation regression",
+    "focused upstream poison, watcher, memoization, write-gate, and rule race tests",
+    "fresh-volume Compose seed, readiness, normal stop, restart, and persistence parity",
+    "unchanged external 137 passed, 0 failed, 0 skipped plus no-weakening review"
+  ],
+  "frontendDisposition": "not-applicable-dependency-only",
+  "adrDisposition": "no-new-adr-durable-architecture-unchanged",
+  "productionDisposition": "standard-greenfield-compose-no-manifest-or-hash-approval-ceremony",
+  "reopenCondition": "Any required product behavior change or compatibility code reopens architecture review."
+}

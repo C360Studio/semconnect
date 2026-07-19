@@ -13,11 +13,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/pkg/swecommon"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/pkg/swecommon"
-	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 )
 
 const (
@@ -26,18 +26,18 @@ const (
 
 	PredControlStreamSystem               = csapivocab.ControlsSystem
 	PredCommandControlStream              = csapivocab.PartOfControlStream
-	predControlStreamInputName            = "cs-api.controlstream.inputName"
-	predControlStreamAsync                = "cs-api.controlstream.async"
-	predControlStreamCommandFormat        = "cs-api.controlstream.commandFormat"
+	predControlStreamInputName            = csapivocab.ControlStreamInputName
+	predControlStreamAsync                = csapivocab.ControlStreamAsync
+	predControlStreamCommandFormat        = csapivocab.ControlStreamCommandFormat
 	predControlStreamSchema               = csapivocab.HasCommandSchema
-	predControlStreamControlledProperties = "cs-api.controlstream.controlledProperties"
-	predControlStreamIssueTime            = "cs-api.controlstream.issueTime"
-	predControlStreamExecutionTime        = "cs-api.controlstream.executionTime"
-	predCommandIssueTime                  = "cs-api.command.issueTime"
-	predCommandExecutionTime              = "cs-api.command.executionTime"
-	predCommandStatus                     = "cs-api.command.status"
-	predCommandSender                     = "cs-api.command.sender"
-	predCommandParams                     = "cs-api.command.params"
+	predControlStreamControlledProperties = csapivocab.ControlStreamControlledProperties
+	predControlStreamIssueTime            = csapivocab.ControlStreamIssueTime
+	predControlStreamExecutionTime        = csapivocab.ControlStreamExecutionTime
+	predCommandIssueTime                  = csapivocab.CommandIssueTime
+	predCommandExecutionTime              = csapivocab.CommandExecutionTime
+	predCommandStatus                     = csapivocab.CommandStatus
+	predCommandSender                     = csapivocab.CommandSender
+	predCommandParams                     = csapivocab.CommandParams
 )
 
 type controlStreamCollection struct {
@@ -162,7 +162,7 @@ func controlStreamFromState(state graph.EntityState) controlStream {
 }
 
 func isControlStreamKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	return ok && typeIRI == ControlStreamTypeIRI
 }
 
@@ -200,7 +200,7 @@ func commandFromState(state graph.EntityState) command {
 }
 
 func isCommandKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	return ok && typeIRI == CommandTypeIRI
 }
 
@@ -638,11 +638,11 @@ func (c *Component) handleCommandPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Component) mintControlStreamEntityID(uniqueID string) string {
-	return c.cfg.ControlStreamIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.ControlStreamIDPrefix, []byte(uniqueID))
 }
 
 func (c *Component) mintCommandEntityID(uniqueID string) string {
-	return c.cfg.CommandIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.CommandIDPrefix, []byte(uniqueID))
 }
 
 func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Triple, commandSchema, error) {
@@ -692,7 +692,7 @@ func (c *Component) buildControlStreamTriples(body []byte) (string, []message.Tr
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: sensorml.PredDescription, Object: in.Description})
 	}
 	if in.SystemID != "" {
-		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredControlStreamSystem, Object: in.SystemID})
+		triples = append(triples, message.Triple{Subject: entityID, Predicate: PredControlStreamSystem, Object: in.SystemID, Datatype: message.EntityReferenceDatatype})
 	}
 	if in.IssueTime != "" {
 		triples = append(triples, message.Triple{Subject: entityID, Predicate: predControlStreamIssueTime, Object: in.IssueTime})
@@ -729,7 +729,7 @@ func (c *Component) buildCommandTriples(body []byte) (string, []message.Triple, 
 	}
 	triples := []message.Triple{
 		{Subject: entityID, Predicate: sensorml.PredType, Object: CommandTypeIRI},
-		{Subject: entityID, Predicate: PredCommandControlStream, Object: in.ControlStreamID},
+		{Subject: entityID, Predicate: PredCommandControlStream, Object: in.ControlStreamID, Datatype: message.EntityReferenceDatatype},
 		{Subject: entityID, Predicate: predCommandStatus, Object: in.Status},
 	}
 	if in.IssueTime != "" {

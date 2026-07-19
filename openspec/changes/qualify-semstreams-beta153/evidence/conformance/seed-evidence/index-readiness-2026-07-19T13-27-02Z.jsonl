@@ -1,0 +1,3 @@
+{"timestamp":"2026-07-19T13:29:31.854492Z","phase":"capture","attempt":1,"ready":true,"state":"ready","indexed_revision":80,"target_revision":80,"stable_target_sample_count":1}
+{"timestamp":"2026-07-19T13:29:32.856233Z","phase":"capture","attempt":2,"ready":true,"state":"ready","indexed_revision":80,"target_revision":80,"stable_target_sample_count":2}
+{"timestamp":"2026-07-19T13:29:32.856303Z","phase":"final","attempt":2,"ready":true,"state":"ready","captured_target_revision":80,"final_indexed_revision":80,"final_observed_target_revision":80}

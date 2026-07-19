@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "description": "Stage 49 seed fixture — hosted child system",
+      "id": "c360.semconnect.systems.csapi.system.01",
+      "links": [
+        {
+          "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01/subsystems/c360.semconnect.systems.csapi.system.01",
+          "rel": "self",
+          "type": "application/json"
+        },
+        {
+          "href": "/systems/c360.semconnect.systems.csapi.system.01",
+          "rel": "canonical",
+          "type": "application/json"
+        }
+      ],
+      "name": "Conformance seed subsystem",
+      "type": "System"
+    }
+  ],
+  "links": [
+    {
+      "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01/subsystems",
+      "rel": "self",
+      "type": "application/json"
+    }
+  ],
+  "numberMatched": 1,
+  "numberReturned": 1,
+  "type": "SystemCollection"
+}

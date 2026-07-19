@@ -1,0 +1,77 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "review": "go-spatial",
+  "reviewerRole": "go-reviewer",
+  "reviewer": "Codex agent /root/svelte_developer_beta147",
+  "reviewedAt": "2026-07-18T02:01:36Z",
+  "decision": "approved",
+  "sourceBundle": {
+    "sha256": "7aff5daa1643bb2969c955a0f64ad9fa31f3b9bdb8bc9ab30de3b2c6e05e0a20",
+    "fileHashesMatchedSignedHandoff": true,
+    "files": {
+      "gateway/cs-api/spatial.go": "9d3696138a116acdfa81a93bc0b2ca68006e9042f6795555e34561e77d046930",
+      "gateway/cs-api/spatial_test.go": "3a0259135094cbfc09c13058338d76d8003375ddeb0d4aee3ac297b46f721680",
+      "gateway/cs-api/spatial_projection_test.go": "95d6d0709a8c21a3d2732a82f47b6473a177b20d6768e8b16a1f126861295b2e",
+      "gateway/cs-api/systems_post.go": "f70cd96031321eff66a9bc233baaf97d12d13e08c2ff1c2c678907be53a0b703",
+      "gateway/cs-api/systems_patch.go": "30362822d10f40d9218eae5eb69107d4ab6c973674f0bb24598a4957ef7303cc",
+      "gateway/cs-api/deployments_post.go": "e99a9c48d135063d7af87670e978162b826ed3ae3d1fdab3926a20afdf4b0055",
+      "gateway/cs-api/sampling_features_post.go": "4ae8505cad5732992375d413c868ca8f1ec4519cb37916fb9a4586e077c1940a",
+      "gateway/cs-api/systems.go": "086d23a072ff382087237b3fcf9d2974991b44d88fbb39915ff7f754cbbc888a",
+      "gateway/cs-api/systems_test.go": "4b0750a7b457c2175823d3222d373b6c23e677c9368a4c92efe79670d622295d",
+      "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/wire-capture.md": "bcdde4883da692c3e5d7b0382a8bac866e64bc4a9500405e494c59196eee4a16",
+      "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/tdd-record.md": "40c6902e900ae21e913ff4e10119a34b57b6f726999d42374dfce8537761a45c",
+      "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/source-audit.md": "ead1591587428fd0e086b9c3bfe317f08f1c68f68b0bb68b565f63173a5519a7",
+      "openspec/changes/migrate-semstreams-beta147/evidence/development/go-spatial/verification.md": "73eb876894874730a68e8fb6028dd3fc15bf881988e163df00387c13876d60dc"
+    }
+  },
+  "findings": [],
+  "resolvedDuringReview": [
+    {
+      "severity": "blocking",
+      "finding": "JSON null was accepted by slice unmarshalling as an empty spatial result set despite the beta.147 bare-array-only contract.",
+      "resolution": "A failing-first null and whitespace-null regression test was captured; runSpatialQuery now rejects any response whose first non-whitespace token is not '[' before strict array decoding.",
+      "status": "resolved-and-reverified"
+    }
+  ],
+  "conclusions": {
+    "spatialWireContract": "approved: success accepts only the beta.147 bare JSON array; classified failures are interpreted from ADR-060 headers through natsclient.ClassifyReply",
+    "noLegacyMigrationCode": "approved: no pre-beta response envelope, body-text error parser, predicate alias, or compatibility fallback exists in the reviewed integration",
+    "publicProjection": "approved: Point writes use vocabulary.GeoLocationLongitude, vocabulary.GeoLocationLatitude, and vocabulary.GeoLocationAltitude",
+    "ownedRoundTripContract": "approved: sensorml.process.position remains the separate lossless CS API and SensorML geometry contract and is not an index input alias",
+    "writeCoverage": "approved: System Feature and SensorML builders, Deployment and Sampling Feature creates, and PATCH replacement are directly covered; PUT calls the same tested System Feature builder and forwards its triples unchanged through replace or upsert",
+    "patchStaleness": "approved: any non-null geometry replacement removes longitude, latitude, and altitude before appending a valid Point projection; Polygon replacement leaves no stale coordinates",
+    "noCentroid": "approved: only a valid geojson.Point projects coordinates; Polygon and all other geometry types remain round-trip data without an invented centroid",
+    "errorMapping": "approved: Invalid, Transient, and Fatal classified spatial replies map to 400, 503, and 500; malformed success payloads map to 500",
+    "entityNotFound": "approved: 404 promotion requires graph.ErrorCodeEntityNotFound; uncoded body text remains Invalid",
+    "tddIntegrity": "approved: the original response/projection/not-found red evidence and reviewer-found null red evidence are recorded separately and honestly",
+    "conformanceIntegrity": "approved: the reviewed bundle does not remove claims, add skips, disable tests, or modify the external ETS"
+  },
+  "verification": {
+    "commands": "commands.md",
+    "focusedTest": "pass-after-recorded-red-remediation",
+    "focusedRaceTest": "pass",
+    "allNonRealNATSTests": "pass",
+    "allNonRealNATSRaceTests": "pass",
+    "fullVet": "pass",
+    "fullBuild": "pass-with-managed-stat-cache-warning",
+    "sourceFallbackAudit": "pass-zero-matches",
+    "openSpecValidation": "pass",
+    "diffCheck": "pass",
+    "unfilteredRealNATS": "external-root-corroboration-only"
+  },
+  "limits": {
+    "realNATSTestsExecutedByReviewer": false,
+    "externalETSTestExecutedByReviewer": false,
+    "externalConformanceResultEstablishedByThisReview": false,
+    "productionAuthorization": "withheld",
+    "reason": "Approval is limited to the signed spatial implementation bundle. Operator rehearsal and the external zero-failure/zero-skip conformance gate remain separate requirements."
+  },
+  "signature": {
+    "type": "go-reviewer-approval",
+    "signedByRole": "go-reviewer",
+    "signedBy": "Codex agent /root/svelte_developer_beta147",
+    "signedAt": "2026-07-18T02:01:36Z",
+    "decision": "approved"
+  }
+}

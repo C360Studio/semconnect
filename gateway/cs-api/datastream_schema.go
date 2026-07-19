@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/c360studio/semconnect/pkg/swecommon"
 	"github.com/c360studio/semstreams/pkg/errs"
-	"github.com/c360studio/semstreams/pkg/swecommon"
 )
 
 func (c *Component) handleDatastreamSchema(w http.ResponseWriter, r *http.Request) {

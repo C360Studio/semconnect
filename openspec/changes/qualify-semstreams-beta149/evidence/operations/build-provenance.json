@@ -1,0 +1,50 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "qualifyingRunId": "2026-07-18T10-52-31Z",
+  "preBuildAttestation": {
+    "signedAt": "2026-07-18T10:39:30Z",
+    "handoffSha256": "093211565727024a64841900236a7a30bc1fe6180a272ab360069ca1103c33a0",
+    "evidenceBundleSha256": "b12f6f9daa8e8d81397b832f252df430bde5354cc17a78048a14c378096030fd",
+    "goModSha256": "a41ce208147b015cd6e93d048481b847f6bee2b12d439bc8fb4196107d3fc530",
+    "goSumSha256": "6fb8194f5b78f830fed0fd8c28c9308d910ffe94d6cd50968128f92860a1960a",
+    "etsPinSha256": "bf219bfdb0845b01ed4c8f6429280f39d8b2e75a51c3dd42d64fb17bb54e3ba0"
+  },
+  "buildLog": {
+    "path": "conformance/output/compose-build-2026-07-18T10-52-31Z.log",
+    "sha256": "8abcd2026c649d14375fb21d88d75b0279ff0c0b5eb13a494e2f799153faf2e9",
+    "bytes": 13510,
+    "iutEvidence": [
+      "line 213: cs-api-server build context loaded",
+      "line 220: COPY go.mod go.sum ./",
+      "line 221: COPY go.mod/go.sum completed and was not cached",
+      "line 229: COPY . .",
+      "line 230: source copy completed and was not cached",
+      "line 232: go build command executed",
+      "line 233: go build completed and was not cached",
+      "line 243: exported manifest-list sha256:0a0e73312b4dbd0c1b3b89b7c53f58b81c78b486dbbaee779aabe1a251adf864"
+    ],
+    "runtimeLayerCacheDisposition": "The final binary COPY layer was cached because the normalized source rebuilt to identical runtime bytes; the dependency/source COPY and go build steps were not cached."
+  },
+  "iut": {
+    "dockerfile": "Dockerfile",
+    "dockerfileSha256": "765a1f5e78e2778f9cac06f3ec118996e520ae8527bdd1d95d0337cceb94e489",
+    "composeBuildContext": "repository root",
+    "imageId": "sha256:0a0e73312b4dbd0c1b3b89b7c53f58b81c78b486dbbaee779aabe1a251adf864",
+    "containerId": "f049bb348741810c7552d11d39857a7e0d0767d1a8887c047c6cdc1e169c9754",
+    "containerCreatedAt": "2026-07-18T10:52:36.370710841Z",
+    "containerInitialStartedAt": "2026-07-18T10:52:47.686734346Z",
+    "imageConfigCreatedAt": "2026-07-18T10:36:22.486339418Z",
+    "imageConfigTimestampDisposition": "BuildKit reused the byte-identical final runtime layer; the qualifying manifest image ID and container are bound to the uncached final-source compilation above."
+  },
+  "backend": {
+    "vendorCommit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2",
+    "dockerfileSha256": "8da0ef9275df70e7df3419eb1909f68a44896511188ecfc6f376758ae5f8e78c",
+    "buildDisposition": "cached immutable vendor source and build layers",
+    "imageId": "sha256:b04da49c64399ebba54eab05223536d9530bf500e59dcef3ec2fc6a7f23cee3f",
+    "containerId": "0296d781a90bb8de578e2d5b745322e65cf1451718407776994fcafb1e1e37ec",
+    "containerCreatedAt": "2026-07-18T10:52:36.329502133Z",
+    "containerInitialStartedAt": "2026-07-18T10:52:42.07243376Z"
+  },
+  "decision": "pass-final-normalized-source-to-runtime-bound"
+}

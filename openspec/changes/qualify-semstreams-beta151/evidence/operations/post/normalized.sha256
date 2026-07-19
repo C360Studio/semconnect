@@ -1,0 +1,12 @@
+bcf0363b1b43b187ba808e56cf13f5a8cb144eec4407cf1187f1f72c54e9bece  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/command-schema.json
+ff6753a6e4b2d48f1ab0771861a4a1c6907984c2edef50dde7260a0d776bcc6c  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/controlstream-commands.json
+3be37abea4a39d1dbca1c45fa7fab4608fc07ef0a0b81a890f9058b599a2f11a  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/datastream-schema.json
+1b62d12664bc939ad447e64fe9a3d087b53ca20e0a8f636127c271a5800a1696  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/datastreams-collection.json
+e900446610390f8e6df675883b1825ce28183c8aadc2b57741a7e16d8c355e80  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/observations-collection.json
+555d6753d5d587f973515ab77a7a496e7126a1189a24d95d9033406b300667e8  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/spatial-bbox.json
+555d6753d5d587f973515ab77a7a496e7126a1189a24d95d9033406b300667e8  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/spatial-polygon.json
+1b62d12664bc939ad447e64fe9a3d087b53ca20e0a8f636127c271a5800a1696  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/system-datastreams.json
+1fe1c189a6e674ec905d25b9c6fbfc28db6db458753f7d88bd77af5ede1f81d1  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/system-events.json
+bcce5ff005e684b0f89261d22aebe4c124f8d6d1fea375e8e9a8197ef906b2b6  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/system-item.json
+79c8ddbc600e4aeb5cc2e5499f6c856f4288fbc7b46dcfbe5883375df6e0a78b  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/system-subsystems.json
+f7ff8cfbdf70c566d99c7dcaf7f34639ee58423ef72cce8ff461f860180a7fb6  /Users/coby/Code/c360/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/post/normalized/systems-collection.json

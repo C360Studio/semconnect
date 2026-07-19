@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "description": "Stage 9 seed fixture — sensor observations for the weather station.",
+      "formats": [
+        "application/json",
+        "application/om+json"
+      ],
+      "id": "c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+      "links": [
+        {
+          "href": "/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+          "rel": "self",
+          "type": "application/json"
+        },
+        {
+          "href": "/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+          "rel": "canonical",
+          "type": "application/json"
+        },
+        {
+          "href": "/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/schema",
+          "rel": "schema",
+          "type": "application/json"
+        },
+        {
+          "href": "/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations",
+          "rel": "observations",
+          "type": "application/json"
+        }
+      ],
+      "name": "Conformance temperature stream",
+      "observedProperties": [
+        {
+          "definition": "http://www.w3.org/ns/sosa/Property/AirTemperature"
+        }
+      ],
+      "observedProperty": "http://www.w3.org/ns/sosa/Property/AirTemperature",
+      "outputName": "result",
+      "phenomenonTime": "2026-06-02T18:00:00Z",
+      "resultTime": "2026-06-02T18:00:00Z",
+      "resultType": "observation",
+      "system": "c360.semconnect.systems.csapi.system.weather-station-01",
+      "system@id": "c360.semconnect.systems.csapi.system.weather-station-01",
+      "system@link": {
+        "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+        "rel": "system",
+        "title": "c360.semconnect.systems.csapi.system.weather-station-01",
+        "type": "application/json"
+      },
+      "type": "Datastream"
+    }
+  ],
+  "links": [
+    {
+      "href": "/datastreams",
+      "rel": "self",
+      "type": "application/json"
+    }
+  ],
+  "numberMatched": 1,
+  "numberReturned": 1,
+  "type": "DatastreamCollection"
+}

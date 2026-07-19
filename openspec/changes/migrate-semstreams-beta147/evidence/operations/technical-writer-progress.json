@@ -1,0 +1,66 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "role": "technical-writer",
+  "decision": "disposable-runtime-evidence-archived-with-production-no-go",
+  "completedTasks": ["8.1", "8.2", "8.4", "8.5", "8.6", "9.2", "9.3", "9.4", "9.5"],
+  "openTasks": ["8.3", "9.1", "9.6", "9.7", "9.8"],
+  "documentsUpdated": [
+    "README.md",
+    "AGENTS.md",
+    "docs/000-getting-started.md",
+    "docs/demo-telemetry-graph.md",
+    "docs/adr/001-cs-api-server-scope.md",
+    "docs/adr/002-cs-api-artifact-storage.md",
+    "docs/upstream-asks/README.md",
+    "docs/upstream-asks/TRANSFERRED-semstreams-ogc-product-boundary.md",
+    "conformance/README.md"
+  ],
+  "operationsEvidence": [
+    "evidence/operations/conformance-deployment-inventory.md",
+    "evidence/operations/conformance-cutover-manifest.blocked.json",
+    "evidence/operations/retained-state-identity-impact.md",
+    "evidence/operations/rollback-no-go-and-communications.md",
+    "evidence/operations/rule-event-not-applicable.json",
+    "evidence/operations/rehearsal/README.md",
+    "evidence/operations/rehearsal/runtime-resource-inventory.json",
+    "evidence/operations/rehearsal/live-query-parity.json",
+    "evidence/operations/rehearsal/replay-parity.json",
+    "evidence/operations/rehearsal/retained-state-proof.json",
+    "evidence/operations/rehearsal/external-conformance.json",
+    "evidence/operations/rehearsal/shutdown-anomaly.md",
+    "evidence/operations/rehearsal/go-no-go.json"
+  ],
+  "blockers": [
+    "Produce and approve the immutable deployment-specific cutover manifest for task 8.3.",
+    "Execute the exact stop/wipe/reseed manifest for task 9.1.",
+    "Triage and disposition the beta.147 heartbeat shutdown errors.",
+    "Complete tasks 9.6 through 9.8 before production execution or closeout."
+  ],
+  "readinessReview": {
+    "decision": "approved",
+    "sourceBundleSha256": "0af3071091e32ab0c60e9a0ff1068c4a9fadc5ebbbab8109b8700ace19ef5710",
+    "evidence": "../review/go-readiness/approval.json"
+  },
+  "disposableRuntime": {
+    "runId": "2026-07-18T02-03-23Z",
+    "completedGates": ["9.2", "9.3", "9.4", "9.5"],
+    "externalResult": "137/0/0",
+    "replayRevision": "118/118",
+    "queryHashesMatched": 11,
+    "logsClean": false
+  },
+  "production": {
+    "p0Gate": "blocked",
+    "executionAuthorized": false,
+    "decision": "no-go",
+    "template": "../architecture/cutover-manifest.template.json"
+  },
+  "releaseClaims": {
+    "externalEtsBeta147": true,
+    "revisionAndReplayParity": true,
+    "immutableCutoverRehearsal": false,
+    "noWeakeningReview": true,
+    "productionCutover": false
+  }
+}

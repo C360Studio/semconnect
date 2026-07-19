@@ -10,10 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/c360studio/semconnect/message/oms"
+	"github.com/c360studio/semconnect/pkg/swecommon"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/message/oms"
-	"github.com/c360studio/semstreams/payloadbuiltins"
-	"github.com/c360studio/semstreams/pkg/swecommon"
 	"github.com/nats-io/nats.go"
 )
 
@@ -72,9 +71,6 @@ func wireObservationsReadComponentWithRequester(t *testing.T, rd *fakeReader, fa
 // like what JetStream serves back from the per-datastream subject.
 func encodeBaseMessage(t *testing.T, obs *oms.Observation) []byte {
 	t.Helper()
-	// BaseMessage's envelope codec needs the OMS payload type registered;
-	// payloadbuiltins.NewTestRegistry handles it. Idempotent across calls.
-	_ = payloadbuiltins.NewTestRegistry(t)
 	msg := message.NewBaseMessage(obs.Schema(), obs, "cs-api-ingest")
 	b, err := json.Marshal(msg)
 	if err != nil {

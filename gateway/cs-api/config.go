@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	semtypes "github.com/c360studio/semstreams/pkg/types"
 )
 
 // entityIDTokenRegex mirrors the per-token half of graph-ingest's
@@ -13,8 +15,9 @@ import (
 // thereafter. The full 6-part regex is in the framework
 // (processor/graph-ingest/component.go) but it is unexported, so we
 // duplicate the per-token rule here for prefix validation.
-var entityIDTokenRegex = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)
 var objectStoreBucketRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+
+const digestEntityIDSuffixBytes = 1 + 2 + 64 // dot + "h-" + full SHA-256 hex
 
 // Config tunes the cs-api gateway component. Defaults satisfy a development
 // deployment; production deployments override via the JSON config file.
@@ -383,10 +386,11 @@ func validateEntityIDPrefix(prefix, fieldName string) error {
 	if len(tokens) != 5 {
 		return errors.New(fieldName + " must be exactly 5 dotted tokens (org.platform.domain.system.type)")
 	}
-	for i, tok := range tokens {
-		if !entityIDTokenRegex.MatchString(tok) {
-			return fmt.Errorf("%s token[%d]=%q not a valid SemStreams entity ID token", fieldName, i, tok)
-		}
+	if err := semtypes.ValidateEntityIDPrefix(prefix); err != nil {
+		return fmt.Errorf("%s invalid: %w", fieldName, err)
+	}
+	if len(prefix)+digestEntityIDSuffixBytes > semtypes.MaxEntityIDBytes {
+		return fmt.Errorf("%s leaves insufficient room for a full SHA-256 digest instance", fieldName)
 	}
 	return nil
 }

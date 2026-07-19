@@ -1,0 +1,84 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "handoff": "technical-writer-to-architect-product-owner-operator-reviewer",
+  "decision": "disposable-gates-9.2-9.5-pass-production-no-go",
+  "completedTasks": ["8.1", "8.2", "8.4", "8.5", "8.6", "9.2", "9.3", "9.4", "9.5"],
+  "openTasks": ["8.3", "9.1", "9.6", "9.7", "9.8"],
+  "implementationReviews": {
+    "go": "../review/go/review.json",
+    "ui": "../review/ui/review.json",
+    "goReadiness": "../review/go-readiness/approval.json",
+    "goSpatial": "../review/go-spatial/approval.json",
+    "noWeakening": "../review/final-conformance/approval.json"
+  },
+  "operationsEvidence": [
+    "README.md",
+    "conformance-deployment-inventory.md",
+    "conformance-cutover-manifest.blocked.json",
+    "retained-state-identity-impact.md",
+    "rollback-no-go-and-communications.md",
+    "rule-event-not-applicable.json",
+    "readiness-development/readiness-development-handoff.json",
+    "technical-writer-verification.md",
+    "rehearsal/README.md",
+    "rehearsal/runtime-resource-inventory.json",
+    "rehearsal/live-query-parity.json",
+    "rehearsal/replay-parity.json",
+    "rehearsal/retained-state-proof.json",
+    "rehearsal/external-conformance.json",
+    "rehearsal/shutdown-anomaly.md",
+    "rehearsal/go-no-go.json"
+  ],
+  "manifestValidation": {
+    "schema": "../architecture/cutover-manifest.schema.json",
+    "validator": "validate-json-schema.py",
+    "blockedSnapshotValid": true,
+    "executableManifestExists": false,
+    "task8_3Complete": false,
+    "task9_1Complete": false
+  },
+  "disposableRuntime": {
+    "runId": "2026-07-18T02-03-23Z",
+    "initialReadiness": "80/80",
+    "preRestartReadiness": "118/118",
+    "postRestartReadiness": "118/118",
+    "normalizedQueryHashesMatched": 11,
+    "authoritativeAndRetainedCountsMatched": true,
+    "foreignEdgeBake": "pass",
+    "testNg": "137 passed, 0 failed, 0 skipped",
+    "shutdownLogsClean": false,
+    "shutdownAnomaly": "rehearsal/shutdown-anomaly.md"
+  },
+  "retainedState": {
+    "identityImpact": "none",
+    "observationPayloadId": "ets-observation-001",
+    "observationSubject": "cs-api.observations.c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+    "resultSchemaObjectKey": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_datastream_weather-temperature-01-resultSchema.json",
+    "commandSchemaObjectKey": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema.json",
+    "sourceBundleSha256": "0af3071091e32ab0c60e9a0ff1068c4a9fadc5ebbbab8109b8700ace19ef5710",
+    "runtimeProof": "rehearsal/retained-state-proof.json"
+  },
+  "explicitBlockers": [
+    "Task 8.3 requires a committed revision, exact destructive scope, operator-runnable commands, assigned owners, and five approvals in an immutable manifest.",
+    "Task 9.1 requires execution of that exact stop/wipe/reseed manifest; fresh volumes alone do not satisfy it.",
+    "The beta.147 restart emitted two heartbeat-already-stopped ERROR records; logs are not clean.",
+    "Production values, maintenance window, rollback owner, counts, commands, and approvals remain unavailable."
+  ],
+  "claims": {
+    "freshDisposableValidation": true,
+    "externalBeta147Conformance": true,
+    "externalBeta147ConformanceResult": "137/0/0",
+    "noWriteReplayParity": true,
+    "immutableCutoverRehearsal": false,
+    "noWeakeningReview": true,
+    "productionAuthorization": false
+  },
+  "signature": {
+    "type": "technical-writer-disposable-runtime-evidence-attestation",
+    "signedByRole": "technical-writer",
+    "signedBy": "Codex agent /root/technical_writer_beta147",
+    "signedAt": "2026-07-18T02:22:44Z",
+    "decision": "disposable-gates-9.2-9.5-pass-production-no-go"
+  }
+}

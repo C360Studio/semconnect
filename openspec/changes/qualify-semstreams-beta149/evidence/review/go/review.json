@@ -1,0 +1,308 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "role": "go-reviewer",
+  "reviewedAt": "2026-07-18T11:05:10Z",
+  "repositoryHead": "95d6a6161374f45465f92bd491ba5b64fed30572",
+  "decision": "approved-tasks-4.1-through-4.4-candidate-not-production",
+  "approval": {
+    "task4.1": true,
+    "task4.2": true,
+    "task4.3": true,
+    "task4.4": true,
+    "production": false
+  },
+  "pins": {
+    "module": "github.com/c360studio/semstreams v1.0.0-beta.149",
+    "conformanceVersion": "v1.0.0-beta.149",
+    "peeledCommit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2",
+    "annotatedTagObject": "7c0c5aae9c02d148e118627b18281f34d9adf2f8",
+    "issue549FixCommit": "cc34be3d565405d86d9e13375013ce3522fa1d5f"
+  },
+  "deltaDisposition": {
+    "commits": [
+      {
+        "commit": "a3a7cb722a4edd31c9ab8b78abcbb9ec09d2cbbe",
+        "subject": "agentic-loop iteration budget and publish-agent support",
+        "disposition": "not configured or directly invoked"
+      },
+      {
+        "commit": "8cc883a712058d9b72073f2b516bf269cb13b6d8",
+        "subject": "rule scalar substitution and recovery completeness",
+        "disposition": "not configured or directly invoked"
+      },
+      {
+        "commit": "cc34be3d565405d86d9e13375013ce3522fa1d5f",
+        "subject": "issue #549 heartbeat, metrics-forwarder, and BaseService lifecycle fix",
+        "disposition": "applicable and independently tested"
+      },
+      {
+        "commit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2",
+        "subject": "agentic-tools advertised tool-set enforcement",
+        "disposition": "not configured or directly invoked"
+      }
+    ],
+    "coreContractDiff": "no beta.147..beta.149 changes under go.mod, go.sum, graph, natsclient, message, vocabulary, cmd/semstreams, gateway, component, config, health, or metric",
+    "transitiveProductionPackages": [
+      "github.com/c360studio/semstreams/agentic",
+      "github.com/c360studio/semstreams/agentic/agentrun"
+    ],
+    "configuredProcessors": [
+      "graph-ingest",
+      "graph-index",
+      "graph-index-spatial",
+      "graph-index-temporal",
+      "graph-query"
+    ],
+    "frameworkBootObservation": "The backend globally registers component factories and tool definitions, including agentic and rule names, but instantiates only the five configured graph processors; no changed agentic/rule handler executed.",
+    "unrelatedRuntimeBehaviorConsumed": false,
+    "compatibilityOrLegacyCodeAdded": false
+  },
+  "resolvedFindings": [
+    {
+      "id": "B149-GO-REV-001",
+      "finding": "A module-list diagnostic exposed an unnormalized go.sum and invalidated the initial developer hash.",
+      "resolution": "go mod tidy removed 192 unused historical checksum lines; go.sum is stable, go mod verify passes, and the developer handoff was re-attested."
+    },
+    {
+      "id": "B149-GO-REV-002",
+      "finding": "The initial alignment test accepted commented go.mod text and did not reject duplicate shell assignments.",
+      "resolution": "The guard parses active module requirements and every shell assignment, requires unique effective values, and has dedicated negative parser tests."
+    },
+    {
+      "id": "B149-GO-REV-003",
+      "finding": "The initial architect bundle signed mutable tasks.md and became stale when task checkboxes advanced.",
+      "resolution": "The corrected architect attestation signs four immutable contract files and explicitly excludes tasks.md and runtime evidence."
+    },
+    {
+      "id": "B149-GO-REV-004",
+      "finding": "The initial no-consumer narrative did not disclose transitive compilation of shared agentic packages.",
+      "resolution": "The final audit records exact go mod why paths, distinguishes compilation from invocation, and proves the changed processors/actions are absent from executable configuration."
+    }
+  ],
+  "evidenceIntegrity": {
+    "developerSourceHashesMatch": true,
+    "developerEvidenceHashesMatch": true,
+    "developerBundleAlgorithmReproduced": true,
+    "developerBundleSha256": "b12f6f9daa8e8d81397b832f252df430bde5354cc17a78048a14c378096030fd",
+    "architectImmutableHashesMatch": true,
+    "architectBundleAlgorithmReproduced": true,
+    "architectBundleSha256": "56a92838c9dfdd86a57ca6f3b34fc4320cd112cd5d99eb975a0ae5167be2fdce",
+    "architectHandoffSha256": "ef72de0bcb48771fa2d41682ca35c8a766bfd68635ebf5c4e165bdd6f1ea2c9b",
+    "operatorManifestChecks": 70,
+    "operatorManifestChecksMatch": true,
+    "operatorManifestSha256": "884bc46a3b69f24d97961c4b82284cd3396935572964e8e172671e6d53d27355",
+    "operatorHandoffSha256": "913cc8c5693b4619e49700f41cbef062884771490a4963473137d6a4b49c92cc"
+  },
+  "runtimeReview": {
+    "runId": "2026-07-18T10-52-31Z",
+    "sourceBinding": {
+      "finalNormalizedSource": true,
+      "developerHandoffSha256": "093211565727024a64841900236a7a30bc1fe6180a272ab360069ca1103c33a0",
+      "developerBundleSha256": "b12f6f9daa8e8d81397b832f252df430bde5354cc17a78048a14c378096030fd",
+      "iutImageId": "sha256:0a0e73312b4dbd0c1b3b89b7c53f58b81c78b486dbbaee779aabe1a251adf864",
+      "backendImageId": "sha256:b04da49c64399ebba54eab05223536d9530bf500e59dcef3ec2fc6a7f23cee3f",
+      "backendVendorCommit": "7db0cdcb21577eaa52eb842c4ffb06a854f9a9b2"
+    },
+    "writerFreeze": {
+      "order": ["teamengine", "cs-api-server", "semstreams-backend"],
+      "teamEngineStoppedBeforeSignal": true,
+      "csApiStoppedBeforeSignal": true,
+      "entityStateRevisionBefore": 118,
+      "entityStateRevisionAfter": 118,
+      "writesOrReseedsAfterFreeze": 0
+    },
+    "shutdown": {
+      "containerId": "0296d781a90bb8de578e2d5b745322e65cf1451718407776994fcafb1e1e37ec",
+      "imageId": "sha256:b04da49c64399ebba54eab05223536d9530bf500e59dcef3ec2fc6a7f23cee3f",
+      "signal": 15,
+      "exitCode": 0,
+      "oomKilled": false,
+      "containerError": "",
+      "sigkill": false,
+      "forcedKillOrTimeout": false,
+      "boundedLogLines": 10,
+      "failureSignatureMatches": 0,
+      "finalLogMessage": "SemStreams shutdown complete",
+      "liveContainerIdentityRecheckedAfterRestart": true
+    },
+    "filterValidation": {
+      "matchedArchivedBeta147FailureLogs": 2,
+      "matchedIssue549AndGenericFailureForms": true,
+      "beta149ShutdownMatches": 0,
+      "silenceWasSoleEvidence": false
+    },
+    "readinessAndReplay": {
+      "preRestart": "118/118",
+      "postRestart": "118/118",
+      "activeRevisionPolling": true,
+      "beta147EquivalentProbes": "11/11 exact",
+      "additionalCommandSchemaProbe": "1/1 exact",
+      "recursiveDiffExitCode": 0,
+      "observationStatePreserved": true,
+      "objectStoreStatePreserved": true,
+      "authoritativeGraphStatePreserved": true,
+      "spatialLogicalStatePreserved": true
+    },
+    "decision": "approved"
+  },
+  "externalConformanceReview": {
+    "runId": "2026-07-18T10-52-31Z",
+    "report": "conformance/output/testng-report-2026-07-18T10-52-31Z.xml",
+    "reportSha256": "5a07a87a9032e0170f10298a685c20d351ec7d991fae035e8f75c1b23f61c407",
+    "summary": "conformance/output/summary.txt",
+    "summarySha256": "7142d2831ff7b7312da92d0958e9d8e8fd51c4f30520699a7c7bcac1b84bd417",
+    "total": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "nonConfigPassMethods": 137,
+    "nonConfigFailMethods": 0,
+    "nonConfigSkipMethods": 0,
+    "configPassMethods": 23,
+    "classCount": 23,
+    "freshVolumeCreatedAt": "2026-07-18T10:52:36Z",
+    "etsCommit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+    "etsTree": "875847e194ffdb2aef2b617c9a9a0d9add037331",
+    "etsVendorClean": true,
+    "mutationTestsEnabled": true,
+    "includeExcludeGroupFilter": false,
+    "skipFlag": false,
+    "fixturesChangedFromAcceptedBeta147": false,
+    "openApiChangedFromAcceptedBeta147": false,
+    "conformanceClaimsChangedFromAcceptedBeta147": false,
+    "harnessOrFilterChangedFromAcceptedBeta147": false,
+    "foreignEdgeBake": "pass",
+    "decision": "approved-final-normalized-source-run",
+    "qualificationAuthority": true
+  },
+  "supersededRun": {
+    "runId": "2026-07-18T10-35-05Z",
+    "qualificationAuthority": false,
+    "reason": "images were built before final go.sum normalization and developer re-attestation",
+    "excludedFromOperatorManifest": true
+  },
+  "independentCommands": [
+    {
+      "command": "go test ./conformance -run '^(TestSemStreamsPinsAreAligned|TestActiveModuleRequirementsRejectTextualFalsePositives|TestShellAssignmentsPreserveDuplicateEffectivePins)$' -count=1 -v",
+      "exitCode": 0,
+      "result": "all three effective-pin tests passed"
+    },
+    {
+      "command": "go test ./service -run '^(TestHeartbeatService_(StopNotRunning|StopIdempotent|StartAfterStop|ContextCancellation)|TestMetricsForwarder_(StopBeforeStart|StopIdempotent|StopAfterContextCancellation|StartAfterStop)|TestServiceManager_StopAll_(Idempotency|CancellationBeforeStopAll)|TestBaseService_StopIdempotent)$' -count=1 -v",
+      "workingDirectory": "conformance/.vendor/semstreams",
+      "exitCode": 0,
+      "result": "13 lifecycle tests/subtests passed; the one ERROR line is the intentional synthetic genuine-failure case"
+    },
+    {
+      "command": "go test ./...",
+      "exitCode": 0,
+      "result": "all semconnect packages passed"
+    },
+    {
+      "command": "go test -race ./...",
+      "exitCode": 0,
+      "result": "all semconnect packages passed"
+    },
+    {
+      "command": "go test -tags=integration ./...",
+      "exitCode": 0,
+      "result": "all semconnect packages passed"
+    },
+    {
+      "command": "go vet ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go vet -tags=integration ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go build ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go mod verify",
+      "exitCode": 0,
+      "output": "all modules verified"
+    },
+    {
+      "command": "go mod tidy",
+      "exitCode": 0,
+      "result": "no further go.mod or go.sum change; final hashes remain attested"
+    },
+    {
+      "command": "openspec validate qualify-semstreams-beta149 --strict",
+      "exitCode": 0,
+      "output": "Change 'qualify-semstreams-beta149' is valid"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "shasum -a 256 -c openspec/changes/qualify-semstreams-beta149/evidence/operations/evidence-hashes.sha256",
+      "exitCode": 0,
+      "result": "all 70 qualifying operator evidence files matched; manifest sha256 884bc46a3b69f24d97961c4b82284cd3396935572964e8e172671e6d53d27355"
+    },
+    {
+      "command": "rg -ni <shutdown-failure-expression> <two beta.147 logs and beta.149 shutdown-window.log>",
+      "exitCode": 0,
+      "result": "both beta.147 logs matched issue #549; beta.149 returned zero matches"
+    },
+    {
+      "command": "diff -ru evidence/operations/pre/normalized evidence/operations/post/normalized",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "docker inspect semconnect-conformance-semstreams-backend-1",
+      "exitCode": 0,
+      "result": "same container/image identity; running healthy after restart; exit 0, OOM false, empty error"
+    },
+    {
+      "command": "docker logs --since 2026-07-18T10:57:49Z --until 2026-07-18T10:57:52Z semconnect-conformance-semstreams-backend-1",
+      "exitCode": 0,
+      "result": "qualifying ten-line all-INFO shutdown window reproduced, ending in SemStreams shutdown complete"
+    },
+    {
+      "command": "xmllint independent TestNG attribute and method counts",
+      "exitCode": 0,
+      "result": "total=137 passed=137 failed=0 skipped=0 nonconfig=137/137 pass configpass=23 classes=23"
+    },
+    {
+      "command": "git -C conformance/.vendor/ets status/diff checks and rev-parse HEAD^{tree}",
+      "exitCode": 0,
+      "result": "pinned d9caf33 vendor is pristine at tree 875847e"
+    },
+    {
+      "command": "git diff accepted-beta147 -- fixtures, OpenAPI, conformance claims, run.sh, compose config",
+      "exitCode": 0,
+      "result": "no changes"
+    }
+  ],
+  "pendingReview": [],
+  "remainingChangeGates": [
+    "technical-writer evidence index and closeout",
+    "inherited ADR-S003 deployment manifest and approvals before any production decision"
+  ],
+  "handoff": {
+    "nextRole": "technical-writer/program-manager",
+    "localGoGate": "approved",
+    "runtimeGate": "approved",
+    "externalConformanceGate": "approved-137-0-0-without-weakening",
+    "candidateQualification": "approved-for-closeout",
+    "productionAuthorization": "withheld"
+  },
+  "signature": {
+    "type": "go-reviewer-final-qualification-attestation",
+    "signedByRole": "go-reviewer",
+    "signedBy": "Codex agent /root/go_reviewer_beta149",
+    "signedAt": "2026-07-18T11:05:10Z",
+    "productionAuthorization": "withheld"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "formatVersion": "1.0.0",
+  "containerId": "7b8039c779f7ea0f9fd4c925562119a638d52c687a4ea883f8f5f69956ca19a2",
+  "imageId": "sha256:08db471f5574eedd9c96c4f8641e187a04a2ac6b3b9bccd4ca8b0ea29d76f9f8",
+  "initialStartedAt": "2026-07-18T16:40:27.607536388Z",
+  "sigtermRequestedAt": "2026-07-18T16:50:07Z",
+  "dockerEvents": {
+    "signal15TimeNano": 1784393407076322253,
+    "stopTimeNano": 1784393407151731836,
+    "dieTimeNano": 1784393407154333128,
+    "dieExitCode": 0,
+    "dieExecDuration": 579,
+    "signal9Count": 0
+  },
+  "finishedAt": "2026-07-18T16:50:07.078388294Z",
+  "exitCode": 0,
+  "oomKilled": false,
+  "error": "",
+  "restartCount": 0,
+  "forcedKill": false,
+  "boundedLog": "shutdown-window.log",
+  "boundedLogLineCount": 10,
+  "boundedErrorLevelCount": 0,
+  "beta149IssueSignatureCount": 0,
+  "restart": {
+    "requestedAt": "2026-07-18T16:50:32Z",
+    "startedAt": "2026-07-18T16:50:32.918784126Z",
+    "healthyAt": "2026-07-18T16:50:38Z",
+    "sameContainer": true,
+    "sameImage": true,
+    "noWritesBeforeReadiness": true
+  },
+  "iutReadOnlyRestart": {
+    "requestedAt": "2026-07-18T16:51:01Z",
+    "startedAt": "2026-07-18T16:51:03.151331543Z",
+    "readyAt": "2026-07-18T16:51:03Z",
+    "noSeedOrWritePerformed": true
+  }
+}

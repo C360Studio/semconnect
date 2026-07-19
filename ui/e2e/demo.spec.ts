@@ -1,4 +1,106 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import {
+  CONTROLSTREAM_VALVE_ID,
+  createBaseEntities,
+  createBaseRelationships
+} from '../src/lib/data/demoGraph';
+import {
+  MIGRATED_SEMANTIC_FIELDS,
+  SEMANTIC_PREDICATES,
+  semanticField
+} from '../src/lib/semantics/semanticCatalog';
+
+const EXPECTED_MIGRATED_LABELS: Readonly<Record<string, string>> = {
+  'oms.observation.has-feature-of-interest': 'Feature of interest',
+  'oms.observation.has-simple-result': 'Simple result',
+  'oms.observation.observed-property': 'Observed property',
+  'oms.observation.phenomenon-time': 'Phenomenon time',
+  'oms.observation.result-time': 'Result time',
+  'oms.observation.used-procedure': 'Procedure',
+  'sensorml.component.is-hosted-by': 'Hosted by',
+  'sensorml.process.attached-to': 'Attached to',
+  'sensorml.process.has-sub-system': 'Subsystem',
+  'sensorml.process.used-procedure': 'Procedure',
+  'csapi.command.part-of-control-stream': 'Control stream',
+  'csapi.controlstream.command-schema': 'Command schema',
+  'csapi.controlstream.controls-system': 'Controlled system',
+  'csapi.datastream.phenomenon-time-range': 'Phenomenon time range',
+  'csapi.datastream.produced-by': 'Producing system',
+  'csapi.datastream.result-schema': 'Result schema',
+  'csapi.datastream.result-time-range': 'Result time range',
+  'csapi.datastream.result-type': 'Result type',
+  'csapi.systemevent.for-system': 'System',
+  'cs-api.controlstream.input-name': 'Input name',
+  'cs-api.controlstream.command-format': 'Command format',
+  'cs-api.controlstream.controlled-properties': 'Controlled properties',
+  'cs-api.controlstream.issue-time': 'Issue time',
+  'cs-api.controlstream.execution-time': 'Execution time',
+  'cs-api.command.issue-time': 'Issue time',
+  'cs-api.command.execution-time': 'Execution time',
+  'cs-api.datastream.phenomenon-time': 'Phenomenon time',
+  'cs-api.datastream.result-time': 'Result time',
+  'cs-api.property.base-property': 'Base property',
+  'cs-api.deployment.deployed-systems': 'Deployed systems',
+  'cs-api.samplingfeature.hosted-procedure': 'Hosted procedure',
+  'csapi.datastream.observed-property': 'Observed property'
+};
+
+interface SemanticLedger {
+  transferredRenames: Array<[string, string]>;
+  localRenames: Array<[string, string]>;
+  fullIriCorrections: Array<{ canonicalInternalPredicate: string }>;
+}
+
+const semanticLedger = JSON.parse(
+  readFileSync(
+    new URL(
+      '../../openspec/changes/migrate-semstreams-beta147/evidence/architecture/semantic-ledger.json',
+      import.meta.url
+    ),
+    'utf8'
+  )
+) as SemanticLedger;
+
+const ledgerPredicates = [
+  ...semanticLedger.transferredRenames.map(([, canonical]) => canonical),
+  ...semanticLedger.localRenames.map(([, canonical]) => canonical),
+  ...semanticLedger.fullIriCorrections.map(({ canonicalInternalPredicate }) => canonicalInternalPredicate)
+].sort();
+
+test('owns explicit product labels for the complete frozen semantic ledger', () => {
+  expect(ledgerPredicates).toHaveLength(32);
+  expect(Object.keys(MIGRATED_SEMANTIC_FIELDS).sort()).toEqual(ledgerPredicates);
+  expect(Object.keys(EXPECTED_MIGRATED_LABELS).sort()).toEqual(ledgerPredicates);
+
+  for (const predicate of ledgerPredicates) {
+    const explicitField = MIGRATED_SEMANTIC_FIELDS[predicate];
+    expect(semanticField(predicate)).toBe(explicitField);
+    expect(explicitField.label).toBe(EXPECTED_MIGRATED_LABELS[predicate]);
+    expect(explicitField.description.trim()).not.toBe('');
+    expect(explicitField.description).not.toContain(predicate);
+  }
+});
+
+test('keeps controlled properties as scalar metadata rather than a graph edge', () => {
+  const controlstream = createBaseEntities().find((entity) => entity.id === CONTROLSTREAM_VALVE_ID);
+  const controlledProperties = controlstream?.facts.find(
+    (fact) => fact.predicate === SEMANTIC_PREDICATES.controlstreamControlledProperties
+  );
+
+  expect(controlledProperties).toBeDefined();
+  expect(JSON.parse(controlledProperties?.object ?? 'null')).toEqual([
+    {
+      definition: 'https://example.c360.dev/props/valve-position',
+      label: 'Valve Position'
+    }
+  ]);
+  expect(
+    createBaseRelationships().some(
+      (relationship) => relationship.predicate === SEMANTIC_PREDICATES.controlstreamControlledProperties
+    )
+  ).toBe(false);
+});
 
 test('renders the telemetry knowledge graph demo', async ({ page }) => {
   await page.goto('/');
@@ -48,6 +150,15 @@ test('natural language search focuses command feasibility evidence', async ({ pa
 test('graph filters can isolate telemetry resources', async ({ page }) => {
   await page.goto('/');
 
+  await expect(page.getByTestId('graph-surface')).toHaveAttribute(
+    'data-rendered-graph',
+    /csapi\.controlstream\.controls-system/
+  );
+  await expect(page.getByTestId('graph-surface')).not.toHaveAttribute(
+    'data-rendered-graph',
+    /controlsSystem/
+  );
+
   await page.getByTestId('filter-controlstream').click();
   await expect(page.getByTestId('filter-controlstream')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId('filter-system')).toHaveAttribute('aria-pressed', 'false');
@@ -62,6 +173,10 @@ test('graph filters can isolate telemetry resources', async ({ page }) => {
     /system\.pump-alpha/
   );
   await expect(page.getByTestId('entity-detail')).toContainText('Valve Position Commands');
+  await expect(page.getByTestId('entity-detail')).toContainText('Command format');
+  await expect(page.getByTestId('entity-detail')).toContainText('Controlled properties');
+  await expect(page.getByTestId('entity-detail')).not.toContainText('csapi.controlstream.command-format');
+  await expect(page.getByTestId('entity-detail')).not.toContainText('cs-api.controlstream.commandFormat');
 
   await page.getByTestId('filter-controlstream').click();
   await expect(page.getByTestId('graph-stats')).toContainText('13 entities');
@@ -193,7 +308,7 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
                     },
                     {
                       subject: 'c360.demo.water.plant.system.live-pump',
-                      predicate: 'rdf.type',
+                      predicate: 'sensorml.process.type',
                       object: 'ssn:System'
                     }
                   ]
@@ -215,12 +330,12 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
                       },
                       {
                         subject: 'c360.demo.water.plant.datastream.live-temp',
-                        predicate: 'rdf.type',
+                        predicate: 'sensorml.process.type',
                         object: 'csapi:Datastream'
                       },
                       {
                         subject: 'c360.demo.water.plant.datastream.live-temp',
-                        predicate: 'csapi.datastream.producedBy',
+                        predicate: 'csapi.datastream.produced-by',
                         object: 'c360.demo.water.plant.system.live-pump'
                       }
                     ]
@@ -247,7 +362,7 @@ test('loads live resources through CS API and SemStreams adapters', async ({ pag
                   {
                     from: 'c360.demo.water.plant.datastream.live-temp',
                     to: 'c360.demo.water.plant.system.live-pump',
-                    predicate: 'csapi.datastream.producedBy'
+                    predicate: 'csapi.datastream.produced-by'
                   }
                 ],
                 count: 2,

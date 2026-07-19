@@ -1,0 +1,50 @@
+[
+  {
+    "composeConfigHash": "d4333c7ddfecdc458a3d71ab32eeaa9d8c2f4042adbdf9aeb9c6b8be67501c81",
+    "composeProject": "semconnect-conformance",
+    "composeService": "nats",
+    "configuredImage": "nats:2.10-alpine",
+    "containerId": "0d2bb1ffb821cf5bfea47e518096633b9141c5f67726e60dc8ac498d637b24df",
+    "createdAt": "2026-07-18T10:52:36.278571924Z",
+    "imageId": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927",
+    "name": "semconnect-conformance-nats-1",
+    "startedAt": "2026-07-18T10:52:36.458297966Z",
+    "status": "running"
+  },
+  {
+    "composeConfigHash": "e3ac8e896cd7900b11c6d546561e81566c0104ffca365b5646a0a9100b2b0d09",
+    "composeProject": "semconnect-conformance",
+    "composeService": "semstreams-backend",
+    "configuredImage": "semconnect-conformance-semstreams-backend",
+    "containerId": "0296d781a90bb8de578e2d5b745322e65cf1451718407776994fcafb1e1e37ec",
+    "createdAt": "2026-07-18T10:52:36.329502133Z",
+    "imageId": "sha256:b04da49c64399ebba54eab05223536d9530bf500e59dcef3ec2fc6a7f23cee3f",
+    "name": "semconnect-conformance-semstreams-backend-1",
+    "startedAt": "2026-07-18T10:52:42.07243376Z",
+    "status": "running"
+  },
+  {
+    "composeConfigHash": "09aae11d396e6f1c4841cb6e8baf080b831f3e58c10fd369fb55a22af2a62a38",
+    "composeProject": "semconnect-conformance",
+    "composeService": "cs-api-server",
+    "configuredImage": "semconnect-conformance-cs-api-server",
+    "containerId": "f049bb348741810c7552d11d39857a7e0d0767d1a8887c047c6cdc1e169c9754",
+    "createdAt": "2026-07-18T10:52:36.370710841Z",
+    "imageId": "sha256:0a0e73312b4dbd0c1b3b89b7c53f58b81c78b486dbbaee779aabe1a251adf864",
+    "name": "semconnect-conformance-cs-api-server-1",
+    "startedAt": "2026-07-18T10:52:47.686734346Z",
+    "status": "running"
+  },
+  {
+    "composeConfigHash": "e9a9b0e235c4fad654e57bc6e392d3c6d31d514abbe2911949c6732c2c466176",
+    "composeProject": "semconnect-conformance",
+    "composeService": "teamengine",
+    "configuredImage": "semconnect-conformance-teamengine",
+    "containerId": "9cbfe7790bcaf2c60012801aadb0541d9307e22f71b5b5e3f476d5c6c930e29e",
+    "createdAt": "2026-07-18T10:52:36.408467258Z",
+    "imageId": "sha256:04bcbe1a70942334bc97dd1f6b15bf699e66bf98db4b8b80a964051013b54fb9",
+    "name": "semconnect-conformance-teamengine-1",
+    "startedAt": "2026-07-18T10:52:47.772153763Z",
+    "status": "running"
+  }
+]

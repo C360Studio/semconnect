@@ -1,0 +1,48 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "attestation": "operator production no-action",
+  "signedByRole": "operator",
+  "signedAt": "2026-07-18T17:14:38Z",
+  "postApprovalAuthoritativeQualificationRun": {
+    "runId": "2026-07-18T17-09-45Z",
+    "semstreamsVersion": "v1.0.0-beta.151",
+    "semstreamsCommit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+    "etsCommit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "foreignEdgeBakeResult": "PASS",
+    "foreignEdgeLaneExercised": true,
+    "foreignEdgeUnclaimedTotal": 0,
+    "foreignEdgeDroppedTotal": 0,
+    "summary": "conformance/output/summary.txt",
+    "summarySha256": "65cd649e3a5b906b703d2ba7d65b5085a0814e7961123a7866c66469a098cf32",
+    "testng": "conformance/output/testng-report-2026-07-18T17-09-45Z.xml",
+    "testngSha256": "ce0a91161c2d391ff2055e93a3409f59129f1a7c88a11c45b7630b31640f58c3",
+    "foreignEdgeBake": "conformance/output/foreign-edge-bake-2026-07-18T17-09-45Z.txt",
+    "foreignEdgeBakeSha256": "0be2f0d222b7ebed75c78d9f32cd44b7308004dbca41fe50c8da03105c5ed891",
+    "productionAuthority": false
+  },
+  "priorQualificationRun": {
+    "runId": "2026-07-18T17-06-05Z",
+    "status": "pre-approval/procedurally non-authoritative",
+    "reason": "the run began before the final task 5.4 reviewer signature",
+    "testng": "conformance/output/testng-report-2026-07-18T17-06-05Z.xml",
+    "testngSha256": "0d336065374988989b7b117cab41506822eb0a2e58d6cc46ca9ca055b4da8f9d",
+    "foreignEdgeBake": "conformance/output/foreign-edge-bake-2026-07-18T17-06-05Z.txt",
+    "foreignEdgeBakeSha256": "b32f72d1580bef73d69bbe950863e6dcf8001a40334429a4664c378d4544f888",
+    "productionAuthority": false
+  },
+  "boundOperatorEvidence": {
+    "handoff": "openspec/changes/qualify-semstreams-beta151/evidence/operations/operator-handoff.json",
+    "handoffSha256": "dbff45e4b928a17cbd9b4bfb2669bb7fdb3c3f8c5f5ac1ad7fdb31047442c2ff",
+    "qualifyingEvidenceManifest": "openspec/changes/qualify-semstreams-beta151/evidence/operations/evidence-hashes.sha256",
+    "qualifyingEvidenceManifestSha256": "e40e3b524ee79df0e5a78dc7cc7540e486bb1e65efea8a616c2dd7c81c80c4db"
+  },
+  "productionActionTaken": false,
+  "productionAuthorizationClaimed": false,
+  "explicitGoAuthorizationObserved": false,
+  "completeImmutableCutoverManifestObserved": false,
+  "disposition": "No production action was taken; qualification and reviewer evidence do not authorize production."
+}

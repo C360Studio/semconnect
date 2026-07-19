@@ -1,0 +1,89 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "runId": "2026-07-18T02-03-23Z",
+  "environment": "semconnect-conformance-disposable-fresh-volumes",
+  "capturedByRole": "program-manager",
+  "recordedByRole": "technical-writer",
+  "beforeRestart": [
+    {
+      "name": "CS_API_OBSERVATIONS",
+      "kind": "stream",
+      "classification": "retained",
+      "messages": 1,
+      "lastSequence": 1,
+      "subjects": 1
+    },
+    {
+      "name": "OBJ_CS_API_ARTIFACTS",
+      "kind": "object-store-stream",
+      "classification": "retained",
+      "messages": 4,
+      "lastSequence": 4,
+      "subjects": 4,
+      "logicalObjects": 2,
+      "representationNote": "Two logical objects are represented by metadata and chunk messages."
+    },
+    {
+      "name": "KV_ENTITY_STATES",
+      "kind": "kv-stream",
+      "classification": "authoritative-graph-state",
+      "messages": 67,
+      "lastSequence": 118,
+      "subjects": 33,
+      "deletedMessages": 31
+    },
+    {
+      "name": "KV_SPATIAL_INDEX",
+      "kind": "kv-stream",
+      "classification": "derived-index",
+      "messages": 2,
+      "lastSequence": 22,
+      "subjects": 2
+    }
+  ],
+  "afterRestart": [
+    {
+      "name": "CS_API_OBSERVATIONS",
+      "kind": "stream",
+      "classification": "retained",
+      "messages": 1,
+      "lastSequence": 1,
+      "subjects": 1,
+      "matchedBeforeRestart": true
+    },
+    {
+      "name": "OBJ_CS_API_ARTIFACTS",
+      "kind": "object-store-stream",
+      "classification": "retained",
+      "messages": 4,
+      "lastSequence": 4,
+      "subjects": 4,
+      "logicalObjects": 2,
+      "matchedBeforeRestart": true
+    },
+    {
+      "name": "KV_ENTITY_STATES",
+      "kind": "kv-stream",
+      "classification": "authoritative-graph-state",
+      "messages": 67,
+      "lastSequence": 118,
+      "subjects": 33,
+      "deletedMessages": 31,
+      "matchedBeforeRestart": true
+    },
+    {
+      "name": "KV_SPATIAL_INDEX",
+      "kind": "kv-stream",
+      "classification": "derived-index",
+      "messages": 2,
+      "lastSequence": 27,
+      "subjects": 2,
+      "matchedLogicalContents": true,
+      "sequenceDeltaExpected": true,
+      "sequenceDeltaReason": "The derived spatial index was rebuilt during backend startup."
+    }
+  ],
+  "decision": "authoritative-and-retained-counts-match; derived-spatial-sequence-advanced-on-rebuild",
+  "productionUse": "prohibited"
+}

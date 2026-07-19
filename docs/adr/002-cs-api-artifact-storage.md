@@ -1,10 +1,16 @@
 # ADR-S002 - CS API graph and artifact storage pattern
 
-- **Status**: Accepted (2026-05-31)
+- **Status**: Accepted (2026-05-31); package ownership amended by ADR-S003
 - **Repo**: `semconnect`
 - **Upstream**: [semstreams #171](https://github.com/C360Studio/semstreams/issues/171) closed in
   `v1.0.0-beta.90`; predicate contract follow-up
   [semstreams #182](https://github.com/C360Studio/semstreams/issues/182) closed in `v1.0.0-beta.91`
+- **Amendment**: [ADR-S003](003-semstreams-beta147-product-boundary-migration.md)
+
+> ADR-S003 preserves this graph-versus-artifact storage pattern but moves CS
+> API vocabulary, SensorML, OMS, SOSA/SWE, and SWE Common implementation
+> ownership into semconnect. SemStreams continues to own graph state,
+> ObjectStore, `StorageReference`, NATS, ownership, and projection primitives.
 
 ## Context
 
@@ -52,7 +58,7 @@ This keeps graph state semantic and queryable while keeping object-shaped conten
 
 ## CS API Artifact Roles
 
-The target semstreams vocabulary shape from #171 is:
+The vocabulary shape introduced by SemStreams #171 and now owned by semconnect is:
 
 - a dotted internal predicate from a System, Procedure, Datastream, or related resource to a source document
   artifact, registered to the CS API `hasSource` IRI for RDF/JSON-LD export
@@ -85,7 +91,7 @@ opaque to graph queries, duplicate reusable schemas, and create two competing wa
 The gateway read path for artifact-backed fields is:
 
 1. Fetch the parent entity from graph.
-2. Read the artifact relationship triple, such as `cs-api.datastream.resultSchema`.
+2. Read the artifact relationship triple, such as `csapi.datastream.result-schema`.
 3. Fetch the artifact entity from graph.
 4. Use the artifact entity's `StorageRef` to fetch content from ObjectStore.
 5. Decode the content with the domain parser, such as `pkg/swecommon` or SensorML.
@@ -102,3 +108,12 @@ Stage 42 moves Datastream result schemas and ControlStream command schemas onto 
 - ControlStream entities relate to schema artifacts with `csapi.HasCommandSchema`.
 - The former gateway-local JSON schema predicates are retired. The `*IRI` siblings remain
   boundary/export-only values.
+
+## Beta.147 cutover amendment
+
+The beta.147 migration preserves `CS_API_ARTIFACTS` content by default while
+rebuilding canonical artifact entities and their relationships. A deployment
+cannot cut over if parent or artifact IDs would change and strand retained
+objects; the deployment-specific identity-impact report and manifest govern
+that decision. See ADR-S003 and the `graph-state-cutover-readiness` OpenSpec
+capability.

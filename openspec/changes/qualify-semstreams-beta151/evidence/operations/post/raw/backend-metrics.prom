@@ -1,0 +1,333 @@
+# HELP dispatch_completed_total Total work items whose Process returned or was recovered
+# TYPE dispatch_completed_total counter
+dispatch_completed_total{pool="graph_ingest"} 0
+# HELP dispatch_dropped_total Total work items rejected by non-blocking Submit on a full lane
+# TYPE dispatch_dropped_total counter
+dispatch_dropped_total{pool="graph_ingest"} 0
+# HELP dispatch_inflight Lanes currently executing Process (achieved concurrency)
+# TYPE dispatch_inflight gauge
+dispatch_inflight{pool="graph_ingest"} 0
+# HELP dispatch_processing_duration_seconds Time spent in the Process function
+# TYPE dispatch_processing_duration_seconds histogram
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.001"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.005"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.01"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.025"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.05"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.1"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.25"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="0.5"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="1"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="2.5"} 0
+dispatch_processing_duration_seconds_bucket{pool="graph_ingest",le="+Inf"} 0
+dispatch_processing_duration_seconds_sum{pool="graph_ingest"} 0
+dispatch_processing_duration_seconds_count{pool="graph_ingest"} 0
+# HELP dispatch_queue_depth Aggregate queued items across all lanes
+# TYPE dispatch_queue_depth gauge
+dispatch_queue_depth{pool="graph_ingest"} 0
+# HELP dispatch_queue_wait_seconds Time a work item waited between submit and process start (lane queue wait)
+# TYPE dispatch_queue_wait_seconds histogram
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.0001"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.001"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.005"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.01"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.025"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.05"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.1"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.25"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="0.5"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="1"} 0
+dispatch_queue_wait_seconds_bucket{pool="graph_ingest",le="+Inf"} 0
+dispatch_queue_wait_seconds_sum{pool="graph_ingest"} 0
+dispatch_queue_wait_seconds_count{pool="graph_ingest"} 0
+# HELP dispatch_submitted_total Total work items accepted onto a lane
+# TYPE dispatch_submitted_total counter
+dispatch_submitted_total{pool="graph_ingest"} 0
+# HELP go_gc_duration_seconds A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 7.1041e-05
+go_gc_duration_seconds{quantile="0.25"} 7.3708e-05
+go_gc_duration_seconds{quantile="0.5"} 0.00014725
+go_gc_duration_seconds{quantile="0.75"} 0.000190291
+go_gc_duration_seconds{quantile="1"} 0.00046325
+go_gc_duration_seconds_sum 0.00154479
+go_gc_duration_seconds_count 9
+# HELP go_gc_gogc_percent Heap size target percentage configured by the user, otherwise 100. This value is set by the GOGC environment variable, and the runtime/debug.SetGCPercent function. Sourced from /gc/gogc:percent.
+# TYPE go_gc_gogc_percent gauge
+go_gc_gogc_percent 100
+# HELP go_gc_gomemlimit_bytes Go runtime memory limit configured by the user, otherwise math.MaxInt64. This value is set by the GOMEMLIMIT environment variable, and the runtime/debug.SetMemoryLimit function. Sourced from /gc/gomemlimit:bytes.
+# TYPE go_gc_gomemlimit_bytes gauge
+go_gc_gomemlimit_bytes 9.223372036854776e+18
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 126
+# HELP go_info Information about the Go environment.
+# TYPE go_info gauge
+go_info{version="go1.26.5"} 1
+# HELP go_memstats_alloc_bytes Number of bytes allocated in heap and currently in use. Equals to /memory/classes/heap/objects:bytes.
+# TYPE go_memstats_alloc_bytes gauge
+go_memstats_alloc_bytes 4.698096e+06
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated in heap until now, even if released already. Equals to /gc/heap/allocs:bytes.
+# TYPE go_memstats_alloc_bytes_total counter
+go_memstats_alloc_bytes_total 1.9220768e+07
+# HELP go_memstats_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table. Equals to /memory/classes/profiling/buckets:bytes.
+# TYPE go_memstats_buck_hash_sys_bytes gauge
+go_memstats_buck_hash_sys_bytes 1.459237e+06
+# HELP go_memstats_frees_total Total number of heap objects frees. Equals to /gc/heap/frees:objects + /gc/heap/tiny/allocs:objects.
+# TYPE go_memstats_frees_total counter
+go_memstats_frees_total 128974
+# HELP go_memstats_gc_sys_bytes Number of bytes used for garbage collection system metadata. Equals to /memory/classes/metadata/other:bytes.
+# TYPE go_memstats_gc_sys_bytes gauge
+go_memstats_gc_sys_bytes 3.571968e+06
+# HELP go_memstats_heap_alloc_bytes Number of heap bytes allocated and currently in use, same as go_memstats_alloc_bytes. Equals to /memory/classes/heap/objects:bytes.
+# TYPE go_memstats_heap_alloc_bytes gauge
+go_memstats_heap_alloc_bytes 4.698096e+06
+# HELP go_memstats_heap_idle_bytes Number of heap bytes waiting to be used. Equals to /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+# TYPE go_memstats_heap_idle_bytes gauge
+go_memstats_heap_idle_bytes 6.971392e+06
+# HELP go_memstats_heap_inuse_bytes Number of heap bytes that are in use. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes
+# TYPE go_memstats_heap_inuse_bytes gauge
+go_memstats_heap_inuse_bytes 8.298496e+06
+# HELP go_memstats_heap_objects Number of currently allocated objects. Equals to /gc/heap/objects:objects.
+# TYPE go_memstats_heap_objects gauge
+go_memstats_heap_objects 16241
+# HELP go_memstats_heap_released_bytes Number of heap bytes released to OS. Equals to /memory/classes/heap/released:bytes.
+# TYPE go_memstats_heap_released_bytes gauge
+go_memstats_heap_released_bytes 4.972544e+06
+# HELP go_memstats_heap_sys_bytes Number of heap bytes obtained from system. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes + /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+# TYPE go_memstats_heap_sys_bytes gauge
+go_memstats_heap_sys_bytes 1.5269888e+07
+# HELP go_memstats_last_gc_time_seconds Number of seconds since 1970 of last garbage collection.
+# TYPE go_memstats_last_gc_time_seconds gauge
+go_memstats_last_gc_time_seconds 1.784393476683228e+09
+# HELP go_memstats_mallocs_total Total number of heap objects allocated, both live and gc-ed. Semantically a counter version for go_memstats_heap_objects gauge. Equals to /gc/heap/allocs:objects + /gc/heap/tiny/allocs:objects.
+# TYPE go_memstats_mallocs_total counter
+go_memstats_mallocs_total 145215
+# HELP go_memstats_mcache_inuse_bytes Number of bytes in use by mcache structures. Equals to /memory/classes/metadata/mcache/inuse:bytes.
+# TYPE go_memstats_mcache_inuse_bytes gauge
+go_memstats_mcache_inuse_bytes 27552
+# HELP go_memstats_mcache_sys_bytes Number of bytes used for mcache structures obtained from system. Equals to /memory/classes/metadata/mcache/inuse:bytes + /memory/classes/metadata/mcache/free:bytes.
+# TYPE go_memstats_mcache_sys_bytes gauge
+go_memstats_mcache_sys_bytes 32144
+# HELP go_memstats_mspan_inuse_bytes Number of bytes in use by mspan structures. Equals to /memory/classes/metadata/mspan/inuse:bytes.
+# TYPE go_memstats_mspan_inuse_bytes gauge
+go_memstats_mspan_inuse_bytes 182240
+# HELP go_memstats_mspan_sys_bytes Number of bytes used for mspan structures obtained from system. Equals to /memory/classes/metadata/mspan/inuse:bytes + /memory/classes/metadata/mspan/free:bytes.
+# TYPE go_memstats_mspan_sys_bytes gauge
+go_memstats_mspan_sys_bytes 212160
+# HELP go_memstats_next_gc_bytes Number of heap bytes when next garbage collection will take place. Equals to /gc/heap/goal:bytes.
+# TYPE go_memstats_next_gc_bytes gauge
+go_memstats_next_gc_bytes 9.370906e+06
+# HELP go_memstats_other_sys_bytes Number of bytes used for other system allocations. Equals to /memory/classes/other:bytes.
+# TYPE go_memstats_other_sys_bytes gauge
+go_memstats_other_sys_bytes 2.025891e+06
+# HELP go_memstats_stack_inuse_bytes Number of bytes obtained from system for stack allocator in non-CGO environments. Equals to /memory/classes/heap/stacks:bytes.
+# TYPE go_memstats_stack_inuse_bytes gauge
+go_memstats_stack_inuse_bytes 1.507328e+06
+# HELP go_memstats_stack_sys_bytes Number of bytes obtained from system for stack allocator. Equals to /memory/classes/heap/stacks:bytes + /memory/classes/os-stacks:bytes.
+# TYPE go_memstats_stack_sys_bytes gauge
+go_memstats_stack_sys_bytes 1.507328e+06
+# HELP go_memstats_sys_bytes Number of bytes obtained from system. Equals to /memory/classes/total:byte.
+# TYPE go_memstats_sys_bytes gauge
+go_memstats_sys_bytes 2.4078616e+07
+# HELP go_sched_gomaxprocs_threads The current runtime.GOMAXPROCS setting, or the number of operating system threads that can execute user-level Go code simultaneously. Sourced from /sched/gomaxprocs:threads.
+# TYPE go_sched_gomaxprocs_threads gauge
+go_sched_gomaxprocs_threads 12
+# HELP go_threads Number of OS threads created.
+# TYPE go_threads gauge
+go_threads 13
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 0.22
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP process_network_receive_bytes_total Number of bytes received by the process over the network.
+# TYPE process_network_receive_bytes_total counter
+process_network_receive_bytes_total 1.382305e+06
+# HELP process_network_transmit_bytes_total Number of bytes sent by the process over the network.
+# TYPE process_network_transmit_bytes_total counter
+process_network_transmit_bytes_total 627851
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 10
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 3.5590144e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.78439343227e+09
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 1.384804352e+09
+# HELP process_virtual_memory_max_bytes Maximum amount of virtual memory available in bytes.
+# TYPE process_virtual_memory_max_bytes gauge
+process_virtual_memory_max_bytes 1.8446744073709552e+19
+# HELP semstreams_cache_deletes_total Total number of cache delete operations
+# TYPE semstreams_cache_deletes_total counter
+semstreams_cache_deletes_total{component="entity_query_cache"} 0
+semstreams_cache_deletes_total{component="suffix_resolution_cache"} 0
+# HELP semstreams_cache_evictions_total Total number of cache evictions
+# TYPE semstreams_cache_evictions_total counter
+semstreams_cache_evictions_total{component="entity_query_cache"} 0
+semstreams_cache_evictions_total{component="suffix_resolution_cache"} 0
+# HELP semstreams_cache_hits_total Total number of cache hits
+# TYPE semstreams_cache_hits_total counter
+semstreams_cache_hits_total{component="entity_query_cache"} 4
+semstreams_cache_hits_total{component="suffix_resolution_cache"} 0
+# HELP semstreams_cache_misses_total Total number of cache misses
+# TYPE semstreams_cache_misses_total counter
+semstreams_cache_misses_total{component="entity_query_cache"} 6
+semstreams_cache_misses_total{component="suffix_resolution_cache"} 0
+# HELP semstreams_cache_sets_total Total number of cache set operations
+# TYPE semstreams_cache_sets_total counter
+semstreams_cache_sets_total{component="entity_query_cache"} 6
+semstreams_cache_sets_total{component="suffix_resolution_cache"} 0
+# HELP semstreams_cache_size Current number of entries in cache
+# TYPE semstreams_cache_size gauge
+semstreams_cache_size{component="entity_query_cache"} 6
+semstreams_cache_size{component="suffix_resolution_cache"} 0
+# HELP semstreams_datamanager_entities_updated_total Total entities updated
+# TYPE semstreams_datamanager_entities_updated_total counter
+semstreams_datamanager_entities_updated_total 0
+# HELP semstreams_graph_index_events_processed_total Total events processed by graph index
+# TYPE semstreams_graph_index_events_processed_total counter
+semstreams_graph_index_events_processed_total 33
+# HELP semstreams_graph_index_kv_operations_total Total KV bucket operations
+# TYPE semstreams_graph_index_kv_operations_total counter
+semstreams_graph_index_kv_operations_total{kv_bucket="context",operation="list"} 33
+semstreams_graph_index_kv_operations_total{kv_bucket="context",operation="put"} 79
+semstreams_graph_index_kv_operations_total{kv_bucket="incoming",operation="list"} 33
+semstreams_graph_index_kv_operations_total{kv_bucket="name",operation="list"} 33
+semstreams_graph_index_kv_operations_total{kv_bucket="outgoing",operation="delete"} 4
+semstreams_graph_index_kv_operations_total{kv_bucket="outgoing",operation="put"} 29
+semstreams_graph_index_kv_operations_total{kv_bucket="predicate",operation="list"} 33
+# HELP semstreams_graph_index_reconcile_operations_total Owner reconciliation KV operations by index type, operation, and outcome
+# TYPE semstreams_graph_index_reconcile_operations_total counter
+semstreams_graph_index_reconcile_operations_total{index_type="context",operation="list",result="success"} 4
+semstreams_graph_index_reconcile_operations_total{index_type="incoming",operation="list",result="success"} 33
+semstreams_graph_index_reconcile_operations_total{index_type="name",operation="list",result="success"} 33
+semstreams_graph_index_reconcile_operations_total{index_type="predicate",operation="list",result="success"} 33
+# HELP semstreams_graph_index_reindex_events_total Re-index events by whether the index-input projection changed (the L2 change-detection data gate)
+# TYPE semstreams_graph_index_reindex_events_total counter
+semstreams_graph_index_reindex_events_total{result="changed"} 29
+# HELP semstreams_graph_index_temporal_entities_indexed_total Entities indexed by timestamp source: observed (time.observation.recorded) or write_fallback (UpdatedAt). A rising write_fallback ratio means producers have not adopted the observation predicate.
+# TYPE semstreams_graph_index_temporal_entities_indexed_total counter
+semstreams_graph_index_temporal_entities_indexed_total{source="write_fallback"} 19
+# HELP semstreams_graph_index_temporal_reverse_index_errors_total Failures writing/deleting the reverse map (entity -> bucket). Nonzero means the forward index and reverse map may have drifted.
+# TYPE semstreams_graph_index_temporal_reverse_index_errors_total counter
+semstreams_graph_index_temporal_reverse_index_errors_total 0
+# HELP semstreams_graph_index_temporal_stale_bucket_removals_total Entity events removed from a prior time bucket on re-index or delete (stale-entry cleanup).
+# TYPE semstreams_graph_index_temporal_stale_bucket_removals_total counter
+semstreams_graph_index_temporal_stale_bucket_removals_total 0
+# HELP semstreams_graph_index_updates_total Total index update operations by index type
+# TYPE semstreams_graph_index_updates_total counter
+semstreams_graph_index_updates_total{index_type="context"} 33
+semstreams_graph_index_updates_total{index_type="incoming"} 33
+semstreams_graph_index_updates_total{index_type="name"} 33
+semstreams_graph_index_updates_total{index_type="outgoing"} 33
+semstreams_graph_index_updates_total{index_type="predicate"} 33
+# HELP semstreams_graph_index_watch_events_total Total watch events received
+# TYPE semstreams_graph_index_watch_events_total counter
+semstreams_graph_index_watch_events_total{event_type="delete"} 4
+semstreams_graph_index_watch_events_total{event_type="update"} 29
+# HELP semstreams_graph_index_write_failures_total Entities whose required index writes ultimately failed after retry (readiness withheld until re-index)
+# TYPE semstreams_graph_index_write_failures_total counter
+semstreams_graph_index_write_failures_total 0
+# HELP semstreams_graph_ingest_cas_retries_total Entity-merge CAS-conflict retries — cross-entity contention observability, NOT a keying-correctness proof (ADR-072).
+# TYPE semstreams_graph_ingest_cas_retries_total counter
+semstreams_graph_ingest_cas_retries_total 0
+# HELP semstreams_graph_ingest_ingest_lag_seconds Age of a message when graph-ingest starts processing it (queue/backlog wait). The queue-wait half of the split (gh#480).
+# TYPE semstreams_graph_ingest_ingest_lag_seconds histogram
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="0.001"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="0.005"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="0.01"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="0.05"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="0.1"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="0.5"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="1"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="2.5"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="5"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="10"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="30"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="60"} 0
+semstreams_graph_ingest_ingest_lag_seconds_bucket{le="+Inf"} 0
+semstreams_graph_ingest_ingest_lag_seconds_sum 0
+semstreams_graph_ingest_ingest_lag_seconds_count 0
+# HELP semstreams_graph_ingest_processing_duration_seconds Per-message apply time in graph-ingest (merge + CAS write). The processing half of the queue-wait-vs-processing split (gh#480).
+# TYPE semstreams_graph_ingest_processing_duration_seconds histogram
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.0005"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.001"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.002"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.005"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.01"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.025"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.05"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.1"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.25"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="0.5"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="1"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="2.5"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="5"} 0
+semstreams_graph_ingest_processing_duration_seconds_bucket{le="+Inf"} 0
+semstreams_graph_ingest_processing_duration_seconds_sum 0
+semstreams_graph_ingest_processing_duration_seconds_count 0
+# HELP semstreams_graph_ingest_redeliveries_dropped_total Stale redeliveries dropped by the applied-sequence guard (ADR-072).
+# TYPE semstreams_graph_ingest_redeliveries_dropped_total counter
+semstreams_graph_ingest_redeliveries_dropped_total 0
+# HELP semstreams_graph_ingest_stub_restamps_total Referential-integrity stubs re-stamped as a real birth on create_with_triples (gh#435) — a healthy stub→real path, NOT a rejection.
+# TYPE semstreams_graph_ingest_stub_restamps_total counter
+semstreams_graph_ingest_stub_restamps_total 0
+# HELP semstreams_graph_query_community_cache_hits_total Total community cache hits (entity found in cache)
+# TYPE semstreams_graph_query_community_cache_hits_total counter
+semstreams_graph_query_community_cache_hits_total 0
+# HELP semstreams_graph_query_community_cache_misses_total Total community cache misses (entity not in cache, falling back to storage)
+# TYPE semstreams_graph_query_community_cache_misses_total counter
+semstreams_graph_query_community_cache_misses_total 0
+# HELP semstreams_graph_query_community_storage_hits_total Total community storage fallback hits (entity found via NATS query)
+# TYPE semstreams_graph_query_community_storage_hits_total counter
+semstreams_graph_query_community_storage_hits_total 0
+# HELP semstreams_graph_query_community_storage_misses_total Total community storage fallback misses (entity not in any community)
+# TYPE semstreams_graph_query_community_storage_misses_total counter
+semstreams_graph_query_community_storage_misses_total 0
+# HELP semstreams_graph_query_global_search_requests_total Total GraphRAG global search requests
+# TYPE semstreams_graph_query_global_search_requests_total counter
+semstreams_graph_query_global_search_requests_total 0
+# HELP semstreams_graph_query_global_search_response_count Distribution of entity counts returned by globalSearch responses (0 bucket flags 'returned nothing')
+# TYPE semstreams_graph_query_global_search_response_count histogram
+semstreams_graph_query_global_search_response_count_bucket{le="0"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="1"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="5"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="10"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="25"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="50"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="100"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="250"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="500"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="1000"} 0
+semstreams_graph_query_global_search_response_count_bucket{le="+Inf"} 0
+semstreams_graph_query_global_search_response_count_sum 0
+semstreams_graph_query_global_search_response_count_count 0
+# HELP semstreams_graph_query_local_search_requests_total Total GraphRAG local search requests
+# TYPE semstreams_graph_query_local_search_requests_total counter
+semstreams_graph_query_local_search_requests_total 0
+# HELP semstreams_log_entries_total Total slog records emitted at WARN+ by component and level. Use rate() or increase() for windowed views.
+# TYPE semstreams_log_entries_total counter
+semstreams_log_entries_total{component="unknown",level="warn"} 1
+# HELP semstreams_nats_circuit_breaker NATS circuit breaker status (0=closed, 1=open, 2=half-open)
+# TYPE semstreams_nats_circuit_breaker gauge
+semstreams_nats_circuit_breaker 0
+# HELP semstreams_nats_connected NATS connection status (0=disconnected, 1=connected)
+# TYPE semstreams_nats_connected gauge
+semstreams_nats_connected 0
+# HELP semstreams_nats_reconnects_total Total number of NATS reconnections
+# TYPE semstreams_nats_reconnects_total counter
+semstreams_nats_reconnects_total 0
+# HELP semstreams_nats_rtt_seconds NATS round-trip time in seconds
+# TYPE semstreams_nats_rtt_seconds gauge
+semstreams_nats_rtt_seconds 0
+# HELP semstreams_service_status Service status (0=stopped, 1=starting, 2=running, 3=stopping, 4=failed)
+# TYPE semstreams_service_status gauge
+semstreams_service_status{service="component-manager"} 2
+semstreams_service_status{service="message-logger"} 2
+semstreams_service_status{service="metrics"} 2

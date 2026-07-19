@@ -17,8 +17,7 @@ import (
 //     datastreams — CS API uses raw JSON).
 //  2. Decode body to a Datastream value.
 //  3. Validate required fields (System reference + ObservedProperty IRI).
-//  4. Mint a 6-part SemStreams entity ID from cfg.DatastreamIDPrefix +
-//     either the client-supplied ID (sanitized) or a fresh UUID.
+//  4. Honor an exact valid caller ID, or mint when the ID is omitted.
 //  5. Convert to triples via datastreamToTriples.
 //  6. Publish via the same ingestTriples path POST /systems uses.
 //  7. Respond 201 Created with Location: /datastreams/{id}.
@@ -46,6 +45,12 @@ func (c *Component) handleDatastreamPost(w http.ResponseWriter, r *http.Request)
 		writeJSONError(w, http.StatusBadRequest, "invalid Datastream JSON: "+err.Error())
 		return
 	}
+	if in.ID != "" {
+		if err := validateEntityID(in.ID); err != nil {
+			writeJSONError(w, http.StatusBadRequest, "invalid Datastream id: "+err.Error())
+			return
+		}
+	}
 
 	// Required fields per CS API §10.6: every datastream MUST link to a
 	// producing system + an observable property. We reject early so the
@@ -72,13 +77,15 @@ func (c *Component) handleDatastreamPost(w http.ResponseWriter, r *http.Request)
 		in.Schema = schema
 	}
 
-	// Honor client-supplied id if shaped as a SemStreams 6-part ID;
-	// otherwise mint from prefix + sanitized client id (or a fresh UUID
-	// if id was empty). The honor-client-id path lets a caller that
+	// Honor a valid client-supplied ID exactly; otherwise mint only when
+	// the ID is omitted. The honor-client-id path lets a caller that
 	// already has its own ID space (typical for federated deployments)
 	// supply an authoritative id; the mint path covers the new-resource
 	// case where the server assigns.
-	entityID := c.mintDatastreamEntityID(in.ID)
+	entityID := in.ID
+	if entityID == "" {
+		entityID = c.mintDatastreamEntityID()
+	}
 
 	triples := datastreamToTriples(entityID, &in)
 
@@ -108,14 +115,8 @@ func (c *Component) handleDatastreamPost(w http.ResponseWriter, r *http.Request)
 	}{Status: "created", ID: entityID, Type: "Datastream"})
 }
 
-// mintDatastreamEntityID returns the entity ID to use for a datastream
-// being created. Honors a client-supplied id when it already conforms
-// to the SemStreams 6-part shape (the federation idiom: caller owns
-// the ID space). Otherwise appends a sanitized last token to the
-// configured 5-part prefix.
-func (c *Component) mintDatastreamEntityID(clientID string) string {
-	if clientID != "" && validateEntityIDStrict(clientID) == nil {
-		return clientID
-	}
-	return c.cfg.DatastreamIDPrefix + "." + uniqueIDToToken(clientID)
+// mintDatastreamEntityID is server-side minting for an omitted body ID.
+// Explicit caller IDs never enter this normalization path.
+func (c *Component) mintDatastreamEntityID() string {
+	return mintEntityID(c.cfg.DatastreamIDPrefix, nil)
 }

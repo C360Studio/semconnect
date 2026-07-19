@@ -16,18 +16,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 const testPatchID = "acme.ops.robotics.gcs.drone.099"
 
 // patchedSystemState mirrors existingSystemState (systems_crd_test.go)
-// + adds a Stage 18 cs-api.system.uid triple and a Stage 14
-// cs-api.system.position triple, so the merge logic has a full
+// + adds the canonical UID and position triples, so the merge logic has a full
 // realistic triple set to preserve.
 func patchedSystemState(id string) graph.EntityState {
 	return graph.EntityState{

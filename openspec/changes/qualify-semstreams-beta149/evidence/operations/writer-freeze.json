@@ -1,0 +1,37 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "runId": "2026-07-18T10-52-31Z",
+  "environment": "semconnect-conformance-disposable-fresh-volumes",
+  "preCaptureCompletedAt": "2026-07-18T10:57:02Z",
+  "freezeOrder": [
+    {
+      "service": "teamengine",
+      "requestedAt": "2026-07-18T10:57:19Z",
+      "finishedAt": "2026-07-18T10:57:19.6617145Z",
+      "status": "exited",
+      "exitCode": 143,
+      "oomKilled": false,
+      "error": ""
+    },
+    {
+      "service": "cs-api-server",
+      "requestedAt": "2026-07-18T10:57:29Z",
+      "finishedAt": "2026-07-18T10:57:29.159191921Z",
+      "status": "exited",
+      "exitCode": 0,
+      "oomKilled": false,
+      "error": ""
+    }
+  ],
+  "freezeVerifiedBeforeBackendSignal": {
+    "nats": "running",
+    "semstreams-backend": "running",
+    "cs-api-server": "exited",
+    "teamengine": "exited"
+  },
+  "writesOrReseedsAfterFreeze": 0,
+  "postRestartTeamEngineState": "exited",
+  "postRestartCsApiUse": "GET and health probes only",
+  "productionUse": "prohibited"
+}

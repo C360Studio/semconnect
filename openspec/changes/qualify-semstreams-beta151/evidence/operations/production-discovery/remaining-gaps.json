@@ -1,0 +1,58 @@
+{
+  "formatVersion": "1.0.0",
+  "capturedAt": "2026-07-18T17:32:13Z",
+  "manifestComplete": false,
+  "productionAuthorization": false,
+  "productionActionTaken": false,
+  "task63ReadyToComplete": false,
+  "fields": {
+    "productionEnvironmentName": null,
+    "natsContext": null,
+    "natsAccount": null,
+    "natsServer": null,
+    "natsDomain": null,
+    "entityStatesRenderedName": null,
+    "entityStatesRecordCount": null,
+    "entityStatesRevision": null,
+    "observationStreamRenderedName": null,
+    "observationStreamMessageCount": null,
+    "artifactObjectStoreRenderedName": null,
+    "artifactObjectCount": null,
+    "otherGraphResourceInventory": null,
+    "activeWriters": null,
+    "committedSemconnectRevision": null,
+    "productionSemconnectImageDigest": null,
+    "productionBackendImageDigest": null,
+    "authoritativeReseedUri": null,
+    "authoritativeReseedRevision": null,
+    "authoritativeReseedSha256": null,
+    "authoritativeReseedExpectedEntityCount": null,
+    "authoritativeReseedOwner": null,
+    "literalReseedCommand": null,
+    "maintenanceWindow": null,
+    "rollbackOwner": null,
+    "priorCommittedRevision": null,
+    "priorImageDigests": null,
+    "productionOperatorIdentity": null
+  },
+  "identityObservation": {
+    "localGithubLogin": "cglusky",
+    "mayBePromotedToProductionOperatorIdentity": false,
+    "reason": "GitHub authentication proves repository access only; no deployment owner record or production context binds this login to an operator role"
+  },
+  "accessGaps": [
+    "GitHub organization action variable names unavailable without organization-admin permission",
+    "GitHub organization action secret names unavailable without organization-admin permission",
+    "GitHub organization container package metadata unavailable without read:packages"
+  ],
+  "requiredOwnerSuppliedEvidence": [
+    "literal production environment and NATS context/account/server/domain",
+    "read-only authoritative NATS inventory with rendered names, counts, and revisions",
+    "complete active-writer and owner inventory",
+    "committed deployed semconnect revision and immutable semconnect/backend image digests",
+    "authoritative reseed URI, revision, SHA-256, expected entity count, owner, and literal command",
+    "maintenance window, rollback owner, prior committed revision, and prior image digests",
+    "named production operator plus architect, product-owner, operator, and two destructive-reviewer signatures over one complete immutable manifest hash"
+  ],
+  "decision": "NO-GO: discovery did not locate authoritative production deployment values"
+}

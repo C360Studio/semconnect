@@ -1,0 +1,60 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "review": "svelte-quality-gate",
+  "decision": "approved",
+  "tasksApproved": ["7.1", "7.2", "7.3"],
+  "tasksHeldOpen": [],
+  "resolvedFindings": [
+    {
+      "id": "UI-001",
+      "severity": "high",
+      "resolution": "The explicit product catalog and ledger-derived test cover exactly all 32 migrated predicates."
+    },
+    {
+      "id": "UI-002",
+      "severity": "high",
+      "resolution": "Controlled properties are serialized scalar metadata with no relationship, relationship label, or edge color."
+    }
+  ],
+  "semanticCatalogAudit": {
+    "ledgerCorrections": 32,
+    "explicitlyPresent": 32,
+    "missing": 0,
+    "extra": 0
+  },
+  "gates": {
+    "svelteCheck": {
+      "command": "npm --prefix ui run check",
+      "result": "0 errors and 0 warnings",
+      "exitCode": 0
+    },
+    "build": {
+      "command": "npm --prefix ui run build",
+      "result": "passed",
+      "exitCode": 0
+    },
+    "playwright": {
+      "command": "npm --prefix ui run test:e2e",
+      "result": "7 passed, 0 failed",
+      "exitCode": 0
+    },
+    "identityTemplates": {
+      "command": "node ui/scripts/full-stack-compare.mjs --validate-identities",
+      "result": "6 valid, 0 invalid"
+    },
+    "controlledPropertiesShape": "serialized scalar fact; 0 relationship matches",
+    "mobileLayout": "390x844; document and body scroll width equal viewport width",
+    "keyboard": "Enter isolates ControlStream; Space restores all resource filters",
+    "diffCheck": {
+      "command": "git diff --check -- ui openspec/changes/migrate-semstreams-beta147/evidence/development/ui",
+      "result": "no output",
+      "exitCode": 0
+    },
+    "removedOwnershipImports": "0 findings",
+    "historicalInternalPredicates": "1 intentional negative assertion, 0 production findings"
+  },
+  "signedByRole": "svelte-reviewer",
+  "signedBy": "Codex agent /root/svelte_reviewer_beta147",
+  "signedAt": "2026-07-18T00:24:54Z"
+}

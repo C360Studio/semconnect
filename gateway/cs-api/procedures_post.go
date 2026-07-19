@@ -20,9 +20,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // handleProcedurePost serves POST /procedures.
@@ -88,7 +88,7 @@ func (c *Component) handleProcedurePost(w http.ResponseWriter, r *http.Request) 
 // mintProcedureEntityID is the procedure-namespace mirror of
 // mintSystemEntityID.
 func (c *Component) mintProcedureEntityID(uniqueID string) string {
-	return c.cfg.ProcedureIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.ProcedureIDPrefix, []byte(uniqueID))
 }
 
 // buildProcedureTriplesFromSensorML mirrors buildSystemTriplesFromSensorML
@@ -108,6 +108,9 @@ func (c *Component) buildProcedureTriplesFromSensorML(body []byte) (string, []me
 	}
 	entityID := c.mintProcedureEntityID(process.Base().UniqueID)
 	asset := sensorml.NewAsset(entityID, process)
+	asset.ChildIDFn = func(localID string) string {
+		return mintNestedSensorMLEntityID(entityID, localID)
+	}
 	triples := asset.Triples()
 	if len(triples) == 0 {
 		return entityID, nil, errors.New("SensorML process produced no representable triples")

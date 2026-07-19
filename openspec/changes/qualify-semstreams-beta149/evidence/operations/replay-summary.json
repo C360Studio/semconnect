@@ -1,0 +1,82 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta149",
+  "runId": "2026-07-18T10-52-31Z",
+  "noInterveningWrite": true,
+  "preRestartReadiness": {
+    "targetRevision": 118,
+    "indexedRevision": 118,
+    "artifact": "pre/index-readiness.jsonl"
+  },
+  "postRestartReadiness": {
+    "targetRevision": 118,
+    "indexedRevision": 118,
+    "artifact": "post/index-readiness.jsonl"
+  },
+  "backendRestart": {
+    "requestedAt": "2026-07-18T10:58:12Z",
+    "startedAt": "2026-07-18T10:58:12.632015719Z",
+    "healthyAt": "2026-07-18T10:58:17Z",
+    "healthPolls": 6
+  },
+  "csApiRestart": {
+    "requestedAt": "2026-07-18T10:58:42Z",
+    "startedAt": "2026-07-18T10:58:43.187256511Z",
+    "healthyAt": "2026-07-18T10:58:43Z",
+    "healthPolls": 1,
+    "reseeded": false
+  },
+  "queryCorpus": {
+    "beta147EquivalentProbeCount": 11,
+    "additionalArtifactProbeCount": 1,
+    "normalization": "recursive jq walk sorts object arrays by id and jq -S sorts object keys",
+    "recursiveDiffCommand": "diff -ru pre/normalized post/normalized",
+    "recursiveDiffExitCode": 0,
+    "allBodiesMatched": true,
+    "populatedSpatialFeatureCount": 5
+  },
+  "retainedState": {
+    "observations": {
+      "messagesBefore": 1,
+      "messagesAfter": 1,
+      "lastSequenceBefore": 1,
+      "lastSequenceAfter": 1,
+      "subjectsBefore": 1,
+      "subjectsAfter": 1,
+      "readableApiBodyMatched": true
+    },
+    "objectStore": {
+      "messagesBefore": 4,
+      "messagesAfter": 4,
+      "lastSequenceBefore": 4,
+      "lastSequenceAfter": 4,
+      "subjectsBefore": 4,
+      "subjectsAfter": 4,
+      "readableSchemaCount": 2,
+      "bothReadableApiBodiesMatched": true
+    },
+    "entityStates": {
+      "messagesBefore": 67,
+      "messagesAfter": 67,
+      "lastSequenceBefore": 118,
+      "lastSequenceAfter": 118,
+      "subjectsBefore": 33,
+      "subjectsAfter": 33,
+      "bytesBefore": 171784,
+      "bytesAfter": 171784
+    },
+    "spatialIndex": {
+      "messagesBefore": 2,
+      "messagesAfter": 2,
+      "subjectsBefore": 2,
+      "subjectsAfter": 2,
+      "lastSequenceBefore": 22,
+      "lastSequenceAfter": 27,
+      "sequenceAdvanceExpected": "derived spatial index rebuild on backend start",
+      "normalizedQueryBodiesMatched": true
+    }
+  },
+  "teamEngineAfterRehearsal": "exited",
+  "stackLeftForReviewer": ["nats", "semstreams-backend", "cs-api-server"],
+  "decision": "pass-no-write-readiness-replay-and-retention"
+}

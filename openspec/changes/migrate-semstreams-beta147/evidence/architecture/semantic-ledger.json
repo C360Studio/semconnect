@@ -1,0 +1,64 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "sourceSpec": {
+    "path": "openspec/changes/migrate-semstreams-beta147/specs/canonical-semantic-graph-contracts/spec.md",
+    "sha256": "f0c00a98762bbf5bf44c448fe6d0e8a7188a4163db73694f17ec83a464724986"
+  },
+  "disposition": {
+    "aliases": "forbidden",
+    "dualReads": "forbidden",
+    "dualWrites": "forbidden",
+    "inProcessTranslation": "forbidden",
+    "migration": "authoritative-reseed"
+  },
+  "counts": {
+    "transferredRenames": 19,
+    "localRenames": 12,
+    "fullIriCorrections": 1,
+    "totalCorrections": 32
+  },
+  "transferredRenames": [
+    ["oms.observation.hasFeatureOfInterest", "oms.observation.has-feature-of-interest"],
+    ["oms.observation.hasSimpleResult", "oms.observation.has-simple-result"],
+    ["oms.observation.observedProperty", "oms.observation.observed-property"],
+    ["oms.observation.phenomenonTime", "oms.observation.phenomenon-time"],
+    ["oms.observation.resultTime", "oms.observation.result-time"],
+    ["oms.observation.usedProcedure", "oms.observation.used-procedure"],
+    ["sensorml.component.isHostedBy", "sensorml.component.is-hosted-by"],
+    ["sensorml.process.attachedTo", "sensorml.process.attached-to"],
+    ["sensorml.process.hasSubSystem", "sensorml.process.has-sub-system"],
+    ["sensorml.process.usedProcedure", "sensorml.process.used-procedure"],
+    ["csapi.command.partOfControlStream", "csapi.command.part-of-control-stream"],
+    ["csapi.controlstream.commandSchema", "csapi.controlstream.command-schema"],
+    ["csapi.controlstream.controlsSystem", "csapi.controlstream.controls-system"],
+    ["csapi.datastream.phenomenonTimeRange", "csapi.datastream.phenomenon-time-range"],
+    ["csapi.datastream.producedBy", "csapi.datastream.produced-by"],
+    ["csapi.datastream.resultSchema", "csapi.datastream.result-schema"],
+    ["csapi.datastream.resultTimeRange", "csapi.datastream.result-time-range"],
+    ["csapi.datastream.resultType", "csapi.datastream.result-type"],
+    ["csapi.systemevent.forSystem", "csapi.systemevent.for-system"]
+  ],
+  "localRenames": [
+    ["cs-api.controlstream.inputName", "cs-api.controlstream.input-name"],
+    ["cs-api.controlstream.commandFormat", "cs-api.controlstream.command-format"],
+    ["cs-api.controlstream.controlledProperties", "cs-api.controlstream.controlled-properties"],
+    ["cs-api.controlstream.issueTime", "cs-api.controlstream.issue-time"],
+    ["cs-api.controlstream.executionTime", "cs-api.controlstream.execution-time"],
+    ["cs-api.command.issueTime", "cs-api.command.issue-time"],
+    ["cs-api.command.executionTime", "cs-api.command.execution-time"],
+    ["cs-api.datastream.phenomenonTime", "cs-api.datastream.phenomenon-time"],
+    ["cs-api.datastream.resultTime", "cs-api.datastream.result-time"],
+    ["cs-api.property.baseProperty", "cs-api.property.base-property"],
+    ["cs-api.deployment.deployedSystems", "cs-api.deployment.deployed-systems"],
+    ["cs-api.samplingfeature.hostedProcedure", "cs-api.samplingfeature.hosted-procedure"]
+  ],
+  "fullIriCorrections": [
+    {
+      "currentPredicateConstant": "sosa.ObservedProperty",
+      "currentPredicateValue": "http://www.w3.org/ns/sosa/observedProperty",
+      "canonicalInternalPredicate": "csapi.datastream.observed-property",
+      "boundaryIri": "http://www.w3.org/ns/sosa/observedProperty"
+    }
+  ]
+}

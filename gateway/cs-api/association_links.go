@@ -1,11 +1,14 @@
 package csapi
 
-import "github.com/c360studio/semstreams/message"
+import (
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
+	"github.com/c360studio/semstreams/message"
+)
 
 const (
-	predDeploymentDeployedSystems      = "cs-api.deployment.deployedSystems"
-	predDeploymentParent               = "cs-api.deployment.parent"
-	predSamplingFeatureHostedProcedure = "cs-api.samplingfeature.hostedProcedure"
+	predDeploymentDeployedSystems      = csapivocab.DeploymentDeployedSystems
+	predDeploymentParent               = csapivocab.DeploymentParent
+	predSamplingFeatureHostedProcedure = csapivocab.SamplingFeatureHostedProcedure
 )
 
 func linksFromHrefs(hrefs []string, rel string) []link {

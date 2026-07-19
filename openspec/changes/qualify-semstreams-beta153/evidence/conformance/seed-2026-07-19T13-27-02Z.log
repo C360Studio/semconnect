@@ -1,0 +1,45 @@
+{"status":"created","id":"c360.semconnect.systems.csapi.system.weather-station-01","type":"System"}
+
+HTTP 201 loc=/systems/c360.semconnect.systems.csapi.system.weather-station-01
+{"status":"created","id":"c360.semconnect.systems.csapi.system.01","type":"System"}
+
+HTTP 201 loc=/systems/c360.semconnect.systems.csapi.system.01
+{"status":"created","id":"c360.semconnect.systems.csapi.system.hosted-platform-bake-01","type":"System"}
+
+HTTP 201 loc=/systems/c360.semconnect.systems.csapi.system.hosted-platform-bake-01
+{"status":"created","id":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","type":"Datastream"}
+
+HTTP 201 loc=/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01
+{"status":"accepted","id":"ets-observation-001","subject":"cs-api.observations.c360.semconnect.systems.csapi.datastream.weather-temperature-01"}
+
+HTTP 201 loc=/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations/ets-observation-001
+{"status":"created","id":"c360.semconnect.systems.csapi.procedure.01","type":"Procedure"}
+
+HTTP 201 loc=/procedures/c360.semconnect.systems.csapi.procedure.01
+{"status":"created","id":"c360.semconnect.systems.csapi.deployment.01","type":"Deployment"}
+
+HTTP 201 loc=/deployments/c360.semconnect.systems.csapi.deployment.01
+{"status":"created","id":"c360.semconnect.systems.csapi.deployment.child01","type":"Deployment"}
+
+HTTP 201 loc=/deployments/c360.semconnect.systems.csapi.deployment.child01
+{"status":"created","id":"c360.semconnect.systems.csapi.samplingfeature.01","type":"SamplingFeature"}
+
+HTTP 201 loc=/samplingFeatures/c360.semconnect.systems.csapi.samplingfeature.01
+{"status":"created","id":"c360.semconnect.systems.csapi.property.air-temperature","type":"Property"}
+
+HTTP 201
+{"status":"created","id":"c360.semconnect.systems.csapi.controlstream.ptz-01","type":"ControlStream"}
+
+HTTP 201 loc=/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01
+{"status":"created","id":"c360.semconnect.systems.csapi.command.ets-ptz-001","type":"Command"}
+
+HTTP 201
+{"status":"created","id":"c360.semconnect.systems.csapi.feasibility.ets-ptz-001","type":"Feasibility"}
+
+HTTP 201
+{"status":"created","id":"c360.semconnect.systems.csapi.systemevent.00Z","type":"SystemEvent"}
+
+HTTP 201 loc=/systemEvents/c360.semconnect.systems.csapi.systemevent.00Z
+2026/07/19 08:29:31 INFO Connecting to NATS urls=nats://127.0.0.1:60205
+2026/07/19 08:29:31 INFO Successfully connected to NATS urls=nats://127.0.0.1:60205
+graph index ready: target_revision=80 indexed_revision=80 attempts=2 evidence=/Users/coby/Code/c360/semconnect/conformance/output/seed-evidence/index-readiness-2026-07-19T13-27-02Z.jsonl

@@ -1,0 +1,50 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "recordType": "operator-production-discovery-handoff",
+  "signedByRole": "operator",
+  "signedAt": "2026-07-18T17:34:00Z",
+  "discoveryManifest": {
+    "path": "openspec/changes/qualify-semstreams-beta151/evidence/operations/production-discovery/evidence-hashes.sha256",
+    "sha256": "a6ceb17473f0de0385d569dfcd56a0a9318ee33d03388df14a89c57529179181",
+    "entryCount": 6,
+    "verificationCommand": "shasum -a 256 -c openspec/changes/qualify-semstreams-beta151/evidence/operations/production-discovery/evidence-hashes.sha256"
+  },
+  "boundNoGoEvidence": {
+    "blockedManifest": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/production-cutover-manifest.blocked.json",
+      "sha256": "73cb520681c5b5a9b65558cd7827cdce392044fabd221c8e23f65be7b9d2431c"
+    },
+    "productionNoActionAttestation": {
+      "path": "openspec/changes/qualify-semstreams-beta151/evidence/production-no-action-attestation.json",
+      "sha256": "fd3b93b6ffff68b8e56289597731c30c4254e6de4eafaa7cabdc3c82b0e1b2f4"
+    }
+  },
+  "verifiedNegativeFindings": {
+    "localProductionContextAvailable": false,
+    "githubProductionEnvironmentConfigured": false,
+    "githubDeploymentRecordPresent": false,
+    "githubProductionWorkflowPresent": false,
+    "repositoryProductionDescriptorPresent": false,
+    "authoritativeProductionNatsIdentityAvailable": false,
+    "authoritativeProductionResourceInventoryAvailable": false,
+    "completeWriterInventoryAvailable": false,
+    "deployedRevisionAndDigestsAvailable": false,
+    "authoritativeReseedAvailable": false,
+    "maintenanceWindowAvailable": false,
+    "rollbackOwnerAvailable": false,
+    "productionOperatorIdentityAvailable": false
+  },
+  "restrictedMetadata": {
+    "organizationActionVariables": "HTTP 403",
+    "organizationActionSecrets": "HTTP 403",
+    "organizationContainerPackages": "HTTP 403 missing read:packages"
+  },
+  "disposableConformanceValuesUsedAsProductionValues": false,
+  "productionDataQueried": false,
+  "productionActionTaken": false,
+  "completeImmutableProductionManifest": false,
+  "productionAuthorization": false,
+  "task63Disposition": "BLOCKED pending owner-supplied literal production inputs",
+  "decision": "NO-GO"
+}

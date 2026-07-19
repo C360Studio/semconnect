@@ -1,0 +1,89 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "handoff": "go-developer-to-go-reviewer-and-operator",
+  "scope": "conformance graph-index readiness and retained-state seed identity determinism",
+  "decision": "ready-for-narrow-rereview",
+  "files": [
+    {
+      "path": "conformance/run.sh",
+      "sha256": "5342d3d76cb5941fbf6fa69ea9ffd371df492df4f7344e26900cb11626a743a3"
+    },
+    {
+      "path": "conformance/fixtures/system.sml.json",
+      "sha256": "e2c08a0146abf15c30c186a23980eb5611193a58f827d0bf0a9a2246c74ef018"
+    },
+    {
+      "path": "conformance/cmd/index-readiness/main.go",
+      "sha256": "d1e6f01c99b87e60d354a26b84e372a411fa4753073c59e0e06d6fc75cf8e5bc"
+    },
+    {
+      "path": "conformance/cmd/index-readiness/main_test.go",
+      "sha256": "7d391116dc22264e0d8b786e8d9993fc27a1d08d807fe19880c1df44f8ed1b55"
+    },
+    {
+      "path": "conformance/cmd/index-readiness/seed_identity_test.go",
+      "sha256": "ecbdc145a6d597252517198488be9968b47c3a1cac7838f7d26ae85a094ce6b0"
+    }
+  ],
+  "readinessContract": {
+    "subject": "graph.index.query.status",
+    "connection": "nats://127.0.0.1:${NATS_HOST_PORT}",
+    "capture": "two consecutive equal non-zero TargetRevision samples after all seed writes",
+    "success": "Ready true, current TargetRevision >= captured target, IndexedRevision >= captured target, and IndexedRevision >= current TargetRevision",
+    "fatal": [
+      "graph_state_reset_required",
+      "target revision regression",
+      "malformed response",
+      "classified request failure",
+      "overall context timeout",
+      "evidence write failure"
+    ],
+    "evidence": "conformance/output/seed-evidence/index-readiness-<UTC>.jsonl",
+    "ordering": "after all seed writes and existing collection polls; before Team Engine suite discovery/invocation"
+  },
+  "stableSeedIdentities": {
+    "systemUniqueId": "urn:ets:system:weather-station-01",
+    "systemEntityId": "c360.semconnect.systems.csapi.system.weather-station-01",
+    "datastreamEntityId": "c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+    "schemaArtifactEntityId": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_datastream_weather-temperature-01-resultSchema",
+    "schemaArtifactObjectKey": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_datastream_weather-temperature-01-resultSchema.json",
+    "observationSubject": "cs-api.observations.c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+    "observationPayloadId": "ets-observation-001",
+    "systemEventEntityId": "c360.semconnect.systems.csapi.systemevent.00Z",
+    "controlStreamEntityId": "c360.semconnect.systems.csapi.controlstream.ptz-01",
+    "commandSchemaArtifactEntityId": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema",
+    "commandSchemaArtifactObjectKey": "c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema.json"
+  },
+  "tddRecord": {
+    "path": "openspec/changes/migrate-semstreams-beta147/evidence/operations/readiness-development/tdd-record.md",
+    "disposition": "retained initial red plus bounded non-fabricated reconstruction for two review-found gaps"
+  },
+  "verification": {
+    "path": "openspec/changes/migrate-semstreams-beta147/evidence/operations/readiness-development/verification.md",
+    "focusedTests": "pass",
+    "fullGoTests": "managed-sandbox-real-nats-blocked-root-unsandboxed-rerun-required",
+    "fullGoVet": "pass",
+    "fullGoBuild": "pass",
+    "shellSyntax": "pass",
+    "openSpec": "pass",
+    "diffCheck": "pass",
+    "dockerConformance": "not-run-by-design-operator-owned"
+  },
+  "reviewNotes": [
+    "Existing collection readiness polls and foreign-edge checks are preserved.",
+    "Every returned primary System, Datastream, and SystemEvent ID is checked against its stable contract.",
+    "The seed audit pins ets-observation-001 and parses System, Datastream, ControlStream, Observation, both schemas, and SystemEvent inputs twice.",
+    "The seed audit rejects UUID fallback and validates every graph entity ID with beta.147 validators.",
+    "The final status record archives captured target, current target, and final indexed revision."
+  ],
+  "signature": {
+    "type": "go-developer-source-bundle-attestation",
+    "signedByRole": "go-developer",
+    "signedBy": "Codex agent /root/architect_beta_delta",
+    "signedAt": "2026-07-18T01:34:22Z",
+    "decision": "ready-for-narrow-rereview",
+    "sourceBundleSha256": "0af3071091e32ab0c60e9a0ff1068c4a9fadc5ebbbab8109b8700ace19ef5710",
+    "productionAuthorization": "withheld-operator-validation-required"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "formatVersion": "1.0.0",
+  "capturedAt": "2026-07-18T17:32:13Z",
+  "scope": "local operator context discovery; no production data queried",
+  "github": {
+    "host": "github.com",
+    "authenticatedLogin": "cglusky",
+    "gitProtocol": "ssh",
+    "tokenValueCaptured": false,
+    "scopes": ["gist", "read:org", "read:project", "repo"],
+    "productionOperatorIdentityEstablished": false
+  },
+  "kubernetes": {
+    "cliPresent": true,
+    "configFilePresent": false,
+    "contextCount": 0,
+    "currentContext": null,
+    "productionContextEstablished": false
+  },
+  "nats": {
+    "cliPresent": false,
+    "contextDirectoriesPresent": false,
+    "matchingEnvironmentVariableNames": [],
+    "productionContextEstablished": false
+  },
+  "docker": {
+    "cliPresent": true,
+    "currentContext": "desktop-linux",
+    "contexts": ["default", "desktop-linux"],
+    "classification": "local Docker Desktop only; disposable conformance values excluded",
+    "productionContextEstablished": false
+  },
+  "cloud": {
+    "awsCliPresent": false,
+    "gcloudCliPresent": false,
+    "azureCliPresent": false,
+    "terraformCliPresent": false,
+    "tofuCliPresent": false,
+    "awsConfigDirectoryPresent": false,
+    "gcloudConfigDirectoryPresent": false,
+    "azureConfigDirectoryPresent": false
+  },
+  "sshHostAliases": ["github.com"],
+  "checkout": {
+    "repository": "C360Studio/semconnect",
+    "branch": "codex/semstreams-beta147-migration",
+    "head": "95d6a6161374f45465f92bd491ba5b64fed30572",
+    "originMainObserved": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1",
+    "workingTreePorcelainEntryCount": 15,
+    "committedProductionRevisionEstablished": false
+  },
+  "result": "no local production environment or operator context available"
+}

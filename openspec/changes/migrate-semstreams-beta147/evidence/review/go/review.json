@@ -1,0 +1,201 @@
+{
+  "change": "migrate-semstreams-beta147",
+  "role": "go-reviewer",
+  "reviewedAt": "2026-07-18T01:11:23Z",
+  "repositoryHead": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1",
+  "reviewedTaskFileSha256": "9adfb02a4099e9713b374864c7c4b7782fb811dda324232016e7fde6a9324c85",
+  "decision": "approved",
+  "approval": true,
+  "tasksCompleted": [
+    "6.1",
+    "6.2",
+    "6.3",
+    "6.4",
+    "6.5",
+    "6.6"
+  ],
+  "openFindings": [],
+  "resolvedFindings": [
+    {
+      "id": "GO-REV-001",
+      "resolution": "POST /datastreams rejects every non-empty invalid explicit graph ID before schema storage or NATS. Explicit parent@id is no longer trimmed and the System POST handler rejects it before backend I/O.",
+      "proof": [
+        "TestHandleDatastreamPost_InvalidExplicitIDRejectsBeforeIO",
+        "TestHandleSystemPost_RejectsWhitespacePaddedExplicitParentIDBeforeIO"
+      ]
+    },
+    {
+      "id": "GO-REV-002",
+      "resolution": "All resource-kind and reconstruction reads use only sensorml.PredType. The operational typeAliases/rdf.type compatibility read was removed; source and negative runtime tests enforce the boundary.",
+      "proof": [
+        "TestReconstruct_RejectsRDFTypeCompatibilityRead",
+        "TestCanonicalTypeReadHasNoCompatibilityAliasSource",
+        "independent operational legacy-identity scan: zero hits"
+      ]
+    },
+    {
+      "id": "GO-REV-003",
+      "resolution": "The exact upstream MIT notice is preserved at third_party/semstreams/LICENSE and attributed by THIRD_PARTY_NOTICES.md without changing the project license.",
+      "proof": {
+        "upstreamAndPreservedSha256": "f04755968ca6dc99d31430e02ff6db65032586f7ddd5f955e86e2df31310a478",
+        "projectLicenseSha256": "8dcc0740ed8301461c7ca2fe87689692e9e5c78798e50db6bf07b9fcde6ad12f",
+        "test": "TestTransferredPackageLicenseNoticePreserved"
+      }
+    },
+    {
+      "id": "GO-REV-004",
+      "resolution": "The evidence signature now covers a normalized immutable 58-task definition snapshot and excludes live checkbox state. Reviewer checkbox progression leaves the signed contract valid.",
+      "proof": {
+        "normalizedTaskDefinitionSha256": "1b0fe327a26ae4507caa5531f16ce1b4c5e5492d0ea42368bb4a93bd936a5ab1",
+        "validationAfterTasks6Completed": "architecture evidence valid: 7 trees, 55 files, 32 semantic corrections, 58 stable task definitions, P0 production block"
+      }
+    },
+    {
+      "id": "GO-REV-005",
+      "resolution": "Local EntityState fixtures now mark registered entity relationships with message.EntityReferenceDatatype; literal external IRIs and hrefs remain untyped. The fixture audit derives relationship semantics from registry metadata.",
+      "proof": [
+        "TestEntityStateFixtureAuditUsesRegisteredRelationshipMetadata",
+        "TestEntityRelationshipsAreRegisteredAsIDs",
+        "independent relationship-constructor source scan"
+      ]
+    },
+    {
+      "id": "GO-REV-006",
+      "resolution": "Observation POST validates every non-empty caller ID with validateOpaqueResourceID before publish and returns 400 without a JetStream call for invalid path tokens.",
+      "proof": "TestHandleObservationsPost_InvalidCallerObservationIDRejectsBeforePublish"
+    }
+  ],
+  "verifiedScope": {
+    "sourceProvenance": {
+      "commit": "c8f0b92edf5ad5b491d5f4e81891bec817fae3cd",
+      "trees": 7,
+      "files": 55,
+      "manifestSourceMismatchCount": 0,
+      "applicableLicensePreserved": true
+    },
+    "semanticLedger": {
+      "transferredRenames": 19,
+      "localRenames": 12,
+      "fullIriCorrections": 1,
+      "total": 32,
+      "operationalLegacyIdentityHits": 0
+    },
+    "identityAndState": {
+      "authoritativeFinalStateValidation": true,
+      "exactCallerIds": true,
+      "zeroIoFailurePaths": true,
+      "entityRelationshipsTypedAsId": true,
+      "boundedFullSha256Overflow": true,
+      "domainSeparatedNestedAndArtifactIds": true,
+      "prefixDigestBudgetValidated": true
+    },
+    "runtime": {
+      "contextPropagation": true,
+      "classifiedErrors": true,
+      "raceAndConcurrency": true,
+      "realNats": true,
+      "realJetStream": true,
+      "realObjectStore": true,
+      "projectionContract": true,
+      "explicitOmsRegistration": true,
+      "omsEnvelope": "ogc.oms.v3"
+    },
+    "pins": {
+      "moduleVersion": "v1.0.0-beta.147",
+      "backendVersion": "v1.0.0-beta.147",
+      "peeledCommit": "5cc22c109594e48b7f1cec04bcaaf0106d85495a"
+    }
+  },
+  "independentCommands": [
+    {
+      "command": "go test -count=1 ./gateway/cs-api ./parser/sensorml -run 'TestHandleDatastreamPost_InvalidExplicitIDRejectsBeforeIO|TestHandleSystemPost_RejectsWhitespacePaddedExplicitParentIDBeforeIO|TestReconstruct_RejectsRDFTypeCompatibilityRead|TestCanonicalTypeReadHasNoCompatibilityAliasSource|TestHandleObservationsPost_InvalidCallerObservationIDRejectsBeforePublish|TestEntityStateFixtureAuditUsesRegisteredRelationshipMetadata|TestTransferredPackageLicenseNoticePreserved|TestEntityRelationshipsAreRegisteredAsIDs' -v",
+      "exitCode": 0,
+      "result": "all GO-REV-001 through GO-REV-006 remediation tests passed"
+    },
+    {
+      "command": "rg --files -g '*.go' -0 | xargs -0 gofmt -l",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go vet ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go vet -tags=integration ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go test -count=1 ./...",
+      "exitCode": 0,
+      "result": "all 9 package targets passed"
+    },
+    {
+      "command": "go test -race -count=1 ./...",
+      "exitCode": 0,
+      "result": "all 9 package targets passed"
+    },
+    {
+      "command": "go test -tags=integration -count=1 ./...",
+      "exitCode": 0,
+      "result": "all 9 package targets passed"
+    },
+    {
+      "command": "go test -tags=integration -count=1 -run 'TestRealNATS' -v ./gateway/cs-api",
+      "exitCode": 0,
+      "result": "TestRealNATSEntityMutationCarriesCanonicalFinalState and TestRealNATSJetStreamAndObjectStoreLifecycle passed"
+    },
+    {
+      "command": "go build ./...",
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": "go test -count=1 ./message/oms ./parser/sensorml ./pkg/swecommon ./vocabulary/...",
+      "exitCode": 0,
+      "result": "all 7 transferred package targets passed"
+    },
+    {
+      "command": "go run github.com/c360studio/semstreams/cmd/predicate-audit message parser pkg vocabulary gateway cmd conformance/fixtures conformance/compose.semstreams.config.json",
+      "exitCode": 0,
+      "output": "predicate audit passed: 95 structured candidates across 8 roots"
+    },
+    {
+      "command": "go run github.com/c360studio/semstreams/cmd/entity-id-audit@v1.0.0-beta.147 .",
+      "exitCode": 0,
+      "output": "entity ID audit passed: 28 structured candidates across 1 roots"
+    },
+    {
+      "command": "go run github.com/c360studio/semstreams/cmd/entity-id-audit --include-untracked .",
+      "exitCode": 0,
+      "output": "entity ID audit passed: 31 structured candidates across 1 roots"
+    },
+    {
+      "command": "python3 openspec/changes/migrate-semstreams-beta147/evidence/architecture/validate-evidence.py /private/tmp/semstreams-c8f0b92-review",
+      "exitCode": 0,
+      "output": "architecture evidence valid: 7 trees, 55 files, 32 semantic corrections, 58 stable task definitions, P0 production block"
+    }
+  ],
+  "handoff": {
+    "nextRole": "technical-writer",
+    "goGate": "approved",
+    "documentationAndReleaseNarrativeMayProceed": true
+  },
+  "releaseClaims": {
+    "productionCutover": false,
+    "externalEts": false,
+    "productionExecutionAuthorized": false
+  },
+  "signature": {
+    "signedByRole": "go-reviewer",
+    "signedAt": "2026-07-18T01:11:23Z",
+    "decision": "approved"
+  }
+}

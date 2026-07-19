@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-07-17
+goal: Preserve CS API behavior and reach a fresh external ETS result of 137
+  passed, 0 failed, 0 skipped on beta.147 without weakening claims or tests.

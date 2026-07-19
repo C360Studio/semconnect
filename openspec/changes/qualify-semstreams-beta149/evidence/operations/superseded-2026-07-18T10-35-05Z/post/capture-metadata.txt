@@ -1,0 +1,5 @@
+phase=post
+captured_at=2026-07-18T10:45:09Z
+writer_state=running
+backend_state=running
+nats_state=running

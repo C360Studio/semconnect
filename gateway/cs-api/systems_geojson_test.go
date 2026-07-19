@@ -226,7 +226,7 @@ func TestHandleSystems_AdvancedFilterRejectsMixedIDList(t *testing.T) {
 
 // TestHandleSystems_GeoJSONFeatureCollection — Accept geo+json
 // triggers the FeatureCollection path. Each system with a
-// cs-api.system.position triple gets a real Point geometry; those
+// sensorml.process.position triple gets a real Point geometry; those
 // without get a null geometry. RFC 7946 §3.2 explicitly permits
 // null geometry on a Feature, so this is conformant.
 func TestHandleSystems_GeoJSONFeatureCollection(t *testing.T) {
@@ -315,10 +315,10 @@ func TestHandleSystems_GeoJSONEmptyCollection(t *testing.T) {
 // name/description evidence for keyword filtering.
 func TestHandleSystems_JSONHydratesCollectionItems(t *testing.T) {
 	fake := &multiReplyFakeRequester{
-		predicateReply: encodeReply(t, []string{"acme.x", "acme.y"}),
+		predicateReply: encodeReply(t, []string{"acme.ops.robotics.gcs.system.x", "acme.ops.robotics.gcs.system.y"}),
 		entityRepliesByID: map[string][]byte{
-			"acme.x": systemStateWithPosition(t, "acme.x", "Conformance seed", ""),
-			"acme.y": systemStateWithPosition(t, "acme.y", "Other seed", ""),
+			"acme.ops.robotics.gcs.system.x": systemStateWithPosition(t, "acme.ops.robotics.gcs.system.x", "Conformance seed", ""),
+			"acme.ops.robotics.gcs.system.y": systemStateWithPosition(t, "acme.ops.robotics.gcs.system.y", "Other seed", ""),
 		},
 	}
 	c := newComponentWithRequester(t, fake)

@@ -8,6 +8,34 @@ how the gateway was built; use [README.md](../README.md),
 [AGENTS.md](../AGENTS.md), and [conformance/README.md](../conformance/README.md)
 for the current operating picture.
 
+That green result is the 2026-07-06 beta.141 historical baseline. ADR-S003 and
+`openspec/changes/migrate-semstreams-beta147/` record the signed beta.147
+product-boundary migration foundation. In particular, references below to SemStreams
+owning OMS, SensorML, SWE Common, SOSA/SWE, or CS API vocabulary describe the
+historical build sequence; those packages are now semconnect-owned.
+
+The historical disposable beta.147 run on 2026-07-18 passed the external ETS at
+`137 passed, 0 failed, 0 skipped`, revision readiness, foreign-edge, and
+archived no-write query replay gates. Independent review found no conformance
+weakening. It also exposed the heartbeat shutdown error that beta.149 subsequently
+closed; it did not authorize production.
+
+The dependent beta.149 qualification subsequently passed `137/0/0` and closed
+the beta.147 heartbeat shutdown blocker. It remains signed historical evidence.
+Beta.151 then passed its authoritative post-review fresh-volume `137/0/0` run,
+retained-state, normal-SIGTERM, readiness, no-write replay, and foreign-edge
+gates. It is the current qualified historical baseline.
+
+The active OpenSpec change,
+`openspec/changes/qualify-semstreams-beta153/`, qualifies beta.153's graph-ingest
+bug and performance fixes. Its exact pin, live per-entity structural regression,
+full Go test/race/vet/build, focused upstream, clean-volume Compose persistence,
+and unchanged external `137/0/0` gates pass. Independent review found no
+legacy/compatibility code or conformance weakening. Frontend/Svelte is N/A
+because the public CS API and UI did not change. The beta.153 Compose bundle is
+production-ready for standard startup on clean NATS; there is no migration,
+runtime manifest, or product-owner hash approval.
+
 The framework half of [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
 (Phases 2-6) is complete and merged on `semstreams` main.
 Everything `semconnect` builds on consumes those primitives as

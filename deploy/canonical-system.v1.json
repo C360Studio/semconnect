@@ -1,0 +1,9 @@
+{
+  "type": "Feature",
+  "geometry": {"type": "Point", "coordinates": [-96.797, 32.777]},
+  "properties": {
+    "uid": "urn:c360:semconnect:deployment-smoke:system:v1",
+    "name": "Greenfield deployment smoke system",
+    "description": "Versioned seed used only to prove first-start persistence."
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "change": "migrate-semstreams-beta147",
+  "sourceRepository": "https://github.com/C360Studio/semstreams",
+  "sourceCommit": "c8f0b92edf5ad5b491d5f4e81891bec817fae3cd",
+  "sourceLicensePath": "LICENSE",
+  "sourceLicenseSha256": "f04755968ca6dc99d31430e02ff6db65032586f7ddd5f955e86e2df31310a478",
+  "copyright": "Copyright (c) 2025 C360",
+  "license": "MIT",
+  "preservedNotice": "third_party/semstreams/LICENSE",
+  "repositoryNotice": "THIRD_PARTY_NOTICES.md",
+  "projectLicenseModified": false,
+  "transferredTrees": [
+    "message/oms",
+    "parser/sensorml",
+    "pkg/swecommon",
+    "vocabulary/csapi",
+    "vocabulary/oms",
+    "vocabulary/sosa",
+    "vocabulary/swe"
+  ]
+}

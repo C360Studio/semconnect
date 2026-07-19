@@ -1,0 +1,43 @@
+{
+  "items": [
+    {
+      "controlstream@id": "c360.semconnect.systems.csapi.controlstream.ptz-01",
+      "controlstream@link": {
+        "href": "/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01",
+        "rel": "controlstream",
+        "title": "c360.semconnect.systems.csapi.controlstream.ptz-01",
+        "type": "application/json"
+      },
+      "currentStatus": "accepted",
+      "executionTime": "2026-05-19T12:01:00Z",
+      "id": "c360.semconnect.systems.csapi.command.ets-ptz-001",
+      "issueTime": "2026-05-19T12:00:00Z",
+      "links": [
+        {
+          "href": "/commands/c360.semconnect.systems.csapi.command.ets-ptz-001",
+          "rel": "canonical",
+          "type": "application/json"
+        },
+        {
+          "href": "/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/commands",
+          "rel": "controlstream",
+          "type": "application/json"
+        }
+      ],
+      "params": {
+        "pan": 10,
+        "tilt": 5
+      },
+      "sender": "ets",
+      "status": "accepted",
+      "type": "Command"
+    }
+  ],
+  "links": [
+    {
+      "href": "/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/commands",
+      "rel": "self",
+      "type": "application/json"
+    }
+  ]
+}

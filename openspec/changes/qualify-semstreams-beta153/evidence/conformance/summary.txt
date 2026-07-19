@@ -1,0 +1,28 @@
+Stages 6+9 conformance harness — 2026-07-19T13-27-02Z
+ETS pin:        https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10.git @ d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4
+TeamEngine:     5.6.1 (0.1-SNAPSHOT)
+semstreams pin: https://github.com/C360Studio/semstreams.git @ d2654e5a027138b8a9056863da5ed463ef767f37 (v1.0.0-beta.153)
+IUT: http://cs-api-server:8080
+
+TestNG: total=137 passed=137 failed=0 skipped=0
+Foreign-edge bake (ADR-055/056): PASS — foreign_edge_unclaimed_total=0 + foreign_edge_dropped_total=0 with the isHostedBy lane exercised — zero by CLAIMED (NoBirthStub-routed)
+Report:        /Users/coby/Code/c360/semconnect/conformance/output/testng-report-2026-07-19T13-27-02Z.xml
+TE log:        /Users/coby/Code/c360/semconnect/conformance/output/teamengine-container-2026-07-19T13-27-02Z.log
+cs-api log:    /Users/coby/Code/c360/semconnect/conformance/output/cs-api-server-container-2026-07-19T13-27-02Z.log
+backend log:   /Users/coby/Code/c360/semconnect/conformance/output/semstreams-backend-container-2026-07-19T13-27-02Z.log
+seed log:      /Users/coby/Code/c360/semconnect/conformance/output/seed-2026-07-19T13-27-02Z.log
+index status:  /Users/coby/Code/c360/semconnect/conformance/output/seed-evidence/index-readiness-2026-07-19T13-27-02Z.jsonl
+bake report:   /Users/coby/Code/c360/semconnect/conformance/output/foreign-edge-bake-2026-07-19T13-27-02Z.txt
+
+Stage 9 note: cs-api-server now runs against a real graph backend
+(semstreams-backend), seeded with conformance/fixtures/system.sml.json
+and a referencing datastream before suite invocation. The Botts
+fixture-loader 503s are eliminated — surviving failures are genuine
+spec assertions or upstream-ETS bugs.
+
+Stage 56 note: the foreign-edge bake POSTs system-hosted.sml.json (a
+SensorML system with an inline hosted component) and asserts
+graph-ingest's foreign_edge_unclaimed_total reads zero — proving every
+isHostedBy foreign edge cs-api emits is CLAIMED (NoBirthStub-stubbed),
+not dropped, once the must-exist flip tags. This clears cs-api's half
+of the foreign-edge flip gate (semconnect#65).

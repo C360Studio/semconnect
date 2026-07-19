@@ -1,0 +1,54 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "role": "operator",
+  "signedAt": "2026-07-18T16:57:14Z",
+  "qualifyingRunId": "2026-07-18T16-40-05Z",
+  "semstreams": {
+    "version": "v1.0.0-beta.151",
+    "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+    "sourceTree": "120eeb353afb7d07aa1b3180de05f75494bac1a8",
+    "image": "sha256:08db471f5574eedd9c96c4f8641e187a04a2ac6b3b9bccd4ca8b0ea29d76f9f8"
+  },
+  "manifest": {
+    "path": "openspec/changes/qualify-semstreams-beta151/evidence/operations/evidence-hashes.sha256",
+    "sha256": "e40e3b524ee79df0e5a78dc7cc7540e486bb1e65efea8a616c2dd7c81c80c4db",
+    "entryCount": 81,
+    "verificationCommand": "shasum -a 256 -c openspec/changes/qualify-semstreams-beta151/evidence/operations/evidence-hashes.sha256"
+  },
+  "gates": {
+    "retainedStateCoverageComplete": true,
+    "retainedStateZeroPoison": true,
+    "writersFrozenBeforeSigterm": true,
+    "normalSigtermExitZero": true,
+    "oomKilled": false,
+    "forcedKill": false,
+    "beta149ShutdownSignatureCount": 0,
+    "noWriteReadiness118Of118": true,
+    "normalizedProbeCount": 12,
+    "normalizedProbeDiffCount": 0,
+    "entityStateUnchanged": true,
+    "foreignEdgeLaneFired": true,
+    "foreignEdgeUnclaimedTotal": 0,
+    "foreignEdgeDroppedTotal": 0,
+    "structuralAtomicRejectionProved": true
+  },
+  "externalInformativeOnly": {
+    "summaryPath": "conformance/output/summary.txt",
+    "summarySha256": "b3a5d9be1f8be2291be2d377d5ca3d7541a8723aaf1aea9ffbddfd4d4975ebb4",
+    "testngPath": "conformance/output/testng-report-2026-07-18T16-40-05Z.xml",
+    "testngSha256": "3872d635048c1843bdada9ebd78b4b939b88423b61614f64a3508c2dc2c37278",
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "finalAuthority": false
+  },
+  "stackForReviewer": {
+    "nats": "running healthy",
+    "semstreamsBackend": "running healthy",
+    "csApiServer": "running read-only after replay",
+    "teamengine": "stopped exit 143"
+  },
+  "productionActionAuthorized": false,
+  "operatorDisposition": "PASS for independent review; no production authorization"
+}

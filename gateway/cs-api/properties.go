@@ -14,15 +14,16 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 const (
-	predPropertyDefinition   = "cs-api.property.definition"
-	predPropertyBaseProperty = "cs-api.property.baseProperty"
+	predPropertyDefinition   = csapivocab.PropertyDefinition
+	predPropertyBaseProperty = csapivocab.PropertyBaseProperty
 )
 
 type propertyCollection struct {
@@ -92,7 +93,7 @@ func propertyFromState(state graph.EntityState) propertyResource {
 }
 
 func isPropertyKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	if !ok {
 		return false
 	}
@@ -284,7 +285,7 @@ func (c *Component) handlePropertyPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Component) mintPropertyEntityID(uniqueID string) string {
-	return c.cfg.PropertyIDPrefix + "." + uniqueIDToToken(uniqueID)
+	return mintEntityID(c.cfg.PropertyIDPrefix, []byte(uniqueID))
 }
 
 func (c *Component) buildPropertyTriples(body []byte) (string, []message.Triple, error) {

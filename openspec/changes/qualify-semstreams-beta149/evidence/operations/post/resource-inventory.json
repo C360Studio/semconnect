@@ -1,0 +1,71 @@
+{
+  "captured_at": "2026-07-18T10:58:53.76874771Z",
+  "server_id": "NALJIZLYWS5YZOV5JVMQWZICCBCPRQD3ANOS5P2TSF5YKIP2A3KJ3TDD",
+  "streams": [
+    {
+      "created": "2026-07-18T10:52:47.768396971Z",
+      "name": "CS_API_OBSERVATIONS",
+      "state": {
+        "bytes": 720,
+        "first_seq": 1,
+        "last_seq": 1,
+        "messages": 1,
+        "num_deleted": 0,
+        "num_subjects": 1
+      },
+      "storage": "file",
+      "subjects": [
+        "cs-api.observations.>"
+      ]
+    },
+    {
+      "created": "2026-07-18T10:52:42.206357635Z",
+      "name": "KV_ENTITY_STATES",
+      "state": {
+        "bytes": 171784,
+        "first_seq": 21,
+        "last_seq": 118,
+        "messages": 67,
+        "num_deleted": 31,
+        "num_subjects": 33
+      },
+      "storage": "file",
+      "subjects": [
+        "$KV.ENTITY_STATES.>"
+      ]
+    },
+    {
+      "created": "2026-07-18T10:52:42.320741885Z",
+      "name": "KV_SPATIAL_INDEX",
+      "state": {
+        "bytes": 1022,
+        "first_seq": 13,
+        "last_seq": 27,
+        "messages": 2,
+        "num_deleted": 13,
+        "num_subjects": 2
+      },
+      "storage": "file",
+      "subjects": [
+        "$KV.SPATIAL_INDEX.>"
+      ]
+    },
+    {
+      "created": "2026-07-18T10:52:47.769441096Z",
+      "name": "OBJ_CS_API_ARTIFACTS",
+      "state": {
+        "bytes": 1678,
+        "first_seq": 1,
+        "last_seq": 4,
+        "messages": 4,
+        "num_deleted": 0,
+        "num_subjects": 4
+      },
+      "storage": "file",
+      "subjects": [
+        "$O.CS_API_ARTIFACTS.C.>",
+        "$O.CS_API_ARTIFACTS.M.>"
+      ]
+    }
+  ]
+}

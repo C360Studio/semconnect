@@ -11,9 +11,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // handleDatastreamPatch serves PATCH /datastreams/{id} — CS API §10
@@ -171,13 +171,13 @@ func mergePatchDatastreamTriples(entityID string, existing []message.Triple, pat
 		case PredDatastreamSystem:
 			sawSystem = true
 			if hasSystem {
-				out = append(out, message.Triple{Subject: entityID, Predicate: PredDatastreamSystem, Object: patch.System})
+				out = append(out, message.Triple{Subject: entityID, Predicate: PredDatastreamSystem, Object: patch.System, Datatype: message.EntityReferenceDatatype})
 				continue
 			}
-		case sosa.ObservedProperty:
+		case csapivocab.ObservedProperty:
 			sawObservedProperty = true
 			if hasObservedProperty {
-				out = append(out, message.Triple{Subject: entityID, Predicate: sosa.ObservedProperty, Object: patch.ObservedProperty})
+				out = append(out, message.Triple{Subject: entityID, Predicate: csapivocab.ObservedProperty, Object: patch.ObservedProperty})
 				continue
 			}
 		case PredDatastreamSchema:
@@ -196,10 +196,10 @@ func mergePatchDatastreamTriples(entityID string, existing []message.Triple, pat
 		out = append(out, message.Triple{Subject: entityID, Predicate: sensorml.PredDescription, Object: patch.Description})
 	}
 	if hasSystem && !sawSystem {
-		out = append(out, message.Triple{Subject: entityID, Predicate: PredDatastreamSystem, Object: patch.System})
+		out = append(out, message.Triple{Subject: entityID, Predicate: PredDatastreamSystem, Object: patch.System, Datatype: message.EntityReferenceDatatype})
 	}
 	if hasObservedProperty && !sawObservedProperty {
-		out = append(out, message.Triple{Subject: entityID, Predicate: sosa.ObservedProperty, Object: patch.ObservedProperty})
+		out = append(out, message.Triple{Subject: entityID, Predicate: csapivocab.ObservedProperty, Object: patch.ObservedProperty})
 	}
 	if hasSchema && !sawSchema {
 		out = append(out, *schemaRel)

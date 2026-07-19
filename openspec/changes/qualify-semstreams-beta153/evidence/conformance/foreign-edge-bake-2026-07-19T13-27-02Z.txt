@@ -1,0 +1,8 @@
+# foreign-edge bake — 2026-07-19T13-27-02Z
+(no foreign_edge_* series emitted)
+
+verdict:    PASS
+detail:     foreign_edge_unclaimed_total=0 + foreign_edge_dropped_total=0 with the isHostedBy lane exercised — zero by CLAIMED (NoBirthStub-routed)
+unclaimed:  0
+dropped:    0
+lane-fired: 1

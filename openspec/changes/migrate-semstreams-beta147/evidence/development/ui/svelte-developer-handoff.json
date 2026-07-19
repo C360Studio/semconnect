@@ -1,0 +1,60 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "handoff": "svelte-development-to-review",
+  "repository": {
+    "branch": "codex/semstreams-beta147-migration",
+    "baseRevision": "a8d1a7d15a94e3a5ede3ead27c668458fec2ede1"
+  },
+  "tasksCompleted": ["4.1", "4.2", "4.3", "4.4", "4.5"],
+  "taskHeldOpen": {
+    "id": "4.6",
+    "reason": "Joint developer handoff requires the Go lane to be ready."
+  },
+  "tdd": {
+    "failingFirst": true,
+    "redReasons": [
+      "Product-owned semantic catalog module absent",
+      "Frozen-ledger coverage export absent before 32-entry catalog implementation",
+      "Controlled-properties demo value was a non-JSON entity ID before scalar-metadata correction"
+    ],
+    "greenTargeted": "2 passed",
+    "greenComplete": "7 passed"
+  },
+  "reviewRemediation": {
+    "completeFrozenLedgerCoverage": "32 explicit entries, 0 missing, 0 extra",
+    "controlledPropertiesShape": "serialized scalar metadata, no DemoRelationship or edge color"
+  },
+  "scope": [
+    "ui/e2e/demo.spec.ts",
+    "ui/scripts/full-stack-compare.mjs",
+    "ui/src/lib/components/EntityDetail.svelte",
+    "ui/src/lib/data/demoGraph.ts",
+    "ui/src/lib/semantics/semanticCatalog.ts",
+    "ui/src/lib/services/csApi.ts",
+    "ui/src/lib/services/graphGateway.ts",
+    "ui/src/lib/utils/colors.ts"
+  ],
+  "gates": {
+    "svelteCheck": "0 errors and 0 warnings",
+    "build": "passed",
+    "playwright": "7 passed, 0 failed",
+    "semanticLedgerCoverage": "32 explicit, 0 missing, 0 extra",
+    "controlledPropertiesRelationships": "0",
+    "identityTemplates": "6 valid, 0 invalid",
+    "removedOwnershipImports": "0 findings",
+    "historicalProductionIdentities": "0 findings",
+    "diffCheck": "passed"
+  },
+  "publicParity": {
+    "typescriptInterfacesChanged": false,
+    "wireMemberNamesChanged": false,
+    "internalPredicatesRenderedRaw": false,
+    "generatedClientPresent": false
+  },
+  "blockers": [],
+  "decision": "ready-for-svelte-review",
+  "signedByRole": "svelte-developer",
+  "signedBy": "Codex agent /root/svelte_developer_beta147",
+  "signedAt": "2026-07-18T00:22:36Z"
+}

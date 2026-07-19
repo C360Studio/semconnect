@@ -1,0 +1,75 @@
+{
+  "recordType": "ordinary-external-conformance-evidence",
+  "recordedAt": "2026-07-19",
+  "command": "./conformance/run.sh",
+  "runId": "2026-07-19T13-27-02Z",
+  "sourcePins": {
+    "semstreams": {
+      "version": "v1.0.0-beta.153",
+      "tagObject": "ee011caee8a137b8dfb01d7634e9bb09519818b8",
+      "commit": "d2654e5a027138b8a9056863da5ed463ef767f37",
+      "tree": "dc7422aa9fd93ec446dca73a33e0c602b6601111"
+    },
+    "bottsEts": {
+      "version": "0.1-SNAPSHOT",
+      "commit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4"
+    },
+    "teamEngine": "5.6.1"
+  },
+  "result": {
+    "total": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "graphIndex": {
+      "indexedRevision": 80,
+      "targetRevision": 80
+    },
+    "foreignEdge": {
+      "verdict": "PASS",
+      "laneExercised": true,
+      "unclaimed": 0,
+      "dropped": 0
+    },
+    "stackTeardownCompleted": true
+  },
+  "artifacts": [
+    {
+      "path": "conformance/summary.txt",
+      "sha256": "c2d4845d6fd976d5f3c86c76ddf5280f5075b1eca251ff66dbb38fcb7e86a604"
+    },
+    {
+      "path": "conformance/testng-report-2026-07-19T13-27-02Z.xml",
+      "sha256": "b2d8d50ae2064f421dfadfa61ea52635087bd58062de02a85b4e02e27ac106b7"
+    },
+    {
+      "path": "conformance/compose-build-2026-07-19T13-27-02Z.log",
+      "sha256": "ff0a9cb3f25212a1c6c43cf1c0a0c72be4fbe3000bab7b82202de4dc2881e268"
+    },
+    {
+      "path": "conformance/cs-api-server-container-2026-07-19T13-27-02Z.log",
+      "sha256": "ceee27aa3997483c31de76b9da35ca35a826bf8d236d55410f49e1327c875de5"
+    },
+    {
+      "path": "conformance/semstreams-backend-container-2026-07-19T13-27-02Z.log",
+      "sha256": "da0d489a62c134c2eb527e6b463b992d04c5a97f243ed836ddc569c058a6fb10"
+    },
+    {
+      "path": "conformance/teamengine-container-2026-07-19T13-27-02Z.log",
+      "sha256": "1827f965db304577be64ea56769d74252a264cfefe6a9a802f5cff289aeb7aef"
+    },
+    {
+      "path": "conformance/seed-2026-07-19T13-27-02Z.log",
+      "sha256": "8dd925149b47f3e7c79569b7c7b9712b6a277af35ecbc1e0023c060d32ad68f6"
+    },
+    {
+      "path": "conformance/seed-evidence/index-readiness-2026-07-19T13-27-02Z.jsonl",
+      "sha256": "0f58f2026567e7dbd8e03786c5b5809012b92222bdf6f55dde36258cb53ac491"
+    },
+    {
+      "path": "conformance/foreign-edge-bake-2026-07-19T13-27-02Z.txt",
+      "sha256": "3fe4e49c10a275f310228ca625c89435056483f39408915c99eb6fd59578523b"
+    }
+  ],
+  "disposition": "qualified-greenfield-production-ready-no-additional-approval-ceremony"
+}

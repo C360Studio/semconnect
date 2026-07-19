@@ -12,17 +12,37 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-As of the 2026-07-06 SemStreams pin refresh, the pinned suite is green:
+The authoritative beta.153 fresh-volume run `2026-07-19T13-27-02Z` is:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
 ```
 
-The current pins are:
+The qualified pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.141` at `d46c07a3a32a28259fd1c571a0445b140c8405e8`.
+- semstreams backend `v1.0.0-beta.153` at
+  `d2654e5a027138b8a9056863da5ed463ef767f37`.
+
+The run reached graph-index revision `80/80` before Team Engine. The foreign-edge
+bake passed with the hosted-child lane exercised and both unclaimed and dropped
+counts at zero. Exact pin alignment, the live per-entity structural regression,
+full Go test/race/vet/build, focused upstream gates, and clean-volume Compose
+persistence also pass. Independent review found no ETS, fixture, OpenAPI,
+declaration, filter, skip, parser, or harness weakening. The conformance stack
+was torn down after evidence capture.
+
+Beta.151 is the qualified historical baseline; beta.141, beta.147, and beta.149
+results also remain historical evidence. Their records are not rewritten.
+Pre-v1 production is standard Compose on a clean NATS volume. The beta.153
+bundle is production-ready without a runtime manifest or product-owner hash
+approval gate.
+
+Beta.153 evidence is under
+`openspec/changes/qualify-semstreams-beta153/evidence/`, including the
+ordinary external record `external-conformance.json` with archived artifact
+hashes.
 
 The run exercises real gateway/framework behavior:
 
@@ -65,6 +85,8 @@ Outputs land in `conformance/output/` (gitignored):
 - `summary.txt` - human-readable TestNG counts.
 - `compose-build-<UTC>.log` - image build logs.
 - `seed-<UTC>.log` - fixture POST responses and readiness probes.
+- `seed-evidence/index-readiness-<UTC>.jsonl` - revision-based graph-index
+  status samples.
 - `teamengine-container-<UTC>.log` - Team Engine logs.
 - `cs-api-server-container-<UTC>.log` - gateway logs.
 - `semstreams-backend-container-<UTC>.log` - framework backend logs.
@@ -92,10 +114,12 @@ The seed phase creates the resource graph that the ETS reads back:
 - ControlStreams, command schemas, Commands, and Command Feasibility metadata.
 - SystemEvents.
 
-The seed phase is intentionally fatal: if a fixture cannot be created or
-cannot be observed through the corresponding read endpoint, the suite does not
-start. That keeps failures shaped like gateway/framework regressions instead
-of cascading Team Engine skips.
+The seed phase is intentionally fatal: if a fixture cannot be created, cannot
+be observed through the corresponding read endpoint, or the graph index does
+not reach the captured post-seed `ENTITY_STATES` revision, the suite does not
+start. Collection polling remains query evidence; health checks and fixed
+delays do not substitute for the revision gate. This keeps failures shaped like
+gateway/framework regressions instead of cascading Team Engine skips.
 
 ## Bumping Pins
 
@@ -110,9 +134,11 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_COMMIT=d46c07a3a32a28259fd1c571a0445b140c8405e8
-SEMSTREAMS_COMMIT_DATE=2026-07-05
-SEMSTREAMS_VERSION=v1.0.0-beta.141
+SEMSTREAMS_TAG_OBJECT=ee011caee8a137b8dfb01d7634e9bb09519818b8
+SEMSTREAMS_COMMIT=d2654e5a027138b8a9056863da5ed463ef767f37
+SEMSTREAMS_TREE=dc7422aa9fd93ec446dca73a33e0c602b6601111
+SEMSTREAMS_COMMIT_DATE=2026-07-19
+SEMSTREAMS_VERSION=v1.0.0-beta.153
 ```
 
 Bumping is intentional, not auto-pulled.
@@ -135,10 +161,14 @@ gateway's compiled wire expectations match the running backend.
 2. Run `go mod tidy`.
 3. Resolve the tag commit SHA. Tags are annotated, so distinguish the tag
    object SHA from the commit SHA.
-4. Edit `SEMSTREAMS_COMMIT`, `SEMSTREAMS_COMMIT_DATE`, and
-   `SEMSTREAMS_VERSION`.
+4. Edit `SEMSTREAMS_TAG_OBJECT`, `SEMSTREAMS_COMMIT`, `SEMSTREAMS_TREE`,
+   `SEMSTREAMS_COMMIT_DATE`, and `SEMSTREAMS_VERSION`.
 5. Run `go test ./...`, `go build ./...`, and `./conformance/run.sh`.
 6. Include the framework delta and conformance result in the PR description.
+
+The beta.147 migration procedure is historical. Current pre-v1 production is a
+greenfield deployment: use `deploy/compose.yml` only with a clean NATS volume.
+The bundle does not migrate, delete, translate, or import old state.
 
 ## NATS Config
 

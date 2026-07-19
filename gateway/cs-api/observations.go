@@ -10,10 +10,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/c360studio/semconnect/message/oms"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/message/oms"
 	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/pkg/errs"
+	semtypes "github.com/c360studio/semstreams/pkg/types"
 	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 )
@@ -89,6 +90,9 @@ func (c *Component) handleObservationsPost(w http.ResponseWriter, r *http.Reques
 	// one. Backfilled into obs before envelope wrap so consumers see it.
 	if obs.ID == "" {
 		obs.ID = uuid.NewString()
+	} else if err := validateOpaqueResourceID(obs.ID); err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid observation id: "+err.Error())
+		return
 	}
 
 	id := IdentityFrom(r.Context())
@@ -168,52 +172,30 @@ func (c *Component) publishObservation(ctx context.Context, subject string, obs 
 	return nil
 }
 
-// validateEntityID enforces the NATS-token-safe shape that SemStreams 6-part
-// entity IDs follow. Used on path segments (datastreamID, system id) where
-// the gateway has already routed the path and just needs to confirm the
-// segment is NATS-subject-safe. NOT a full 6-part shape check — that is
-// validateEntityIDStrict.
-//
-// Error messages refer to "id" generically; call sites prepend their own
-// context ("invalid system id: ...", "invalid datastream id: ...").
+// validateEntityID delegates graph identity to SemStreams' public beta.147
+// contract. It never trims, rewrites, or normalizes caller input.
 func validateEntityID(id string) error {
+	return semtypes.ValidateEntityID(id)
+}
+
+// validateEntityIDStrict remains as a readability alias at body-reference
+// call sites; both path and body graph IDs share one authoritative contract.
+func validateEntityIDStrict(id string) error {
+	return semtypes.ValidateEntityID(id)
+}
+
+// validateOpaqueResourceID is for non-graph identifiers such as an OMS
+// Observation ID. Keeping it separately named prevents graph-ID validation
+// from leaking into opaque HTTP resources.
+func validateOpaqueResourceID(id string) error {
 	if id == "" {
 		return errors.New("id required")
-	}
-	if strings.ContainsAny(id, " \t\r\n*>") {
-		return errors.New("id contains reserved characters")
 	}
 	if len(id) > 256 {
 		return errors.New("id exceeds 256 bytes")
 	}
-	for _, tok := range strings.Split(id, ".") {
-		if tok == "" {
-			return errors.New("id has empty token (leading/trailing/consecutive dots not allowed)")
-		}
-	}
-	return nil
-}
-
-// validateEntityIDStrict enforces the full 6-part SemStreams shape that
-// graph-ingest's entityIDRegex requires. Use for entity REFERENCES inside
-// request bodies (e.g. POST /datastreams system field) so a junk
-// reference is rejected at the gateway boundary instead of producing a
-// 500 from the graph backend's decode of the resulting batch.
-//
-// Mirrors graph-ingest's regex shape: exactly 6 dotted tokens, each
-// alphanumeric-start + [a-zA-Z0-9_-]*.
-func validateEntityIDStrict(id string) error {
-	if err := validateEntityID(id); err != nil {
-		return err
-	}
-	tokens := strings.Split(id, ".")
-	if len(tokens) != 6 {
-		return fmt.Errorf("must be 6 dotted tokens (got %d)", len(tokens))
-	}
-	for i, tok := range tokens {
-		if !entityIDTokenRegex.MatchString(tok) {
-			return fmt.Errorf("token[%d]=%q not alphanumeric-start", i, tok)
-		}
+	if strings.ContainsAny(id, " \t\r\n/\\?#") {
+		return errors.New("id contains reserved path characters")
 	}
 	return nil
 }

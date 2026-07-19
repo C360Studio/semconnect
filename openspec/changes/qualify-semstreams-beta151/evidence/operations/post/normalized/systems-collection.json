@@ -1,0 +1,53 @@
+{
+  "items": [
+    {
+      "description": "Stage 49 seed fixture — hosted child system",
+      "id": "c360.semconnect.systems.csapi.system.01",
+      "links": [
+        {
+          "href": "/systems/c360.semconnect.systems.csapi.system.01",
+          "rel": "self",
+          "type": "application/json"
+        }
+      ],
+      "name": "Conformance seed subsystem",
+      "type": "System"
+    },
+    {
+      "description": "ADR-055/056 must-exist-flip bake fixture. Declares one inline hosted component, so POST /systems emits a foreign-subject `child isHostedBy parent` edge (subject = the not-yet-existent child). Exercising this lane is what lets the harness prove foreign_edge_unclaimed_total reads zero BY CLAIMED (the registered NoBirthStub isHostedBy claim covers it), not zero by absence.",
+      "id": "c360.semconnect.systems.csapi.system.hosted-platform-bake-01",
+      "links": [
+        {
+          "href": "/systems/c360.semconnect.systems.csapi.system.hosted-platform-bake-01",
+          "rel": "self",
+          "type": "application/json"
+        }
+      ],
+      "name": "Conformance hosted platform (foreign-edge bake)",
+      "type": "System"
+    },
+    {
+      "description": "Minimal PhysicalSystem fixture used by the Stage 6 conformance harness. The Botts CS API ETS will POST this to the IUT once SensorML write paths land in the suite.",
+      "id": "c360.semconnect.systems.csapi.system.weather-station-01",
+      "links": [
+        {
+          "href": "/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+          "rel": "self",
+          "type": "application/json"
+        }
+      ],
+      "name": "Conformance weather station",
+      "type": "System"
+    }
+  ],
+  "links": [
+    {
+      "href": "/systems",
+      "rel": "self",
+      "type": "application/json"
+    }
+  ],
+  "numberMatched": 3,
+  "numberReturned": 3,
+  "type": "SystemCollection"
+}

@@ -1,0 +1,73 @@
+{
+  "formatVersion": "1.0.0",
+  "qualifyingRunId": "2026-07-18T16-40-05Z",
+  "preBuildAttestation": {
+    "path": "openspec/changes/qualify-semstreams-beta151/evidence/development/go/go-developer-handoff.json",
+    "sha256": "d4d3e8c9f088fee8e0da77e5e110a35b47ceec53259319f777be12c1c3875bb8",
+    "signedAt": "2026-07-18T16:36:17Z",
+    "evidenceBundleSha256": "bb81bbba709a67c6580cc893274aa9f7d2dc79775e6dce3d7277592da361f9e0"
+  },
+  "semstreams": {
+    "version": "v1.0.0-beta.151",
+    "tagObject": "784f22dc8d549d7781b88a2878bb679112aad494",
+    "commit": "ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+    "sourceTree": "120eeb353afb7d07aa1b3180de05f75494bac1a8",
+    "materializedSourceClean": true
+  },
+  "ets": {
+    "commit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+    "materializedSourceClean": true
+  },
+  "sourceHashes": {
+    "go.mod": "a66dd5e1e279836ff745b8f15d0c4e3ebca9c89eb1818c24414a88b8b8cc6362",
+    "go.sum": "e03ab0a5565ba46062811325e5b386f58f6b8bf28f2a53684920be3732fdafb5",
+    "conformance/.ets-pin": "c1558148ebd2eef82872e65b4623382857afa1a6fedc642ac357c7694dfa3e06",
+    "conformance/run.sh": "4ebfcabbf8f4640642185d37d70ecd7c1593be5c7963e776c07a181341eba724",
+    "conformance/compose.yml": "820d6a7b2322743ef3de02f0093ffe191967fc2e6043b2454cbb5026d096f7f4",
+    "conformance/compose.semstreams.config.json": "8f1ff9e8a10c90c4cec0fc15d087cd4007304bba1e283e01957b45d9876ad6d7",
+    "conformance/compose.cs-api.config.json": "06163dd8a67580779478eeb992cba4be1be0c9f665f278c1f0cddfd72c0f32f2"
+  },
+  "build": {
+    "log": "conformance/output/compose-build-2026-07-18T16-40-05Z.log",
+    "logSha256": "1228937e69873463a63d9c4a98890d40c7a8f9abc936ba9b3661c50cd780e6b9",
+    "semstreamsSourceCopyLine": 67,
+    "semstreamsBuildLines": [187, 196, 205, 222],
+    "semstreamsImageExportLine": 254,
+    "iutModuleCopyLine": 178,
+    "iutSourceCopyLine": 190,
+    "iutBuildLine": 193,
+    "iutImageExportLine": 214,
+    "semstreamsImage": {
+      "id": "sha256:08db471f5574eedd9c96c4f8641e187a04a2ac6b3b9bccd4ca8b0ea29d76f9f8",
+      "createdAt": "2026-07-18T16:40:20.372542801Z"
+    },
+    "iutImage": {
+      "id": "sha256:4618f678131da97cfb69dfc76523deb77aa108e9760ad7fc17f09a1cad5fde41",
+      "createdAt": "2026-07-18T16:40:17.964624883Z"
+    },
+    "postdatesSignedHandoff": true
+  },
+  "containers": {
+    "semstreams": {
+      "id": "7b8039c779f7ea0f9fd4c925562119a638d52c687a4ea883f8f5f69956ca19a2",
+      "createdAt": "2026-07-18T16:40:21.600436176Z",
+      "initialStartedAt": "2026-07-18T16:40:27.607536388Z"
+    },
+    "iut": {
+      "id": "9be13abbd4c0b2a80dac4752139da2851d81f9ad5c0b8aca7ffdfc229d83f3bd",
+      "createdAt": "2026-07-18T16:40:21.67369576Z",
+      "initialStartedAt": "2026-07-18T16:40:33.211216626Z"
+    },
+    "nats": {
+      "id": "a311f53fe47473b10453acf27f635b2cf314adb544c402a78d9030f6e4b140e6",
+      "image": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927"
+    },
+    "teamengine": {
+      "id": "2cf74ee60c47e547f9bd17fb69b741a57a28245c54739b81a6b3e770da0db247",
+      "image": "sha256:f525c1e21caf3c38645391f1c6cf1de186899728a67a5a37fbbeb6e14d5ba1ed"
+    }
+  },
+  "sourceIdentityEvidence": "source-identity.json",
+  "containerIdentityEvidence": "container-identities-pre-stop.json",
+  "imageIdentityEvidence": "image-identities.json"
+}

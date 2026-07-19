@@ -1,30 +1,42 @@
 # Semstreams Upstream Asks
 
-This directory tracks framework asks that surfaced while implementing
-the CS API gateway in semconnect. Keep open asks short and actionable;
-move resolved asks to `RESOLVED-...` files so we preserve the history
-without making semstreams review stale blockers.
+This directory tracks framework asks that surfaced while implementing the CS
+API gateway in semconnect. ADR-S003 changes the ownership boundary: graph,
+NATS, JetStream, ObjectStore, ownership, and projection gaps remain SemStreams
+asks, while OMS, SensorML, SWE Common, SOSA/SWE, CS API vocabulary, and related
+OGC package work is semconnect-owned. Keep asks short and actionable; retain
+resolved or transferred history without presenting it as an upstream blocker.
 
 ## Open asks
 
-None currently blocking semconnect. As of the 2026-07-06 SemStreams pin
-refresh, the CS API gateway is green against the pinned ETS
-(`total=137 passed=137 failed=0 skipped=0`).
+No SemStreams framework ask currently blocks the beta.153 dependency
+pin. Exact alignment, the live per-entity structural regression, full Go
+test/race/vet/build, focused upstream, clean-volume Compose persistence, and
+unchanged external `137/0/0` gates pass. Independent review found no
+legacy/compatibility code or conformance weakening. Beta.151 remains a
+qualified historical baseline. The beta.153 greenfield bundle is
+production-ready for standard Compose on clean NATS and has no migration or
+runtime-unused manifest approval gate.
 
-Non-blocking vocabulary asks now filed upstream:
+Transferred product-boundary history:
 
 - [C360Studio/semstreams#200](https://github.com/C360Studio/semstreams/issues/200)
-  — add CS API Command Feasibility class/predicates so semconnect can
-  retire `FeasibilityTypeIRI` and the `cs-api.feasibility.*` local
-  predicates introduced in Stage 55.
+  — CS API Command Feasibility vocabulary. Transferred into semconnect issue
+  [#70](https://github.com/C360Studio/semconnect/issues/70) and implemented by
+  the beta.147 migration in owned `vocabulary/csapi`.
 - [C360Studio/semstreams#201](https://github.com/C360Studio/semstreams/issues/201)
-  — add CS API association/composition predicates for Deployment
-  deployed-systems evidence, Subdeployment parent composition, and
-  SamplingFeature hosted-procedure evidence.
+  — CS API association/composition vocabulary. Transferred into semconnect
+  issue [#71](https://github.com/C360Studio/semconnect/issues/71) and
+  implemented by the beta.147 migration in owned `vocabulary/csapi`.
 - [C360Studio/semstreams#202](https://github.com/C360Studio/semstreams/issues/202)
-  — proposal to decide which CS API scalar metadata predicates belong in
-  `vocabulary/csapi` versus remaining gateway-local representation
-  details.
+  — scalar-metadata ownership proposal. Its ownership question is resolved by
+  ADR-S003: CS API product vocabulary belongs in semconnect.
+
+The complete transfer record is
+[TRANSFERRED-semstreams-ogc-product-boundary.md](TRANSFERRED-semstreams-ogc-product-boundary.md).
+
+Semconnect issue [#69](https://github.com/C360Studio/semconnect/issues/69), SWE
+Common Phase 2, remains deferred and is not part of the dependency migration.
 
 ## Resolved in current pins
 
@@ -67,6 +79,11 @@ Non-blocking vocabulary asks now filed upstream:
 - `v1.0.0-beta.75`: datastream vocabulary moved into semstreams.
 
 ## semconnect-local follow-ups
+
+- Maintain the transferred OGC product packages under semconnect and route
+  their detailed development through ADRs plus OpenSpec changes.
+- Keep SWE Common Phase 2 in issue #69 as separate product scope; owning
+  `pkg/swecommon` does not silently expand the beta.147 migration.
 
 - Datastream and ControlStream schema call sites now use the Stage 41
   schema artifact helper (Stage 42). Local JSON schema predicates are

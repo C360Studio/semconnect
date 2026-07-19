@@ -177,12 +177,12 @@ understand which field is the source identifier:
 | `POST /systems` GeoJSON Feature | `properties.uid` | Six-part System entity ID. |
 | `POST /systems` SensorML | `uniqueId` | Six-part System entity ID. |
 | `POST /datastreams` | `id`, when already six-part | Honored as the Datastream entity ID. |
-| `POST /datastreams` | `id`, when not six-part | Minted from `datastream_id_prefix`. |
-| `POST /controlstreams` | `id`, when supplied | ControlStream entity ID or mint source. |
-| `POST /feasibility` | `id`, when supplied | Feasibility entity ID or mint source. |
+| `POST /datastreams` | omitted `id` | Server mints an ID; a noncanonical supplied ID is rejected. |
+| `POST /controlstreams` | `id`, when supplied | Must be an exact canonical ControlStream entity ID. |
+| `POST /feasibility` | `id`, when supplied | Must be an exact canonical Feasibility entity ID. |
 
 Three-part dotted names are predicates, not resource IDs. Examples include
-gateway-local terms such as `cs-api.feasibility.status` or
+semconnect-owned terms such as `cs-api.feasibility.status` or
 `cs-api.deployment.parent`. They describe a fact about a resource in the graph.
 The CS API response maps those facts back into fields and links such as
 `status`, `controlstream@id`, `parent@id`, and collection membership.

@@ -1,0 +1,35 @@
+{
+  "formatVersion": "1.0.0",
+  "fixture": {
+    "path": "conformance/fixtures/system-hosted.sml.json",
+    "sha256": "9ef88517e0e606bab19e5c5d48cd1dba72ef00f06588294cc9c8165ab25f4300"
+  },
+  "bake": {
+    "path": "conformance/output/foreign-edge-bake-2026-07-18T16-40-05Z.txt",
+    "sha256": "e303c443452762a4beab8ba93c4fbccf8558dfbdeb811504bb418d51802d982d",
+    "result": "PASS",
+    "laneFired": 1,
+    "foreignEdgeUnclaimedTotal": 0,
+    "foreignEdgeDroppedTotal": 0,
+    "claimedByRouting": 1,
+    "counterInterpretation": "unclaimed/dropped series were not emitted and therefore read as zero; the persisted child edge proves the exercised edge was claimed"
+  },
+  "retainedClaim": {
+    "stream": "KV_ENTITY_STATES",
+    "bucket": "ENTITY_STATES",
+    "sequence": 113,
+    "source": "c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01",
+    "predicate": "sensorml.component.is-hosted-by",
+    "object": "c360.semconnect.systems.csapi.system.hosted-platform-bake-01",
+    "currentBeforeRestart": true,
+    "currentAfterRestart": true
+  },
+  "liveMetrics": {
+    "preRelevantSeriesCount": 0,
+    "postRelevantSeriesCount": 0,
+    "preExtractSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "postExtractSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "expectation": "one real hosted-child lane exercised; zero unclaimed and zero dropped; claimed edge retained across restart",
+  "expectationMet": true
+}

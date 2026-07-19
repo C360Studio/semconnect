@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 const testProcedureID = "c360.semconnect.systems.csapi.procedure.test01"
@@ -339,7 +339,7 @@ func TestHandleProcedurePost_Feature_GoldenPath(t *testing.T) {
 		t.Errorf("rdf:type triple object should be sosa.Procedure; batch=%+v", batch.Triples)
 	}
 	if !sawUID {
-		t.Errorf("cs-api.system.uid triple missing; batch=%+v", batch.Triples)
+		t.Errorf("SensorML UID triple missing; batch=%+v", batch.Triples)
 	}
 	if !sawDefinition {
 		t.Errorf("definition triple missing; batch=%+v", batch.Triples)

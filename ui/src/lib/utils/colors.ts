@@ -10,12 +10,11 @@ export const KIND_COLORS: Record<ResourceKind, string> = {
 };
 
 export const PREDICATE_COLORS: Record<string, string> = {
-  'sensorml.system.isHostedBy': '#146c73',
-  'csapi.datastream.producedBy': '#3366ff',
-  'csapi.datastream.observedProperty': '#2c7a3f',
-  'csapi.controlstream.controlsSystem': '#7c4dff',
-  'csapi.controlstream.controlledProperty': '#7c4dff',
-  'csapi.feasibility.controlstream': '#8c4c10',
+  'sensorml.component.is-hosted-by': '#146c73',
+  'csapi.datastream.produced-by': '#3366ff',
+  'csapi.datastream.observed-property': '#2c7a3f',
+  'csapi.controlstream.controls-system': '#7c4dff',
+  'cs-api.feasibility.controlstream': '#8c4c10',
   'csapi.observation.datastream': '#c0477f'
 };
 

@@ -1,0 +1,92 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "qualify-semstreams-beta151",
+  "recordType": "detached-task-6.4-operator-decision",
+  "role": "production-operator",
+  "decidedAt": "2026-07-18T18:42:55Z",
+  "decision": "go",
+  "manifest": {
+    "path": "openspec/changes/qualify-semstreams-beta151/evidence/final/greenfield-production-manifest.json",
+    "sha256": "dbddd8dfb85f65e3746f8c6f8496bc9c779707d172101fc54ea17093bb707ca8",
+    "digestRecomputed": true,
+    "embeddedDecisionRecords": 0
+  },
+  "scope": {
+    "deployment": "first greenfield semconnect deployment on a new NATS namespace using the checked-in Compose bundle",
+    "cleanNatsRequired": true,
+    "composeEntryPoint": "docker compose -f deploy/compose.yml up -d --build",
+    "included": [
+      "NATS with JetStream on the private internal Compose network",
+      "SemStreams v1.0.0-beta.151 at ac75c322140fb2a6b55759d07a79874b4cb4d9cc",
+      "semconnect CS API at dc657825af421874f9e56b04874479b4cf644eb1",
+      "named NATS persistence across ordinary stop and restart"
+    ],
+    "excluded": [
+      "migration",
+      "legacy or compatibility code",
+      "old-state input or translation",
+      "destructive cutover",
+      "wipe or volume removal",
+      "rollback to an old deployment"
+    ]
+  },
+  "checks": {
+    "manifestJsonValid": true,
+    "manifestDigestMatches": true,
+    "manifestReferencedHashesRecomputed": true,
+    "finalEvidenceHashManifestPasses": true,
+    "buildInputHashManifestPasses": true,
+    "semconnectCommitTreeMatches": true,
+    "composeRenderValid": true,
+    "composeRenderSha256": "a86d670d38f32599a9b28d48bf95bdf6e85f92196e97cb0424a161b56ed3269f",
+    "composeRenderMatchesRecordedEvidence": true,
+    "deployContractTestsPass": true,
+    "greenfieldProbeTestsPass": true,
+    "deployVetPass": true,
+    "persistenceVerifierShellSyntaxPass": true,
+    "openSpecStrictValidation": "3 passed, 0 failed",
+    "externalConformance": "137 passed, 0 failed, 0 skipped",
+    "noWeakeningAudit": "pass",
+    "canonicalProofBeforeAfterByteIdentical": true,
+    "canonicalProofSha256": "be60e53908d29de622da5f6877b6ba6294429aef2d5ffdb861b0097c1cf249cb",
+    "namedVolumeBeforeAfterIdentical": true,
+    "namedVolumeEvidenceSha256": "94de57d5e9766693f49f3f5b94feb0daabc64fbaea7fe0867d7909c28f7f5749",
+    "typedInitialJetStreamState": {
+      "account": "$G",
+      "streams": 0,
+      "consumers": 0,
+      "messages": 0,
+      "bytes": 0
+    },
+    "normalStopEvidence": {
+      "semconnectExitCode": 0,
+      "semstreamsExitCode": 0,
+      "natsPinnedImageSignalExitCode": 1,
+      "oomKilled": false,
+      "jetStreamShutdownRecorded": true,
+      "serverExitRecorded": true
+    },
+    "runtimePersistenceVerifierRerun": false,
+    "runtimePersistenceVerifierRerunBasis": [
+      "immutable final evidence reviewed",
+      "bounded static and hash checks rerun",
+      "no runtime or production mutation authorized"
+    ]
+  },
+  "operatorAssessment": {
+    "greenfieldBoundaryIsExplicit": true,
+    "defaultTopologyIsThreeProductServices": true,
+    "natsPublishesHostPorts": false,
+    "natsCredentialsRequiredWithinBoundary": false,
+    "destructiveOrLegacyBehaviorFound": false,
+    "evidenceSupportsSimpleComposeDeployment": true,
+    "result": "go for the exact manifest digest within the stated greenfield-only scope"
+  },
+  "productionAction": {
+    "performed": false,
+    "deployed": false,
+    "servicesChanged": false,
+    "volumesDeleted": false,
+    "authorizationState": "operator-go-only-pending-detached-product-owner-decision-on-the-same-manifest-sha256"
+  }
+}

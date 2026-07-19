@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // encodeDatastreamEntityState builds a graph.EntityState shaped as a
@@ -31,8 +31,8 @@ func encodeDatastreamEntityStateWithTimes(t *testing.T, id, name, system, obsPro
 	triples := []message.Triple{
 		{Subject: id, Predicate: sensorml.PredType, Object: DatastreamTypeIRI},
 		{Subject: id, Predicate: sensorml.PredLabel, Object: name},
-		{Subject: id, Predicate: PredDatastreamSystem, Object: system},
-		{Subject: id, Predicate: sosa.ObservedProperty, Object: obsProp},
+		{Subject: id, Predicate: PredDatastreamSystem, Object: system, Datatype: message.EntityReferenceDatatype},
+		{Subject: id, Predicate: csapivocab.ObservedProperty, Object: obsProp},
 	}
 	if phenomenonTime != "" {
 		triples = append(triples, message.Triple{Subject: id, Predicate: predDatastreamPhenomenonTime, Object: phenomenonTime})
@@ -53,9 +53,9 @@ func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsPr
 	triples := []message.Triple{
 		{Subject: id, Predicate: sensorml.PredType, Object: DatastreamTypeIRI},
 		{Subject: id, Predicate: sensorml.PredLabel, Object: name},
-		{Subject: id, Predicate: PredDatastreamSystem, Object: system},
-		{Subject: id, Predicate: sosa.ObservedProperty, Object: obsProp},
-		{Subject: id, Predicate: PredDatastreamSchema, Object: artifactID},
+		{Subject: id, Predicate: PredDatastreamSystem, Object: system, Datatype: message.EntityReferenceDatatype},
+		{Subject: id, Predicate: csapivocab.ObservedProperty, Object: obsProp},
+		{Subject: id, Predicate: PredDatastreamSchema, Object: artifactID, Datatype: message.EntityReferenceDatatype},
 	}
 	state := graph.EntityState{ID: id, Triples: triples}
 	out, err := json.Marshal(state)
@@ -377,7 +377,6 @@ func TestHandleDatastreamPost_GoldenPath(t *testing.T) {
 	c := newTestComponent(t, fake)
 
 	body, _ := json.Marshal(map[string]any{
-		"id":               "urn:uuid:22222222-3333-4444-5555-666666666666",
 		"name":             "Temperature feed",
 		"description":      "Hourly air temp from sensor 1",
 		"system":           "c360.semconnect.systems.csapi.system.sensor1",
@@ -414,6 +413,34 @@ func TestHandleDatastreamPost_GoldenPath(t *testing.T) {
 	}
 	if !hasType {
 		t.Errorf("missing rdf:type triple for DatastreamTypeIRI; triples=%+v", sent.Triples)
+	}
+}
+
+func TestHandleDatastreamPost_InvalidExplicitIDRejectsBeforeIO(t *testing.T) {
+	fake := &fakeRequester{status: natsclient.StatusConnected, reply: encodeBatchOK(t, 5)}
+	c := newTestComponent(t, fake)
+	store := &fakeSchemaObjectStore{}
+	wireSchemaStore(c, store)
+
+	body, _ := json.Marshal(map[string]any{
+		"id":               " c360.semconnect.systems.csapi.datastream.invalid ",
+		"system":           "c360.semconnect.systems.csapi.system.sensor1",
+		"observedProperty": "http://example.org/properties/temperature",
+		"schema":           json.RawMessage(testSWEDataRecordSchema),
+	})
+	req := httptest.NewRequest(http.MethodPost, "/datastreams", bytes.NewReader(body))
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleDatastreamPost(rr, req)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+	}
+	if len(store.puts) != 0 {
+		t.Fatalf("schema ObjectStore called for invalid explicit id: %+v", store.puts)
+	}
+	if fake.gotSubject != "" || len(fake.gotBody) != 0 {
+		t.Fatalf("NATS called for invalid explicit id: subject=%q body=%s", fake.gotSubject, fake.gotBody)
 	}
 }
 

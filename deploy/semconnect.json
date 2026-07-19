@@ -1,0 +1,5 @@
+{
+  "nats_url": "nats://nats:4222",
+  "bind_address": ":8080",
+  "log_level": "info"
+}

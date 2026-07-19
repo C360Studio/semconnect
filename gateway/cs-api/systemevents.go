@@ -13,23 +13,23 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	csapivocab "github.com/c360studio/semstreams/vocabulary/csapi"
 )
 
 const (
 	SystemEventTypeIRI = csapivocab.SystemEvent
 
 	PredSystemEventSystem    = csapivocab.EventForSystem
-	predSystemEventTime      = "cs-api.systemevent.time"
-	predSystemEventType      = "cs-api.systemevent.type"
-	predSystemEventMessage   = "cs-api.systemevent.message"
-	predSystemEventSeverity  = "cs-api.systemevent.severity"
-	predSystemEventSource    = "cs-api.systemevent.source"
-	predSystemEventPayload   = "cs-api.systemevent.payload"
-	predSystemEventKeywords  = "cs-api.systemevent.keywords"
+	predSystemEventTime      = csapivocab.SystemEventTime
+	predSystemEventType      = csapivocab.SystemEventType
+	predSystemEventMessage   = csapivocab.SystemEventMessage
+	predSystemEventSeverity  = csapivocab.SystemEventSeverity
+	predSystemEventSource    = csapivocab.SystemEventSource
+	predSystemEventPayload   = csapivocab.SystemEventPayload
+	predSystemEventKeywords  = csapivocab.SystemEventKeywords
 	defaultSystemEventType   = "SystemChanged"
 	defaultSystemEventSource = "semconnect"
 )
@@ -125,7 +125,7 @@ func systemEventFromState(state graph.EntityState) systemEvent {
 }
 
 func isSystemEventKind(triples []message.Triple) bool {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	return ok && typeIRI == SystemEventTypeIRI
 }
 
@@ -327,7 +327,7 @@ func (c *Component) handleSystemEventPostWithSystem(w http.ResponseWriter, r *ht
 }
 
 func (c *Component) mintSystemEventEntityID(seed string) string {
-	return c.cfg.SystemEventIDPrefix + "." + uniqueIDToToken(seed)
+	return mintEntityID(c.cfg.SystemEventIDPrefix, []byte(seed))
 }
 
 func (c *Component) buildSystemEventTriples(body []byte, pathSystemID string) (string, []message.Triple, error) {
@@ -369,7 +369,7 @@ func (c *Component) buildSystemEventTriples(body []byte, pathSystemID string) (s
 	}
 	triples := []message.Triple{
 		{Subject: entityID, Predicate: sensorml.PredType, Object: SystemEventTypeIRI},
-		{Subject: entityID, Predicate: PredSystemEventSystem, Object: in.SystemID},
+		{Subject: entityID, Predicate: PredSystemEventSystem, Object: in.SystemID, Datatype: message.EntityReferenceDatatype},
 		{Subject: entityID, Predicate: predSystemEventTime, Object: eventTime},
 		{Subject: entityID, Predicate: predSystemEventType, Object: in.EventType},
 		{Subject: entityID, Predicate: predSystemEventSource, Object: in.Source},

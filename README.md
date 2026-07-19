@@ -4,15 +4,15 @@
 [semstreams](https://github.com/C360Studio/semstreams).**
 
 `semconnect` is the HTTP gateway and reference server half of the
-SemStreams CS API split. `semstreams` owns the framework primitives:
-graph, NATS request/reply, ObjectStore, SOSA/SWE/OMS/SensorML/GeoJSON
-vocabularies and parsers. `semconnect` composes those primitives into an
+SemStreams CS API split. SemStreams owns the non-product framework primitives:
+graph, NATS request/reply, JetStream, ObjectStore, ownership, and projection.
+Semconnect owns its OGC product bundle: OMS, SensorML, SWE Common, SOSA/SWE,
+CS API vocabulary, GeoJSON boundary behavior, and the HTTP gateway that composes them into an
 [OGC API Connected Systems v1.0](https://www.ogc.org/standards/ogc-api-connected-systems/)
 REST surface.
 
-The repository is no longer a scaffold. As of the 2026-07-06 SemStreams pin
-refresh, `cmd/cs-api-server` builds, the conformance harness runs end to end,
-and the pinned CS API ETS is green:
+The repository is no longer a scaffold. The authoritative beta.153
+qualification run on 2026-07-19 produced:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -20,12 +20,21 @@ total=137 passed=137 failed=0 skipped=0
 
 ## Current Status
 
-- Framework pin: `github.com/c360studio/semstreams v1.0.0-beta.141`.
+- Qualified dependency: SemStreams `v1.0.0-beta.153` at
+  `d2654e5a027138b8a9056863da5ed463ef767f37`.
 - ETS pin: Botts CS API ETS `0.1-SNAPSHOT` at commit `d9caf33`.
 - Reference binary: `cmd/cs-api-server`.
 - Gateway package: `gateway/cs-api`.
 - Conformance harness: `conformance/run.sh`.
-- Open semstreams asks are non-blocking and tracked in
+- The beta.153 exact pin, live per-entity structural regression, full Go
+  test/race/vet/build, focused upstream gates, clean-volume Compose persistence,
+  and unchanged external `137/0/0` pass. Independent review found no
+  legacy/compatibility code or conformance weakening. This dependency-only
+  change has no frontend/Svelte delta. The checked-in Compose bundle is
+  production-ready for clean NATS, with no migration, runtime manifest, or
+  product-owner hash approval.
+- Greenfield Compose bundle and persistence verifier: `deploy/`.
+- Open product and framework asks are tracked in
   [docs/upstream-asks/README.md](docs/upstream-asks/README.md).
 
 ## What This Repo Owns
@@ -38,10 +47,12 @@ total=137 passed=137 failed=0 skipped=0
 - Auth/audit seams for trusted reverse-proxy deployments.
 - The local and CI conformance harness around NATS, `semstreams-backend`,
   `cs-api-server`, and Team Engine.
+- Product packages at `message/oms`, `parser/sensorml`, `pkg/swecommon`, and
+  `vocabulary/{csapi,oms,sosa,swe}`.
 
-It does not fork framework-shaped primitives. Missing vocabulary, parser,
-ObjectStore, graph, or NATS-client behavior should be filed upstream on
-`semstreams` unless the need is clearly gateway-specific.
+It does not fork framework-shaped graph, NATS, JetStream, ObjectStore,
+ownership, or projection primitives. OGC package work is local product work;
+gaps in the remaining framework substrate belong upstream in SemStreams.
 
 ## Implemented Surface
 
@@ -67,18 +78,18 @@ For the historical stage log, read
 
 ## Framework Dependencies
 
-This repo relies on semstreams for:
+The ownership boundary after ADR-S003 is:
 
-| Area | Semstreams surface |
+| Area | Owner and surface |
 |---|---|
-| Graph reads/writes | `graph.query.*`, `graph.index.query.*`, `graph.query.batch`, `graph.mutation.entity.*` |
-| Spatial queries | `graph.spatial.query.bounds`, `graph.spatial.query.polygon` |
-| Observations | `message.BaseMessage`, OMS payload helpers, JetStream client helpers |
-| Artifacts | ObjectStore, `StorageReference`, `ContentStorable`, artifact entity patterns |
-| Schemas | `pkg/swecommon` canonicalization and validation |
-| Vocabularies | `vocabulary/sosa`, `vocabulary/ssn`, `vocabulary/swe`, `vocabulary/oms`, `vocabulary/csapi` |
-| Encoders | `parser/sensorml`, GeoJSON types, JSON-LD export |
-| NATS boundary | `natsclient` request/reply classification and test helpers |
+| Graph reads/writes | SemStreams graph query, index query, batch, and entity mutation subjects |
+| Spatial queries | SemStreams: `graph.spatial.query.bounds`, `graph.spatial.query.polygon` |
+| Message substrate | SemStreams: `message.BaseMessage`; semconnect: `message/oms` payloads |
+| Artifacts | SemStreams ObjectStore and `StorageReference`; semconnect artifact roles and schemas |
+| Schemas | Semconnect: `pkg/swecommon` canonicalization and validation |
+| Product vocabularies | Semconnect: `vocabulary/{csapi,oms,sosa,swe}` |
+| Sensor encodings | Semconnect SensorML parser; SemStreams generic JSON-LD/RDF export substrate |
+| NATS boundary | SemStreams: `natsclient` request/reply classification and test helpers |
 
 ### Graph Governance Posture
 
@@ -91,11 +102,11 @@ SemStreams normalizes those projected triples at graph-ingest, routes
 foreign-subject edges onto their own entities, and meters unclaimed
 `(message_type, predicate)` pairs.
 
-That is the first governed graph-state integration point for this gateway. It is
-not endpoint authorization yet: SemStreams ownership is still in an observe-only
-bake window for these foreign edges, so operators should treat it as provenance,
-write-semantics, and future enforcement readiness rather than as a hard security
-boundary.
+That is the first governed graph-state integration point for this gateway.
+Beta.147 requires the registered foreign-edge claim for hosted-child
+resolution; conformance evidence must show the lane fired with zero unclaimed
+or dropped edges. This is write-semantics governance and provenance, not HTTP
+endpoint authorization.
 
 Ownership claims themselves are not modeled as ordinary domain triples. Those
 claims live in SemStreams' ownership substrate. Entity triples may still carry
@@ -103,10 +114,9 @@ provenance about graph materialization, source, audit, or lineage; for example,
 SemStreams referential stubs can record which producer caused the stub to exist.
 That is provenance on the entity, not ownership arbitration.
 
-The framework/sister-repo boundary is documented in
-[ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
-and the
-[framework primitives reference](https://github.com/C360Studio/semstreams/blob/main/docs/operations/21-adr044-framework-primitives-reference.md).
+The historical framework/sister-repo boundary is documented in SemStreams
+[ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md);
+ADR-S003 records the current boundary.
 
 ## Build And Test
 
@@ -116,9 +126,10 @@ go test ./...
 go build ./...
 ```
 
-OpenSpec CLI 1.5 currently reports `No items found to validate` because this
-repo does not carry a repo-owned `openspec/` project tree; the command remains
-in the local verification set so future spec artifacts fail fast.
+The repository preserves the beta.147 migration as historical evidence under
+`openspec/changes/migrate-semstreams-beta147/`. The active beta.153 contract is
+under `openspec/changes/qualify-semstreams-beta153/`; strict OpenSpec
+validation is a release gate.
 
 Run the reference server against a local NATS:
 
@@ -167,6 +178,16 @@ semantic-vs-statistical comparison notes, and the CS API ID mapping.
   CS API server scope and conformance stance.
 - [docs/adr/002-cs-api-artifact-storage.md](docs/adr/002-cs-api-artifact-storage.md) -
   graph-vs-ObjectStore storage pattern.
+- [ADR-S003](docs/adr/003-semstreams-beta147-product-boundary-migration.md) -
+  product ownership, semantic identity, and cutover decision.
+- [beta.147 OpenSpec change](openspec/changes/migrate-semstreams-beta147/) -
+  detailed beta.147 migration specification, tasks, and evidence.
+- [beta.149 OpenSpec change](openspec/changes/qualify-semstreams-beta149/) -
+  historical dependency, shutdown, replay, and conformance qualification.
+- [beta.151 OpenSpec change](openspec/changes/qualify-semstreams-beta151/) -
+  historical structural, retained-state, replay, and conformance baseline.
+- [beta.153 OpenSpec change](openspec/changes/qualify-semstreams-beta153/) -
+  qualified bug/performance release and greenfield deployment evidence.
 - [conformance/README.md](conformance/README.md) - local conformance runner,
   pins, and bump procedure.
 - [docs/upstream-asks/README.md](docs/upstream-asks/README.md) - current

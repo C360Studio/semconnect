@@ -1,0 +1,56 @@
+{
+  "change": "migrate-semstreams-beta147",
+  "status": "implemented",
+  "ledger": "openspec/changes/migrate-semstreams-beta147/evidence/architecture/semantic-ledger.json",
+  "counts": {
+    "transferredRenames": 19,
+    "localRenames": 12,
+    "fullIriCorrections": 1,
+    "totalCorrections": 32
+  },
+  "implementation": {
+    "ownedVocabulary": "vocabulary/csapi/product_predicates.go",
+    "registrations": [
+      "vocabulary/csapi/register.go",
+      "vocabulary/csapi/iris.go"
+    ],
+    "finalStateValidation": "gateway/cs-api/projection_contracts.go",
+    "boundaryTests": [
+      "gateway/cs-api/entity_contract_test.go",
+      "gateway/cs-api/package_boundary_test.go",
+      "vocabulary/csapi/register_test.go",
+      "message/oms/roundtrip_test.go"
+    ]
+  },
+  "disposition": {
+    "aliases": "absent",
+    "dualReads": "absent",
+    "dualWrites": "absent",
+    "inProcessGraphTranslation": "absent",
+    "legacySystemUidAndPositionFallback": "removed"
+  },
+  "relationshipDatatype": {
+    "entityReferences": "@id",
+    "externalIrisAndHrefs": "literal",
+    "proof": [
+      "vocabulary/csapi/register_test.go",
+      "gateway/cs-api/entity_contract_test.go",
+      "gateway/cs-api/systems_test.go#TestEntityStateFixtureAuditUsesRegisteredRelationshipMetadata",
+      "gateway/cs-api/schema_artifacts_test.go",
+      "gateway/cs-api/systems_subsystems_test.go",
+      "gateway/cs-api/deployments_subdeployments_test.go"
+    ]
+  },
+  "identity": {
+    "validator": "github.com/c360studio/semstreams/pkg/types.ValidateEntityID",
+    "prefixValidator": "github.com/c360studio/semstreams/pkg/types.ValidateEntityIDPrefix",
+    "overflow": "h- plus full lowercase SHA-256 over domain-separated source bytes",
+    "opaqueObservationIds": "validated separately from graph entity IDs",
+    "goldenTests": "gateway/cs-api/entity_contract_test.go",
+    "exactCallerIdTests": [
+      "gateway/cs-api/datastream_test.go#TestHandleDatastreamPost_InvalidExplicitIDRejectsBeforeIO",
+      "gateway/cs-api/systems_subsystems_test.go#TestHandleSystemPost_RejectsWhitespacePaddedExplicitParentIDBeforeIO",
+      "gateway/cs-api/observations_test.go#TestHandleObservationsPost_InvalidCallerObservationIDRejectsBeforePublish"
+    ]
+  }
+}

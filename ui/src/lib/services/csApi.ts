@@ -5,6 +5,7 @@ import {
   SYSTEM_TEMP_PROBE_ID
 } from '$lib/data/demoGraph';
 import type { RuntimeConfig } from '$lib/config/runtimeConfig';
+import { SEMANTIC_PREDICATES, semanticRelationshipLabel } from '$lib/semantics/semanticCatalog';
 import type { DemoEntity, DemoFact, DemoRelationship, ResourceKind, TelemetrySample } from '$lib/types/demo';
 
 interface Snapshot {
@@ -113,7 +114,7 @@ function snapshotFromPayloads(payloads: Map<string, unknown>): Snapshot {
 
     const systemId = stringValue(item['system@id']) ?? linkHref(item['system@link']) ?? stringValue(item.system);
     if (systemId) {
-      addRelationship(relationshipMap, entity.id, systemId, 'csapi.datastream.producedBy', 'produced by');
+      addSemanticRelationship(relationshipMap, entity.id, systemId, SEMANTIC_PREDICATES.datastreamProducedBy);
     }
 
     const observedPropertyIds = observedProperties(item);
@@ -126,11 +127,16 @@ function snapshotFromPayloads(payloads: Map<string, unknown>): Snapshot {
         status: 'active',
         updatedAt: nowIso(),
         facts: [
-          { predicate: 'rdf.type', object: 'sosa:ObservableProperty', source: 'cs-api' },
+          { predicate: SEMANTIC_PREDICATES.processType, object: 'sosa:ObservableProperty', source: 'cs-api' },
           { predicate: 'definition', object: property.definition, source: 'cs-api' }
         ]
       });
-      addRelationship(relationshipMap, entity.id, property.id, 'csapi.datastream.observedProperty', 'observes');
+      addSemanticRelationship(
+        relationshipMap,
+        entity.id,
+        property.id,
+        SEMANTIC_PREDICATES.datastreamObservedProperty
+      );
     }
   }
 
@@ -157,7 +163,7 @@ function snapshotFromPayloads(payloads: Map<string, unknown>): Snapshot {
 
     const systemId = stringValue(item['system@id']) ?? linkHref(item['system@link']) ?? stringValue(item.system);
     if (systemId) {
-      addRelationship(relationshipMap, entity.id, systemId, 'csapi.controlstream.controlsSystem', 'controls');
+      addSemanticRelationship(relationshipMap, entity.id, systemId, SEMANTIC_PREDICATES.controlstreamControlsSystem);
     }
   }
 
@@ -170,7 +176,7 @@ function snapshotFromPayloads(payloads: Map<string, unknown>): Snapshot {
       linkHref(item['controlstream@link']) ??
       stringValue(item.controlstream);
     if (controlstreamId) {
-      addRelationship(relationshipMap, entity.id, controlstreamId, 'csapi.feasibility.controlstream', 'for stream');
+      addSemanticRelationship(relationshipMap, entity.id, controlstreamId, SEMANTIC_PREDICATES.feasibilityControlstream);
     }
   }
 
@@ -234,7 +240,10 @@ function resourceStatus(item: JsonObject, kind: ResourceKind): DemoEntity['statu
 }
 
 function factsFromResource(item: JsonObject, kind: ResourceKind): DemoFact[] {
-  const facts: DemoFact[] = [{ predicate: 'rdf.type', object: rdfType(kind), source: 'cs-api' }];
+  const typePredicate = kind === 'observation'
+    ? SEMANTIC_PREDICATES.observationType
+    : SEMANTIC_PREDICATES.processType;
+  const facts: DemoFact[] = [{ predicate: typePredicate, object: rdfType(kind), source: 'cs-api' }];
   for (const key of [
     'id',
     'uid',
@@ -385,6 +394,15 @@ function addRelationship(
     predicate,
     label
   });
+}
+
+function addSemanticRelationship(
+  relationships: Map<string, DemoRelationship>,
+  sourceId: string,
+  targetId: string,
+  predicate: string
+): void {
+  addRelationship(relationships, sourceId, targetId, predicate, semanticRelationshipLabel(predicate));
 }
 
 function upsertEntity(entities: Map<string, DemoEntity>, entity: DemoEntity): void {

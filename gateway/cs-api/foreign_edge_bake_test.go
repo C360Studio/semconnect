@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/c360studio/semconnect/parser/sensorml"
 )
 
 // TestForeignEdgeBakeFixture_EmitsForeignIsHostedByEdge pins the conformance

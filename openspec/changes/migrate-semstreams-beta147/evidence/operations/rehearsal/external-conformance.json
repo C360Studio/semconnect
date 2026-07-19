@@ -1,0 +1,73 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "runId": "2026-07-18T02-03-23Z",
+  "environment": "fresh-disposable-volumes",
+  "pins": {
+    "etsCommit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+    "teamEngineVersion": "5.6.1",
+    "semstreamsVersion": "v1.0.0-beta.147",
+    "semstreamsCommit": "5cc22c109594e48b7f1cec04bcaaf0106d85495a"
+  },
+  "imageIds": {
+    "semstreamsBackend": "sha256:7a84888bc9c80a2cb815cf654f4bfca757ccc878aecedd84aaa8912378b86997",
+    "csApiServer": "sha256:a04a2a9520be9374bbdfbe7f54853cc6fe6294a3331262f923e02cdc20aa1a6f",
+    "teamEngine": "sha256:ccf67aa692fbfef59078243f01485019e8896c964774438742a10b5342a37515",
+    "nats": "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927"
+  },
+  "testNg": {
+    "total": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "artifact": "conformance/output/testng-report-2026-07-18T02-03-23Z.xml",
+    "sha256": "e8c120d1abd1a431876fd17aa6a5ae50fe232816dfe55a12fb5a846f6e49afbb"
+  },
+  "foreignEdgeBake": {
+    "decision": "pass",
+    "unclaimed": 0,
+    "dropped": 0,
+    "laneFired": 1,
+    "artifact": "conformance/output/foreign-edge-bake-2026-07-18T02-03-23Z.txt",
+    "sha256": "1ac72845e3dfa8c4bfb267b7f4ba5ce47c0950264385f77526b2fb81d9c55966"
+  },
+  "artifacts": [
+    {
+      "path": "conformance/output/summary.txt",
+      "sha256": "711d03a8bfc810b3e6daf2442f2b933ce774557d96f4bb070f39db8cb6b41416"
+    },
+    {
+      "path": "conformance/output/compose-build-2026-07-18T02-03-23Z.log",
+      "sha256": "e3d2e42eace8db57aa09ca58afdd18e23c3e6c5cfa98c2281f6974877a42791b"
+    },
+    {
+      "path": "conformance/output/teamengine-container-2026-07-18T02-03-23Z.log",
+      "sha256": "80062b8635234c006bab5da31df88407fef96ca820172c6291db7a216387d535"
+    },
+    {
+      "path": "conformance/output/cs-api-server-container-2026-07-18T02-03-23Z.log",
+      "sha256": "d8d39b51f7c588599b00b76500294450112846186f7d8483721089d357e5d39e"
+    },
+    {
+      "path": "conformance/output/semstreams-backend-container-2026-07-18T02-03-23Z.log",
+      "sha256": "b88f8ddae5fba0c6af059978088f7287a6cc960fad56e36e8261746141e1cdb1"
+    },
+    {
+      "path": "conformance/output/semstreams-backend-restart-2026-07-18T02-03-23Z.log",
+      "sha256": "38426276d0bb63d43b34c13e850aa86236a05664a0164a041a2ae49b18a14d2b"
+    },
+    {
+      "path": "conformance/output/seed-2026-07-18T02-03-23Z.log",
+      "sha256": "1567868d062d8c592afd5fd0511f881ea2567d32d606683e907e8d1d7ee260ee"
+    }
+  ],
+  "serviceLogsClean": false,
+  "shutdownAnomaly": "shutdown-anomaly.md",
+  "noWeakeningReview": {
+    "decision": "approved",
+    "artifact": "openspec/changes/migrate-semstreams-beta147/evidence/review/final-conformance/approval.json",
+    "reviewedAt": "2026-07-18T02:11:11Z"
+  },
+  "gate": "OpenSpec 9.4",
+  "decision": "pass; production-no-go"
+}

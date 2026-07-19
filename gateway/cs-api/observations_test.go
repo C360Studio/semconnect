@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/c360studio/semconnect/message/oms"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/message/oms"
 	"github.com/c360studio/semstreams/natsclient"
 	"github.com/c360studio/semstreams/payloadbuiltins"
 	"github.com/nats-io/nats.go"
@@ -108,6 +108,9 @@ func TestHandleObservationsPost_GoldenPath(t *testing.T) {
 	// Decode the BaseMessage envelope so we know the payload round-tripped
 	// through the framework's serializer, not just a raw OMS dump.
 	reg := payloadbuiltins.NewTestRegistry(t)
+	if err := oms.RegisterPayloads(reg); err != nil {
+		t.Fatalf("register OMS payloads: %v", err)
+	}
 	dec := message.NewDecoder(reg)
 	decoded, err := dec.Decode(pub.gotMsg.Data)
 	if err != nil {
@@ -195,7 +198,7 @@ func TestHandleObservationsPost_ContentTypeValidation(t *testing.T) {
 			pub := &fakePublisher{}
 			c := wireObservationsComponent(t, fake, pub)
 			body, _ := json.Marshal(validObservation())
-			rr := postObservation(t, c, "ds.001", body, tt.contentType)
+			rr := postObservation(t, c, "acme.ops.robotics.gcs.datastream.001", body, tt.contentType)
 			if rr.Code != tt.wantStatus {
 				t.Errorf("status: got %d want %d; body=%s", rr.Code, tt.wantStatus, rr.Body.String())
 			}
@@ -228,12 +231,39 @@ func TestHandleObservationsPost_BodyValidation(t *testing.T) {
 			fake := &fakeRequester{status: natsclient.StatusConnected}
 			pub := &fakePublisher{}
 			c := wireObservationsComponent(t, fake, pub)
-			rr := postObservation(t, c, "ds.001", []byte(tt.body), "application/om+json")
+			rr := postObservation(t, c, "acme.ops.robotics.gcs.datastream.001", []byte(tt.body), "application/om+json")
 			if rr.Code != tt.wantCode {
 				t.Errorf("status: got %d want %d; body=%s", rr.Code, tt.wantCode, rr.Body.String())
 			}
 			if pub.gotMsg != nil {
 				t.Errorf("publish should not be called on validation failure")
+			}
+		})
+	}
+}
+
+func TestHandleObservationsPost_InvalidCallerObservationIDRejectsBeforePublish(t *testing.T) {
+	for _, invalidID := range []string{
+		"observation/child",
+		" padded ",
+		"observation?query",
+		"observation#fragment",
+		strings.Repeat("x", 257),
+	} {
+		t.Run(invalidID[:min(len(invalidID), 24)], func(t *testing.T) {
+			fake := &fakeRequester{status: natsclient.StatusConnected}
+			pub := &fakePublisher{}
+			c := wireObservationsComponent(t, fake, pub)
+			observation := validObservation()
+			observation.ID = invalidID
+			body, _ := json.Marshal(observation)
+
+			rr := postObservation(t, c, "acme.ops.robotics.gcs.datastream.001", body, "application/om+json")
+			if rr.Code != http.StatusBadRequest {
+				t.Fatalf("status: got %d want 400; body=%s", rr.Code, rr.Body.String())
+			}
+			if pub.gotMsg != nil {
+				t.Fatalf("JetStream publish called for invalid observation id %q", invalidID)
 			}
 		})
 	}
@@ -274,14 +304,14 @@ func TestValidateEntityID(t *testing.T) {
 		wantErr bool
 	}{
 		{"valid dotted ID", "acme.ops.robotics.gcs.drone.001", false},
-		{"single token", "alpha", false},
+		{"single token", "alpha", true},
 		{"empty rejected", "", true},
 		{"whitespace rejected", "ds with spaces", true},
 		{"tab rejected", "ds\twith\ttabs", true},
 		{"NATS wildcard rejected", "ds.*.x", true},
 		{"NATS greedy wildcard rejected", "ds.>", true},
 		{"oversize rejected", strings.Repeat("a", 257), true},
-		{"exactly 256 bytes accepted", strings.Repeat("a", 256), false},
+		{"exactly 256 bytes accepted", "a.b.c.d.e." + strings.Repeat("a", 246), false},
 		{"leading dot rejected", ".foo", true},
 		{"trailing dot rejected", "foo.", true},
 		{"consecutive dots rejected", "acme..ops", true},
@@ -310,7 +340,7 @@ func TestHandleObservationsPost_OversizeBodyReturns413(t *testing.T) {
 	for i := range huge {
 		huge[i] = 'a'
 	}
-	rr := postObservation(t, c, "ds.001", huge, "application/om+json")
+	rr := postObservation(t, c, "acme.ops.robotics.gcs.datastream.001", huge, "application/om+json")
 	if rr.Code != http.StatusRequestEntityTooLarge {
 		t.Errorf("status: got %d want 413; body=%s", rr.Code, rr.Body.String())
 	}
@@ -336,7 +366,7 @@ func TestHandleObservationsPost_PublisherErrorClassification(t *testing.T) {
 			pub := &fakePublisher{pubErr: tt.pubErr}
 			c := wireObservationsComponent(t, fake, pub)
 			body, _ := json.Marshal(validObservation())
-			rr := postObservation(t, c, "ds.001", body, "application/om+json")
+			rr := postObservation(t, c, "acme.ops.robotics.gcs.datastream.001", body, "application/om+json")
 			if rr.Code != tt.wantCode {
 				t.Errorf("status: got %d want %d; body=%s", rr.Code, tt.wantCode, rr.Body.String())
 			}
@@ -355,7 +385,7 @@ func TestHandleObservationsPost_DELETEReturns405(t *testing.T) {
 
 	mux := http.NewServeMux()
 	c.RegisterHTTPHandlers("", mux)
-	req := httptest.NewRequest(http.MethodDelete, "/datastreams/ds.001/observations", nil)
+	req := httptest.NewRequest(http.MethodDelete, "/datastreams/acme.ops.robotics.gcs.datastream.001/observations", nil)
 	rr := httptest.NewRecorder()
 	mux.ServeHTTP(rr, req)
 	if rr.Code != http.StatusMethodNotAllowed {

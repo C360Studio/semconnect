@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-07-18
+goal: Qualify SemStreams beta.151 with fail-closed structural graph invariants,
+  trusted owner-RMW safety, replay parity, and no production authorization.

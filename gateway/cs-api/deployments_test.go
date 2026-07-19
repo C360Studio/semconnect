@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 const testDeploymentID = "c360.semconnect.systems.csapi.deployment.alpha"
@@ -231,6 +231,9 @@ func TestHandleDeploymentPost_Feature(t *testing.T) {
 		}
 		if tr.Predicate == predDeploymentDeployedSystems {
 			sawDeployedSystems = true
+			if tr.Datatype != "" {
+				t.Errorf("deployment href must remain a literal, got datatype %q", tr.Datatype)
+			}
 		}
 	}
 	if !sawDeploymentType {

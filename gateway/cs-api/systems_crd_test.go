@@ -17,11 +17,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
@@ -238,8 +238,8 @@ func existingSystemState(id string) graph.EntityState {
 			{Subject: id, Predicate: sensorml.PredLabel, Object: "Old label"},
 			{Subject: id, Predicate: sensorml.PredDescription, Object: "Old description"},
 			// Duplicate predicate (extra hosted child) — dedup must collapse to one remove call.
-			{Subject: id, Predicate: sensorml.PredHosts, Object: id + ".camera"},
-			{Subject: id, Predicate: sensorml.PredHosts, Object: id + ".gps"},
+			{Subject: id, Predicate: sensorml.PredHosts, Object: id + ".camera", Datatype: message.EntityReferenceDatatype},
+			{Subject: id, Predicate: sensorml.PredHosts, Object: id + ".gps", Datatype: message.EntityReferenceDatatype},
 		},
 	}
 }
@@ -355,8 +355,8 @@ func TestReplaceEntityTriples_ForwardsForeignEdgeProjection(t *testing.T) {
 
 	triples := []message.Triple{
 		{Subject: parentID, Predicate: sensorml.PredType, Object: sosa.SSNSystem},
-		{Subject: parentID, Predicate: sensorml.PredHosts, Object: childID},
-		{Subject: childID, Predicate: sensorml.PredIsHostedBy, Object: parentID},
+		{Subject: parentID, Predicate: sensorml.PredHosts, Object: childID, Datatype: message.EntityReferenceDatatype},
+		{Subject: childID, Predicate: sensorml.PredIsHostedBy, Object: parentID, Datatype: message.EntityReferenceDatatype},
 	}
 	if err := c.replaceEntityTriples(context.Background(), current, triples, Identity{}); err != nil {
 		t.Fatalf("replaceEntityTriples: %v", err)
@@ -565,6 +565,12 @@ func TestHandleSystemOptions(t *testing.T) {
 
 func mustMarshal(t *testing.T, v any) []byte {
 	t.Helper()
+	switch state := v.(type) {
+	case graph.EntityState:
+		auditEntityStateFixture(t, state)
+	case *graph.EntityState:
+		auditEntityStateFixture(t, *state)
+	}
 	out, err := json.Marshal(v)
 	if err != nil {
 		t.Fatalf("mustMarshal: %v", err)

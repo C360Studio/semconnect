@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
-	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 const (
@@ -33,11 +33,11 @@ func controlStreamState(t *testing.T) []byte {
 		Triples: []message.Triple{
 			{Subject: testControlStreamID, Predicate: sensorml.PredType, Object: ControlStreamTypeIRI},
 			{Subject: testControlStreamID, Predicate: sensorml.PredLabel, Object: "PTZ Control"},
-			{Subject: testControlStreamID, Predicate: PredControlStreamSystem, Object: testControlSystemID},
+			{Subject: testControlStreamID, Predicate: PredControlStreamSystem, Object: testControlSystemID, Datatype: message.EntityReferenceDatatype},
 			{Subject: testControlStreamID, Predicate: predControlStreamInputName, Object: "ptz"},
 			{Subject: testControlStreamID, Predicate: predControlStreamAsync, Object: "false"},
 			{Subject: testControlStreamID, Predicate: predControlStreamCommandFormat, Object: string(MediaJSON)},
-			{Subject: testControlStreamID, Predicate: predControlStreamSchema, Object: artifactID},
+			{Subject: testControlStreamID, Predicate: predControlStreamSchema, Object: artifactID, Datatype: message.EntityReferenceDatatype},
 			{Subject: testControlStreamID, Predicate: predControlStreamControlledProperties, Object: string(propsBytes)},
 			{Subject: testControlStreamID, Predicate: predControlStreamIssueTime, Object: "2026-06-02T18:00:00Z"},
 			{Subject: testControlStreamID, Predicate: predControlStreamExecutionTime, Object: "2026-06-02T18:05:00Z"},
@@ -55,7 +55,7 @@ func commandState(t *testing.T) []byte {
 		ID: testCommandID,
 		Triples: []message.Triple{
 			{Subject: testCommandID, Predicate: sensorml.PredType, Object: CommandTypeIRI},
-			{Subject: testCommandID, Predicate: PredCommandControlStream, Object: testControlStreamID},
+			{Subject: testCommandID, Predicate: PredCommandControlStream, Object: testControlStreamID, Datatype: message.EntityReferenceDatatype},
 			{Subject: testCommandID, Predicate: predCommandStatus, Object: "accepted"},
 			{Subject: testCommandID, Predicate: predCommandIssueTime, Object: "2026-05-19T12:00:00Z"},
 			{Subject: testCommandID, Predicate: predCommandExecutionTime, Object: "2026-05-19T12:01:00Z"},
@@ -313,7 +313,7 @@ func TestHandleCommands_AdvancedFilters(t *testing.T) {
 		ID: otherID,
 		Triples: []message.Triple{
 			{Subject: otherID, Predicate: sensorml.PredType, Object: CommandTypeIRI},
-			{Subject: otherID, Predicate: PredCommandControlStream, Object: testControlStreamID},
+			{Subject: otherID, Predicate: PredCommandControlStream, Object: testControlStreamID, Datatype: message.EntityReferenceDatatype},
 			{Subject: otherID, Predicate: predCommandStatus, Object: "failed"},
 			{Subject: otherID, Predicate: predCommandIssueTime, Object: "2026-05-19T13:00:00Z"},
 			{Subject: otherID, Predicate: predCommandExecutionTime, Object: "2026-05-19T13:01:00Z"},
@@ -478,7 +478,7 @@ func TestHandleSystemControlStreams_FiltersBySystem(t *testing.T) {
 		Triples: []message.Triple{
 			{Subject: otherID, Predicate: sensorml.PredType, Object: ControlStreamTypeIRI},
 			{Subject: otherID, Predicate: sensorml.PredLabel, Object: "Other"},
-			{Subject: otherID, Predicate: PredControlStreamSystem, Object: "c360.semconnect.systems.csapi.system.other"},
+			{Subject: otherID, Predicate: PredControlStreamSystem, Object: "c360.semconnect.systems.csapi.system.other", Datatype: message.EntityReferenceDatatype},
 			{Subject: otherID, Predicate: predControlStreamInputName, Object: "other"},
 		},
 	})

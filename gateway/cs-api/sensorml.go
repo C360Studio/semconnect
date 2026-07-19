@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
+	"github.com/c360studio/semconnect/vocabulary/sosa"
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/parser/sensorml"
-	"github.com/c360studio/semstreams/vocabulary/sosa"
 )
 
 // Reverse mapping: graph.EntityState triples → sensorml.Process.
@@ -53,17 +53,9 @@ import (
 // deterministic only modulo the triple emission order; future-self should
 // not rely on order across framework versions.
 //
-// Predicate aliasing: triples emitted via sensorml.Asset.Triples() use the
-// dotted form (e.g. "sensorml.process.type"); triples emitted by raw
-// producers may use the canonical "rdf.type" form. Both are accepted as
-// the rdf:type predicate. Other predicates (label, description, etc.) are
-// only accepted in their sensorml.process.* dotted form — operators who
-// want round-trip support emit via sensorml.Asset.
-
-// typeAliases lists the predicate names that mean "rdf:type". The first form
-// is what sensorml.Asset emits today; the second is the bare canonical form.
-// When the framework switches to IRI-keyed predicates, this set shrinks.
-var typeAliases = []string{sensorml.PredType, "rdf.type"}
+// Internal state has one type identity: sensorml.PredType. Boundary RDF
+// export maps it to the RDF type IRI; raw rdf.type state is not an operational
+// compatibility read path.
 
 // reconstructProcessFromTriples builds a sensorml.Process from the entity
 // state. entityID is the 6-part SemStreams ID — it becomes the AbstractProcess
@@ -74,7 +66,7 @@ var typeAliases = []string{sensorml.PredType, "rdf.type"}
 // SensorML-describable thing) or when the type IRI is not one of the four
 // CS API critical-path kinds (ADR-044 Phase 5 scope cut).
 func reconstructProcessFromTriples(triples []message.Triple, entityID string) (sensorml.Process, error) {
-	typeIRI, ok := firstStringObject(triples, typeAliases...)
+	typeIRI, ok := firstStringObject(triples, sensorml.PredType)
 	if !ok {
 		return nil, errors.New("entity has no rdf:type triple")
 	}

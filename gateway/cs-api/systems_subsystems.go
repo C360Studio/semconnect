@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/graph"
-	"github.com/c360studio/semstreams/parser/sensorml"
 )
 
 // handleSystemSubsystems serves GET /systems/{id}/subsystems. The relation

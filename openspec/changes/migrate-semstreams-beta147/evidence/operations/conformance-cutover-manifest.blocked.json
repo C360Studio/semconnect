@@ -1,0 +1,94 @@
+{
+  "manifestVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "template": true,
+  "immutable": true,
+  "environment": {
+    "name": "semconnect-conformance-disposable-rehearsal",
+    "natsContext": "direct-server-no-named-context",
+    "natsAccount": "$G",
+    "natsServer": "nats://127.0.0.1:14222",
+    "maintenanceWindow": "unscheduled-pre-rehearsal"
+  },
+  "deploymentValues": {
+    "semconnectRevision": "working-tree-a8d1a7d15a94e3a5ede3ead27c668458fec2ede1-with-uncommitted-migration",
+    "semstreamsVersion": "v1.0.0-beta.147",
+    "semstreamsCommit": "5cc22c109594e48b7f1cec04bcaaf0106d85495a",
+    "backendImage": "local-source-build-without-frozen-image-digest",
+    "backendCommit": "5cc22c109594e48b7f1cec04bcaaf0106d85495a",
+    "activeWriters": [
+      "teamengine-http-client",
+      "conformance-run-sh-seed-fixtures",
+      "cs-api-server",
+      "semstreams-backend-graph-ingest-and-indexers"
+    ]
+  },
+  "destructiveScope": [],
+  "retainedState": [
+    {
+      "kind": "stream",
+      "renderedName": "CS_API_OBSERVATIONS",
+      "account": "$G",
+      "preCutoverCount": 1,
+      "identityImpact": "none",
+      "probe": "nats --server nats://127.0.0.1:14222 stream info CS_API_OBSERVATIONS --json"
+    },
+    {
+      "kind": "object-store",
+      "renderedName": "CS_API_ARTIFACTS",
+      "account": "$G",
+      "preCutoverCount": 2,
+      "identityImpact": "none",
+      "probe": "nats --server nats://127.0.0.1:14222 object ls CS_API_ARTIFACTS"
+    }
+  ],
+  "authoritativeSource": {
+    "uri": "repo://conformance/run.sh#seed_fixtures-and-conformance/fixtures",
+    "revision": "readiness-source-bundle-0af3071091e32ab0c60e9a0ff1068c4a9fadc5ebbbab8109b8700ace19ef5710",
+    "sha256": "0af3071091e32ab0c60e9a0ff1068c4a9fadc5ebbbab8109b8700ace19ef5710",
+    "expectedEntityCount": 0,
+    "owner": "unassigned-conformance-operator",
+    "reseedCommand": "blocked-until-an-operator-runnable-seed-only-command-is-frozen"
+  },
+  "readiness": {
+    "entityStatesBucket": "ENTITY_STATES",
+    "capturedRevision": 0,
+    "statusProbe": "go run ./conformance/cmd/index-readiness -nats-url nats://127.0.0.1:14222 -output conformance/output/seed-evidence/index-readiness-rehearsal.jsonl -timeout 120s -request-timeout 2s -poll-interval 1s -stable-samples 2",
+    "parityProbes": [
+      "docker run --rm --network semconnect-conformance_default curlimages/curl:8.10.1 -fsS http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01",
+      "docker run --rm --network semconnect-conformance_default curlimages/curl:8.10.1 -fsS http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01",
+      "docker run --rm --network semconnect-conformance_default curlimages/curl:8.10.1 -fsS http://cs-api-server:8080/observations/ets-observation-001"
+    ],
+    "replayProbe": "docker compose -p semconnect-conformance -f conformance/compose.yml restart semstreams-backend"
+  },
+  "rollback": {
+    "owner": "unassigned-conformance-operator",
+    "strategy": "stop-writers-correct-source-repeat-reviewed-clean-rebuild",
+    "oldBinaryOnChangedAccount": "prohibited",
+    "triggers": [
+      "resource-count-mismatch",
+      "retained-identity-impact",
+      "graph-state-reset-required",
+      "index-readiness-stall-or-regression",
+      "query-or-replay-parity-delta",
+      "external-conformance-failure-or-skip"
+    ]
+  },
+  "approvals": [],
+  "p0Gate": {
+    "id": "SEMSTREAMS-BETA147-PRODUCTION-CUTOVER",
+    "status": "blocked",
+    "blockingConditions": [
+      "freeze-committed-semconnect-revision-and-image-digest",
+      "capture-actual-pre-rehearsal-resource-counts",
+      "freeze-literal-destructive-scope-with-observed-counts",
+      "freeze-operator-runnable-seed-only-command-and-source-count",
+      "capture-entity-states-target-and-query-replay-parity",
+      "collect-operator-and-two-destructive-reviewer-approvals"
+    ]
+  },
+  "execution": {
+    "authorized": false,
+    "goNoGoDecision": "no-go"
+  }
+}

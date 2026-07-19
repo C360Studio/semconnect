@@ -47,7 +47,8 @@ fi
 # shellcheck disable=SC1090
 . "$PIN_FILE"
 for var in ETS_GIT_URL ETS_COMMIT ETS_CODE TE_USER TE_PASS \
-           SEMSTREAMS_GIT_URL SEMSTREAMS_COMMIT; do
+           SEMSTREAMS_GIT_URL SEMSTREAMS_VERSION SEMSTREAMS_TAG_OBJECT \
+           SEMSTREAMS_COMMIT; do
     if [[ -z "${!var:-}" ]]; then
         echo "[run.sh] FATAL: $PIN_FILE missing $var" >&2
         exit 1
@@ -61,8 +62,23 @@ TE_LOG="$OUTPUT_DIR/teamengine-container-${UTC_STAMP}.log"
 CS_LOG="$OUTPUT_DIR/cs-api-server-container-${UTC_STAMP}.log"
 BACKEND_LOG="$OUTPUT_DIR/semstreams-backend-container-${UTC_STAMP}.log"
 SEED_LOG="$OUTPUT_DIR/seed-${UTC_STAMP}.log"
+SEED_EVIDENCE_DIR="$OUTPUT_DIR/seed-evidence"
+INDEX_READINESS_EVIDENCE="$SEED_EVIDENCE_DIR/index-readiness-${UTC_STAMP}.jsonl"
 SUMMARY="$OUTPUT_DIR/summary.txt"
-mkdir -p "$OUTPUT_DIR"
+mkdir -p "$OUTPUT_DIR" "$SEED_EVIDENCE_DIR"
+
+# Retained-state-relevant fixture identities are explicit and byte-stable across
+# wipe/reseed. Runtime checks below reject any unexpected minting or UUID fallback.
+SEED_SYSTEM_ID="c360.semconnect.systems.csapi.system.weather-station-01"
+SEED_DATASTREAM_ID="c360.semconnect.systems.csapi.datastream.weather-temperature-01"
+SEED_SCHEMA_ARTIFACT_ID="c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_datastream_weather-temperature-01-resultSchema"
+SEED_SCHEMA_ARTIFACT_OBJECT_KEY="${SEED_SCHEMA_ARTIFACT_ID}.json"
+SEED_OBSERVATION_SUBJECT="cs-api.observations.${SEED_DATASTREAM_ID}"
+SEED_OBSERVATION_ID="ets-observation-001"
+SEED_SYSTEM_EVENT_ID="c360.semconnect.systems.csapi.systemevent.00Z"
+SEED_CONTROLSTREAM_ID="c360.semconnect.systems.csapi.controlstream.ptz-01"
+SEED_COMMAND_SCHEMA_ARTIFACT_ID="c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema"
+SEED_COMMAND_SCHEMA_ARTIFACT_OBJECT_KEY="${SEED_COMMAND_SCHEMA_ARTIFACT_ID}.json"
 
 COMPOSE_FILE="$SCRIPT_DIR/compose.yml"
 COMPOSE_PROJECT="${CONFORMANCE_PROJECT:-semconnect-conformance}"
@@ -80,9 +96,13 @@ ETS_VENDOR_DIR="$SCRIPT_DIR/.vendor/ets"
 # under one gitignored umbrella.
 SEMSTREAMS_VENDOR_DIR="$SCRIPT_DIR/.vendor/semstreams"
 
+# shellcheck source=lib/vendor_identity.sh
+. "$SCRIPT_DIR/lib/vendor_identity.sh"
+
 # Health timing — generous because cold Maven build is ~5–6 minutes.
 HEALTH_TIMEOUT_S="${CONFORMANCE_HEALTH_TIMEOUT_S:-900}"
 RUN_TIMEOUT_S="${CONFORMANCE_RUN_TIMEOUT_S:-600}"
+INDEX_READINESS_TIMEOUT_S="${CONFORMANCE_INDEX_READINESS_TIMEOUT_S:-120}"
 
 # Inside the docker compose network, IUT is reachable at the service name.
 IUT_URL_DEFAULT="http://cs-api-server:8080"
@@ -149,45 +169,70 @@ wait_for_seeded_collection() {
 }
 
 ensure_ets_vendor() {
-    if [[ -d "$ETS_VENDOR_DIR/.git" ]]; then
-        local current
-        current="$(git -C "$ETS_VENDOR_DIR" rev-parse HEAD 2>/dev/null || true)"
-        if [[ "$current" == "$ETS_COMMIT" ]]; then
-            log "  ETS vendor already at pinned SHA — reusing $ETS_VENDOR_DIR"
-            return
-        fi
-        log "  ETS vendor at ${current:-<unknown>}; resetting to $ETS_COMMIT"
-        rm -rf "$ETS_VENDOR_DIR"
+    if git_source_matches_commit "$ETS_VENDOR_DIR" "$ETS_COMMIT"; then
+        log "  ETS vendor is clean at pinned SHA — reusing $ETS_VENDOR_DIR"
+        return
     fi
-    log "  cloning $ETS_GIT_URL @ $ETS_COMMIT into $ETS_VENDOR_DIR"
-    mkdir -p "$(dirname "$ETS_VENDOR_DIR")"
-    # Shallow clone with --filter=blob:none keeps history+SCM metadata cheap
-    # while still satisfying buildnumber-maven-plugin (which only needs HEAD).
-    git clone --filter=blob:none "$ETS_GIT_URL" "$ETS_VENDOR_DIR" >/dev/null 2>&1 \
+
+    # This is an ignored, harness-owned build input. Validate its exact path
+    # before replacement so source refresh cannot expand into a broad target.
+    if [[ "$ETS_VENDOR_DIR" != "$SCRIPT_DIR/.vendor/ets" ]]; then
+        die "refusing to refresh unexpected ETS vendor path: $ETS_VENDOR_DIR"
+    fi
+
+    local vendor_parent
+    local refresh_dir
+    vendor_parent="$(dirname "$ETS_VENDOR_DIR")"
+    mkdir -p "$vendor_parent"
+    refresh_dir="$(mktemp -d "$vendor_parent/.ets-refresh.XXXXXX")"
+
+    log "  materialising clean $ETS_GIT_URL @ $ETS_COMMIT"
+    # Keep a real, non-shallow Git checkout. The partial-clone filter avoids
+    # downloading unused blobs while retaining the history and SCM metadata
+    # required by the ETS buildnumber-maven-plugin.
+    git clone --filter=blob:none "$ETS_GIT_URL" "$refresh_dir/source" >/dev/null 2>&1 \
         || die "git clone $ETS_GIT_URL failed"
-    git -C "$ETS_VENDOR_DIR" checkout --quiet "$ETS_COMMIT" \
+    git -C "$refresh_dir/source" checkout --quiet "$ETS_COMMIT" \
         || die "git checkout $ETS_COMMIT failed (does the SHA exist on the remote?)"
+    git_source_matches_commit "$refresh_dir/source" "$ETS_COMMIT" \
+        || die "materialized ETS source does not match clean pinned commit $ETS_COMMIT"
+
+    rm -rf -- "$ETS_VENDOR_DIR"
+    mv "$refresh_dir/source" "$ETS_VENDOR_DIR"
+    rmdir "$refresh_dir"
 }
 
 ensure_semstreams_vendor() {
-    if [[ -d "$SEMSTREAMS_VENDOR_DIR/.git" ]]; then
-        local current
-        current="$(git -C "$SEMSTREAMS_VENDOR_DIR" rev-parse HEAD 2>/dev/null || true)"
-        if [[ "$current" == "$SEMSTREAMS_COMMIT" ]]; then
-            log "  semstreams vendor already at pinned SHA — reusing $SEMSTREAMS_VENDOR_DIR"
-            return
-        fi
-        log "  semstreams vendor at ${current:-<unknown>}; resetting to $SEMSTREAMS_COMMIT"
-        rm -rf "$SEMSTREAMS_VENDOR_DIR"
+    if git_source_matches_commit "$SEMSTREAMS_VENDOR_DIR" "$SEMSTREAMS_COMMIT"; then
+        log "  semstreams vendor is clean at pinned SHA — reusing $SEMSTREAMS_VENDOR_DIR"
+        return
     fi
-    log "  cloning $SEMSTREAMS_GIT_URL @ $SEMSTREAMS_COMMIT into $SEMSTREAMS_VENDOR_DIR"
-    mkdir -p "$(dirname "$SEMSTREAMS_VENDOR_DIR")"
+
+    # This is an ignored, harness-owned build input. Validate its exact path
+    # before replacement so source refresh cannot expand into a broad target.
+    if [[ "$SEMSTREAMS_VENDOR_DIR" != "$SCRIPT_DIR/.vendor/semstreams" ]]; then
+        die "refusing to refresh unexpected semstreams vendor path: $SEMSTREAMS_VENDOR_DIR"
+    fi
+
+    local vendor_parent
+    local refresh_dir
+    vendor_parent="$(dirname "$SEMSTREAMS_VENDOR_DIR")"
+    mkdir -p "$vendor_parent"
+    refresh_dir="$(mktemp -d "$vendor_parent/.semstreams-refresh.XXXXXX")"
+
+    log "  materialising clean $SEMSTREAMS_GIT_URL @ $SEMSTREAMS_COMMIT"
     # Shallow clone — framework Dockerfile reads source only, no SCM
     # metadata needed.
-    git clone --filter=blob:none "$SEMSTREAMS_GIT_URL" "$SEMSTREAMS_VENDOR_DIR" >/dev/null 2>&1 \
+    git clone --filter=blob:none "$SEMSTREAMS_GIT_URL" "$refresh_dir/source" >/dev/null 2>&1 \
         || die "git clone $SEMSTREAMS_GIT_URL failed"
-    git -C "$SEMSTREAMS_VENDOR_DIR" checkout --quiet "$SEMSTREAMS_COMMIT" \
+    git -C "$refresh_dir/source" checkout --quiet "$SEMSTREAMS_COMMIT" \
         || die "git checkout $SEMSTREAMS_COMMIT failed (does the SHA exist on the remote?)"
+    git_source_matches_commit "$refresh_dir/source" "$SEMSTREAMS_COMMIT" \
+        || die "materialized semstreams source does not match clean pinned commit $SEMSTREAMS_COMMIT"
+
+    rm -rf -- "$SEMSTREAMS_VENDOR_DIR"
+    mv "$refresh_dir/source" "$SEMSTREAMS_VENDOR_DIR"
+    rmdir "$refresh_dir"
 }
 
 # Seed CS-API fixtures so the Botts ETS @BeforeClass loaders
@@ -233,6 +278,9 @@ seed_fixtures() {
     # script trustworthy in isolation even if cs-api-server regresses.
     if ! [[ "$sys_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
         die "POST /systems returned 201 with malformed id '$sys_id' (see $SEED_LOG)"
+    fi
+    if [[ "$sys_id" != "$SEED_SYSTEM_ID" ]]; then
+        die "POST /systems identity drift: got '$sys_id', want '$SEED_SYSTEM_ID' (see $SEED_LOG)"
     fi
     log "  seeded system: id=$sys_id"
 
@@ -312,13 +360,13 @@ EOF
     log "  seeded hosted platform (foreign isHostedBy lane fired): id=$hosted_id"
 
     # Build a Datastream pointing at the just-seeded System. CS API §10
-    # shape: id (optional, will be minted), name, description, system
+    # shape: explicit stable id, name, description, system
     # ref (6-part minted ID), observedProperty IRI, and a SWE Common
     # DataRecord schema. Inline JSON is safe because sys_id is
     # regex-validated above; no shell-quoting risk.
     local ds_body
     ds_body=$(cat <<EOF
-{"name":"Conformance temperature stream","description":"Stage 9 seed fixture — sensor observations for the weather station.","system":"${sys_id}","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","phenomenonTime":"2026-06-02T18:00:00Z","resultTime":"2026-06-02T18:00:00Z","schema":{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}}
+{"id":"${SEED_DATASTREAM_ID}","name":"Conformance temperature stream","description":"Stage 9 seed fixture — sensor observations for the weather station.","system":"${sys_id}","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","phenomenonTime":"2026-06-02T18:00:00Z","resultTime":"2026-06-02T18:00:00Z","schema":{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}}
 EOF
 )
     log "  POST /datastreams referencing system=$sys_id"
@@ -345,11 +393,15 @@ EOF
     if ! [[ "$ds_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
         die "POST /datastreams returned 201 with malformed id '$ds_id' (see $SEED_LOG)"
     fi
+    if [[ "$ds_id" != "$SEED_DATASTREAM_ID" ]]; then
+        die "POST /datastreams identity drift: got '$ds_id', want '$SEED_DATASTREAM_ID' (see $SEED_LOG)"
+    fi
     log "  seeded datastream: id=$ds_id"
+    log "  stable schema artifact identity: id=$SEED_SCHEMA_ARTIFACT_ID key=$SEED_SCHEMA_ARTIFACT_OBJECT_KEY"
 
     local obs_body
     obs_body=$(cat <<EOF
-{"id":"ets-observation-001","procedure":"urn:ets:procedure:temperature","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","resultTime":"2026-06-02T18:00:00Z","result":21.5}
+{"id":"${SEED_OBSERVATION_ID}","procedure":"urn:ets:procedure:temperature","observedProperty":"http://www.w3.org/ns/sosa/Property/AirTemperature","resultTime":"2026-06-02T18:00:00Z","result":21.5}
 EOF
 )
     log "  POST /datastreams/$ds_id/observations"
@@ -367,7 +419,7 @@ EOF
     if [[ "$obs_code" != "201" ]]; then
         die "POST /datastreams/$ds_id/observations failed: $obs_code (see $SEED_LOG)"
     fi
-    log "  seeded observation (HTTP $obs_code)"
+    log "  seeded observation (HTTP $obs_code): id=$SEED_OBSERVATION_ID subject=$SEED_OBSERVATION_SUBJECT"
 
     # Stage 12 — wait for the predicate index to reflect the seed before
     # invoking the suite. POST writes to ENTITY_STATES synchronously;
@@ -499,7 +551,7 @@ EOF
     sf_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
         curlimages/curl:8.10.1 \
-        -sS -w '\nHTTP %{http_code}\n' \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
         -X POST -H 'Content-Type: application/json' \
         --data-binary "$sf_body" \
         "${cs_api_url}/samplingFeatures" 2>&1)" || true
@@ -537,7 +589,11 @@ EOF
     # controlstream group can exercise /controlstreams, item GET,
     # /schema, /commands, and /systems/{id}/controlstreams.
     log "  POST /controlstreams with seed command schema"
-    local ctrl_body='{"name":"Conformance seed PTZ control","system@id":"'"${sys_id}"'","inputName":"ptz","issueTime":"2026-06-02T18:00:00Z","executionTime":"2026-06-02T18:05:00Z","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"},{"name":"tilt","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/TiltAngle","label":"Tilt Angle"}]}}}'
+    local ctrl_body
+    ctrl_body=$(cat <<EOF
+{"id":"${SEED_CONTROLSTREAM_ID}","name":"Conformance seed PTZ control","system@id":"${sys_id}","inputName":"ptz","issueTime":"2026-06-02T18:00:00Z","executionTime":"2026-06-02T18:05:00Z","async":false,"schema":{"commandFormat":"application/json","parametersSchema":{"type":"DataRecord","fields":[{"name":"pan","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle"},{"name":"tilt","type":"Quantity","definition":"http://sensorml.com/ont/swe/property/TiltAngle","label":"Tilt Angle"}]}}}
+EOF
+)
     local ctrl_resp
     ctrl_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
@@ -561,7 +617,11 @@ EOF
     if ! [[ "$ctrl_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
         die "POST /controlstreams returned 201 with malformed id '$ctrl_id' (see $SEED_LOG)"
     fi
+    if [[ "$ctrl_id" != "$SEED_CONTROLSTREAM_ID" ]]; then
+        die "POST /controlstreams identity drift: got '$ctrl_id', want '$SEED_CONTROLSTREAM_ID' (see $SEED_LOG)"
+    fi
     log "  seeded controlstream: id=$ctrl_id"
+    log "  stable command schema artifact identity: id=$SEED_COMMAND_SCHEMA_ARTIFACT_ID key=$SEED_COMMAND_SCHEMA_ARTIFACT_OBJECT_KEY"
     wait_for_seeded_collection "$cs_api_url" "/controlstreams" "controlstream" "items"
 
     # Stage 51 — seed one read-side Command resource for the selected
@@ -619,7 +679,7 @@ EOF
     event_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
         curlimages/curl:8.10.1 \
-        -sS -w '\nHTTP %{http_code}\n' \
+        -sS -w '\nHTTP %{http_code} loc=%header{location}\n' \
         -X POST -H 'Content-Type: application/json' \
         --data-binary "$event_body" \
         "${cs_api_url}/systems/${sys_id}/events" 2>&1)" || true
@@ -629,7 +689,13 @@ EOF
     if [[ "$event_code" != "201" ]]; then
         die "POST /systems/{id}/events failed: $event_code (see $SEED_LOG)"
     fi
-    log "  seeded system event (HTTP $event_code)"
+    local event_loc event_id
+    event_loc="$(echo "$event_resp" | awk '/^HTTP /{print $3}' | tail -1 | sed 's/^loc=//')"
+    event_id="${event_loc##*/}"
+    if [[ "$event_id" != "$SEED_SYSTEM_EVENT_ID" ]]; then
+        die "POST /systems/{id}/events identity drift: got '$event_id', want '$SEED_SYSTEM_EVENT_ID' (see $SEED_LOG)"
+    fi
+    log "  seeded system event: id=$event_id"
     wait_for_seeded_collection "$cs_api_url" "/systemEvents" "system event" "items"
 
     log "  seed complete (log: $SEED_LOG)"
@@ -797,6 +863,7 @@ log "Output dir: $OUTPUT_DIR"
 command -v docker >/dev/null 2>&1 || die "docker not found in PATH"
 docker info >/dev/null 2>&1 || die "docker daemon not reachable"
 command -v git >/dev/null 2>&1 || die "git not found in PATH"
+command -v go >/dev/null 2>&1 || die "go not found in PATH (required for graph-index readiness helper)"
 
 # 2. Materialise pinned ETS + framework sources + tear down any previous stack.
 log "step 1/8 — materialising pinned ETS + framework sources, tearing down previous stack"
@@ -875,6 +942,24 @@ fi
 #    test that depends on the systemfeatures group.
 log "step 5/8 — seeding CS-API fixtures"
 seed_fixtures
+
+# beta.147 readiness is revision-based. Collection non-emptiness above remains
+# useful resource evidence, but cannot prove that every post-seed ENTITY_STATES
+# revision is indexed. Capture a stable query-time TargetRevision, then block on
+# Ready && IndexedRevision >= that exact target before Team Engine starts.
+log "  capturing stable post-seed graph target and waiting for index catch-up"
+readiness_summary=""
+if ! readiness_summary="$(cd "$REPO_ROOT" && go run ./conformance/cmd/index-readiness \
+        -nats-url "nats://127.0.0.1:${NATS_HOST_PORT}" \
+        -output "$INDEX_READINESS_EVIDENCE" \
+        -timeout "${INDEX_READINESS_TIMEOUT_S}s" \
+        -request-timeout 2s \
+        -poll-interval 1s \
+        -stable-samples 2 2>&1)"; then
+    echo "$readiness_summary" | tee -a "$SEED_LOG" >&2
+    die "graph index did not reach the stable post-seed revision; see $INDEX_READINESS_EVIDENCE"
+fi
+echo "$readiness_summary" | tee -a "$SEED_LOG"
 
 # 6. Confirm suite is registered, then invoke it.
 TE_BASE="http://localhost:${TE_HOST_PORT}/teamengine"
@@ -965,6 +1050,7 @@ fi
     echo "cs-api log:    $CS_LOG"
     echo "backend log:   $BACKEND_LOG"
     echo "seed log:      $SEED_LOG"
+    echo "index status:  $INDEX_READINESS_EVIDENCE"
     echo "bake report:   $OUTPUT_DIR/foreign-edge-bake-${UTC_STAMP}.txt"
     echo
     echo "Stage 9 note: cs-api-server now runs against a real graph backend"

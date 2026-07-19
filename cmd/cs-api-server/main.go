@@ -28,6 +28,7 @@ import (
 	"flag"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -42,6 +43,8 @@ const (
 	defaultNATSURL   = "nats://localhost:4222"
 	shutdownDeadline = 10 * time.Second
 	natsConnDeadline = 10 * time.Second
+	healthcheckURL   = "http://127.0.0.1:8080/health"
+	healthcheckLimit = 3 * time.Second
 )
 
 // serverConfig is the on-disk shape. It embeds csapi.Config plus the bits the
@@ -62,7 +65,14 @@ func main() {
 
 func run() error {
 	configPath := flag.String("config", "", "path to JSON config (optional; defaults are sane for local dev)")
+	healthcheck := flag.Bool("healthcheck", false, "probe the local HTTP health endpoint and exit")
+	healthURL := flag.String("healthcheck-url", healthcheckURL, "HTTP endpoint used by -healthcheck")
 	flag.Parse()
+	if *healthcheck {
+		ctx, cancel := context.WithTimeout(context.Background(), healthcheckLimit)
+		defer cancel()
+		return checkHTTPHealth(ctx, http.DefaultClient, *healthURL)
+	}
 
 	cfg, err := loadConfig(*configPath)
 	if err != nil {
@@ -112,6 +122,26 @@ func run() error {
 	logger.Info("shutting down", "reason", ctx.Err())
 	if err := comp.Stop(shutdownDeadline); err != nil {
 		return fmt.Errorf("stop cs-api: %w", err)
+	}
+	return nil
+}
+
+type httpDoer interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
+func checkHTTPHealth(ctx context.Context, client httpDoer, url string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("build health request: %w", err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("health request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("health status: got %d, want %d", resp.StatusCode, http.StatusOK)
 	}
 	return nil
 }

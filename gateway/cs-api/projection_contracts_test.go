@@ -3,7 +3,7 @@ package csapi
 import (
 	"testing"
 
-	"github.com/c360studio/semstreams/parser/sensorml"
+	"github.com/c360studio/semconnect/parser/sensorml"
 	"github.com/c360studio/semstreams/pkg/ownership"
 	"github.com/c360studio/semstreams/pkg/projection"
 )

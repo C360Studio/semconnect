@@ -1,0 +1,30 @@
+{
+  "formatVersion": "1.0.0",
+  "change": "migrate-semstreams-beta147",
+  "scope": [
+    "cmd",
+    "gateway",
+    "message",
+    "parser",
+    "pkg",
+    "vocabulary",
+    "conformance/fixtures",
+    "conformance/compose.semstreams.config.json"
+  ],
+  "command": "rg -n -i 'rule[-_. ]?processor|rule[-_. ]?pack|graph\\.events\\.|graph[-_. ]?event|newgraph.*event' cmd gateway message parser pkg vocabulary conformance/fixtures conformance/compose.semstreams.config.json",
+  "exitCode": 1,
+  "matches": 0,
+  "classification": "not-applicable",
+  "boundedAt": "2026-07-18T01:11:23Z",
+  "sourceEvidence": "../development/go/integration-and-quality.json",
+  "reviewEvidence": "../review/go/review.json",
+  "assertions": [
+    "No SemStreams rule-processor configuration is present.",
+    "No rule pack is present.",
+    "No graph-event constructor is present.",
+    "No graph.events.* consumer is present.",
+    "CS API SystemEvent resources are HTTP product data and are not SemStreams graph-event consumers.",
+    "No default pack_id or enable_graph_integration assumption is introduced."
+  ],
+  "disposition": "No beta.147 rule/event migration behavior is required. A future introduction requires a separate contract."
+}

@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-07-18
+goal: Qualify SemStreams beta.149 with clean coordinated shutdown, unchanged
+  CS API conformance, graph replay parity, and no production authorization.

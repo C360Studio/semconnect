@@ -1,0 +1,1 @@
+{"commandFormat":"application/json","parametersSchema":{"fields":[{"definition":"http://sensorml.com/ont/swe/property/PanAngle","label":"Pan Angle","name":"pan","type":"Quantity"},{"definition":"http://sensorml.com/ont/swe/property/TiltAngle","label":"Tilt Angle","name":"tilt","type":"Quantity"}],"type":"DataRecord"}}

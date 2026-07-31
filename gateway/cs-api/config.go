@@ -76,9 +76,8 @@ type Config struct {
 	// consumers that lag can replay. Tune per deployment.
 	ObservationsMaxAge time.Duration `json:"observations_max_age"`
 
-	// ObservationsMaxBytes is a soft cap on the stream's on-disk size. 0
-	// means unlimited (today's behavior). Set in production so a runaway
-	// client cannot fill the disk to the JetStream account limit.
+	// ObservationsMaxBytes caps the stream's on-disk size. It must be positive
+	// so a runaway client cannot fill the disk to the JetStream account limit.
 	ObservationsMaxBytes int64 `json:"observations_max_bytes"`
 
 	// ObservationsReplicas controls JetStream replica count. 1 is fine for
@@ -175,7 +174,7 @@ func DefaultConfig() Config {
 		ObservationsStream:        "CS_API_OBSERVATIONS",
 		ObservationsSubjectPrefix: "cs-api.observations",
 		ObservationsMaxAge:        30 * 24 * time.Hour,
-		ObservationsMaxBytes:      0, // unlimited; set in prod
+		ObservationsMaxBytes:      1 << 30, // 1 GiB
 		ObservationsReplicas:      1,
 		SchemaArtifactsBucket:     "CS_API_ARTIFACTS",
 		SchemaArtifactsMaxBytes:   0, // unlimited; set in prod
@@ -280,8 +279,10 @@ func (c *Config) ApplyDefaults() {
 	if c.SchemaArtifactIDPrefix == "" {
 		c.SchemaArtifactIDPrefix = d.SchemaArtifactIDPrefix
 	}
-	// ObservationsMaxBytes / SchemaArtifactsMaxBytes: 0 is a meaningful
-	// value (unlimited); do not overwrite with the default.
+	// ObservationsMaxBytes is intentionally not defaulted here: callers load
+	// over DefaultConfig, and an explicit zero must survive to Validate and
+	// fail rather than silently restoring an unbounded stream setting.
+	// SchemaArtifactsMaxBytes remains zero-meaningful (unlimited).
 }
 
 // Validate rejects nonsensical combinations. Called after ApplyDefaults.
@@ -319,8 +320,8 @@ func (c *Config) Validate() error {
 	if c.ObservationsMaxAge < time.Minute {
 		return errors.New("observations_max_age must be ≥ 1 minute")
 	}
-	if c.ObservationsMaxBytes < 0 {
-		return errors.New("observations_max_bytes must be ≥ 0")
+	if c.ObservationsMaxBytes <= 0 {
+		return errors.New("observations_max_bytes must be > 0")
 	}
 	if c.ObservationsReplicas < 1 || c.ObservationsReplicas > 5 {
 		return errors.New("observations_replicas must be between 1 and 5")

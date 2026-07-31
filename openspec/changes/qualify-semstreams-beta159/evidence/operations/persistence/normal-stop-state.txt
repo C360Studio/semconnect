@@ -1,0 +1,3 @@
+semconnect exit_code=0 oom_killed=false
+semstreams exit_code=0 oom_killed=false
+nats exit_code=1 oom_killed=false

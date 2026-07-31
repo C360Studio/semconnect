@@ -17,6 +17,7 @@ import (
 	"github.com/c360studio/semstreams/pkg/errs"
 	natsserver "github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
 )
 
 func TestRealNATSEntityMutationCarriesCanonicalFinalState(t *testing.T) {
@@ -154,6 +155,34 @@ func TestRealNATSJetStreamAndObjectStoreLifecycle(t *testing.T) {
 	t.Cleanup(func() {
 		_ = component.Stop(5 * time.Second)
 	})
+
+	js, err := client.JetStream()
+	if err != nil {
+		t.Fatalf("get real JetStream handle: %v", err)
+	}
+	stream, err := js.Stream(startCtx, component.cfg.ObservationsStream)
+	if err != nil {
+		t.Fatalf("open real observation stream: %v", err)
+	}
+	info, err := stream.Info(startCtx)
+	if err != nil {
+		t.Fatalf("read real observation stream info: %v", err)
+	}
+	if got, want := info.Config.MaxAge, 30*24*time.Hour; got != want {
+		t.Errorf("observation MaxAge = %s, want %s", got, want)
+	}
+	if got, want := info.Config.MaxBytes, int64(1<<30); got != want {
+		t.Errorf("observation MaxBytes = %d, want %d", got, want)
+	}
+	if info.Config.Discard != jetstream.DiscardOld {
+		t.Errorf("observation Discard = %v, want DiscardOld", info.Config.Discard)
+	}
+	if info.Config.Retention != jetstream.LimitsPolicy {
+		t.Errorf("observation Retention = %v, want LimitsPolicy", info.Config.Retention)
+	}
+	if info.Config.Storage != jetstream.FileStorage {
+		t.Errorf("observation Storage = %v, want FileStorage", info.Config.Storage)
+	}
 
 	datastreamID := "acme.ops.robotics.gcs.datastream.integration"
 	subject := component.cfg.ObservationsSubjectPrefix + "." + datastreamID

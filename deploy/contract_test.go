@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	beta153Version = "v1.0.0-beta.153"
-	beta153Commit  = "d2654e5a027138b8a9056863da5ed463ef767f37"
+	beta159Version = "v1.0.0-beta.159"
+	beta159Commit  = "8813270c5ba441286d9120cba82fbf72bdcf9a6c"
 	natsDigest     = "sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927"
 )
 
@@ -42,11 +42,11 @@ func TestComposeIsGreenfieldProductionTopology(t *testing.T) {
 	}
 
 	semstreams := services["semstreams"].(map[string]any)
-	if got := semstreams["image"]; got != "semconnect-semstreams:"+beta153Version {
-		t.Errorf("SemStreams image = %v, want beta.153 release tag", got)
+	if got := semstreams["image"]; got != "semconnect-semstreams:"+beta159Version {
+		t.Errorf("SemStreams image = %v, want beta.159 release tag", got)
 	}
 	build := mapping(t, semstreams, "build")
-	wantContext := "https://github.com/C360Studio/semstreams.git#" + beta153Commit
+	wantContext := "https://github.com/C360Studio/semstreams.git#" + beta159Commit
 	if build["context"] != wantContext {
 		t.Errorf("SemStreams build context = %v, want %s", build["context"], wantContext)
 	}
@@ -55,15 +55,15 @@ func TestComposeIsGreenfieldProductionTopology(t *testing.T) {
 		!strings.Contains(inline, "28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b") {
 		t.Error("SemStreams build does not pin both base images by digest")
 	}
-	for _, want := range []string{"-X main.Version=" + beta153Version, "-X main.GitCommit=" + beta153Commit} {
+	for _, want := range []string{"-X main.Version=" + beta159Version, "-X main.GitCommit=" + beta159Commit} {
 		if !strings.Contains(inline, want) {
 			t.Errorf("SemStreams build metadata lacks %q", want)
 		}
 	}
 	for service, want := range map[string]string{
-		"semconnect":           "semconnect-cs-api:beta.153",
-		"canonical-smoke":      "semconnect-canonical-smoke:beta.153",
-		"greenfield-preflight": "semconnect-canonical-smoke:beta.153",
+		"semconnect":           "semconnect-cs-api:beta.159",
+		"canonical-smoke":      "semconnect-canonical-smoke:beta.159",
+		"greenfield-preflight": "semconnect-canonical-smoke:beta.159",
 	} {
 		if got := services[service].(map[string]any)["image"]; got != want {
 			t.Errorf("%s image = %v, want %s", service, got, want)

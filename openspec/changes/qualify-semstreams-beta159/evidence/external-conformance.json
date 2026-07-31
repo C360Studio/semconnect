@@ -1,0 +1,77 @@
+{
+  "recordType": "ordinary-external-conformance-evidence",
+  "recordedAt": "2026-07-31",
+  "command": "./conformance/run.sh",
+  "runId": "2026-07-31T18-13-41Z",
+  "sourcePins": {
+    "semstreams": {
+      "version": "v1.0.0-beta.159",
+      "tagObject": "ba2c4f8e03bb42c56319b2363ca89f4ab0f9ccec",
+      "commit": "8813270c5ba441286d9120cba82fbf72bdcf9a6c",
+      "tree": "c9a8014cbf6b91837769c8fb8a3dea051f6f11d9"
+    },
+    "bottsEts": {
+      "version": "0.1-SNAPSHOT",
+      "commit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4"
+    },
+    "teamEngine": "5.6.1"
+  },
+  "result": {
+    "total": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "graphIndex": {
+      "source": "GRAPH_STATUS UpdatesOnly watcher",
+      "indexedRevision": 80,
+      "targetRevision": 80,
+      "liveUpdates": 2
+    },
+    "foreignEdge": {
+      "verdict": "PASS",
+      "laneExercised": true,
+      "unclaimed": 0,
+      "dropped": 0
+    },
+    "stackTeardownCompleted": true
+  },
+  "artifacts": [
+    {
+      "path": "conformance/summary.txt",
+      "sha256": "e1d06073d21f37a1f41885de35b8410cd70cdb5987862cb7760e424adba4a6bc"
+    },
+    {
+      "path": "conformance/testng-report-2026-07-31T18-13-41Z.xml",
+      "sha256": "a2df9f0bcdf68eef3331f38527fa03ff1ee23b5882aead6b564a8e81674d2732"
+    },
+    {
+      "path": "conformance/compose-build-2026-07-31T18-13-41Z.log",
+      "sha256": "f03f31396a408cceb45cbbad0f0ea393296454d65fb77f4376694511acd61b24"
+    },
+    {
+      "path": "conformance/cs-api-server-container-2026-07-31T18-13-41Z.log",
+      "sha256": "386f12d4f5c8ad9b3ab0c87ac875ee25273e15688d5af27b2ccbca560ccebe4a"
+    },
+    {
+      "path": "conformance/semstreams-backend-container-2026-07-31T18-13-41Z.log",
+      "sha256": "35323a56bbb5fa3fc1a69a7c4bd4ec48193909e570a21d0884af0f41067ef5d1"
+    },
+    {
+      "path": "conformance/teamengine-container-2026-07-31T18-13-41Z.log",
+      "sha256": "67c62deb521aa2609c286614329583a38e5180c69346c1397a6f6227137f74e7"
+    },
+    {
+      "path": "conformance/seed-2026-07-31T18-13-41Z.log",
+      "sha256": "94a2e5c1a4c94d0830817b7c2178db760af4d4d407d6138aadebf9eeda47d71b"
+    },
+    {
+      "path": "conformance/seed-evidence/index-readiness-2026-07-31T18-13-41Z.jsonl",
+      "sha256": "11abc400af58bfd0eae039a4a0d45ff446f200592c7f8ba3881b67307d873e3a"
+    },
+    {
+      "path": "conformance/foreign-edge-bake-2026-07-31T18-13-41Z.txt",
+      "sha256": "e495113c455d0064abfbd638636ea86fcd6b52610835d6a18f9f825ef4949402"
+    }
+  ],
+  "disposition": "qualified-clean-volume-production-ready-no-old-volume-or-additional-approval-ceremony"
+}

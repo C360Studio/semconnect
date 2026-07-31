@@ -1,0 +1,554 @@
+ Image semconnect-conformance-semstreams-backend Building 
+ Image semconnect-conformance-cs-api-server Building 
+ Image semconnect-conformance-teamengine Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.16kB done
+#1 DONE 0.0s
+
+#2 [cs-api-server internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.39kB done
+#2 DONE 0.0s
+
+#3 [teamengine internal] load build definition from Dockerfile
+#3 transferring dockerfile: 11.25kB done
+#3 DONE 0.0s
+
+#4 [semstreams-backend internal] load build definition from Dockerfile
+#4 transferring dockerfile: 5.10kB done
+#4 DONE 0.1s
+
+#5 [semstreams-backend internal] load metadata for docker.io/library/alpine:latest
+#5 DONE 0.0s
+
+#6 [teamengine] resolve image config for docker-image://docker.io/docker/dockerfile:1.6
+#6 DONE 0.4s
+
+#7 [semstreams-backend internal] load metadata for docker.io/library/golang:1.26-alpine
+#7 DONE 0.4s
+
+#8 [teamengine] docker-image://docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+#8 resolve docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021 0.0s done
+#8 CACHED
+
+#9 [semstreams-backend internal] load .dockerignore
+#9 transferring context: 2B done
+#9 DONE 0.0s
+
+#10 [semstreams-backend builder 1/8] FROM docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#10 resolve docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 done
+#10 DONE 0.0s
+
+#11 [semstreams-backend production 1/8] FROM docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+#11 resolve docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b done
+#11 CACHED
+
+#12 [cs-api-server internal] load metadata for docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#12 DONE 0.0s
+
+#13 [semstreams-backend internal] load build context
+#13 ...
+
+#14 [cs-api-server internal] load metadata for gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#14 DONE 0.0s
+
+#15 [cs-api-server internal] load .dockerignore
+#15 transferring context: 340B done
+#15 DONE 0.0s
+
+#16 [cs-api-server builder 1/6] FROM docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#16 resolve docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b 0.0s done
+#16 DONE 0.0s
+
+#17 [cs-api-server stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#17 resolve gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b 0.0s done
+#17 DONE 0.0s
+
+#13 [semstreams-backend internal] load build context
+#13 transferring context: 41.22MB 0.5s done
+#13 DONE 0.5s
+
+#18 [semstreams-backend builder 2/8] RUN apk add --no-cache git ca-certificates tzdata
+#18 CACHED
+
+#19 [semstreams-backend builder 4/8] COPY go.mod go.sum ./
+#19 CACHED
+
+#20 [semstreams-backend builder 3/8] WORKDIR /build
+#20 CACHED
+
+#21 [semstreams-backend builder 5/8] RUN go mod download
+#21 CACHED
+
+#22 [cs-api-server internal] load build context
+#22 transferring context: 854.18kB 0.5s done
+#22 DONE 0.5s
+
+#23 [cs-api-server builder 2/6] WORKDIR /src
+#23 CACHED
+
+#24 [cs-api-server builder 3/6] COPY go.mod go.sum ./
+#24 CACHED
+
+#25 [cs-api-server builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download
+#25 CACHED
+
+#26 [teamengine internal] load metadata for docker.io/library/eclipse-temurin:17-jdk-jammy
+#26 DONE 0.7s
+
+#27 [semstreams-backend production 2/8] RUN apk add --no-cache     ca-certificates     tzdata     wget
+#27 0.515 (1/6) Installing ca-certificates (20260611-r0)
+#27 0.547 (2/6) Installing tzdata (2026c-r0)
+#27 0.577 (3/6) Installing libunistring (1.4.2-r0)
+#27 0.614 (4/6) Installing libidn2 (2.3.8-r0)
+#27 0.627 (5/6) Installing pcre2 (10.47-r1)
+#27 0.656 (6/6) Installing wget (1.25.0-r3)
+#27 0.691 Executing busybox-1.37.0-r31.trigger
+#27 0.694 Executing ca-certificates-20260611-r0.trigger
+#27 0.729 OK: 12.3 MiB in 22 packages
+#27 DONE 0.8s
+
+#28 [semstreams-backend builder 6/8] COPY . .
+#28 DONE 0.2s
+
+#29 [teamengine internal] load metadata for docker.io/library/tomcat:8.5-jre17
+#29 DONE 0.9s
+
+#30 [semstreams-backend production 3/8] RUN addgroup -S -g 1000 semstreams &&     adduser -S -u 1000 -G semstreams -h /app semstreams
+#30 DONE 0.2s
+
+#31 [teamengine internal] load .dockerignore
+#31 transferring context: 759B done
+#31 DONE 0.0s
+
+#32 [teamengine internal] load build context
+#32 DONE 0.0s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 resolve docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 ...
+
+#34 [cs-api-server builder 5/6] COPY . .
+#34 DONE 0.5s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 resolve docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874 0.1s done
+#33 ...
+
+#35 [semstreams-backend production 4/8] WORKDIR /app
+#35 DONE 0.1s
+
+#32 [teamengine internal] load build context
+#32 transferring context: 4.35MB 0.1s done
+#32 DONE 0.2s
+
+#36 [teamengine builder 1/8] FROM docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:723151f3fc88ca2060153ee08ab8dbbea7983d6ed6f2622fe440acf178737c94
+#36 resolve docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:723151f3fc88ca2060153ee08ab8dbbea7983d6ed6f2622fe440acf178737c94 0.1s done
+#36 DONE 0.3s
+
+#36 [teamengine builder 1/8] FROM docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:723151f3fc88ca2060153ee08ab8dbbea7983d6ed6f2622fe440acf178737c94
+#36 sha256:533eab5dedaaf6429183fe45e2e8a1bb7f5db57a43d29f4334582c07b99ae6b3 2.28kB / 2.28kB 0.1s done
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 0B / 144.74MB 0.2s
+#36 sha256:e348bb7b0b4e7eb996fb8114129cb8b2d580c2d160bedb31b4fdbd8b4349ae76 161B / 161B 0.2s done
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 0B / 22.07MB 0.2s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 0B / 27.61MB 0.2s
+#36 ...
+
+#37 [cs-api-server builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux     go build -trimpath -ldflags="-s -w"         -o /out/cs-api-server ./cmd/cs-api-server
+#37 DONE 0.6s
+
+#38 [cs-api-server stage-1 2/2] COPY --from=builder /out/cs-api-server /usr/local/bin/cs-api-server
+#38 CACHED
+
+#39 [cs-api-server] exporting to image
+#39 exporting layers done
+#39 exporting manifest sha256:6722516cb9dee85df98165e8bf3c912e41f7be094ae1a1c4b9c956655e34ff4f done
+#39 exporting config sha256:d517a2a90e94c4447d701c8ea36f3da859d13403b63242ab3c898a9341999afc done
+#39 exporting attestation manifest sha256:f2d5181f25df332f19aa2a0c4c607caed338295f8612a33aec827b42b0d57400 done
+#39 exporting manifest list sha256:46f14b2b95d5d0b093a782845914ee4ee26dd0109fa42ef0b013facc49e9160b done
+#39 naming to docker.io/library/semconnect-conformance-cs-api-server:latest done
+#39 unpacking to docker.io/library/semconnect-conformance-cs-api-server:latest done
+#39 DONE 0.0s
+
+#36 [teamengine builder 1/8] FROM docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:723151f3fc88ca2060153ee08ab8dbbea7983d6ed6f2622fe440acf178737c94
+#36 ...
+
+#40 [cs-api-server] resolving provenance for metadata file
+#40 DONE 0.0s
+
+#36 [teamengine builder 1/8] FROM docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:723151f3fc88ca2060153ee08ab8dbbea7983d6ed6f2622fe440acf178737c94
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 10.49MB / 144.74MB 0.8s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 2.10MB / 27.61MB 0.6s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 2.10MB / 22.07MB 0.9s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 4.19MB / 27.61MB 1.1s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 18.87MB / 144.74MB 1.4s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 4.19MB / 22.07MB 1.7s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 6.29MB / 27.61MB 1.7s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 27.26MB / 144.74MB 2.3s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 8.39MB / 27.61MB 2.3s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 6.29MB / 22.07MB 2.6s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 10.49MB / 27.61MB 2.7s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 34.60MB / 144.74MB 2.9s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 8.39MB / 22.07MB 3.0s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 12.58MB / 27.61MB 3.0s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 14.68MB / 27.61MB 3.5s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 41.94MB / 144.74MB 3.6s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 10.49MB / 22.07MB 3.8s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 16.78MB / 27.61MB 3.8s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 18.87MB / 27.61MB 4.1s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 12.58MB / 22.07MB 4.2s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 49.28MB / 144.74MB 4.4s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 20.97MB / 27.61MB 4.4s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 14.68MB / 22.07MB 4.7s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 23.07MB / 27.61MB 4.7s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 25.17MB / 27.61MB 5.0s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 57.67MB / 144.74MB 5.1s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 16.78MB / 22.07MB 5.1s
+#36 sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 27.61MB / 27.61MB 5.3s done
+#36 extracting sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 18.87MB / 22.07MB 5.6s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 65.01MB / 144.74MB 5.7s
+#36 sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 22.07MB / 22.07MB 6.1s done
+#36 extracting sha256:119d19e001bafa21919289095e1dbfac64f1e16d2469dd14c2d2a520039d26d9 0.6s done
+#36 extracting sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 72.35MB / 144.74MB 6.2s
+#36 extracting sha256:769c9cd69ed030f695aa25baaa64f4d2565335646733c4a370639725ba3f086a 0.4s done
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 80.74MB / 144.74MB 6.8s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 88.08MB / 144.74MB 7.8s
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 95.42MB / 144.74MB 9.2s
+#36 ...
+
+#41 [semstreams-backend builder 7/8] RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build     -ldflags="-w -s       -X main.Version=dev       -X main.GitCommit=unknown       -X main.BuildTime=unknown"     -o /build/semstreams-bin     ./cmd/semstreams
+#41 ...
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 sha256:b53dba8f9df90e7e46168582fa03f84ef3c88de0b9efdb2e4fc30864105693d4 132B / 132B 0.2s done
+#33 sha256:62d4ada9df7bb8472745913af822f7411e4a8561e5ba94bb646557448ff370ac 478.69kB / 478.69kB 0.7s done
+#33 sha256:242e8f757350076c5a8934fde272d6ec7a56dcc152c4a6054a57f314d2e11d53 10.49MB / 11.49MB 8.6s
+#33 sha256:539624d11ec8306e1980224e20640bf423bca84a7896fc4292ac0d60d97f3155 173B / 173B 0.2s done
+#33 sha256:754a82fa6b427b86617d873030d69cf741994674dcdcb02c137f9489c28e29c5 731B / 731B 0.1s done
+#33 sha256:01f6d824ccd2521a065aa5ce5d027e0f7b027066e53446b20eaa7793a0bce51b 159B / 159B 0.1s done
+#33 sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 19.92MB / 46.64MB 3.8s
+#33 sha256:2168560270786452bc1288278f5b8a7831c90a490efa55dc798deec8e871311a 12.85MB / 12.85MB 1.8s done
+#33 sha256:71dca2167f9f5ee82e602460098ce45ba714cb60cd683d677d994dad97c74bb2 19.92MB / 28.40MB 1.8s
+#33 ...
+
+#41 [semstreams-backend builder 7/8] RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build     -ldflags="-w -s       -X main.Version=dev       -X main.GitCommit=unknown       -X main.BuildTime=unknown"     -o /build/semstreams-bin     ./cmd/semstreams
+#41 DONE 10.3s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 sha256:71dca2167f9f5ee82e602460098ce45ba714cb60cd683d677d994dad97c74bb2 22.02MB / 28.40MB 2.0s
+#33 ...
+
+#42 [semstreams-backend builder 8/8] RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build     -ldflags="-w -s       -X main.Version=dev       -X main.BuildTime=unknown"     -o /build/e2e-semstreams-bin     ./cmd/e2e-semstreams
+#42 DONE 0.9s
+
+#43 [semstreams-backend production 5/8] COPY --from=builder --chown=semstreams:semstreams /build/semstreams-bin /app/semstreams
+#43 DONE 0.1s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 sha256:242e8f757350076c5a8934fde272d6ec7a56dcc152c4a6054a57f314d2e11d53 11.49MB / 11.49MB 9.4s done
+#33 sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 28.31MB / 46.64MB 4.8s
+#33 sha256:71dca2167f9f5ee82e602460098ce45ba714cb60cd683d677d994dad97c74bb2 28.40MB / 28.40MB 2.3s done
+#33 extracting sha256:71dca2167f9f5ee82e602460098ce45ba714cb60cd683d677d994dad97c74bb2 0.3s done
+#33 extracting sha256:2168560270786452bc1288278f5b8a7831c90a490efa55dc798deec8e871311a
+#33 ...
+
+#44 [semstreams-backend production 6/8] COPY --from=builder --chown=semstreams:semstreams /build/configs /app/configs
+#44 DONE 0.0s
+
+#45 [semstreams-backend production 7/8] RUN mkdir -p /etc/semstreams &&     chown semstreams:semstreams /etc/semstreams
+#45 DONE 0.1s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 extracting sha256:2168560270786452bc1288278f5b8a7831c90a490efa55dc798deec8e871311a 0.2s done
+#33 ...
+
+#46 [semstreams-backend production 8/8] RUN mkdir -p /data &&     chown semstreams:semstreams /data
+#46 DONE 0.1s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 31.46MB / 46.64MB 5.1s
+#33 sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 35.65MB / 46.64MB 5.4s
+#33 sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 38.80MB / 46.64MB 5.7s
+#33 ...
+
+#47 [semstreams-backend] exporting to image
+#47 exporting layers 0.6s done
+#47 exporting manifest sha256:60fb1748f498ad12fd18718a27bc6675d196aa6e558c6f503996ecbc15f81615 done
+#47 exporting config sha256:391d927774342f96075a366c85e72638df91c754c53f1cc89c66960e8466e39c done
+#47 exporting attestation manifest sha256:976655efa56d4050ae4f123ef2e2094ee7bce5537fb41c6eb94d57051f1bd60f done
+#47 exporting manifest list sha256:d8502c8465d7294f82fd41381f9414531bf5db81cf8ad2fa8b2c864df0716e25 done
+#47 naming to docker.io/library/semconnect-conformance-semstreams-backend:latest done
+#47 unpacking to docker.io/library/semconnect-conformance-semstreams-backend:latest 0.2s done
+#47 DONE 0.8s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 ...
+
+#48 [semstreams-backend] resolving provenance for metadata file
+#48 DONE 0.0s
+
+#33 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#33 sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 42.99MB / 46.64MB 6.0s
+#33 sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 46.64MB / 46.64MB 6.2s done
+#33 extracting sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69
+#33 extracting sha256:d6274ee4a91612c77ed0ab2ea4b1df4f10d29a3c2881d2d8b564571694cd9f69 0.4s done
+#33 extracting sha256:01f6d824ccd2521a065aa5ce5d027e0f7b027066e53446b20eaa7793a0bce51b done
+#33 extracting sha256:754a82fa6b427b86617d873030d69cf741994674dcdcb02c137f9489c28e29c5 done
+#33 extracting sha256:539624d11ec8306e1980224e20640bf423bca84a7896fc4292ac0d60d97f3155 done
+#33 extracting sha256:242e8f757350076c5a8934fde272d6ec7a56dcc152c4a6054a57f314d2e11d53
+#33 extracting sha256:242e8f757350076c5a8934fde272d6ec7a56dcc152c4a6054a57f314d2e11d53 0.1s done
+#33 extracting sha256:62d4ada9df7bb8472745913af822f7411e4a8561e5ba94bb646557448ff370ac done
+#33 extracting sha256:b53dba8f9df90e7e46168582fa03f84ef3c88de0b9efdb2e4fc30864105693d4 done
+#33 DONE 12.9s
+
+#49 [teamengine stage-1  2/11] RUN groupadd -r tomcat && useradd -r -g tomcat -d /usr/local/tomcat -s /sbin/nologin tomcat  && chown tomcat:tomcat /usr/local/tomcat
+#49 DONE 0.2s
+
+#50 [teamengine stage-1  3/11] RUN apt-get update  && apt-get install -y --no-install-recommends unzip ca-certificates curl  && apt-get clean && rm -rf /var/lib/apt/lists/*  && mkdir -p /root/te-stage  && cd /root/te-stage  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1.war" -o teamengine-web.war  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1-common-libs.zip" -o teamengine-web-common-libs.zip  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-console/5.6.1/teamengine-console-5.6.1-base.zip" -o teamengine-console-base.zip  && unzip -q teamengine-web.war -d /usr/local/tomcat/webapps/teamengine  && unzip -q teamengine-web-common-libs.zip -d /usr/local/tomcat/lib  && unzip -q teamengine-console-base.zip -d /usr/local/tomcat/te_base  && rm -rf /root/te-stage  && chown -R tomcat:tomcat /usr/local/tomcat/webapps /usr/local/tomcat/lib /usr/local/tomcat/te_base                           /usr/local/tomcat/conf /usr/local/tomcat/logs /usr/local/tomcat/work                           /usr/local/tomcat/temp
+#50 0.456 Get:1 http://ports.ubuntu.com/ubuntu-ports jammy InRelease [270 kB]
+#50 1.240 Get:2 http://ports.ubuntu.com/ubuntu-ports jammy-updates InRelease [128 kB]
+#50 1.414 Get:3 http://ports.ubuntu.com/ubuntu-ports jammy-backports InRelease [127 kB]
+#50 ...
+
+#36 [teamengine builder 1/8] FROM docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:723151f3fc88ca2060153ee08ab8dbbea7983d6ed6f2622fe440acf178737c94
+#36 sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 144.74MB / 144.74MB 13.4s done
+#36 extracting sha256:b8768cc534a14a814d56760bb2cc76b6f829eecd32d727a67751cbb89504fa98 0.9s done
+#36 extracting sha256:e348bb7b0b4e7eb996fb8114129cb8b2d580c2d160bedb31b4fdbd8b4349ae76 done
+#36 extracting sha256:533eab5dedaaf6429183fe45e2e8a1bb7f5db57a43d29f4334582c07b99ae6b3 done
+#36 DONE 14.6s
+
+#50 [teamengine stage-1  3/11] RUN apt-get update  && apt-get install -y --no-install-recommends unzip ca-certificates curl  && apt-get clean && rm -rf /var/lib/apt/lists/*  && mkdir -p /root/te-stage  && cd /root/te-stage  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1.war" -o teamengine-web.war  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1-common-libs.zip" -o teamengine-web-common-libs.zip  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-console/5.6.1/teamengine-console-5.6.1-base.zip" -o teamengine-console-base.zip  && unzip -q teamengine-web.war -d /usr/local/tomcat/webapps/teamengine  && unzip -q teamengine-web-common-libs.zip -d /usr/local/tomcat/lib  && unzip -q teamengine-console-base.zip -d /usr/local/tomcat/te_base  && rm -rf /root/te-stage  && chown -R tomcat:tomcat /usr/local/tomcat/webapps /usr/local/tomcat/lib /usr/local/tomcat/te_base                           /usr/local/tomcat/conf /usr/local/tomcat/logs /usr/local/tomcat/work                           /usr/local/tomcat/temp
+#50 1.590 Get:4 http://ports.ubuntu.com/ubuntu-ports jammy-security InRelease [129 kB]
+#50 1.767 Get:5 http://ports.ubuntu.com/ubuntu-ports jammy/restricted arm64 Packages [24.2 kB]
+#50 1.780 Get:6 http://ports.ubuntu.com/ubuntu-ports jammy/main arm64 Packages [1,758 kB]
+#50 2.356 Get:7 http://ports.ubuntu.com/ubuntu-ports jammy/multiverse arm64 Packages [224 kB]
+#50 2.356 Get:8 http://ports.ubuntu.com/ubuntu-ports jammy/universe arm64 Packages [17.2 MB]
+#50 3.776 Get:9 http://ports.ubuntu.com/ubuntu-ports jammy-updates/restricted arm64 Packages [7,818 kB]
+#50 4.459 Get:10 http://ports.ubuntu.com/ubuntu-ports jammy-updates/universe arm64 Packages [1,687 kB]
+#50 4.594 Get:11 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 Packages [4,297 kB]
+#50 5.456 Get:12 http://ports.ubuntu.com/ubuntu-ports jammy-updates/multiverse arm64 Packages [69.7 kB]
+#50 5.456 Get:13 http://ports.ubuntu.com/ubuntu-ports jammy-backports/universe arm64 Packages [33.7 kB]
+#50 5.457 Get:14 http://ports.ubuntu.com/ubuntu-ports jammy-backports/main arm64 Packages [82.4 kB]
+#50 5.458 Get:15 http://ports.ubuntu.com/ubuntu-ports jammy-security/main arm64 Packages [3,979 kB]
+#50 7.711 Get:16 http://ports.ubuntu.com/ubuntu-ports jammy-security/restricted arm64 Packages [7,516 kB]
+#50 11.28 Get:17 http://ports.ubuntu.com/ubuntu-ports jammy-security/multiverse arm64 Packages [62.9 kB]
+#50 11.28 Get:18 http://ports.ubuntu.com/ubuntu-ports jammy-security/universe arm64 Packages [1,393 kB]
+#50 ...
+
+#51 [teamengine builder 2/8] RUN apt-get update  && apt-get install -y --no-install-recommends curl ca-certificates git  && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"     | tar -xz -C /opt  && ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn  && rm -rf /var/lib/apt/lists/*
+#51 0.360 Get:1 http://ports.ubuntu.com/ubuntu-ports jammy InRelease [270 kB]
+#51 1.103 Get:2 http://ports.ubuntu.com/ubuntu-ports jammy-updates InRelease [128 kB]
+#51 1.302 Get:3 http://ports.ubuntu.com/ubuntu-ports jammy-backports InRelease [127 kB]
+#51 1.496 Get:4 http://ports.ubuntu.com/ubuntu-ports jammy-security InRelease [129 kB]
+#51 1.705 Get:5 http://ports.ubuntu.com/ubuntu-ports jammy/main arm64 Packages [1,758 kB]
+#51 2.346 Get:6 http://ports.ubuntu.com/ubuntu-ports jammy/multiverse arm64 Packages [224 kB]
+#51 2.607 Get:7 http://ports.ubuntu.com/ubuntu-ports jammy/universe arm64 Packages [17.2 MB]
+#51 8.758 Get:8 http://ports.ubuntu.com/ubuntu-ports jammy/restricted arm64 Packages [24.2 kB]
+#51 8.758 Get:9 http://ports.ubuntu.com/ubuntu-ports jammy-updates/multiverse arm64 Packages [69.7 kB]
+#51 8.759 Get:10 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 Packages [4,297 kB]
+#51 9.025 Get:11 http://ports.ubuntu.com/ubuntu-ports jammy-updates/restricted arm64 Packages [7,818 kB]
+#51 ...
+
+#50 [teamengine stage-1  3/11] RUN apt-get update  && apt-get install -y --no-install-recommends unzip ca-certificates curl  && apt-get clean && rm -rf /var/lib/apt/lists/*  && mkdir -p /root/te-stage  && cd /root/te-stage  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1.war" -o teamengine-web.war  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1-common-libs.zip" -o teamengine-web-common-libs.zip  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-console/5.6.1/teamengine-console-5.6.1-base.zip" -o teamengine-console-base.zip  && unzip -q teamengine-web.war -d /usr/local/tomcat/webapps/teamengine  && unzip -q teamengine-web-common-libs.zip -d /usr/local/tomcat/lib  && unzip -q teamengine-console-base.zip -d /usr/local/tomcat/te_base  && rm -rf /root/te-stage  && chown -R tomcat:tomcat /usr/local/tomcat/webapps /usr/local/tomcat/lib /usr/local/tomcat/te_base                           /usr/local/tomcat/conf /usr/local/tomcat/logs /usr/local/tomcat/work                           /usr/local/tomcat/temp
+#50 11.66 Fetched 46.8 MB in 12s (4,056 kB/s)
+#50 11.66 Reading package lists...
+#50 12.26 Reading package lists...
+#50 12.79 Building dependency tree...
+#50 12.93 Reading state information...
+#50 13.04 The following additional packages will be installed:
+#50 13.04   libcurl4
+#50 13.04 Suggested packages:
+#50 13.04   zip
+#50 13.06 The following NEW packages will be installed:
+#50 13.06   unzip
+#50 13.06 The following packages will be upgraded:
+#50 13.06   ca-certificates curl libcurl4
+#50 13.68 3 upgraded, 1 newly installed, 0 to remove and 61 not upgraded.
+#50 13.68 Need to get 787 kB of archives.
+#50 13.68 After this operation, 319 kB of additional disk space will be used.
+#50 13.68 Get:1 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 ca-certificates all 20260601~22.04.1 [141 kB]
+#50 15.02 Get:2 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 curl arm64 7.81.0-1ubuntu1.25 [190 kB]
+#50 15.66 Get:3 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 libcurl4 arm64 7.81.0-1ubuntu1.25 [285 kB]
+#50 16.11 Get:4 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 unzip arm64 6.0-26ubuntu3.2 [171 kB]
+#50 16.35 debconf: delaying package configuration, since apt-utils is not installed
+#50 16.37 Fetched 787 kB in 3s (243 kB/s)
+#50 16.38 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 7685 files and directories currently installed.)
+#50 16.38 Preparing to unpack .../ca-certificates_20260601~22.04.1_all.deb ...
+#50 16.38 Unpacking ca-certificates (20260601~22.04.1) over (20230311ubuntu0.22.04.1) ...
+#50 16.46 Preparing to unpack .../curl_7.81.0-1ubuntu1.25_arm64.deb ...
+#50 16.46 Unpacking curl (7.81.0-1ubuntu1.25) over (7.81.0-1ubuntu1.16) ...
+#50 16.48 Preparing to unpack .../libcurl4_7.81.0-1ubuntu1.25_arm64.deb ...
+#50 16.48 Unpacking libcurl4:arm64 (7.81.0-1ubuntu1.25) over (7.81.0-1ubuntu1.16) ...
+#50 16.50 Selecting previously unselected package unzip.
+#50 16.50 Preparing to unpack .../unzip_6.0-26ubuntu3.2_arm64.deb ...
+#50 16.51 Unpacking unzip (6.0-26ubuntu3.2) ...
+#50 16.56 Setting up unzip (6.0-26ubuntu3.2) ...
+#50 16.57 Setting up ca-certificates (20260601~22.04.1) ...
+#50 16.60 debconf: unable to initialize frontend: Dialog
+#50 16.60 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#50 16.60 debconf: falling back to frontend: Readline
+#50 16.60 debconf: unable to initialize frontend: Readline
+#50 16.60 debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/aarch64-linux-gnu/perl/5.34.0 /usr/local/share/perl/5.34.0 /usr/lib/aarch64-linux-gnu/perl5/5.34 /usr/share/perl5 /usr/lib/aarch64-linux-gnu/perl-base /usr/lib/aarch64-linux-gnu/perl/5.34 /usr/share/perl/5.34 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
+#50 16.60 debconf: falling back to frontend: Teletype
+#50 17.14 Updating certificates in /etc/ssl/certs...
+#50 17.41 rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
+#50 17.42 24 added, 40 removed; done.
+#50 17.43 Setting up libcurl4:arm64 (7.81.0-1ubuntu1.25) ...
+#50 17.43 Setting up curl (7.81.0-1ubuntu1.25) ...
+#50 17.44 Processing triggers for libc-bin (2.35-0ubuntu3.6) ...
+#50 17.44 Processing triggers for ca-certificates (20260601~22.04.1) ...
+#50 17.44 Updating certificates in /etc/ssl/certs...
+#50 17.60 0 added, 0 removed; done.
+#50 17.60 Running hooks in /etc/ca-certificates/update.d...
+#50 17.60 done.
+#50 DONE 19.8s
+
+#51 [teamengine builder 2/8] RUN apt-get update  && apt-get install -y --no-install-recommends curl ca-certificates git  && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"     | tar -xz -C /opt  && ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn  && rm -rf /var/lib/apt/lists/*
+#51 10.44 Get:12 http://ports.ubuntu.com/ubuntu-ports jammy-updates/universe arm64 Packages [1,687 kB]
+#51 11.05 Get:13 http://ports.ubuntu.com/ubuntu-ports jammy-backports/universe arm64 Packages [33.7 kB]
+#51 11.08 Get:14 http://ports.ubuntu.com/ubuntu-ports jammy-backports/main arm64 Packages [82.4 kB]
+#51 11.09 Get:15 http://ports.ubuntu.com/ubuntu-ports jammy-security/universe arm64 Packages [1,393 kB]
+#51 11.83 Get:16 http://ports.ubuntu.com/ubuntu-ports jammy-security/multiverse arm64 Packages [62.9 kB]
+#51 11.83 Get:17 http://ports.ubuntu.com/ubuntu-ports jammy-security/restricted arm64 Packages [7,516 kB]
+#51 13.81 Get:18 http://ports.ubuntu.com/ubuntu-ports jammy-security/main arm64 Packages [3,979 kB]
+#51 14.56 Fetched 46.8 MB in 14s (3,236 kB/s)
+#51 14.56 Reading package lists...
+#51 15.21 Reading package lists...
+#51 15.89 Building dependency tree...
+#51 16.07 Reading state information...
+#51 16.20 ca-certificates is already the newest version (20260601~22.04.1).
+#51 16.20 curl is already the newest version (7.81.0-1ubuntu1.25).
+#51 16.20 The following additional packages will be installed:
+#51 16.20   git-man libcurl3-gnutls liberror-perl libgdbm-compat4 libgdbm6 libperl5.34
+#51 16.20   perl perl-modules-5.34
+#51 16.20 Suggested packages:
+#51 16.20   gettext-base git-daemon-run | git-daemon-sysvinit git-doc git-email git-gui
+#51 16.20   gitk gitweb git-cvs git-mediawiki git-svn gdbm-l10n perl-doc
+#51 16.20   libterm-readline-gnu-perl | libterm-readline-perl-perl make
+#51 16.20   libtap-harness-archive-perl
+#51 16.20 Recommended packages:
+#51 16.20   patch less ssh-client netbase
+#51 16.23 The following NEW packages will be installed:
+#51 16.23   git git-man libcurl3-gnutls liberror-perl libgdbm-compat4 libgdbm6
+#51 16.23   libperl5.34 perl perl-modules-5.34
+#51 16.49 0 upgraded, 9 newly installed, 0 to remove and 24 not upgraded.
+#51 16.49 Need to get 12.4 MB of archives.
+#51 16.49 After this operation, 69.0 MB of additional disk space will be used.
+#51 16.49 Get:1 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 perl-modules-5.34 all 5.34.0-3ubuntu1.7 [2,977 kB]
+#51 17.78 Get:2 http://ports.ubuntu.com/ubuntu-ports jammy/main arm64 libgdbm6 arm64 1.23-1 [34.1 kB]
+#51 17.78 Get:3 http://ports.ubuntu.com/ubuntu-ports jammy/main arm64 libgdbm-compat4 arm64 1.23-1 [6,294 B]
+#51 17.78 Get:4 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 libperl5.34 arm64 5.34.0-3ubuntu1.7 [4,713 kB]
+#51 17.98 Get:5 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 perl arm64 5.34.0-3ubuntu1.7 [232 kB]
+#51 17.99 Get:6 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 libcurl3-gnutls arm64 7.81.0-1ubuntu1.25 [280 kB]
+#51 18.00 Get:7 http://ports.ubuntu.com/ubuntu-ports jammy/main arm64 liberror-perl all 0.17029-1 [26.5 kB]
+#51 18.00 Get:8 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 git-man all 1:2.34.1-1ubuntu1.17 [954 kB]
+#51 18.03 Get:9 http://ports.ubuntu.com/ubuntu-ports jammy-updates/main arm64 git arm64 1:2.34.1-1ubuntu1.17 [3,222 kB]
+#51 18.33 debconf: delaying package configuration, since apt-utils is not installed
+#51 18.35 Fetched 12.4 MB in 2s (6,462 kB/s)
+#51 18.38 Selecting previously unselected package perl-modules-5.34.
+#51 18.38 (Reading database ... 
+#51 ...
+
+#52 [teamengine stage-1  4/11] RUN sed -i '/<Loader className="org.apache.catalina.loader.VirtualWebappLoader"/,/\/>/d'         /usr/local/tomcat/webapps/teamengine/META-INF/context.xml
+#52 DONE 0.2s
+
+#51 [teamengine builder 2/8] RUN apt-get update  && apt-get install -y --no-install-recommends curl ca-certificates git  && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"     | tar -xz -C /opt  && ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn  && rm -rf /var/lib/apt/lists/*
+#51 18.38 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 8295 files and directories currently installed.)
+#51 18.38 Preparing to unpack .../0-perl-modules-5.34_5.34.0-3ubuntu1.7_all.deb ...
+#51 18.38 Unpacking perl-modules-5.34 (5.34.0-3ubuntu1.7) ...
+#51 18.50 Selecting previously unselected package libgdbm6:arm64.
+#51 18.50 Preparing to unpack .../1-libgdbm6_1.23-1_arm64.deb ...
+#51 18.50 Unpacking libgdbm6:arm64 (1.23-1) ...
+#51 18.51 Selecting previously unselected package libgdbm-compat4:arm64.
+#51 18.51 Preparing to unpack .../2-libgdbm-compat4_1.23-1_arm64.deb ...
+#51 18.52 Unpacking libgdbm-compat4:arm64 (1.23-1) ...
+#51 18.52 Selecting previously unselected package libperl5.34:arm64.
+#51 18.53 Preparing to unpack .../3-libperl5.34_5.34.0-3ubuntu1.7_arm64.deb ...
+#51 18.53 Unpacking libperl5.34:arm64 (5.34.0-3ubuntu1.7) ...
+#51 18.67 Selecting previously unselected package perl.
+#51 18.67 Preparing to unpack .../4-perl_5.34.0-3ubuntu1.7_arm64.deb ...
+#51 18.68 Unpacking perl (5.34.0-3ubuntu1.7) ...
+#51 18.73 Selecting previously unselected package libcurl3-gnutls:arm64.
+#51 18.73 Preparing to unpack .../5-libcurl3-gnutls_7.81.0-1ubuntu1.25_arm64.deb ...
+#51 18.74 Unpacking libcurl3-gnutls:arm64 (7.81.0-1ubuntu1.25) ...
+#51 18.79 Selecting previously unselected package liberror-perl.
+#51 18.79 Preparing to unpack .../6-liberror-perl_0.17029-1_all.deb ...
+#51 18.80 Unpacking liberror-perl (0.17029-1) ...
+#51 18.85 Selecting previously unselected package git-man.
+#51 18.85 Preparing to unpack .../7-git-man_1%3a2.34.1-1ubuntu1.17_all.deb ...
+#51 18.86 Unpacking git-man (1:2.34.1-1ubuntu1.17) ...
+#51 18.88 Selecting previously unselected package git.
+#51 18.89 Preparing to unpack .../8-git_1%3a2.34.1-1ubuntu1.17_arm64.deb ...
+#51 18.89 Unpacking git (1:2.34.1-1ubuntu1.17) ...
+#51 19.05 Setting up libcurl3-gnutls:arm64 (7.81.0-1ubuntu1.25) ...
+#51 19.07 Setting up perl-modules-5.34 (5.34.0-3ubuntu1.7) ...
+#51 19.08 Setting up git-man (1:2.34.1-1ubuntu1.17) ...
+#51 19.09 Setting up libgdbm6:arm64 (1.23-1) ...
+#51 19.11 Setting up libgdbm-compat4:arm64 (1.23-1) ...
+#51 19.13 Setting up libperl5.34:arm64 (5.34.0-3ubuntu1.7) ...
+#51 19.14 Setting up perl (5.34.0-3ubuntu1.7) ...
+#51 19.16 Setting up liberror-perl (0.17029-1) ...
+#51 19.18 Setting up git (1:2.34.1-1ubuntu1.17) ...
+#51 19.20 Processing triggers for libc-bin (2.35-0ubuntu3.13) ...
+#51 ...
+
+#53 [teamengine stage-1  5/11] RUN cd /usr/local/tomcat/lib  && curl -fsSL "https://repo.maven.apache.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar" -o jaxb-api-2.3.1.jar  && curl -fsSL "https://repo.maven.apache.org/maven2/com/sun/xml/bind/jaxb-core/2.3.0.1/jaxb-core-2.3.0.1.jar" -o jaxb-core-2.3.0.1.jar  && curl -fsSL "https://repo.maven.apache.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.1/jaxb-impl-2.3.1.jar" -o jaxb-impl-2.3.1.jar  && curl -fsSL "https://repo.maven.apache.org/maven2/javax/activation/javax.activation-api/1.2.0/javax.activation-api-1.2.0.jar" -o javax.activation-api-1.2.0.jar  && chown tomcat:tomcat jaxb-api-2.3.1.jar jaxb-core-2.3.0.1.jar jaxb-impl-2.3.1.jar javax.activation-api-1.2.0.jar
+#53 DONE 0.9s
+
+#51 [teamengine builder 2/8] RUN apt-get update  && apt-get install -y --no-install-recommends curl ca-certificates git  && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"     | tar -xz -C /opt  && ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn  && rm -rf /var/lib/apt/lists/*
+#51 DONE 21.1s
+
+#54 [teamengine builder 3/8] WORKDIR /build
+#54 DONE 0.0s
+
+#55 [teamengine builder 4/8] COPY pom.xml ./
+#55 DONE 0.0s
+
+#56 [teamengine builder 5/8] RUN --mount=type=cache,target=/root/.m2     mvn -B -q dependency:go-offline -DexcludeArtifactIds=teamengine-spi || true
+#56 DONE 60.0s
+
+#57 [teamengine builder 6/8] COPY .git ./.git
+#57 DONE 0.0s
+
+#58 [teamengine builder 7/8] COPY src ./src
+#58 DONE 0.0s
+
+#59 [teamengine builder 8/8] RUN --mount=type=cache,target=/root/.m2     mvn -B -q clean package -DskipTests  && mvn -B -q dependency:copy-dependencies         -DoutputDirectory=target/lib-runtime         -DincludeScope=runtime  && rm -f target/lib-runtime/teamengine-*.jar
+#59 DONE 19.4s
+
+#60 [teamengine stage-1  6/11] COPY --from=builder --chown=tomcat:tomcat /build/target/lib-runtime/ /usr/local/tomcat/webapps/teamengine/WEB-INF/lib/
+#60 DONE 0.1s
+
+#61 [teamengine stage-1  7/11] COPY --from=builder --chown=tomcat:tomcat /build/target/ets-ogcapi-connectedsystems10-0.1-SNAPSHOT.jar /usr/local/tomcat/webapps/teamengine/WEB-INF/lib/
+#61 DONE 0.0s
+
+#62 [teamengine stage-1  8/11] RUN cd /usr/local/tomcat/webapps/teamengine/WEB-INF/lib  && rm -f schema-utils-1.8.jar xercesImpl-2.12.2.jar xml-apis-1.4.01.jar xml-resolver-1.2.jar
+#62 DONE 0.1s
+
+#63 [teamengine stage-1  9/11] COPY --from=builder --chown=tomcat:tomcat /build/target/ets-ogcapi-connectedsystems10-0.1-SNAPSHOT-ctl.zip /tmp/ets-ctl.zip
+#63 DONE 0.0s
+
+#64 [teamengine stage-1 10/11] RUN unzip -q -o /tmp/ets-ctl.zip -d /usr/local/tomcat/te_base/scripts  && rm /tmp/ets-ctl.zip  && chown -R tomcat:tomcat /usr/local/tomcat/te_base/scripts
+#64 DONE 0.1s
+
+#65 [teamengine stage-1 11/11] RUN rm -rf /usr/local/tomcat/te_base/scripts/note 2>/dev/null || true
+#65 DONE 0.1s
+
+#66 [teamengine] exporting to image
+#66 exporting layers
+#66 exporting layers 0.7s done
+#66 exporting manifest sha256:ad5ee3501333922d7bdf11afde5e1604e79a2384a060324ba77e65e3f7f7bff6 done
+#66 exporting config sha256:fcb0962cdd18a9b19861e49199cc5f4939427b4dddfe22fb16e9b7984237c6ba done
+#66 exporting attestation manifest sha256:eee67d281f7732fae18adfbc5d548b4e87d1b2c09140f9cbf15c82121edc7baa done
+#66 exporting manifest list sha256:6467d02c6ca43aacf1b3f2ca58bb4eb0fbc4ee865d7b021b05aeecf979bc8d08 done
+#66 naming to docker.io/library/semconnect-conformance-teamengine:latest done
+#66 unpacking to docker.io/library/semconnect-conformance-teamengine:latest
+#66 unpacking to docker.io/library/semconnect-conformance-teamengine:latest 0.3s done
+#66 DONE 1.0s
+
+#67 [teamengine] resolving provenance for metadata file
+#67 DONE 0.0s
+ Image semconnect-conformance-cs-api-server Built 
+ Image semconnect-conformance-semstreams-backend Built 
+ Image semconnect-conformance-teamengine Built 

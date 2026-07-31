@@ -31,7 +31,7 @@ TE_PASS=ogctest
 # the framework's own multi-stage docker/Dockerfile (production target).
 #
 # PIN POLICY: match the Go module pin in semconnect's go.mod
-# (`github.com/c360studio/semstreams v1.0.0-beta.153`) so the wire
+# (`github.com/c360studio/semstreams v1.0.0-beta.159`) so the wire
 # protocol the gateway compiles against and the binary the backend
 # runs share a tag. Bump the module first, conformance pin second.
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
@@ -39,8 +39,8 @@ SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
 # commit a ref points at, so ensure_semstreams_vendor's idempotency
 # check needs the commit SHA, not the annotated-tag object's SHA —
 # otherwise every subsequent run re-clones.
-SEMSTREAMS_TAG_OBJECT=ee011caee8a137b8dfb01d7634e9bb09519818b8
-SEMSTREAMS_COMMIT=d2654e5a027138b8a9056863da5ed463ef767f37
-SEMSTREAMS_TREE=dc7422aa9fd93ec446dca73a33e0c602b6601111
-SEMSTREAMS_COMMIT_DATE=2026-07-19
-SEMSTREAMS_VERSION=v1.0.0-beta.153
+SEMSTREAMS_TAG_OBJECT=ba2c4f8e03bb42c56319b2363ca89f4ab0f9ccec
+SEMSTREAMS_COMMIT=8813270c5ba441286d9120cba82fbf72bdcf9a6c
+SEMSTREAMS_TREE=c9a8014cbf6b91837769c8fb8a3dea051f6f11d9
+SEMSTREAMS_COMMIT_DATE=2026-07-31
+SEMSTREAMS_VERSION=v1.0.0-beta.159

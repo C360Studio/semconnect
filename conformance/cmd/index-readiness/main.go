@@ -14,27 +14,34 @@ import (
 	"time"
 
 	"github.com/c360studio/semstreams/graph"
+	"github.com/c360studio/semstreams/graph/readiness"
 	"github.com/c360studio/semstreams/natsclient"
+	"github.com/nats-io/nats.go/jetstream"
 )
 
-const indexStatusSubject = "graph.index.query.status"
-
-type statusRequester interface {
-	RequestIndexStatus(context.Context) ([]byte, error)
+type statusWatchSource interface {
+	WatchIndexStatus(context.Context) (jetstream.KeyWatcher, error)
 }
 
-type natsStatusRequester struct {
-	client  *natsclient.Client
-	timeout time.Duration
+type natsStatusWatchSource struct {
+	client *natsclient.Client
 }
 
-func (r natsStatusRequester) RequestIndexStatus(ctx context.Context) ([]byte, error) {
-	return r.client.RequestClassified(ctx, indexStatusSubject, []byte(`{}`), r.timeout)
+func (s natsStatusWatchSource) WatchIndexStatus(ctx context.Context) (jetstream.KeyWatcher, error) {
+	bucket, err := s.client.GetKeyValueBucket(ctx, readiness.BucketGraphStatus)
+	if err != nil {
+		return nil, fmt.Errorf("open readiness bucket %s: %w", readiness.BucketGraphStatus, err)
+	}
+	watcher, err := bucket.Watch(ctx, readiness.KeyGraphIndex, jetstream.UpdatesOnly())
+	if err != nil {
+		return nil, fmt.Errorf("watch readiness key %s/%s: %w",
+			readiness.BucketGraphStatus, readiness.KeyGraphIndex, err)
+	}
+	return watcher, nil
 }
 
 type waitConfig struct {
 	StableSamples int
-	PollInterval  time.Duration
 	Now           func() time.Time
 }
 
@@ -64,7 +71,7 @@ type evidenceEvent struct {
 
 func waitForReadiness(
 	ctx context.Context,
-	requester statusRequester,
+	source statusWatchSource,
 	cfg waitConfig,
 	evidence io.Writer,
 ) (readinessResult, error) {
@@ -75,26 +82,57 @@ func waitForReadiness(
 		cfg.Now = time.Now
 	}
 	encoder := json.NewEncoder(evidence)
+	watcher, err := source.WatchIndexStatus(ctx)
+	if err != nil {
+		watchErr := fmt.Errorf("open graph index readiness watch: %w", err)
+		_ = writeEvidence(encoder, evidenceEvent{
+			Timestamp: nowUTC(cfg.Now), Phase: "watch", Error: watchErr.Error(),
+		})
+		return readinessResult{}, watchErr
+	}
+	defer watcher.Stop()
+
 	phase := "capture"
 	var lastTarget uint64
 	stableSamples := 0
 	var capturedTarget uint64
 	attempt := 0
-
 	for {
-		attempt++
-		data, err := requester.RequestIndexStatus(ctx)
-		if err != nil {
-			requestErr := fmt.Errorf("request graph index status on %s: %w", indexStatusSubject, err)
+		var entry jetstream.KeyValueEntry
+		select {
+		case <-ctx.Done():
+			waitErr := fmt.Errorf("wait for graph index readiness: %w", ctx.Err())
 			_ = writeEvidence(encoder, evidenceEvent{
-				Timestamp: nowUTC(cfg.Now), Phase: phase, Attempt: attempt, Error: requestErr.Error(),
+				Timestamp: nowUTC(cfg.Now), Phase: phase, Attempt: attempt, Error: waitErr.Error(),
 			})
-			return readinessResult{}, requestErr
+			return readinessResult{}, waitErr
+		case update, ok := <-watcher.Updates():
+			if !ok {
+				watchErr := errors.New("graph index readiness watch closed")
+				_ = writeEvidence(encoder, evidenceEvent{
+					Timestamp: nowUTC(cfg.Now), Phase: phase, Attempt: attempt, Error: watchErr.Error(),
+				})
+				return readinessResult{}, watchErr
+			}
+			if update == nil {
+				continue
+			}
+			entry = update
+		}
+
+		attempt++
+		if graph.IsKVTombstone(entry.Operation()) {
+			tombstoneErr := fmt.Errorf("graph index readiness key %s/%s was deleted",
+				readiness.BucketGraphStatus, readiness.KeyGraphIndex)
+			_ = writeEvidence(encoder, evidenceEvent{
+				Timestamp: nowUTC(cfg.Now), Phase: phase, Attempt: attempt, Error: tombstoneErr.Error(),
+			})
+			return readinessResult{}, tombstoneErr
 		}
 
 		var status graph.IndexStatusResponse
-		if err := json.Unmarshal(data, &status); err != nil {
-			decodeErr := fmt.Errorf("decode graph index status: %w", err)
+		if err := json.Unmarshal(entry.Value(), &status); err != nil {
+			decodeErr := fmt.Errorf("decode graph index readiness status: %w", err)
 			_ = writeEvidence(encoder, evidenceEvent{
 				Timestamp: nowUTC(cfg.Now), Phase: phase, Attempt: attempt, Error: decodeErr.Error(),
 			})
@@ -111,7 +149,7 @@ func waitForReadiness(
 			stableSamples = 0
 		}
 		if err := writeEvidence(encoder, eventForStatus(cfg.Now, phase, attempt, stableSamples, status)); err != nil {
-			return readinessResult{}, fmt.Errorf("archive graph index status: %w", err)
+			return readinessResult{}, fmt.Errorf("archive graph index readiness status: %w", err)
 		}
 
 		if status.Code == graph.ErrorCodeGraphStateResetRequired || status.State == graph.IndexStateResetRequired {
@@ -119,7 +157,7 @@ func waitForReadiness(
 		}
 		if capturedTarget == 0 && stableSamples >= cfg.StableSamples {
 			capturedTarget = status.TargetRevision
-			phase = "poll"
+			phase = "watch"
 		}
 		if capturedTarget > 0 && status.TargetRevision < capturedTarget {
 			regressionErr := fmt.Errorf(
@@ -138,7 +176,9 @@ func waitForReadiness(
 			})
 			return readinessResult{}, regressionErr
 		}
-		if capturedTarget > 0 && status.Ready && status.TargetRevision >= capturedTarget &&
+		proceed, _ := graph.EvaluateReadinessGate(graph.StatusReading{Status: status, Fresh: true})
+		if capturedTarget > 0 && status.BootstrapComplete && proceed && status.Ready &&
+			status.TargetRevision >= capturedTarget &&
 			status.IndexedRevision >= capturedTarget && status.IndexedRevision >= status.TargetRevision {
 			result := readinessResult{
 				TargetRevision: capturedTarget, IndexedRevision: status.IndexedRevision, Attempts: attempt,
@@ -153,16 +193,9 @@ func waitForReadiness(
 				FinalIndexedRevision:   status.IndexedRevision,
 				FinalObservedTarget:    status.TargetRevision,
 			}); err != nil {
-				return readinessResult{}, fmt.Errorf("archive final graph index status: %w", err)
+				return readinessResult{}, fmt.Errorf("archive final graph index readiness status: %w", err)
 			}
 			return result, nil
-		}
-		if err := waitForNextPoll(ctx, cfg.PollInterval); err != nil {
-			waitErr := fmt.Errorf("wait for graph index readiness: %w", err)
-			_ = writeEvidence(encoder, evidenceEvent{
-				Timestamp: nowUTC(cfg.Now), Phase: phase, Attempt: attempt, Error: waitErr.Error(),
-			})
-			return readinessResult{}, waitErr
 		}
 	}
 }
@@ -197,25 +230,6 @@ func writeEvidence(encoder *json.Encoder, event evidenceEvent) error {
 	return encoder.Encode(event)
 }
 
-func waitForNextPoll(ctx context.Context, interval time.Duration) error {
-	if interval <= 0 {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-			return nil
-		}
-	}
-	timer := time.NewTimer(interval)
-	defer timer.Stop()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
-}
-
 func main() {
 	if err := run(os.Args[1:]); err != nil {
 		fmt.Fprintf(os.Stderr, "index-readiness: %v\n", err)
@@ -228,17 +242,15 @@ func run(args []string) error {
 	natsURL := flags.String("nats-url", "nats://127.0.0.1:4222", "NATS server URL")
 	output := flags.String("output", "", "JSON Lines evidence output path (required)")
 	timeout := flags.Duration("timeout", 60*time.Second, "overall readiness timeout")
-	requestTimeout := flags.Duration("request-timeout", 2*time.Second, "per-request timeout")
-	pollInterval := flags.Duration("poll-interval", time.Second, "status poll interval")
-	stableSamples := flags.Int("stable-samples", 2, "consecutive equal non-zero target samples")
+	stableSamples := flags.Int("stable-samples", 2, "consecutive equal non-zero target updates")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	if *output == "" {
 		return errors.New("-output is required")
 	}
-	if *timeout <= 0 || *requestTimeout <= 0 || *pollInterval < 0 {
-		return errors.New("timeouts must be positive and poll interval must be non-negative")
+	if *timeout <= 0 {
+		return errors.New("timeout must be positive")
 	}
 	if err := os.MkdirAll(filepath.Dir(*output), 0o755); err != nil {
 		return fmt.Errorf("create evidence directory: %w", err)
@@ -264,17 +276,14 @@ func run(args []string) error {
 		_ = client.Close(closeCtx)
 	}()
 
-	result, err := waitForReadiness(ctx, natsStatusRequester{
-		client: client, timeout: *requestTimeout,
-	}, waitConfig{
+	result, err := waitForReadiness(ctx, natsStatusWatchSource{client: client}, waitConfig{
 		StableSamples: *stableSamples,
-		PollInterval:  *pollInterval,
 		Now:           time.Now,
 	}, evidence)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("graph index ready: target_revision=%d indexed_revision=%d attempts=%d evidence=%s\n",
+	fmt.Printf("graph index ready: target_revision=%d indexed_revision=%d updates=%d evidence=%s\n",
 		result.TargetRevision, result.IndexedRevision, result.Attempts, *output)
 	return nil
 }

@@ -5,8 +5,8 @@
 - **Framework target**: `github.com/c360studio/semstreams v1.0.0-beta.147`
 - **Source provenance**: SemStreams commit `c8f0b92edf5ad5b491d5f4e81891bec817fae3cd`
 - **Execution contract**: `openspec/changes/migrate-semstreams-beta147/`
-- **Greenfield amendment**: Pre-v1 production is greenfield-only (2026-07-18); the active beta.153 qualification is
-  `openspec/changes/qualify-semstreams-beta153/`.
+- **Greenfield amendment**: Pre-v1 production is greenfield-only (2026-07-18); the active beta.159 qualification is
+  `openspec/changes/qualify-semstreams-beta159/`.
 
 ## Context
 
@@ -154,8 +154,8 @@ counts and normalized collection/item query results. This is a greenfield persis
 compatibility or migration replay.
 
 Every new dependency pin requires a fresh unchanged external result of `137 passed, 0 failed, 0 skipped` and an
-independent no-weakening review. Beta.153 completed both gates on 2026-07-19 and is the active qualified pin; beta.151
-remains a qualified historical baseline.
+independent no-weakening review. Beta.159 completed both gates on 2026-07-31 and is the active qualified pin; beta.153
+remains the qualified historical baseline.
 
 ### Right-sized production decision
 
@@ -169,6 +169,8 @@ Any non-empty target, configuration failure, readiness stall, persistence delta,
 or weakened conformance authority remains a no-go. Deployment does not authorize migration, deletion, translation,
 or old-state compatibility.
 
-Beta.153 passed the full local, focused upstream, clean-volume Compose persistence, unchanged external `137/0/0`,
-and independent no-weakening gates. The checked-in bundle is production-ready for the greenfield scope above without
-an additional manifest or role-specific approval step.
+Beta.159 passed the full local, focused upstream, clean-volume Compose persistence, unchanged external `137/0/0`,
+and independent no-weakening gates. Its `GRAPH_STATUS` readiness consumption and 1 GiB/30-day/`DiscardOld`
+observations bound satisfy the release's exposed breaking contracts. The checked-in bundle is production-ready for
+the greenfield scope above without an in-place beta.153 volume claim or an additional manifest or role-specific
+approval step.

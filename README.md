@@ -11,8 +11,8 @@ CS API vocabulary, GeoJSON boundary behavior, and the HTTP gateway that composes
 [OGC API Connected Systems v1.0](https://www.ogc.org/standards/ogc-api-connected-systems/)
 REST surface.
 
-The repository is no longer a scaffold. The authoritative beta.153
-qualification run on 2026-07-19 produced:
+The repository is no longer a scaffold. The authoritative beta.159
+qualification run on 2026-07-31 produced:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -20,19 +20,20 @@ total=137 passed=137 failed=0 skipped=0
 
 ## Current Status
 
-- Qualified dependency: SemStreams `v1.0.0-beta.153` at
-  `d2654e5a027138b8a9056863da5ed463ef767f37`.
+- Qualified dependency: SemStreams `v1.0.0-beta.159` at
+  `8813270c5ba441286d9120cba82fbf72bdcf9a6c`.
 - ETS pin: Botts CS API ETS `0.1-SNAPSHOT` at commit `d9caf33`.
 - Reference binary: `cmd/cs-api-server`.
 - Gateway package: `gateway/cs-api`.
 - Conformance harness: `conformance/run.sh`.
-- The beta.153 exact pin, live per-entity structural regression, full Go
-  test/race/vet/build, focused upstream gates, clean-volume Compose persistence,
-  and unchanged external `137/0/0` pass. Independent review found no
-  legacy/compatibility code or conformance weakening. This dependency-only
+- The beta.159 exact pin, fresh-update `GRAPH_STATUS` readiness, bounded
+  1 GiB/30-day observations stream, live graph mutation/dedup/no-op regression,
+  full Go test/race/vet/build, focused upstream gates, clean-volume Compose
+  persistence, and unchanged external `137/0/0` pass. Independent review found
+  no legacy/compatibility code or conformance weakening. This dependency-only
   change has no frontend/Svelte delta. The checked-in Compose bundle is
-  production-ready for clean NATS, with no migration, runtime manifest, or
-  product-owner hash approval.
+  production-ready for clean NATS; it makes no in-place beta.153 volume claim
+  and requires no runtime manifest or product-owner hash approval.
 - Greenfield Compose bundle and persistence verifier: `deploy/`.
 - Open product and framework asks are tracked in
   [docs/upstream-asks/README.md](docs/upstream-asks/README.md).
@@ -126,9 +127,9 @@ go test ./...
 go build ./...
 ```
 
-The repository preserves the beta.147 migration as historical evidence under
-`openspec/changes/migrate-semstreams-beta147/`. The active beta.153 contract is
-under `openspec/changes/qualify-semstreams-beta153/`; strict OpenSpec
+The repository preserves the beta.147 migration and beta.153 qualification as
+historical evidence. The active beta.159 contract is under
+`openspec/changes/qualify-semstreams-beta159/`; strict OpenSpec
 validation is a release gate.
 
 Run the reference server against a local NATS:
@@ -187,7 +188,9 @@ semantic-vs-statistical comparison notes, and the CS API ID mapping.
 - [beta.151 OpenSpec change](openspec/changes/qualify-semstreams-beta151/) -
   historical structural, retained-state, replay, and conformance baseline.
 - [beta.153 OpenSpec change](openspec/changes/qualify-semstreams-beta153/) -
-  qualified bug/performance release and greenfield deployment evidence.
+  historical bug/performance release and greenfield deployment evidence.
+- [beta.159 OpenSpec change](openspec/changes/qualify-semstreams-beta159/) -
+  active readiness, storage-bound, graph-semantics, and clean-volume qualification.
 - [conformance/README.md](conformance/README.md) - local conformance runner,
   pins, and bump procedure.
 - [docs/upstream-asks/README.md](docs/upstream-asks/README.md) - current

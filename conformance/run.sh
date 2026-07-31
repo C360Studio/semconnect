@@ -943,19 +943,17 @@ fi
 log "step 5/8 — seeding CS-API fixtures"
 seed_fixtures
 
-# beta.147 readiness is revision-based. Collection non-emptiness above remains
-# useful resource evidence, but cannot prove that every post-seed ENTITY_STATES
-# revision is indexed. Capture a stable query-time TargetRevision, then block on
-# Ready && IndexedRevision >= that exact target before Team Engine starts.
-log "  capturing stable post-seed graph target and waiting for index catch-up"
+# beta.159 readiness is published to GRAPH_STATUS KV. Collection non-emptiness
+# above remains useful resource evidence, but cannot prove that every post-seed
+# ENTITY_STATES revision is indexed. Watch only new graph-index heartbeats,
+# capture a stable target, then block on Ready and revision coverage before TE.
+log "  watching GRAPH_STATUS for stable post-seed target and index catch-up"
 readiness_summary=""
 if ! readiness_summary="$(cd "$REPO_ROOT" && go run ./conformance/cmd/index-readiness \
-        -nats-url "nats://127.0.0.1:${NATS_HOST_PORT}" \
-        -output "$INDEX_READINESS_EVIDENCE" \
-        -timeout "${INDEX_READINESS_TIMEOUT_S}s" \
-        -request-timeout 2s \
-        -poll-interval 1s \
-        -stable-samples 2 2>&1)"; then
+		-nats-url "nats://127.0.0.1:${NATS_HOST_PORT}" \
+		-output "$INDEX_READINESS_EVIDENCE" \
+		-timeout "${INDEX_READINESS_TIMEOUT_S}s" \
+		-stable-samples 2 2>&1)"; then
     echo "$readiness_summary" | tee -a "$SEED_LOG" >&2
     die "graph index did not reach the stable post-seed revision; see $INDEX_READINESS_EVIDENCE"
 fi

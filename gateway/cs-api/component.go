@@ -357,16 +357,7 @@ func (c *Component) Start(ctx context.Context) error {
 	// does not race the stream's creation, and a configuration that
 	// cannot reach JetStream surfaces here instead of inside a 503'd
 	// handler.
-	stream, err := c.nats.EnsureStream(ctx, jetstream.StreamConfig{
-		Name:        c.cfg.ObservationsStream,
-		Subjects:    []string{c.cfg.ObservationsSubjectPrefix + ".>"},
-		Description: "cs-api observations published via POST /datastreams/{id}/observations",
-		Retention:   jetstream.LimitsPolicy, // facts, not work-queue — multi-consumer
-		Storage:     jetstream.FileStorage,
-		MaxAge:      c.cfg.ObservationsMaxAge,
-		MaxBytes:    c.cfg.ObservationsMaxBytes, // 0 = unlimited
-		Replicas:    c.cfg.ObservationsReplicas,
-	})
+	stream, err := c.nats.EnsureStream(ctx, observationStreamConfig(c.cfg))
 	if err != nil {
 		c.mu.Unlock()
 		return fmt.Errorf("cs-api: Start: ensure stream %s: %w", c.cfg.ObservationsStream, err)
@@ -445,6 +436,20 @@ func (c *Component) Start(ctx context.Context) error {
 	}
 	c.logger.Info("started", "standalone", c.cfg.StandaloneServer)
 	return nil
+}
+
+func observationStreamConfig(cfg Config) jetstream.StreamConfig {
+	return jetstream.StreamConfig{
+		Name:        cfg.ObservationsStream,
+		Subjects:    []string{cfg.ObservationsSubjectPrefix + ".>"},
+		Description: "cs-api observations published via POST /datastreams/{id}/observations",
+		Retention:   jetstream.LimitsPolicy, // facts, not work-queue — multi-consumer
+		Storage:     jetstream.FileStorage,
+		MaxAge:      cfg.ObservationsMaxAge,
+		MaxBytes:    cfg.ObservationsMaxBytes,
+		Discard:     jetstream.DiscardOld,
+		Replicas:    cfg.ObservationsReplicas,
+	}
 }
 
 func (c *Component) Stop(timeout time.Duration) error {

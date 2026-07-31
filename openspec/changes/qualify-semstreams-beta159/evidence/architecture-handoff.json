@@ -1,0 +1,48 @@
+{
+  "recordType": "semstreams-beta159-architecture-handoff",
+  "recordedAt": "2026-07-31",
+  "role": "architect",
+  "decision": "approved-for-implementation-and-qualification",
+  "target": {
+    "version": "v1.0.0-beta.159",
+    "tagObject": "ba2c4f8e03bb42c56319b2363ca89f4ab0f9ccec",
+    "peeledCommit": "8813270c5ba441286d9120cba82fbf72bdcf9a6c",
+    "sourceTree": "c9a8014cbf6b91837769c8fb8a3dea051f6f11d9"
+  },
+  "baseline": {
+    "version": "v1.0.0-beta.153",
+    "commit": "d2654e5a027138b8a9056863da5ed463ef767f37",
+    "sourceTree": "dc7422aa9fd93ec446dca73a33e0c602b6601111"
+  },
+  "liveBreakingExposure": [
+    "removed graph.index.query.status replaced by fresh GRAPH_STATUS KV updates",
+    "ordinary-stream bound enforcement applied to CS API observations",
+    "framework bucket catalog and component-start barrier",
+    "six-field add deduplication and honest remove response",
+    "readiness health-not-absence and batch missing response behavior"
+  ],
+  "notApplicable": [
+    "GraphQL graphSummary",
+    "fusion",
+    "embedding and embedding cache",
+    "graph clustering",
+    "graphview",
+    "rule and agentic-loop"
+  ],
+  "requiredGates": [
+    "exact module, conformance, Compose, test, documentation, commit, and tree alignment",
+    "UpdatesOnly GRAPH_STATUS readiness with bootstrap, health, and revision coverage",
+    "positive 1 GiB observation cap, 30-day age, and DiscardOld",
+    "no compatibility, migration, old-volume, dual-path, or relaxed-validation code",
+    "full downstream Go test, race, vet, module verification, and build",
+    "live-NATS structural mutation, deduplication, no-op, and poison regression",
+    "focused upstream race tests for exposed packages",
+    "clean-volume Compose seed, readiness, normal stop, restart, and persistence parity",
+    "unchanged external 137 passed, 0 failed, 0 skipped plus no-weakening review"
+  ],
+  "frontendDisposition": "not-applicable-dependency-only",
+  "adrDisposition": "no-new-adr-durable-architecture-unchanged",
+  "volumeDisposition": "clean-volume-only-no-in-place-beta153-migration-claim",
+  "productionDisposition": "standard-greenfield-compose-no-manifest-or-hash-approval-ceremony",
+  "reopenCondition": "Any compatibility path, old-volume support, or public product behavior change reopens architecture review."
+}

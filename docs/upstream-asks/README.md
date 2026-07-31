@@ -9,14 +9,15 @@ resolved or transferred history without presenting it as an upstream blocker.
 
 ## Open asks
 
-No SemStreams framework ask currently blocks the beta.153 dependency
-pin. Exact alignment, the live per-entity structural regression, full Go
+No SemStreams framework ask currently blocks the beta.159 dependency pin.
+Exact alignment, fresh-update `GRAPH_STATUS` readiness, the bounded
+observations stream, live mutation/dedup/no-op regression, full Go
 test/race/vet/build, focused upstream, clean-volume Compose persistence, and
 unchanged external `137/0/0` gates pass. Independent review found no
-legacy/compatibility code or conformance weakening. Beta.151 remains a
-qualified historical baseline. The beta.153 greenfield bundle is
-production-ready for standard Compose on clean NATS and has no migration or
-runtime-unused manifest approval gate.
+legacy/compatibility code or conformance weakening. Beta.153 remains a
+qualified historical baseline. The beta.159 greenfield bundle is
+production-ready for standard Compose on clean NATS, makes no in-place
+beta.153 volume claim, and has no runtime-unused manifest approval gate.
 
 Transferred product-boundary history:
 

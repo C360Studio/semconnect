@@ -12,7 +12,7 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-The authoritative beta.153 fresh-volume run `2026-07-19T13-27-02Z` is:
+The authoritative beta.159 clean-volume run `2026-07-31T18-13-41Z` is:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -22,25 +22,27 @@ The qualified pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.153` at
-  `d2654e5a027138b8a9056863da5ed463ef767f37`.
+- semstreams backend `v1.0.0-beta.159` at
+  `8813270c5ba441286d9120cba82fbf72bdcf9a6c`.
 
-The run reached graph-index revision `80/80` before Team Engine. The foreign-edge
+The run reached graph-index revision `80/80` in two fresh `GRAPH_STATUS` updates
+before Team Engine. The foreign-edge
 bake passed with the hosted-child lane exercised and both unclaimed and dropped
-counts at zero. Exact pin alignment, the live per-entity structural regression,
-full Go test/race/vet/build, focused upstream gates, and clean-volume Compose
-persistence also pass. Independent review found no ETS, fixture, OpenAPI,
+counts at zero. Exact pin alignment, the bounded 1 GiB/30-day observations
+stream, live mutation/dedup/no-op regression, full Go test/race/vet/build,
+focused upstream gates, and clean-volume Compose persistence also pass.
+Independent review found no ETS, fixture, OpenAPI,
 declaration, filter, skip, parser, or harness weakening. The conformance stack
 was torn down after evidence capture.
 
-Beta.151 is the qualified historical baseline; beta.141, beta.147, and beta.149
-results also remain historical evidence. Their records are not rewritten.
-Pre-v1 production is standard Compose on a clean NATS volume. The beta.153
-bundle is production-ready without a runtime manifest or product-owner hash
-approval gate.
+Beta.153 is the qualified historical baseline; beta.141, beta.147, beta.149,
+and beta.151 results also remain historical evidence. Their records are not
+rewritten. Pre-v1 production is standard Compose on a clean NATS volume. The
+beta.159 bundle is production-ready without an in-place beta.153 volume claim,
+runtime manifest, or product-owner hash approval gate.
 
-Beta.153 evidence is under
-`openspec/changes/qualify-semstreams-beta153/evidence/`, including the
+Beta.159 evidence is under
+`openspec/changes/qualify-semstreams-beta159/evidence/`, including the
 ordinary external record `external-conformance.json` with archived artifact
 hashes.
 
@@ -85,8 +87,8 @@ Outputs land in `conformance/output/` (gitignored):
 - `summary.txt` - human-readable TestNG counts.
 - `compose-build-<UTC>.log` - image build logs.
 - `seed-<UTC>.log` - fixture POST responses and readiness probes.
-- `seed-evidence/index-readiness-<UTC>.jsonl` - revision-based graph-index
-  status samples.
+- `seed-evidence/index-readiness-<UTC>.jsonl` - fresh `GRAPH_STATUS`
+  graph-index updates and the captured/final revision decision.
 - `teamengine-container-<UTC>.log` - Team Engine logs.
 - `cs-api-server-container-<UTC>.log` - gateway logs.
 - `semstreams-backend-container-<UTC>.log` - framework backend logs.
@@ -134,11 +136,11 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_TAG_OBJECT=ee011caee8a137b8dfb01d7634e9bb09519818b8
-SEMSTREAMS_COMMIT=d2654e5a027138b8a9056863da5ed463ef767f37
-SEMSTREAMS_TREE=dc7422aa9fd93ec446dca73a33e0c602b6601111
-SEMSTREAMS_COMMIT_DATE=2026-07-19
-SEMSTREAMS_VERSION=v1.0.0-beta.153
+SEMSTREAMS_TAG_OBJECT=ba2c4f8e03bb42c56319b2363ca89f4ab0f9ccec
+SEMSTREAMS_COMMIT=8813270c5ba441286d9120cba82fbf72bdcf9a6c
+SEMSTREAMS_TREE=c9a8014cbf6b91837769c8fb8a3dea051f6f11d9
+SEMSTREAMS_COMMIT_DATE=2026-07-31
+SEMSTREAMS_VERSION=v1.0.0-beta.159
 ```
 
 Bumping is intentional, not auto-pulled.

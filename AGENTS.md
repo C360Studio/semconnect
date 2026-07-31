@@ -6,16 +6,18 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 **Current dependency qualification:** ADR-S003 remains the durable
 product-boundary foundation; its beta.147 graph migration is historical.
-`openspec/changes/qualify-semstreams-beta153/` qualifies SemStreams
-`v1.0.0-beta.153` at `d2654e5a027138b8a9056863da5ed463ef767f37` as the
-qualified pin. Exact pin alignment, the live per-entity structural regression,
-full Go test/race/vet/build, focused upstream gates, clean-volume Compose
-persistence, and unchanged external `137/0/0` all pass. Independent review
-found no legacy/compatibility code or conformance weakening. Beta.151 remains a
-qualified historical baseline. Frontend/Svelte is N/A for this dependency-only
-delta. The greenfield Compose bundle is production-ready for standard startup
-on clean NATS; no migration, runtime manifest, or product-owner hash approval
-is in scope. The Stage 55 result below is the beta.141 historical baseline.
+`openspec/changes/qualify-semstreams-beta159/` qualifies SemStreams
+`v1.0.0-beta.159` at `8813270c5ba441286d9120cba82fbf72bdcf9a6c` as the
+qualified pin. Exact pin alignment, fresh-update `GRAPH_STATUS` readiness, a
+bounded 1 GiB/30-day observations stream, the live mutation/dedup/no-op
+regression, full Go test/race/vet/build, focused upstream gates, clean-volume
+Compose persistence, and unchanged external `137/0/0` all pass. Independent
+review found no legacy/compatibility code or conformance weakening. Beta.153
+remains the qualified historical baseline. Frontend/Svelte is N/A for this
+dependency-only delta. The greenfield Compose bundle is production-ready for
+standard startup on clean NATS; it makes no in-place beta.153 volume claim, and
+no runtime manifest or product-owner hash approval is in scope. The Stage 55
+result below is the beta.141 historical baseline.
 
 **Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 + 51 + 52 + 53 + 54 + 55 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 
@@ -92,7 +94,12 @@ is in scope. The Stage 55 result below is the beta.141 historical baseline.
 - Auth seam: `IdentityMiddleware` populates `Identity` in every request context. Anonymous-by-default; `X-Forwarded-User` / `X-Forwarded-Email` from a trusted reverse proxy flow onto every publish as `X-CS-Forwarded-*` NATS headers for audit. No verification at v0.1.
 - Content negotiation via `Accept` AND the OGC Common Part 1 `?f=<short>` query-parameter override (Stage 7) — `NegotiateRequest` honors both. Short names: `json`, `geojson`, `sensorml`, `om`, `jsonld`. An explicit `?f=` that doesn't map to the family's supported set 406s rather than silently falling through to Accept — the override is a deliberate client signal. Per-family supported sets live in `negotiation.go`. JSON for everything; SensorML for `GET /systems/{id}`, `GET /procedures/{id}`, `GET /deployments/{id}`, and `GET /properties/{id}`; JSON-LD for `GET /systems/{id}` only. Collection `GET /systems` honestly 406s on non-JSON Accept (no SensorML "SystemCollection" type).
 - Body-size limit middleware (`MaxRequestBytes`) enforces `413` on POSTs.
-- JetStream: `cs-api.observations.>` stream is EnsureStream'd at component Start() with 30-day file retention. Stage 41 also ensures the `CS_API_ARTIFACTS` ObjectStore bucket for canonical SWE schema artifacts. A failure to provision either storage primitive surfaces as a `Start()` error, not a 503-orphan.
+- JetStream: `cs-api.observations.>` stream is EnsureStream'd at component Start()
+  with 30-day file retention, a required 1 GiB byte cap, and `DiscardOld`;
+  zero/unbounded configuration is rejected. Stage 41 also ensures the
+  `CS_API_ARTIFACTS` ObjectStore bucket for canonical SWE schema artifacts. A
+  failure to provision either storage primitive surfaces as a `Start()` error,
+  not a 503-orphan.
 - Error classification: `errEntityNotFound` sentinel → 404; `pkg/errs.IsInvalid / IsTransient` → 400 / 503; raw `nats.ErrNoResponders` / `nats.ErrTimeout` / `context.DeadlineExceeded` / `nats.ErrConnectionClosed` wrapped to Transient at the boundary on both Request and PublishMsg paths. Unclassified → 500 with a generic body (full error logged).
 - **`classifyEntityQueryFailure`** handles the one CS API mapping that remains above semstreams beta.87's `natsclient.ClassifyReply`: entity-query `"not found: ..."` inside the Invalid class becomes the local `errEntityNotFound` sentinel so HTTP returns 404 instead of 400. Other handler errors now flow through `X-Status` / `X-Error-Class`.
 - **`ingestTriples`** (Stage 8; Stage 37 migrated to entity mutation subjects) is the shared create helper for POST resource fixtures. Publishes via `graph.mutation.entity.create_with_triples` request/reply on the `QueryTimeout` budget (NOT `PublishTimeout` — request/reply lives on the read budget, not the fire-and-forget budget). Stage 41 factors the lower-level create helper so schema artifact entities can carry `StorageRef` while using the same mutation classification. Duplicate creates map to the local `errEntityConflict` sentinel → 409; invalid graph mutation requests map to 400; transport-layer errors (ErrNoResponders/timeout) map to 503. The `X-CS-Attempted-ID` response header on error paths echoes the minted entity ID so clients can correlate without parsing a Location header that wasn't set. PUT/PATCH replacement paths use `graph.mutation.entity.update_with_triples`; DELETE uses `graph.mutation.entity.delete`.
@@ -112,6 +119,7 @@ is in scope. The Stage 55 result below is the beta.141 historical baseline.
   **Final-source beta.149 outcome (2026-07-18): `total=137 passed=137 failed=0 skipped=0`.**
   **Post-review beta.151 outcome (2026-07-18): `total=137 passed=137 failed=0 skipped=0`.**
   **Qualified beta.153 outcome (2026-07-19): `total=137 passed=137 failed=0 skipped=0`.**
+  **Qualified beta.159 outcome (2026-07-31): `total=137 passed=137 failed=0 skipped=0`.**
   Independent review found no ETS, fixture, OAS, claim, filter, skip, parser,
   or harness weakening.
   Zero failures against our claimed conformance set. Stage 44 declares Part 2

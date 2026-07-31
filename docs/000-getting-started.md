@@ -24,17 +24,20 @@ The dependent beta.149 qualification subsequently passed `137/0/0` and closed
 the beta.147 heartbeat shutdown blocker. It remains signed historical evidence.
 Beta.151 then passed its authoritative post-review fresh-volume `137/0/0` run,
 retained-state, normal-SIGTERM, readiness, no-write replay, and foreign-edge
-gates. It is the current qualified historical baseline.
+gates. It remains qualified historical evidence.
 
-The active OpenSpec change,
-`openspec/changes/qualify-semstreams-beta153/`, qualifies beta.153's graph-ingest
-bug and performance fixes. Its exact pin, live per-entity structural regression,
-full Go test/race/vet/build, focused upstream, clean-volume Compose persistence,
-and unchanged external `137/0/0` gates pass. Independent review found no
-legacy/compatibility code or conformance weakening. Frontend/Svelte is N/A
-because the public CS API and UI did not change. The beta.153 Compose bundle is
-production-ready for standard startup on clean NATS; there is no migration,
-runtime manifest, or product-owner hash approval.
+Beta.153 subsequently qualified graph-ingest bug/performance fixes and remains
+the qualified historical dependency baseline. The active OpenSpec change,
+`openspec/changes/qualify-semstreams-beta159/`, qualifies beta.159's breaking
+readiness distribution and ordinary-stream capacity contract. Exact alignment,
+fresh-update `GRAPH_STATUS` readiness, a bounded 1 GiB/30-day observations
+stream, live graph mutation/dedup/no-op regression, full Go test/race/vet/build,
+focused upstream race gates, clean-volume Compose persistence, and unchanged
+external `137/0/0` all pass. Independent review found no compatibility code or
+conformance weakening. Frontend/Svelte is N/A because the public CS API and UI
+did not change. The beta.159 Compose bundle is production-ready for standard
+startup on clean NATS; it makes no in-place beta.153 volume claim and requires
+no runtime manifest or product-owner hash approval.
 
 The framework half of [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
 (Phases 2-6) is complete and merged on `semstreams` main.

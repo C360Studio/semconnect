@@ -23,11 +23,11 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-// TestBeta153StructuralMutationContract drives semconnect's real System
-// projection and adversarial requests through beta.153 graph-ingest over live
+// TestBeta159StructuralMutationContract drives semconnect's real System
+// projection and adversarial requests through beta.159 graph-ingest over live
 // NATS. Local preflight validation is valuable, but this test proves the shared
 // persistence choke point independently rejects malformed direct callers.
-func TestBeta153StructuralMutationContract(t *testing.T) {
+func TestBeta159StructuralMutationContract(t *testing.T) {
 	ctx := t.Context()
 	testNATS := natsclient.NewTestClient(t, natsclient.WithKV())
 	client := testNATS.Client
@@ -39,7 +39,7 @@ func TestBeta153StructuralMutationContract(t *testing.T) {
 	if err := gateway.bindProjectionContracts(ctx); err != nil {
 		t.Fatalf("bind System projection contract: %v", err)
 	}
-	store := startBeta153GraphIngest(t, ctx, client, testNATS.GetNativeConnection())
+	store := startBeta159GraphIngest(t, ctx, client, testNATS.GetNativeConnection())
 
 	fixture := filepath.Join("..", "..", "conformance", "fixtures", "system-hosted.sml.json")
 	body, err := os.ReadFile(fixture)
@@ -87,7 +87,7 @@ func TestBeta153StructuralMutationContract(t *testing.T) {
 	validUpdate := graph.UpdateEntityWithTriplesRequest{
 		Entity: &graph.EntityState{ID: parentID},
 		AddTriples: []message.Triple{{
-			Subject: parentID, Predicate: "sensorml.process.label", Object: "beta.153 validated",
+			Subject: parentID, Predicate: "sensorml.process.label", Object: "beta.159 validated",
 		}},
 	}
 	requestMutation(t, ctx, client, graphingest.SubjectEntityUpdateWithTriples, validUpdate)
@@ -96,7 +96,7 @@ func TestBeta153StructuralMutationContract(t *testing.T) {
 	if err := graph.UnmarshalEntityState(updated.Value(), &updatedState); err != nil {
 		t.Fatalf("validate updated parent: %v", err)
 	}
-	if !hasExactTriple(updatedState.Triples, parentID, "sensorml.process.label", "beta.153 validated") {
+	if !hasExactTriple(updatedState.Triples, parentID, "sensorml.process.label", "beta.159 validated") {
 		t.Fatalf("valid update was not persisted unchanged: %+v", updatedState.Triples)
 	}
 
@@ -106,7 +106,7 @@ func TestBeta153StructuralMutationContract(t *testing.T) {
 			graph.CreateEntityWithTriplesRequest{
 				Entity: &graph.EntityState{ID: isolatedID, MessageType: systemProjectionMessageType},
 				Triples: []message.Triple{{
-					Subject: isolatedID, Predicate: "sensorml.process.label", Object: "beta.153 isolated",
+					Subject: isolatedID, Predicate: "sensorml.process.label", Object: "beta.159 isolated",
 				}},
 			})
 
@@ -167,7 +167,7 @@ func TestBeta153StructuralMutationContract(t *testing.T) {
 		if err := graph.UnmarshalEntityState(repairedBytes, &repaired); err != nil {
 			t.Fatalf("decode repaired entity: %v", err)
 		}
-		if !hasExactTriple(repaired.Triples, isolatedID, "sensorml.process.label", "beta.153 isolated") {
+		if !hasExactTriple(repaired.Triples, isolatedID, "sensorml.process.label", "beta.159 isolated") {
 			t.Fatalf("repaired entity did not restore canonical state: %+v", repaired.Triples)
 		}
 	})
@@ -254,13 +254,56 @@ func TestBeta153StructuralMutationContract(t *testing.T) {
 		}
 	})
 
+	t.Run("repeated identical triple add is deduplicated without revision advance", func(t *testing.T) {
+		triple := message.Triple{
+			Subject: parentID, Predicate: "sensorml.process.description", Object: "stable duplicate",
+		}
+		firstBody := requestMutation(t, ctx, client, graphingest.SubjectTripleAdd,
+			graph.AddTripleRequest{Triple: triple})
+		var first graph.AddTripleResponse
+		if err := json.Unmarshal(firstBody, &first); err != nil {
+			t.Fatalf("decode first triple-add response: %v", err)
+		}
+		if first.Deduplicated {
+			t.Fatal("first triple add was unexpectedly deduplicated")
+		}
+		firstEntry := getKVEntry(t, ctx, store.kv, parentID)
+		firstBucketRevision := store.lastRevision(t, ctx)
+
+		secondBody := requestMutation(t, ctx, client, graphingest.SubjectTripleAdd,
+			graph.AddTripleRequest{Triple: triple})
+		var second graph.AddTripleResponse
+		if err := json.Unmarshal(secondBody, &second); err != nil {
+			t.Fatalf("decode repeated triple-add response: %v", err)
+		}
+		if !second.Deduplicated {
+			t.Fatal("repeated identical triple add did not report deduplicated=true")
+		}
+		secondEntry := getKVEntry(t, ctx, store.kv, parentID)
+		if secondEntry.Revision() != firstEntry.Revision() {
+			t.Fatalf("deduplicated triple add advanced entity revision: %d -> %d",
+				firstEntry.Revision(), secondEntry.Revision())
+		}
+		if got := store.lastRevision(t, ctx); got != firstBucketRevision {
+			t.Fatalf("deduplicated triple add advanced bucket revision: %d -> %d",
+				firstBucketRevision, got)
+		}
+	})
+
 	t.Run("remove no-op does not write", func(t *testing.T) {
 		before := getKVEntry(t, ctx, store.kv, parentID)
 		beforeBytes := bytes.Clone(before.Value())
 		beforeBucketRevision := store.lastRevision(t, ctx)
-		requestMutation(t, ctx, client, graphingest.SubjectTripleRemove, graph.RemoveTripleRequest{
+		responseBody := requestMutation(t, ctx, client, graphingest.SubjectTripleRemove, graph.RemoveTripleRequest{
 			Subject: parentID, Predicate: "test.absent.predicate",
 		})
+		var response graph.RemoveTripleResponse
+		if err := json.Unmarshal(responseBody, &response); err != nil {
+			t.Fatalf("decode no-op remove response: %v", err)
+		}
+		if response.Removed {
+			t.Fatal("no-op remove reported removed=true")
+		}
 		after := getKVEntry(t, ctx, store.kv, parentID)
 		if after.Revision() != before.Revision() || !bytes.Equal(after.Value(), beforeBytes) {
 			t.Fatalf("no-op remove changed parent: revision %d -> %d", before.Revision(), after.Revision())
@@ -271,17 +314,17 @@ func TestBeta153StructuralMutationContract(t *testing.T) {
 	})
 }
 
-type beta153GraphStore struct {
+type beta159GraphStore struct {
 	kv     jetstream.KeyValue
 	stream jetstream.Stream
 }
 
-func startBeta153GraphIngest(
+func startBeta159GraphIngest(
 	t *testing.T,
 	ctx context.Context,
 	client *natsclient.Client,
 	rawConnection *nats.Conn,
-) beta153GraphStore {
+) beta159GraphStore {
 	t.Helper()
 
 	config := graphingest.DefaultConfig()
@@ -324,10 +367,10 @@ func startBeta153GraphIngest(
 	if err != nil {
 		t.Fatalf("open entity-state stream: %v", err)
 	}
-	return beta153GraphStore{kv: kv, stream: stream}
+	return beta159GraphStore{kv: kv, stream: stream}
 }
 
-func (s beta153GraphStore) lastRevision(t *testing.T, ctx context.Context) uint64 {
+func (s beta159GraphStore) lastRevision(t *testing.T, ctx context.Context) uint64 {
 	t.Helper()
 	info, err := s.stream.Info(ctx)
 	if err != nil {

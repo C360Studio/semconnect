@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-08-12
+goal: Adopt SemStreams beta.160 on fresh NATS storage with typed, revision-fenced
+  graph operations and unchanged CS API conformance.

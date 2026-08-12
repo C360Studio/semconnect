@@ -87,9 +87,8 @@ func encodeDeploymentState(t *testing.T, id string, extra []message.Triple) []by
 		},
 	}
 	state.Triples = append(state.Triples, extra...)
-	b, err := json.Marshal(state)
-	if err != nil {
-		t.Fatalf("encodeDeploymentState: %v", err)
+	for i := range state.Triples {
+		state.Triples[i].Subject = id
 	}
-	return b
+	return encodeEntityState(t, state)
 }

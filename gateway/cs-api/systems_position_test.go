@@ -58,7 +58,7 @@ func TestHandleSystemPost_PositionForwardedAsTriple(t *testing.T) {
 		t.Fatalf("status: got %d want 201 (body=%s)", rr.Code, rr.Body.String())
 	}
 
-	var sent graph.AddTriplesBatchRequest
+	var sent graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode published body: %v", err)
 	}
@@ -113,7 +113,7 @@ func TestHandleSystemPost_PositionAbsent(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201", rr.Code)
 	}
-	var sent graph.AddTriplesBatchRequest
+	var sent graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
@@ -211,11 +211,10 @@ func encodeSystemEntityStateMinimal(t *testing.T, id string) []byte {
 			{Predicate: "sensorml.process.label", Object: "Test"},
 		},
 	}
-	b, err := json.Marshal(state)
-	if err != nil {
-		t.Fatalf("marshal state: %v", err)
+	for i := range state.Triples {
+		state.Triples[i].Subject = id
 	}
-	return b
+	return encodeEntityState(t, state)
 }
 
 // TestSystemFromState_NoGeometryWhenAbsent — without the triple,

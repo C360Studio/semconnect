@@ -3,10 +3,22 @@
 .idea
 .vscode
 .DS_Store
-# The conformance harness is not consumed by the cs-api-server image —
-# excluding it shaves megabytes off the build context (fixtures + run
-# artifacts + ETS pin metadata are all noise for the binary build).
+# The conformance harness is not consumed by the cs-api-server image. The
+# deployment probe reuses exactly one event-driven readiness helper; reopen
+# only its parent path and source while keeping tests, fixtures, run artifacts,
+# and ETS metadata out of the build context.
 conformance
+!conformance
+conformance/*
+!conformance/cmd
+conformance/cmd/*
+!conformance/cmd/index-readiness
+conformance/cmd/index-readiness/*
+!conformance/cmd/index-readiness/main.go
+# OpenSpec design records and archived qualification evidence are never image
+# inputs. In particular, keep retained XML, logs, and persistence JSON out of
+# both the production and deployment-probe build contexts.
+openspec
 docs
 README.md
 CLAUDE.md

@@ -1,0 +1,91 @@
+{
+  "role": "go-developer",
+  "status": "ready_for_go_review",
+  "recorded_at": "2026-08-12T13:21:09Z",
+  "release": {
+    "version": "v1.0.0-beta.160",
+    "commit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+    "tree": "9ed5dd3792bca63ce87ebf449a180add918f59ed",
+    "nats_server": "2.14.4",
+    "nats_go": "v1.52.0"
+  },
+  "environment": {
+    "go": "go1.26.4",
+    "goos": "darwin",
+    "goarch": "arm64"
+  },
+  "implemented": [
+    "typed strict create, representation reconcile, and exact-revision delete derived from the declared mutation family",
+    "authoritative ExactEntity and EntityBatchResponse decoding with structured missing identities",
+    "single-attempt concurrency and explicit uncertain-commit HTTP 503 correlation",
+    "eleven local resource projection contracts and root-only SensorML projection",
+    "content-addressed immutable schema artifact identity with exact conflict verification",
+    "structured gateway mutation audit with no custom mutation headers",
+    "closed beta.160 component ports, configurations, dependency pins, and NATS 2.14.4 image digest",
+    "fresh beta.160 deployment volume identity and root-only conformance bake",
+    "restart verifier fixtures and normalized proof for a canonical System, schema-backed Datastream, artifact-backed schema endpoint, and deterministic global/scoped Observation, with event-driven GRAPH_STATUS revision coverage before and after restart"
+  ],
+  "review_remediation": [
+    "create and reconcile now enforce the selected contract entity pattern and reject every predicate not declared as birth-only or in a contract group before NATS I/O",
+    "all eleven contracts cover representative output from the actual resource builders; graph-ingest's declared birth-time indexing-profile stamp is also governed",
+    "graph ErrorCodeInternal is authoritative over reply-header class and maps to HTTP 500 with handler coverage",
+    "schema artifacts verify or durably write canonical digest-addressed bytes before strict graph create, exact-verify conflict metadata and bytes, never overwrite mismatched content, and may leave only an ADR-S004-accepted orphan object for deferred GC on graph failure",
+    "procedure SensorML drops embedded foreign-subject facts with direct component coverage",
+    "exact reads decode authoritative entity bytes through graph.UnmarshalEntityState and preserve fatal graph-state-reset classification",
+    "SchemaArtifactsBucket accepts only CS_API_ARTIFACTS, typed mutations carry no custom identity headers, and invalid final-state tests use valid resource message types so predicate/reference checks are reached",
+    "the persistence verifier pins NATS 2.14.4 clean shutdown to exit code 0 with OOMKilled=false while retaining JetStream/server lifecycle-log guards; runtime qualification remains unclaimed",
+    "the persistence verifier no longer accepts System-only parity: both pre- and post-restart proof require identical normalized Datastream, schema endpoint, and global/scoped Observation content; the expanded verifier still requires an operator rerun",
+    "the GRAPH_STATUS helper runs as the invoking host UID:GID so its narrow evidence bind mount remains writable for native-Linux 0700 mktemp directories and macOS Docker Desktop without broad chmod or chown",
+    "the Docker build context re-includes only conformance/cmd/index-readiness/main.go and excludes all OpenSpec records and archived evidence; a patternmatcher contract proves the helper is included while its tests, conformance fixtures/scripts, archived TestNG XML, service logs, and persistence JSON remain excluded"
+  ],
+  "verification": [
+    {"command": "go mod verify", "result": "pass"},
+    {"command": "go vet ./...", "result": "pass"},
+    {"command": "go vet -tags=integration ./...", "result": "pass"},
+    {"command": "go test ./... -count=1", "result": "pass after persistence verifier expansion"},
+    {"command": "go test -race ./... -count=1", "result": "pass after review remediation"},
+    {"command": "go test -tags=integration ./gateway/cs-api -count=1", "result": "pass after review remediation"},
+    {"command": "go build ./...", "result": "pass"},
+    {"command": "semstreams --config=deploy/semstreams.json --validate", "result": "pass"},
+    {"command": "semstreams --config=conformance/compose.semstreams.config.json --validate", "result": "pass"},
+    {"command": "bash -n conformance/run.sh", "result": "pass"},
+    {"command": "go test ./deploy/probe ./deploy -count=1", "result": "pass after persistence verifier expansion"},
+    {"command": "go test ./deploy -count=1", "result": "pass after evidence bind-mount ownership remediation"},
+    {"command": "docker compose -f deploy/compose.yml --profile smoke build canonical-smoke", "result": "pass after narrowed helper inclusion and OpenSpec evidence exclusion"},
+    {"command": "go test -race ./deploy/probe ./deploy -count=1", "result": "pass after persistence verifier expansion"},
+    {"command": "bash -n deploy/verify-persistence.sh", "result": "pass"},
+    {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"},
+    {"command": "git diff --check", "result": "pass"}
+  ],
+  "live_nats_matrix": [
+    "typed create and strict-create conflict",
+    "exact nonzero authority revision",
+    "revision-fenced reconcile and stale-revision conflict",
+    "batch explicit missing identity",
+    "root relationship without embedded-child stub",
+    "revision-fenced delete",
+    "artifact ObjectStore and observation lifecycle"
+  ],
+  "not_applicable_audit": {
+    "bounded_search": "Go, JSON, YAML, and shell implementation/configuration surfaces",
+    "not_used": [
+      "trajectory migration",
+      "tool discovery",
+      "agent-run milestones",
+      "metric-server API migration",
+      "GraphQL similarity migration",
+      "aggregate graph client migration",
+      "component status migration",
+      "context or structural persistence migration"
+    ],
+    "note": "The static demo UI contains GraphQL and similarity display configuration only; it does not compose or call a beta.160 SemStreams GraphQL or aggregate client surface."
+  },
+  "remaining_release_gates": [
+    "independent go-reviewer rerun and approval",
+    "technical-writer documentation pass",
+    "operator rerun of the expanded fresh-volume Docker startup/restart verifier for schema-artifact and Observation persistence",
+    "unchanged external ETS 137/0/0 run",
+    "product-owner production go/no-go"
+  ],
+  "developer_blockers": []
+}

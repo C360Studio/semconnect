@@ -92,11 +92,12 @@ func (c *Component) handleDatastreamPatch(w http.ResponseWriter, r *http.Request
 		in.Schema = schema
 	}
 
-	existing, err := c.fetchEntity(r.Context(), pathID)
+	exact, err := c.fetchEntityExact(r.Context(), pathID)
 	if err != nil {
 		c.writeBackendError(w, err)
 		return
 	}
+	existing := *exact.Entity
 	if !isDatastreamKind(existing.Triples) {
 		writeJSONError(w, http.StatusNotFound, "no datastream: "+pathID)
 		return
@@ -137,7 +138,7 @@ func (c *Component) handleDatastreamPatch(w http.ResponseWriter, r *http.Request
 	}
 
 	merged := mergePatchDatastreamTriples(pathID, existing.Triples, in, schemaRel)
-	if err := c.replaceEntityTriples(r.Context(), existing, merged, identity); err != nil {
+	if err := c.replaceEntityTriples(r.Context(), exact, merged, identity); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}

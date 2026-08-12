@@ -4,6 +4,7 @@ set -eu
 COMPOSE_FILE=${COMPOSE_FILE:-deploy/compose.yml}
 HEALTH_TEMPLATE='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}'
 VOLUME_TEMPLATE='{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}'
+NATS_214_CLEAN_STOP_STATE='0 false'
 
 compose() {
   docker compose -f "$COMPOSE_FILE" "$@"
@@ -15,6 +16,25 @@ sha256_file() {
   else
     shasum -a 256 "$1" | awk '{print $1}'
   fi
+}
+
+capture_index_readiness() {
+  phase=$1
+  compose --profile smoke run --rm --no-deps \
+    --user "$(id -u):$(id -g)" \
+    --entrypoint /usr/local/bin/index-readiness \
+    -v "$evidence_dir:/evidence" \
+    canonical-smoke \
+    -nats-url nats://nats:4222 \
+    -output "/evidence/$phase-index-readiness.jsonl" \
+    -timeout 60s \
+    -stable-samples 2 >"$evidence_dir/$phase-index-readiness.txt"
+}
+
+read_final_revision() {
+  field=$1
+  file=$2
+  sed -n "s/.*\"$field\":\([0-9][0-9]*\).*/\1/p" "$file" | tail -1
 }
 
 wait_healthy() {
@@ -43,6 +63,7 @@ wait_healthy() {
 
 evidence_dir=${EVIDENCE_DIR:-$(mktemp -d)}
 mkdir -p "$evidence_dir"
+evidence_dir=$(cd "$evidence_dir" && pwd)
 
 compose up -d nats
 wait_healthy nats
@@ -55,6 +76,12 @@ compose up -d --build semstreams semconnect
 wait_healthy semstreams
 wait_healthy semconnect
 compose --profile smoke run --rm canonical-smoke seed >"$evidence_dir/before-restart.json"
+capture_index_readiness before-restart
+captured_revision=$(read_final_revision captured_target_revision "$evidence_dir/before-restart-index-readiness.jsonl")
+if [ -z "$captured_revision" ] || [ "$captured_revision" -le 0 ]; then
+  echo "pre-restart graph target revision was not captured" >&2
+  exit 1
+fi
 
 stop_started_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 compose stop semconnect semstreams nats
@@ -64,8 +91,8 @@ for service in semconnect semstreams nats; do
   container_id=$(compose ps -aq "$service")
   stop_state=$(docker inspect --format '{{.State.ExitCode}} {{.State.OOMKilled}}' "$container_id")
   printf '%s exit_code=%s oom_killed=%s\n' "$service" $stop_state >>"$evidence_dir/normal-stop-state.txt"
-  if [ "$service" = nats ] && [ "$stop_state" != "1 false" ]; then
-    echo "NATS stop status was not the pinned image's clean signal status: $stop_state" >&2
+  if [ "$service" = nats ] && [ "$stop_state" != "$NATS_214_CLEAN_STOP_STATE" ]; then
+    echo "NATS stop status was not the pinned 2.14.4 image's clean status: $stop_state" >&2
     exit 1
   fi
   if [ "$service" != nats ] && [ "$stop_state" != "0 false" ]; then
@@ -94,6 +121,12 @@ if [ -z "$volume_before" ] || [ "$volume_after" != "$volume_before" ]; then
   exit 1
 fi
 compose --profile smoke run --rm canonical-smoke verify-only >"$evidence_dir/after-restart.json"
+capture_index_readiness after-restart
+restarted_revision=$(read_final_revision final_indexed_revision "$evidence_dir/after-restart-index-readiness.jsonl")
+if [ -z "$restarted_revision" ] || [ "$restarted_revision" -lt "$captured_revision" ]; then
+  echo "post-restart indexed revision $restarted_revision is behind captured revision $captured_revision" >&2
+  exit 1
+fi
 
 if ! cmp -s "$evidence_dir/before-restart.json" "$evidence_dir/after-restart.json"; then
   echo "canonical query proof changed across normal stop/start" >&2
@@ -103,21 +136,25 @@ fi
 
 compose config >"$evidence_dir/compose.rendered.yml"
 for image in \
-  'nats:2.10-alpine@sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927' \
-  'semconnect-semstreams:v1.0.0-beta.159' \
-  'semconnect-cs-api:beta.159' \
-  'semconnect-canonical-smoke:beta.159'; do
+  'nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66' \
+  'semconnect-semstreams:v1.0.0-beta.160' \
+  'semconnect-cs-api:beta.160' \
+  'semconnect-canonical-smoke:beta.160'; do
   docker image inspect --format '{{.RepoTags}} {{.Id}} {{.Architecture}}/{{.Os}}' "$image"
 done >"$evidence_dir/images.txt"
 for input in \
+  .dockerignore \
   Dockerfile \
   deploy/compose.yml \
   deploy/nats.conf \
   deploy/semconnect.json \
   deploy/semstreams.json \
   deploy/canonical-system.v1.json \
+  deploy/canonical-datastream.v1.json \
+  deploy/canonical-observation.v1.json \
   deploy/probe/Dockerfile \
   deploy/probe/main.go \
+  conformance/cmd/index-readiness/main.go \
   deploy/verify-persistence.sh; do
   printf '%s  %s\n' "$(sha256_file "$input")" "$input"
 done >"$evidence_dir/inputs.sha256"

@@ -1,0 +1,8 @@
+{
+  "id": "deployment-smoke-observation-v1",
+  "procedure": "https://example.org/procedures/deployment-smoke-thermometer",
+  "observedProperty": "https://example.org/properties/deployment-smoke-temperature",
+  "phenomenonTime": "2026-08-12T12:00:00Z",
+  "resultTime": "2026-08-12T12:00:01Z",
+  "result": 21.5
+}

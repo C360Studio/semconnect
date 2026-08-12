@@ -29,12 +29,10 @@ import (
 // drop down to js.PublishMsg with our own *nats.Msg).
 type natsRequester interface {
 	Request(ctx context.Context, subject string, data []byte, timeout time.Duration) ([]byte, error)
-	// RequestWithHeaders is used by Stage 8 mutation handlers (POST /systems,
-	// POST /datastreams) so audit headers from X-Forwarded-* propagate onto
-	// the NATS request envelope. graph-ingest does not consume the headers
-	// today, but a trace tool sniffing the request subject does — and the
-	// symmetry with observations.go's audited publish path matters for
-	// operator runbooks.
+	// RequestWithHeaders is the classified request/reply seam for graph query
+	// and mutation calls. Beta.160 typed mutations deliberately pass nil
+	// custom headers; their trace/request IDs live in the typed payload and
+	// gateway identity remains in the structured mutation audit record.
 	RequestWithHeaders(ctx context.Context, subject string, data []byte, headers map[string]string, timeout time.Duration) (*nats.Msg, error)
 	Status() natsclient.ConnectionStatus
 	JetStream() (jetstream.JetStream, error)
@@ -220,6 +218,16 @@ func New(cfg Config, nats natsRequester, logger *slog.Logger) (*Component, error
 
 const componentName = "cs-api"
 
+const (
+	graphMutationPortName      = "graph-mutations"
+	graphMutationSubjectFamily = "graph.mutation.>"
+	graphMutationInterfaceType = "semstreams.graph.mutation"
+	graphMutationInterfaceVer  = "v1"
+	graphMutationCreateOp      = "entity.create"
+	graphMutationReconcileOp   = "entity.reconcile"
+	graphMutationDeleteOp      = "entity.delete"
+)
+
 func (c *Component) Meta() component.Metadata {
 	return component.Metadata{
 		Name:        componentName,
@@ -230,32 +238,36 @@ func (c *Component) Meta() component.Metadata {
 }
 
 func (c *Component) InputPorts() []component.Port {
-	defs := []component.PortDefinition{
-		{Name: "http-systems", Type: "http", Subject: "/systems", Description: "GET /systems"},
-		{Name: "http-conformance", Type: "http", Subject: "/conformance", Description: "GET /conformance"},
-	}
+	// HTTP routes are directly composed by RegisterHTTPHandlers and are not
+	// SemStreams flow ports.
+	return nil
+}
+
+func (c *Component) OutputPorts() []component.Port {
+	defs := c.outputPortDefinitions()
 	out := make([]component.Port, len(defs))
 	for i, d := range defs {
-		out[i] = component.BuildPortFromDefinition(d, component.DirectionInput)
+		port, err := d.Resolve(component.DirectionOutput)
+		if err != nil {
+			// Discoverable has no error return. Every value is validated from
+			// Config in New; reaching this point is a programmer error.
+			panic(fmt.Sprintf("cs-api: resolve output port %q: %v", d.Name, err))
+		}
+		out[i] = port
 	}
 	return out
 }
 
-func (c *Component) OutputPorts() []component.Port {
-	defs := []component.PortDefinition{
-		{Name: "predicate-query", Type: "nats-request", Subject: "graph.index.query.predicate", Description: "list entities by rdf:type"},
-		{Name: "entity-query", Type: "nats-request", Subject: "graph.query.entity", Description: "fetch entity state by ID for GET /systems/{id}"},
-		{Name: "batch-query", Type: "nats-request", Subject: "graph.query.batch", Description: "hydrate collection entity states in chunks"},
-		{Name: "spatial-bounds-query", Type: "nats-request", Subject: "graph.spatial.query.bounds", Description: "bbox-filtered entity list for GET /areas?bbox"},
-		{Name: "spatial-polygon-query", Type: "nats-request", Subject: "graph.spatial.query.polygon", Description: "polygon-contained entity list for GET /areas?polygon"},
-		{Name: "observations", Type: "jetstream", Subject: c.cfg.ObservationsSubjectPrefix + ".>", StreamName: c.cfg.ObservationsStream, Description: "OMS observations from POST /datastreams/{id}/observations"},
-		{Name: "schema-artifacts", Type: "objectstore", Subject: c.cfg.SchemaArtifactsBucket, Description: "SWE schema artifacts referenced by Datastream and ControlStream entities"},
+func (c *Component) outputPortDefinitions() []component.PortDefinition {
+	return []component.PortDefinition{
+		{Name: graphMutationPortName, Required: true, Description: "typed revision-fenced graph mutation family", Config: component.NATSRequestPort{Subject: graphMutationSubjectFamily, Timeout: c.cfg.QueryTimeout.String(), Interface: &component.InterfaceContract{Type: graphMutationInterfaceType, Version: graphMutationInterfaceVer}}},
+		{Name: "entity-query", Required: true, Description: "fetch exact entity state and authority revision", Config: component.NATSRequestPort{Subject: "graph.query.entity", Timeout: c.cfg.QueryTimeout.String(), Interface: &component.InterfaceContract{Type: "graph.query", Version: "v1"}}},
+		{Name: "batch-query", Required: true, Description: "hydrate collection entity states in chunks", Config: component.NATSRequestPort{Subject: "graph.query.batch", Timeout: c.cfg.QueryTimeout.String(), Interface: &component.InterfaceContract{Type: "graph.query", Version: "v1"}}},
+		{Name: "predicate-query", Required: true, Description: "list entities by type", Config: component.NATSRequestPort{Subject: "graph.index.query.predicate", Timeout: c.cfg.QueryTimeout.String()}},
+		{Name: "spatial-bounds-query", Required: true, Description: "bbox-filtered entity list", Config: component.NATSRequestPort{Subject: "graph.spatial.query.bounds", Timeout: c.cfg.QueryTimeout.String()}},
+		{Name: "spatial-polygon-query", Required: true, Description: "polygon-contained entity list", Config: component.NATSRequestPort{Subject: "graph.spatial.query.polygon", Timeout: c.cfg.QueryTimeout.String()}},
+		{Name: "observations", Required: true, Description: "OMS observation stream", Config: component.JetStreamPort{StreamName: c.cfg.ObservationsStream, Subjects: []string{c.cfg.ObservationsSubjectPrefix + ".>"}, Storage: "file", RetentionPolicy: "limits", Replicas: c.cfg.ObservationsReplicas}},
 	}
-	out := make([]component.Port, len(defs))
-	for i, d := range defs {
-		out[i] = component.BuildPortFromDefinition(d, component.DirectionOutput)
-	}
-	return out
 }
 
 func (c *Component) ConfigSchema() component.ConfigSchema {

@@ -3,19 +3,11 @@ package csapi
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
 	semtypes "github.com/c360studio/semstreams/pkg/types"
 )
-
-// entityIDTokenRegex mirrors the per-token half of graph-ingest's
-// entityIDRegex: alphanumeric start, alphanumeric / hyphen / underscore
-// thereafter. The full 6-part regex is in the framework
-// (processor/graph-ingest/component.go) but it is unexported, so we
-// duplicate the per-token rule here for prefix validation.
-var objectStoreBucketRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 const digestEntityIDSuffixBytes = 1 + 2 + 64 // dot + "h-" + full SHA-256 hex
 
@@ -326,11 +318,8 @@ func (c *Config) Validate() error {
 	if c.ObservationsReplicas < 1 || c.ObservationsReplicas > 5 {
 		return errors.New("observations_replicas must be between 1 and 5")
 	}
-	if c.SchemaArtifactsBucket == "" {
-		return errors.New("schema_artifacts_bucket required")
-	}
-	if !objectStoreBucketRegex.MatchString(c.SchemaArtifactsBucket) {
-		return errors.New("schema_artifacts_bucket may contain only letters, numbers, dash, and underscore")
+	if c.SchemaArtifactsBucket != "CS_API_ARTIFACTS" {
+		return errors.New("schema_artifacts_bucket must be exactly CS_API_ARTIFACTS")
 	}
 	if c.SchemaArtifactsMaxBytes < 0 {
 		return errors.New("schema_artifacts_max_bytes must be ≥ 0")

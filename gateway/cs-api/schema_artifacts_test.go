@@ -3,8 +3,11 @@ package csapi
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/c360studio/semconnect/parser/sensorml"
@@ -17,13 +20,18 @@ import (
 )
 
 type fakeSchemaObjectStore struct {
-	puts map[string][]byte
-	err  error
+	puts        map[string][]byte
+	putCalls    []string
+	getCalls    []string
+	getSequence [][]byte
+	putErr      error
+	getErr      error
 }
 
 func (f *fakeSchemaObjectStore) PutBytes(_ context.Context, name string, data []byte) (*jetstream.ObjectInfo, error) {
-	if f.err != nil {
-		return nil, f.err
+	f.putCalls = append(f.putCalls, name)
+	if f.putErr != nil {
+		return nil, f.putErr
 	}
 	if f.puts == nil {
 		f.puts = make(map[string][]byte)
@@ -36,9 +44,20 @@ func (f *fakeSchemaObjectStore) PutBytes(_ context.Context, name string, data []
 }
 
 func (f *fakeSchemaObjectStore) GetBytes(_ context.Context, name string, _ ...jetstream.GetObjectOpt) ([]byte, error) {
+	f.getCalls = append(f.getCalls, name)
+	if f.getErr != nil {
+		return nil, f.getErr
+	}
+	if len(f.getSequence) > 0 {
+		index := len(f.getCalls) - 1
+		if index >= len(f.getSequence) {
+			index = len(f.getSequence) - 1
+		}
+		return append([]byte(nil), f.getSequence[index]...), nil
+	}
 	data, ok := f.puts[name]
 	if !ok {
-		return nil, errors.New("not found")
+		return nil, jetstream.ErrObjectNotFound
 	}
 	return append([]byte(nil), data...), nil
 }
@@ -77,8 +96,8 @@ func TestCreateSchemaArtifact_StoresBytesAndCreatesTypedEntity(t *testing.T) {
 	if !ok || artifactID == "" {
 		t.Fatalf("relationship object: got %#v want artifact entity ID string", rel.Object)
 	}
-	if got, want := artifactID, c.cfg.SchemaArtifactIDPrefix+"."+uniqueIDToToken(parentID+"-resultSchema"); got != want {
-		t.Errorf("artifact ID: got %q want %q", got, want)
+	if !strings.HasPrefix(artifactID, c.cfg.SchemaArtifactIDPrefix+".sha256-") {
+		t.Errorf("artifact ID is not content-addressed: %q", artifactID)
 	}
 
 	key := schemaArtifactObjectKey(artifactID)
@@ -97,10 +116,10 @@ func TestCreateSchemaArtifact_StoresBytesAndCreatesTypedEntity(t *testing.T) {
 		t.Errorf("stored schema:\n got %s\nwant %s", stored, wantCanonical)
 	}
 
-	if fakeNATS.gotSubject != SubjectEntityCreateWithTriples {
-		t.Fatalf("mutation subject: got %q want %q", fakeNATS.gotSubject, SubjectEntityCreateWithTriples)
+	if fakeNATS.gotSubject != SubjectEntityCreate {
+		t.Fatalf("mutation subject: got %q want %q", fakeNATS.gotSubject, SubjectEntityCreate)
 	}
-	var sent graph.CreateEntityWithTriplesRequest
+	var sent graph.CreateEntityRequest
 	if err := json.Unmarshal(fakeNATS.gotBody, &sent); err != nil {
 		t.Fatalf("decode mutation body: %v", err)
 	}
@@ -113,8 +132,8 @@ func TestCreateSchemaArtifact_StoresBytesAndCreatesTypedEntity(t *testing.T) {
 	if sent.Entity.StorageRef == nil {
 		t.Fatal("entity missing StorageRef")
 	}
-	if sent.Entity.StorageRef.StorageInstance != c.cfg.SchemaArtifactsBucket {
-		t.Errorf("storage instance: got %q want %q", sent.Entity.StorageRef.StorageInstance, c.cfg.SchemaArtifactsBucket)
+	if sent.Entity.StorageRef.StorageInstance != schemaArtifactStorageInstance {
+		t.Errorf("storage instance: got %q want %q", sent.Entity.StorageRef.StorageInstance, schemaArtifactStorageInstance)
 	}
 	if sent.Entity.StorageRef.Key != key {
 		t.Errorf("storage key: got %q want %q", sent.Entity.StorageRef.Key, key)
@@ -155,6 +174,218 @@ func TestCreateSchemaArtifact_RequiresInitializedStore(t *testing.T) {
 	}
 }
 
+func TestCreateSchemaArtifact_ConflictVerifiesExactImmutableArtifact(t *testing.T) {
+	canonical, err := normalizeSWESchema(json.RawMessage(testSWEDataRecordSchema))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := DefaultConfig()
+	digest := sha256.Sum256(canonical)
+	artifactID := fmt.Sprintf("%s.sha256-%x", cfg.SchemaArtifactIDPrefix, digest)
+	storageRef := &message.StorageReference{
+		StorageInstance: schemaArtifactStorageInstance,
+		Key:             schemaArtifactObjectKey(artifactID),
+		ContentType:     schemaArtifactContentType,
+		Size:            int64(len(canonical)),
+	}
+	existing := graph.EntityState{
+		ID: artifactID,
+		Triples: []message.Triple{{
+			Subject: artifactID, Predicate: sensorml.PredType, Object: csapivocab.SWESchemaDocument,
+		}},
+		StorageRef: storageRef,
+	}
+	conflictBody, conflictHeader := encodeEntityMutationFailure(t, graph.ErrorCodeEntityExists, "exists")
+	fakeNATS := &crdFakeRequester{
+		entityReply: mustMarshal(t, existing), batchReply: conflictBody, batchHeader: conflictHeader,
+	}
+	c := newComponentWithRequester(t, fakeNATS)
+	store := &fakeSchemaObjectStore{puts: map[string][]byte{storageRef.Key: canonical}}
+	var schemaStore schemaObjectStore = store
+	c.schemaArtifacts.Store(&schemaStore)
+
+	rel, err := c.createSchemaArtifact(context.Background(),
+		"c360.semconnect.systems.csapi.datastream.temp-feed",
+		csapivocab.HasResultSchema, json.RawMessage(testSWEDataRecordSchema), Identity{})
+	if err != nil {
+		t.Fatalf("identical immutable conflict: %v", err)
+	}
+	if rel.Object != artifactID || fakeNATS.batchCount != 1 || fakeNATS.entityQueryCalls != 1 {
+		t.Fatalf("immutable conflict result=%+v create=%d exact=%d", rel, fakeNATS.batchCount, fakeNATS.entityQueryCalls)
+	}
+	if len(store.putCalls) != 0 {
+		t.Fatalf("immutable conflict must not overwrite object; puts=%v", store.putCalls)
+	}
+	if len(store.getCalls) != 2 {
+		t.Fatalf("immutable conflict must verify bytes before and after exact graph verification; gets=%v", store.getCalls)
+	}
+	var create graph.CreateEntityRequest
+	if err := json.Unmarshal(fakeNATS.batchBody, &create); err != nil || create.Entity == nil {
+		t.Fatalf("conflict attempt was not strict create: err=%v request=%+v", err, create)
+	}
+}
+
+func TestCreateSchemaArtifact_ConflictRejectsIntegrityMismatch(t *testing.T) {
+	canonical, err := normalizeSWESchema(json.RawMessage(testSWEDataRecordSchema))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := DefaultConfig()
+	digest := sha256.Sum256(canonical)
+	artifactID := fmt.Sprintf("%s.sha256-%x", cfg.SchemaArtifactIDPrefix, digest)
+	existing := graph.EntityState{
+		ID: artifactID,
+		Triples: []message.Triple{{
+			Subject: artifactID, Predicate: sensorml.PredType, Object: csapivocab.SWESchemaDocument,
+		}},
+		StorageRef: &message.StorageReference{
+			StorageInstance: "wrong-provider", Key: schemaArtifactObjectKey(artifactID),
+			ContentType: schemaArtifactContentType, Size: int64(len(canonical)),
+		},
+	}
+	conflictBody, conflictHeader := encodeEntityMutationFailure(t, graph.ErrorCodeEntityExists, "exists")
+	fakeNATS := &crdFakeRequester{
+		entityReply: mustMarshal(t, existing), batchReply: conflictBody, batchHeader: conflictHeader,
+	}
+	c := newComponentWithRequester(t, fakeNATS)
+	store := &fakeSchemaObjectStore{puts: map[string][]byte{schemaArtifactObjectKey(artifactID): canonical}}
+	var schemaStore schemaObjectStore = store
+	c.schemaArtifacts.Store(&schemaStore)
+
+	_, err = c.createSchemaArtifact(context.Background(),
+		"c360.semconnect.systems.csapi.datastream.temp-feed",
+		csapivocab.HasResultSchema, json.RawMessage(testSWEDataRecordSchema), Identity{})
+	if err == nil || errors.Is(err, errEntityConflict) || errs.IsTransient(err) || errs.IsInvalid(err) {
+		t.Fatalf("integrity mismatch classification = %#v", err)
+	}
+	if fakeNATS.batchCount != 1 || fakeNATS.entityQueryCalls != 1 {
+		t.Fatalf("integrity mismatch calls: create=%d exact=%d", fakeNATS.batchCount, fakeNATS.entityQueryCalls)
+	}
+	if len(store.putCalls) != 0 {
+		t.Fatalf("metadata conflict must not overwrite object; puts=%v", store.putCalls)
+	}
+}
+
+func TestCreateSchemaArtifact_ConflictRejectsObjectByteMismatchWithoutOverwrite(t *testing.T) {
+	canonical, err := normalizeSWESchema(json.RawMessage(testSWEDataRecordSchema))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := DefaultConfig()
+	digest := sha256.Sum256(canonical)
+	artifactID := fmt.Sprintf("%s.sha256-%x", cfg.SchemaArtifactIDPrefix, digest)
+	key := schemaArtifactObjectKey(artifactID)
+	storageRef := &message.StorageReference{
+		StorageInstance: schemaArtifactStorageInstance,
+		Key:             key, ContentType: schemaArtifactContentType, Size: int64(len(canonical)),
+	}
+	existing := graph.EntityState{
+		ID: artifactID,
+		Triples: []message.Triple{{
+			Subject: artifactID, Predicate: sensorml.PredType, Object: csapivocab.SWESchemaDocument,
+		}},
+		StorageRef: storageRef,
+	}
+	conflictBody, conflictHeader := encodeEntityMutationFailure(t, graph.ErrorCodeEntityExists, "exists")
+	fakeNATS := &crdFakeRequester{
+		entityReply: mustMarshal(t, existing), batchReply: conflictBody, batchHeader: conflictHeader,
+	}
+	c := newComponentWithRequester(t, fakeNATS)
+	wrongBytes := []byte(`{"type":"DataRecord","fields":[]}`)
+	store := &fakeSchemaObjectStore{
+		puts:        map[string][]byte{key: canonical},
+		getSequence: [][]byte{canonical, wrongBytes},
+	}
+	var schemaStore schemaObjectStore = store
+	c.schemaArtifacts.Store(&schemaStore)
+
+	_, err = c.createSchemaArtifact(context.Background(),
+		"c360.semconnect.systems.csapi.datastream.temp-feed",
+		csapivocab.HasResultSchema, json.RawMessage(testSWEDataRecordSchema), Identity{})
+	if err == nil || errs.IsInvalid(err) || errs.IsTransient(err) || errors.Is(err, errEntityConflict) {
+		t.Fatalf("object mismatch classification = %#v", err)
+	}
+	if len(store.putCalls) != 0 {
+		t.Fatalf("object mismatch must not overwrite bytes; puts=%v", store.putCalls)
+	}
+	if fakeNATS.batchCount != 1 || fakeNATS.entityQueryCalls != 1 || len(store.getCalls) != 2 {
+		t.Fatalf("conflict verification calls: create=%d exact=%d gets=%v",
+			fakeNATS.batchCount, fakeNATS.entityQueryCalls, store.getCalls)
+	}
+	if !bytes.Equal(store.puts[key], canonical) {
+		t.Fatalf("conflict verification overwrote object: got %q want %q", store.puts[key], canonical)
+	}
+}
+
+func TestCreateSchemaArtifact_PreexistingMismatchSkipsGraphAndOverwrite(t *testing.T) {
+	canonical, err := normalizeSWESchema(json.RawMessage(testSWEDataRecordSchema))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := DefaultConfig()
+	digest := sha256.Sum256(canonical)
+	artifactID := fmt.Sprintf("%s.sha256-%x", cfg.SchemaArtifactIDPrefix, digest)
+	key := schemaArtifactObjectKey(artifactID)
+	fakeNATS := &fakeRequester{status: natsclient.StatusConnected, reply: encodeBatchOK(t, 1)}
+	c := newTestComponent(t, fakeNATS)
+	wrongBytes := []byte(`{"type":"DataRecord","fields":[]}`)
+	store := &fakeSchemaObjectStore{puts: map[string][]byte{key: wrongBytes}}
+	var schemaStore schemaObjectStore = store
+	c.schemaArtifacts.Store(&schemaStore)
+
+	_, err = c.createSchemaArtifact(context.Background(),
+		"c360.semconnect.systems.csapi.datastream.temp-feed",
+		csapivocab.HasResultSchema, json.RawMessage(testSWEDataRecordSchema), Identity{})
+	if err == nil || errs.IsInvalid(err) || errs.IsTransient(err) {
+		t.Fatalf("preexisting object mismatch classification = %#v", err)
+	}
+	if len(store.putCalls) != 0 {
+		t.Fatalf("preexisting mismatch must not overwrite bytes; puts=%v", store.putCalls)
+	}
+	if fakeNATS.gotSubject != "" {
+		t.Fatalf("graph mutation occurred for mismatched object: %q", fakeNATS.gotSubject)
+	}
+	if !bytes.Equal(store.puts[key], wrongBytes) {
+		t.Fatalf("preexisting object bytes changed: got %q want %q", store.puts[key], wrongBytes)
+	}
+}
+
+func TestCreateSchemaArtifact_PutFailureSkipsGraphAndRetryHeals(t *testing.T) {
+	fakeNATS := &fakeRequester{status: natsclient.StatusConnected, reply: encodeBatchOK(t, 1)}
+	c := newTestComponent(t, fakeNATS)
+	store := &fakeSchemaObjectStore{putErr: errors.New("object store write failed")}
+	var schemaStore schemaObjectStore = store
+	c.schemaArtifacts.Store(&schemaStore)
+	parentID := "c360.semconnect.systems.csapi.datastream.temp-feed"
+
+	_, err := c.createSchemaArtifact(context.Background(), parentID, csapivocab.HasResultSchema,
+		json.RawMessage(testSWEDataRecordSchema), Identity{})
+	if err == nil {
+		t.Fatal("PutBytes failure was accepted")
+	}
+	if fakeNATS.gotSubject != "" {
+		t.Fatalf("graph mutation occurred after failed PutBytes: %q", fakeNATS.gotSubject)
+	}
+	if len(store.puts) != 0 {
+		t.Fatalf("failed PutBytes left object bytes: %+v", store.puts)
+	}
+
+	store.putErr = nil
+	rel, err := c.createSchemaArtifact(context.Background(), parentID, csapivocab.HasResultSchema,
+		json.RawMessage(testSWEDataRecordSchema), Identity{})
+	if err != nil {
+		t.Fatalf("retry did not heal artifact creation: %v", err)
+	}
+	artifactID, ok := rel.Object.(string)
+	if !ok || artifactID == "" {
+		t.Fatalf("retry relationship = %+v", rel)
+	}
+	key := schemaArtifactObjectKey(artifactID)
+	if len(store.puts[key]) == 0 || fakeNATS.gotSubject != SubjectEntityCreate {
+		t.Fatalf("retry did not store then create: object=%q subject=%q", store.puts[key], fakeNATS.gotSubject)
+	}
+}
+
 func TestConfigValidateSchemaArtifactSettings(t *testing.T) {
 	cfg := DefaultConfig()
 	if err := cfg.Validate(); err != nil {
@@ -164,6 +395,12 @@ func TestConfigValidateSchemaArtifactSettings(t *testing.T) {
 	cfg.SchemaArtifactsBucket = "bad.bucket"
 	if err := cfg.Validate(); err == nil {
 		t.Fatal("bucket with dot: got nil error, want validation failure")
+	}
+
+	cfg = DefaultConfig()
+	cfg.SchemaArtifactsBucket = "OTHER_VALID_BUCKET"
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("valid but noncanonical bucket: got nil error, want validation failure")
 	}
 
 	cfg = DefaultConfig()

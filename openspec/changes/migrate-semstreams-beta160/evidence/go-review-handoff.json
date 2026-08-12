@@ -1,0 +1,253 @@
+{
+  "role": "go-reviewer",
+  "status": "approved",
+  "recorded_at": "2026-08-12T12:27:22Z",
+  "release": {
+    "semstreams_version": "v1.0.0-beta.160",
+    "commit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+    "tree": "9ed5dd3792bca63ce87ebf449a180add918f59ed",
+    "nats_server": "v2.14.4",
+    "nats_server_image": "nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66",
+    "nats_go": "v1.52.0"
+  },
+  "reviewed": [
+    "typed mutations derive subjects from the declared family and make one request attempt",
+    "exact reads use authoritative graph state decoding and revision-fenced writes preserve the read revision",
+    "graph internal failures map to HTTP 500 while other classified outcomes remain distinct",
+    "all eleven contracts enforce type, entity pattern, and declared predicates before I/O",
+    "System and Procedure SensorML creation retains root facts without embedded-child stubs",
+    "schema artifacts verify digest-addressed bytes before graph visibility and on conflict",
+    "schema artifact storage is fixed to provider objectstore and bucket CS_API_ARTIFACTS without fallback",
+    "typed mutations carry no custom identity headers; structured audit retains mutation evidence",
+    "validator regressions use valid IDs and types and reach intended state-contract checks",
+    "no production beta.159 mutation compatibility subject, ownership binding, or legacy response decoder remains",
+    "ETS and CS API conformance declarations remain; a strict root-only bake replaces the obsolete gate"
+  ],
+  "independent_verification": [
+    {"command": "go mod verify", "result": "pass: all modules verified"},
+    {"command": "go vet ./...", "result": "pass"},
+    {"command": "go vet -tags=integration ./...", "result": "pass"},
+    {"command": "go test ./... -count=1", "result": "pass"},
+    {"command": "go test -race ./... -count=1", "result": "pass"},
+    {"command": "go test -tags=integration ./gateway/cs-api -count=1", "result": "pass: real NATS included"},
+    {"command": "go build ./...", "result": "pass"},
+    {"command": "semstreams --config=deploy/semstreams.json --validate", "result": "pass"},
+    {"command": "semstreams --config=conformance/compose.semstreams.config.json --validate", "result": "pass"},
+    {"command": "bash -n conformance/run.sh", "result": "pass"},
+    {"command": "git diff --check", "result": "pass"},
+    {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"}
+  ],
+  "post_review_corrections": [
+    {
+      "recorded_at": "2026-08-12T12:35:07Z",
+      "scope": "NATS 2.14.4 persistence-verifier clean-stop contract",
+      "observed_evidence": [
+        "Docker exit code 0",
+        "OOMKilled=false",
+        "Trapped terminated signal",
+        "JetStream Shutdown",
+        "Server Exiting"
+      ],
+      "determination": [
+        "the historical exit-1 expectation was a verifier false negative",
+        "the corrected verifier requires exact state 0 false",
+        "both JetStream and server lifecycle markers remain mandatory",
+        "panic or fatal logs still fail the verifier"
+      ],
+      "verification": [
+        {"command": "go test ./deploy -count=1", "result": "pass"},
+        {"command": "bash -n deploy/verify-persistence.sh", "result": "pass"},
+        {"command": "git diff --check", "result": "pass"},
+        {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"}
+      ],
+      "runtime_tasks_advanced": []
+    }
+  ],
+  "conformance_integrity_review": {
+    "recorded_at": "2026-08-12T12:50:54Z",
+    "status": "approved",
+    "archive": "evidence/conformance-beta160",
+    "pins": {
+      "ets_commit": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+      "semstreams_commit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+      "semstreams_version": "v1.0.0-beta.160"
+    },
+    "testng": {"total": 137, "passed": 137, "failed": 0, "skipped": 0},
+    "archive_sha256": {
+      "summary.txt": "837e94b7ca69055385ee93bac8e0bd782e10505ff31cb16a3288ad58ce01cc15",
+      "testng-report.xml": "6980560a5f51b8372e596275f982cb3ed7feeea53c20d4f45e62800f60a9c8e2",
+      "root-only-bake.txt": "e28307684068dc544bd296f84496e41a0d61c60b193636572899bb4106ba190d"
+    },
+    "integrity": [
+      "the ETS commit is unchanged from the qualified baseline",
+      "the TestNG document contains 137 non-configuration PASS methods and no FAIL or SKIP methods",
+      "the TeamEngine suite invocation block is byte-identical to the baseline",
+      "mutation tests remain explicitly enabled against the dedicated mutable IUT",
+      "the beta.160 fixture proves root readability and embedded-child absence with a hard failure gate",
+      "the conformance declaration source is byte-identical to the baseline",
+      "the OpenAPI path inventory remains 45 paths with an identical path hash",
+      "the OpenAPI delta only adds uncertain-commit headers to the existing 503 response component",
+      "the report, summary, seed and readiness evidence, bake proof, and service logs are present and nonempty"
+    ],
+    "verification": [
+      {"command": "go test ./conformance -count=1", "result": "pass"},
+      {"command": "go test ./gateway/cs-api -count=1", "result": "pass"},
+      {"command": "git diff --check", "result": "pass"},
+      {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"}
+    ],
+    "tasks_completed": ["10.2"],
+    "tasks_not_advanced": ["9.5", "10.1", "10.3", "10.4"]
+  },
+  "persistence_verifier_extension_review": {
+    "recorded_at": "2026-08-12T13:12:04Z",
+    "status": "approved-for-operator-rerun",
+    "scope": "static and focused-test review of the expanded task 9.4 verifier",
+    "verified": [
+      "seed order is System, schema-backed Datastream, then scoped Observation",
+      "fixture IDs form one deterministic System to Datastream to Observation chain",
+      "write media types are GeoJSON, JSON, and OM JSON respectively",
+      "active proof reads System collection and item, Datastream item and schema, and both Observation collections",
+      "System, Datastream, schema, global Observation, and scoped Observation content is normalized and hashed",
+      "the complete normalized proof is compared byte-for-byte before and after the no-write restart",
+      "both phases actively watch GRAPH_STATUS and post-restart indexing must cover the captured pre-restart target",
+      "an empty Observation proof fails, so System-only persistence cannot pass",
+      "NATS remains unexposed on the internal backend network and probe services publish no ports",
+      "readiness evidence runs with host UID and GID so a private bind-mounted evidence directory remains writable",
+      "the r3 archive remains historical System-only partial evidence and task 9.4 remains open for live r4"
+    ],
+    "verification": [
+      {"command": "go test ./deploy/probe ./deploy -count=1", "result": "pass"},
+      {"command": "go test -race ./deploy/probe ./deploy -count=1", "result": "pass"},
+      {"command": "go vet ./deploy/probe ./deploy", "result": "pass"},
+      {"command": "go build ./deploy/probe", "result": "pass"},
+      {"command": "go test ./... -count=1", "result": "pass"},
+      {"command": "bash -n deploy/verify-persistence.sh", "result": "pass"},
+      {"command": "docker compose -f deploy/compose.yml --profile smoke config", "result": "pass"},
+      {"command": "git diff --check", "result": "pass"},
+      {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"}
+    ],
+    "runtime_tasks_advanced": [],
+    "required_next_evidence": "a live r4 run on a newly allocated clean beta.160 volume"
+  },
+  "persistence_packaging_followup_review": {
+    "recorded_at": "2026-08-12T13:21:19Z",
+    "status": "approved-for-live-r5",
+    "trigger": "live r4 exposed that .dockerignore excluded the readiness helper copied by the probe Dockerfile",
+    "verified": [
+      "negative Docker patterns reopen only conformance/cmd/index-readiness/main.go and its parent directories",
+      "the readiness helper test, conformance run script, and conformance fixtures remain ignored",
+      "OpenSpec conformance logs, TestNG XML, and historical persistence evidence remain ignored",
+      "the probe Dockerfile copies and builds the helper and copies all three deterministic fixtures",
+      "the persistence input manifest hashes .dockerignore, the helper, the probe, and all three fixtures",
+      "an actual canonical-smoke Docker build completed with the helper COPY and compile stages"
+    ],
+    "verification": [
+      {
+        "command": "docker compose -f deploy/compose.yml --profile smoke build canonical-smoke",
+        "result": "pass"
+      },
+      {"command": "go test ./deploy/probe ./deploy -count=1", "result": "pass"},
+      {"command": "bash -n deploy/verify-persistence.sh", "result": "pass"},
+      {"command": "docker compose -f deploy/compose.yml --profile smoke config", "result": "pass"},
+      {"command": "git diff --check", "result": "pass"},
+      {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"}
+    ],
+    "runtime_tasks_advanced": [],
+    "supersedes_required_next_evidence": "live r4",
+    "required_next_evidence": "a live r5 run on a newly allocated clean beta.160 volume"
+  },
+  "persistence_r5_live_evidence_review": {
+    "recorded_at": "2026-08-12T13:26:35Z",
+    "status": "approved",
+    "archive": "evidence/persistence-r5",
+    "volume": "semconnect-beta160-qualification-20260812-r5",
+    "greenfield_preflight": {
+      "account": "$G",
+      "streams": 0,
+      "consumers": 0,
+      "messages": 0,
+      "bytes": 0
+    },
+    "normal_stop": {
+      "semconnect": {"exit_code": 0, "oom_killed": false},
+      "semstreams": {"exit_code": 0, "oom_killed": false},
+      "nats": {"exit_code": 0, "oom_killed": false},
+      "nats_lifecycle": ["JetStream Shutdown", "Server Exiting"],
+      "panic_or_fatal": false
+    },
+    "revision_readiness": {
+      "before": {"target_revision": 3, "indexed_revision": 3, "ready": true},
+      "after": {"target_revision": 3, "indexed_revision": 3, "ready": true},
+      "non_regression": true
+    },
+    "canonical_proof": {
+      "before_after_byte_identical": true,
+      "sha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+      "system": {
+        "id": "c360.semconnect.systems.csapi.system.v1",
+        "sha256": "29aa791b31dfa40c1f14cd5ac8768a4a2cdb9c0e8ca17324cb321f76138e169b",
+        "number_matched": 1,
+        "number_returned": 1
+      },
+      "datastream": {
+        "id": "c360.semconnect.systems.csapi.datastream.v1",
+        "sha256": "5d354129860f8b29e4c3b50800385dfff306079261b1de9496d1c512ad060dc3"
+      },
+      "schema_sha256": "3080f94b266c42c43c00fe2966280c52d7179e999f9dca258088ddcd04747d8e",
+      "observation": {
+        "id": "deployment-smoke-observation-v1",
+        "global_sha256": "1b9e952fd77ddef28c1f0759f48660fd5772c305aa0ab919b1c29e8eecc42702",
+        "scoped_sha256": "1b9e952fd77ddef28c1f0759f48660fd5772c305aa0ab919b1c29e8eecc42702",
+        "global_number_returned": 1,
+        "scoped_number_returned": 1
+      }
+    },
+    "archive_integrity": {
+      "volume_before_after_byte_identical": true,
+      "compose_sha256": "5a338bbb1f5ed4c67c82c2f13bf7e771cd38ab1d505af3738eb0a49af844a434",
+      "all_input_hashes_match_worktree": true,
+      "all_archived_image_ids_match_live_local_images": true,
+      "nats_image": "nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66",
+      "semstreams_image_id": "sha256:72c27b2e5b2ddf2cdfc2e3a16633894124434f768f5a9bd2d67ee45e41916c3d",
+      "semconnect_image_id": "sha256:f6a3322fc4302b507f433ce99ac283e6d75f3538d78d4e746b3f120d12e1cf0c",
+      "probe_image_id": "sha256:3f11c8f883d34b8e7925b038a9297829aee354edd4f1345cb5d793047748283b"
+    },
+    "verified": [
+      "the first NATS start had exactly one global account and zero streams, consumers, messages, and bytes",
+      "the exact named beta.160 volume is identical before and after the no-write restart",
+      "the normalized System, schema-backed Datastream, schema, and global and scoped Observation proof is byte-identical",
+      "every required identity, digest, and collection count is present and valid",
+      "post-restart indexed revision covers the captured pre-restart target without regression",
+      "all three services stopped with exit code zero and OOMKilled false",
+      "NATS recorded complete JetStream and server shutdown lifecycle markers without panic or fatal output",
+      "the rendered Compose, complete input manifest, and archived image identities are internally consistent"
+    ],
+    "verification": [
+      {"command": "independent jq/cmp/shasum/grep archive integrity checks", "result": "pass"},
+      {"command": "docker image inspect for all four archived images", "result": "pass: exact image IDs and platforms match images.txt"},
+      {"command": "go test ./deploy/probe ./deploy -count=1", "result": "pass"},
+      {"command": "go test -race ./deploy/probe ./deploy -count=1", "result": "pass"},
+      {"command": "go vet ./deploy/probe ./deploy", "result": "pass"},
+      {"command": "bash -n deploy/verify-persistence.sh", "result": "pass"},
+      {"command": "docker compose -f deploy/compose.yml --profile smoke config", "result": "pass"},
+      {"command": "git diff --check", "result": "pass"},
+      {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"}
+    ],
+    "tasks_completed": ["9.4"],
+    "tasks_not_advanced": ["9.5"],
+    "production_decision": "NO-GO pending rollback isolation and product-owner authorization"
+  },
+  "findings": [],
+  "approval": {
+    "conditional": false,
+    "go_review_tasks": ["8.1", "8.2", "8.3"],
+    "remaining_release_gates": [
+      "frontend not-applicable review",
+      "technical-writer current-documentation pass",
+      "fresh-volume startup and same-volume restart qualification",
+      "preserved beta.159 rollback isolation",
+      "external ETS 137/0/0 run",
+      "production go or no-go"
+    ]
+  }
+}

@@ -170,6 +170,9 @@ func encodeSystemState(t *testing.T, id string, extra []message.Triple) []byte {
 		},
 	}
 	state.Triples = append(state.Triples, extra...)
+	for i := range state.Triples {
+		state.Triples[i].Subject = id
+	}
 	b, err := json.Marshal(state)
 	if err != nil {
 		t.Fatalf("encodeSystemState: %v", err)

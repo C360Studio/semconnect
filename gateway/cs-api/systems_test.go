@@ -46,6 +46,9 @@ func (f *fakeRequester) Request(_ context.Context, subj string, data []byte, to 
 	if f.replyErr != nil {
 		return nil, f.replyErr
 	}
+	if subj == subjectEntityQuery {
+		return ensureExactTestReply(f.reply), nil
+	}
 	return f.reply, nil
 }
 
@@ -62,7 +65,36 @@ func (f *fakeRequester) RequestWithHeaders(_ context.Context, subj string, data 
 	if f.replyErr != nil {
 		return nil, f.replyErr
 	}
-	return &nats.Msg{Data: f.reply, Header: f.replyHeader}, nil
+	if len(f.replyHeader) == 0 {
+		switch subj {
+		case SubjectEntityCreate:
+			var request graph.CreateEntityRequest
+			if err := json.Unmarshal(data, &request); err != nil {
+				return nil, err
+			}
+			body, _ := json.Marshal(graph.CreateEntityResponse{Outcome: graph.MutationApplied, Entity: request.Entity, KVRevision: 1, RequestID: request.RequestID, TraceID: request.TraceID})
+			return &nats.Msg{Data: body}, nil
+		case SubjectEntityReconcile:
+			var request graph.ReconcilePredicatesRequest
+			if err := json.Unmarshal(data, &request); err != nil {
+				return nil, err
+			}
+			body, _ := json.Marshal(graph.ReconcilePredicatesResponse{Outcome: graph.MutationApplied, Entity: &graph.EntityState{ID: request.EntityID, Triples: request.Desired}, KVRevision: request.ExpectedRevision + 1, RequestID: request.RequestID, TraceID: request.TraceID})
+			return &nats.Msg{Data: body}, nil
+		case SubjectEntityDelete:
+			var request graph.DeleteEntityRequest
+			if err := json.Unmarshal(data, &request); err != nil {
+				return nil, err
+			}
+			body, _ := json.Marshal(graph.DeleteEntityResponse{Outcome: graph.MutationApplied, EntityID: request.EntityID, ExpectedRevision: request.ExpectedRevision, RequestID: request.RequestID, TraceID: request.TraceID})
+			return &nats.Msg{Data: body}, nil
+		}
+	}
+	reply := f.reply
+	if subj == subjectEntityQuery {
+		reply = ensureExactTestReply(reply)
+	}
+	return &nats.Msg{Data: reply, Header: f.replyHeader}, nil
 }
 
 func (f *fakeRequester) Status() natsclient.ConnectionStatus {
@@ -121,6 +153,89 @@ func encodeClassifiedReply(t *testing.T, class, code, msg string) ([]byte, nats.
 func encodeReplyErr(t *testing.T, msg string) ([]byte, nats.Header) {
 	t.Helper()
 	return encodeClassifiedReply(t, natsclient.ErrorClassTransient, "", msg)
+}
+
+func TestFetchEntityExactPreservesNonzeroRevisionAndRejectsZero(t *testing.T) {
+	const id = "acme.ops.robotics.gcs.system.exact"
+	state := graph.EntityState{ID: id, Triples: []message.Triple{{Subject: id, Predicate: sensorml.PredType, Object: sosa.SSNSystem}}}
+
+	t.Run("preserves revision", func(t *testing.T) {
+		reply, err := json.Marshal(graph.ExactEntity{Entity: &state, KVRevision: 41})
+		if err != nil {
+			t.Fatal(err)
+		}
+		c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected, reply: reply})
+		exact, err := c.fetchEntityExact(context.Background(), id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if exact.Entity == nil || exact.Entity.ID != id || exact.KVRevision != 41 {
+			t.Fatalf("exact response = %+v", exact)
+		}
+	})
+
+	t.Run("rejects zero revision", func(t *testing.T) {
+		reply, err := json.Marshal(graph.ExactEntity{Entity: &state})
+		if err != nil {
+			t.Fatal(err)
+		}
+		c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected, reply: reply})
+		if _, err := c.fetchEntityExact(context.Background(), id); err == nil {
+			t.Fatal("zero authority revision was accepted")
+		}
+	})
+
+	t.Run("classifies invalid stored state as reset required", func(t *testing.T) {
+		poisoned := map[string]any{
+			"id": id,
+			"triples": []map[string]any{{
+				"subject": id, "predicate": "cs-api.system.camelCase", "object": "bad",
+			}},
+		}
+		reply, err := json.Marshal(map[string]any{"entity": poisoned, "kvRevision": 42})
+		if err != nil {
+			t.Fatal(err)
+		}
+		c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected, reply: reply})
+		_, err = c.fetchEntityExact(context.Background(), id)
+		if err == nil || !graph.IsStateContractError(err) || !errs.IsFatal(err) {
+			t.Fatalf("invalid stored state classification = %#v, want fatal graph reset required", err)
+		}
+	})
+}
+
+func TestFetchEntitiesBatchUsesExplicitMissingAndPreservesResponseTooLarge(t *testing.T) {
+	const (
+		foundID   = "acme.ops.robotics.gcs.system.found"
+		missingID = "acme.ops.robotics.gcs.system.missing"
+	)
+	state := graph.EntityState{ID: foundID, Triples: []message.Triple{{Subject: foundID, Predicate: sensorml.PredType, Object: sosa.SSNSystem}}}
+	reply, err := json.Marshal(graph.EntityBatchResponse{
+		Entities: []graph.EntityState{state},
+		Missing:  []graph.MissingEntity{{ID: missingID, Reason: graph.MissingNotFound}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected, reply: reply})
+	states, err := c.fetchEntitiesBatch(context.Background(), []string{foundID, missingID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(states) != 1 || states[foundID].ID != foundID {
+		t.Fatalf("batch states = %+v", states)
+	}
+	if _, ok := states[missingID]; ok {
+		t.Fatalf("batch manufactured missing identity %q", missingID)
+	}
+
+	body, header := encodeClassifiedReply(t, natsclient.ErrorClassInvalid, "response_too_large", "narrow the request")
+	c = newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected, reply: body, replyHeader: header})
+	_, err = c.fetchEntitiesBatch(context.Background(), []string{foundID})
+	var classified *errs.ClassifiedError
+	if !errors.As(err, &classified) || classified.Code != "response_too_large" || !errs.IsInvalid(err) || errs.IsTransient(err) {
+		t.Fatalf("response-too-large classification = %#v", err)
+	}
 }
 
 func TestHandleSystems_GoldenPath(t *testing.T) {
@@ -389,12 +504,21 @@ func TestHandleSystems_BackendErrorClassification(t *testing.T) {
 // Stage 4: GET /systems/{id}
 // -----------------------------------------------------------------------------
 
-// encodeEntityState marshals an EntityState as graph-ingest would put on the
-// wire. The Stage-4 fetchEntity expects raw EntityState JSON (no envelope).
+// encodeEntityState marshals beta.160's exact authority envelope.
 func encodeEntityState(t *testing.T, state graph.EntityState) []byte {
 	t.Helper()
+	state = *state.Clone()
+	for index := range state.Triples {
+		// Historical read tests use subject-less triple literals as a
+		// shorthand. The exact beta.160 authority envelope must contain a
+		// canonical final EntityState, so complete that fixture shorthand
+		// before validating and encoding it.
+		if state.Triples[index].Subject == "" {
+			state.Triples[index].Subject = state.ID
+		}
+	}
 	auditEntityStateFixture(t, state)
-	b, err := json.Marshal(state)
+	b, err := json.Marshal(graph.ExactEntity{Entity: &state, KVRevision: 7})
 	if err != nil {
 		t.Fatalf("encodeEntityState: %v", err)
 	}
@@ -458,7 +582,7 @@ func droneState() graph.EntityState {
 			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredType, Object: sosa.SSNSystem},
 			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredLabel, Object: "ACME Drone 001"},
 			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredDescription, Object: "Hex rotor"},
-			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredHosts, Object: "acme.ops.robotics.gcs.drone.001.camera", Datatype: message.EntityReferenceDatatype},
+			{Subject: "acme.ops.robotics.gcs.drone.001", Predicate: sensorml.PredHosts, Object: "acme.ops.robotics.gcs.drone.001_camera", Datatype: message.EntityReferenceDatatype},
 		},
 	}
 }
@@ -499,7 +623,7 @@ func TestHandleSystem_JSON(t *testing.T) {
 	if sys.Label != "ACME Drone 001" {
 		t.Errorf("Label: got %q", sys.Label)
 	}
-	if len(sys.Hosts) != 1 || sys.Hosts[0] != "acme.ops.robotics.gcs.drone.001.camera" {
+	if len(sys.Hosts) != 1 || sys.Hosts[0] != "acme.ops.robotics.gcs.drone.001_camera" {
 		t.Errorf("Hosts: got %+v", sys.Hosts)
 	}
 	var hasAssociation bool

@@ -212,7 +212,7 @@ func TestHandleDeploymentPost_Feature(t *testing.T) {
 		t.Errorf("Location: got %q, want /deployments/<prefix>.<token>", loc)
 	}
 
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}
@@ -266,7 +266,7 @@ func TestHandleDeploymentPost_NoGeometry(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201; body=%s", rr.Code, rr.Body.String())
 	}
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	_ = json.Unmarshal(fake.gotBody, &batch)
 	for _, tr := range batch.Triples {
 		if tr.Predicate == PredSystemPosition {

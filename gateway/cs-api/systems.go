@@ -763,14 +763,25 @@ func (c *Component) writeSystemJSONLD(w http.ResponseWriter, r *http.Request, st
 // uniformly with other input-side failures. Other NATS sentinels follow the
 // Stage-2/3 pattern: ErrNoResponders / timeouts → Transient → 503.
 func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntityState, error) {
+	exact, err := c.fetchEntityExact(ctx, id)
+	if err != nil {
+		return graph.EntityState{}, err
+	}
+	return *exact.Entity, nil
+}
+
+// fetchEntityExact returns the authority value and the KV revision of the
+// same entry. Guarded mutations must carry this revision without a hidden
+// second read.
+func (c *Component) fetchEntityExact(ctx context.Context, id string) (graph.ExactEntity, error) {
 	if err := validateEntityID(id); err != nil {
-		return graph.EntityState{}, errs.WrapInvalid(err, "cs-api", "fetchEntity", "validate entity id")
+		return graph.ExactEntity{}, errs.WrapInvalid(err, "cs-api", "fetchEntity", "validate entity id")
 	}
 	reqBody, err := json.Marshal(struct {
 		ID string `json:"id"`
 	}{ID: id})
 	if err != nil {
-		return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "marshal entity query")
+		return graph.ExactEntity{}, errs.Wrap(err, "cs-api", "fetchEntity", "marshal entity query")
 	}
 
 	reply, err := c.nats.RequestWithHeaders(ctx, subjectEntityQuery, reqBody, nil, c.cfg.QueryTimeout)
@@ -780,23 +791,41 @@ func (c *Component) fetchEntity(ctx context.Context, id string) (graph.EntitySta
 			errors.Is(err, nats.ErrTimeout),
 			errors.Is(err, context.DeadlineExceeded),
 			errors.Is(err, nats.ErrConnectionClosed):
-			return graph.EntityState{}, errs.WrapTransient(err, "cs-api", "fetchEntity", "graph backend unavailable")
+			return graph.ExactEntity{}, errs.WrapTransient(err, "cs-api", "fetchEntity", "graph backend unavailable")
 		default:
-			return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "entity query")
+			return graph.ExactEntity{}, errs.Wrap(err, "cs-api", "fetchEntity", "entity query")
 		}
 	}
 
 	respBytes, err := natsclient.ClassifyReply(reply)
 	if err != nil {
 		classified := classifyEntityQueryFailure(err)
-		return graph.EntityState{}, classified
+		return graph.ExactEntity{}, classified
 	}
 
-	var state graph.EntityState
-	if err := json.Unmarshal(respBytes, &state); err != nil {
-		return graph.EntityState{}, errs.Wrap(err, "cs-api", "fetchEntity", "decode entity state")
+	var envelope struct {
+		Entity     json.RawMessage `json:"entity"`
+		KVRevision uint64          `json:"kvRevision"`
 	}
-	return state, nil
+	if err := json.Unmarshal(respBytes, &envelope); err != nil {
+		return graph.ExactEntity{}, errs.ClassifiedCode(errs.ErrorFatal, graph.ErrorCodeInternal,
+			fmt.Errorf("decode exact entity response: %w", err))
+	}
+	if len(envelope.Entity) == 0 || string(envelope.Entity) == "null" || envelope.KVRevision == 0 {
+		return graph.ExactEntity{}, errs.ClassifiedCode(errs.ErrorFatal, graph.ErrorCodeInternal,
+			errors.New("invalid exact entity response"))
+	}
+	var state graph.EntityState
+	if err := graph.UnmarshalEntityState(envelope.Entity, &state); err != nil {
+		return graph.ExactEntity{}, graph.ClassifyStateContractError(err)
+	}
+	if state.ID != id {
+		return graph.ExactEntity{}, graph.ClassifyStateContractError(&graph.StateContractError{
+			Reason: graph.GraphStateReasonNoncanonicalEntityID, EntityID: id,
+			Err: fmt.Errorf("authority key contains entity %q", state.ID),
+		})
+	}
+	return graph.ExactEntity{Entity: state.Clone(), KVRevision: envelope.KVRevision}, nil
 }
 
 // fetchEntitiesBatch hydrates entity states via graph.query.batch in chunks.
@@ -845,17 +874,30 @@ func (c *Component) fetchEntitiesBatch(ctx context.Context, ids []string) (map[s
 			return nil, errs.Wrap(err, "cs-api", "fetchEntitiesBatch", "backend error")
 		}
 
-		var resp struct {
-			Entities []graph.EntityState `json:"entities"`
-		}
+		var resp graph.EntityBatchResponse
 		if err := json.Unmarshal(respBytes, &resp); err != nil {
 			return nil, errs.Wrap(err, "cs-api", "fetchEntitiesBatch", "decode batch entity states")
 		}
+		requested := make(map[string]struct{}, end-start)
+		for _, id := range ids[start:end] {
+			requested[id] = struct{}{}
+		}
 		for _, state := range resp.Entities {
-			if state.ID == "" {
-				continue
+			if _, ok := requested[state.ID]; !ok {
+				return nil, errs.Wrap(errors.New("batch response contains an unrequested entity"), "cs-api", "fetchEntitiesBatch", "decode batch entity states")
 			}
 			statesByID[state.ID] = state
+		}
+		for _, missing := range resp.Missing {
+			if _, ok := requested[missing.ID]; !ok {
+				return nil, errs.Wrap(errors.New("batch response reports an unrequested missing entity"), "cs-api", "fetchEntitiesBatch", "decode batch entity states")
+			}
+			switch missing.Reason {
+			case graph.MissingNotFound, graph.MissingError:
+			default:
+				return nil, errs.Wrap(fmt.Errorf("batch response has invalid missing reason %q", missing.Reason), "cs-api", "fetchEntitiesBatch", "decode batch entity states")
+			}
+			delete(statesByID, missing.ID)
 		}
 	}
 	return statesByID, nil
@@ -988,6 +1030,17 @@ func (c *Component) writeBackendError(w http.ResponseWriter, err error) {
 	status := http.StatusInternalServerError
 	body := "internal server error"
 	switch {
+	case func() bool {
+		var uncertain *commitUnknownError
+		if !errors.As(err, &uncertain) {
+			return false
+		}
+		w.Header().Set("X-CS-Commit-Uncertain", "true")
+		w.Header().Set("X-CS-Correlation-ID", uncertain.correlation)
+		status = http.StatusServiceUnavailable
+		body = "commit outcome unknown; verify resource state before retrying"
+		return true
+	}():
 	case errors.Is(err, errEntityNotFound):
 		status = http.StatusNotFound
 		body = err.Error() // safe to echo: the message is just "not found: <id>"

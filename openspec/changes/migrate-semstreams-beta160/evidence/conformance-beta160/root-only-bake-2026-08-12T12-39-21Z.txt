@@ -1,0 +1,2 @@
+beta.160 root-only SensorML bake — 2026-08-12T12-39-21Z
+root=c360.semconnect.systems.csapi.system.hosted-platform-bake-01 readable; embedded child=c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01 absent

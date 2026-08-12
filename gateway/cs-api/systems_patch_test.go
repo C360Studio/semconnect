@@ -23,7 +23,7 @@ import (
 	"github.com/c360studio/semstreams/natsclient"
 )
 
-const testPatchID = "acme.ops.robotics.gcs.drone.099"
+const testPatchID = "c360.semconnect.systems.csapi.system.099"
 
 // patchedSystemState mirrors existingSystemState (systems_crd_test.go)
 // + adds the canonical UID and position triples, so the merge logic has a full
@@ -55,11 +55,11 @@ func patchFeatureJSON(t *testing.T, props map[string]any) []byte {
 
 func updateTriplesFromBody(t *testing.T, body []byte) []message.Triple {
 	t.Helper()
-	var req graph.UpdateEntityWithTriplesRequest
+	var req graph.ReconcilePredicatesRequest
 	if err := json.Unmarshal(body, &req); err != nil {
 		t.Fatalf("decode update body: %v", err)
 	}
-	return req.AddTriples
+	return req.Desired
 }
 
 // TestHandleSystemPatch_NameOnly — PATCH a single `properties.name`
@@ -90,8 +90,9 @@ func TestHandleSystemPatch_NameOnly(t *testing.T) {
 	}
 
 	// Decode the published merged batch. The label triple should be the
-	// PATCHED name; description, uid, position, type triples should
-	// match the existing entity's values.
+	// PATCHED name; description, uid, and position triples should match the
+	// merged representation. Type is birth-only and therefore must not appear
+	// in the reconcile desired set.
 	got := tripleObjectByPredicate(updateTriplesFromBody(t, fake.batchBody))
 	if got[sensorml.PredLabel] != "PATCHED name" {
 		t.Errorf("label triple: got %q want %q", got[sensorml.PredLabel], "PATCHED name")
@@ -105,8 +106,8 @@ func TestHandleSystemPatch_NameOnly(t *testing.T) {
 	if got[PredSystemPosition] != `{"type":"Point","coordinates":[10,20]}` {
 		t.Errorf("position preserved: got %q", got[PredSystemPosition])
 	}
-	if got[sensorml.PredType] != sosa.SSNSystem {
-		t.Errorf("type preserved: got %q want %q", got[sensorml.PredType], sosa.SSNSystem)
+	if _, ok := got[sensorml.PredType]; ok {
+		t.Errorf("birth-only type leaked into representation reconcile: %q", got[sensorml.PredType])
 	}
 }
 

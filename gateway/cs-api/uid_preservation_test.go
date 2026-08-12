@@ -281,7 +281,7 @@ func TestHandleSystemPost_JSONFeature_UIDRoundsTripToTriples(t *testing.T) {
 
 	// Decode the batch the gateway published — find a PredSystemUID
 	// triple with the submitted uid.
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch body: %v (body=%s)", err, string(fake.gotBody))
 	}

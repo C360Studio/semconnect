@@ -54,7 +54,7 @@ func (f *multiReplyFakeRequester) Request(_ context.Context, subj string, data [
 			return nil, e
 		}
 		if r, ok := f.entityRepliesByID[req.ID]; ok {
-			return r, nil
+			return ensureExactTestReply(r), nil
 		}
 		return nil, errors.New("multiReplyFakeRequester: no reply seeded for entity " + req.ID)
 	case subjectBatchQuery:
@@ -68,23 +68,28 @@ func (f *multiReplyFakeRequester) Request(_ context.Context, subj string, data [
 			return nil, errors.New("multiReplyFakeRequester: malformed batch-query body")
 		}
 		var states []graph.EntityState
+		var missing []string
 		for _, id := range req.IDs {
 			if _, ok := f.entityErrorsByID[id]; ok {
+				missing = append(missing, id)
 				continue
 			}
 			reply, ok := f.entityRepliesByID[id]
 			if !ok {
+				missing = append(missing, id)
 				continue
 			}
-			var state graph.EntityState
-			if err := json.Unmarshal(reply, &state); err != nil {
+			var exact graph.ExactEntity
+			if err := json.Unmarshal(ensureExactTestReply(reply), &exact); err != nil || exact.Entity == nil {
 				return nil, errors.New("multiReplyFakeRequester: malformed entity state for " + id)
 			}
-			states = append(states, state)
+			states = append(states, *exact.Entity)
 		}
-		out, err := json.Marshal(struct {
-			Entities []graph.EntityState `json:"entities"`
-		}{Entities: states})
+		missingEntities := make([]graph.MissingEntity, 0, len(missing))
+		for _, id := range missing {
+			missingEntities = append(missingEntities, graph.MissingEntity{ID: id, Reason: graph.MissingNotFound})
+		}
+		out, err := json.Marshal(graph.EntityBatchResponse{Entities: states, Missing: missingEntities})
 		if err != nil {
 			return nil, err
 		}
@@ -137,21 +142,17 @@ func systemStateWithPosition(t *testing.T, id, label, positionJSON string) []byt
 	state := graph.EntityState{
 		ID: id,
 		Triples: []message.Triple{
-			{Predicate: "sensorml.process.type", Object: "http://www.w3.org/ns/ssn/System"},
-			{Predicate: "sensorml.process.label", Object: label},
+			{Subject: id, Predicate: "sensorml.process.type", Object: "http://www.w3.org/ns/ssn/System"},
+			{Subject: id, Predicate: "sensorml.process.label", Object: label},
 		},
 	}
 	if positionJSON != "" {
 		state.Triples = append(state.Triples, message.Triple{
-			Predicate: PredSystemPosition,
-			Object:    positionJSON,
+			Subject: id, Predicate: PredSystemPosition,
+			Object: positionJSON,
 		})
 	}
-	b, err := json.Marshal(state)
-	if err != nil {
-		t.Fatalf("systemStateWithPosition: %v", err)
-	}
-	return b
+	return encodeEntityState(t, state)
 }
 
 func TestHandleSystems_AdvancedFiltersByIDAndKeyword(t *testing.T) {

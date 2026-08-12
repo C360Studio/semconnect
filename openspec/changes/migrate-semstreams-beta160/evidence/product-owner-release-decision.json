@@ -1,0 +1,55 @@
+{
+  "recordType": "semstreams-beta160-product-owner-release-decision",
+  "recordedAt": "2026-08-12",
+  "role": "product-owner",
+  "decision": "GO WITH ACCEPTED RISK",
+  "authorization": {
+    "verbatim": "roll back would have been nice but we have evidence that our 160 work is solid so let's proceed",
+    "interpretation": "Proceed with beta.160 production adoption while explicitly accepting the absence of a proven beta.159 rollback environment."
+  },
+  "technicalBasis": {
+    "semstreams": {
+      "version": "v1.0.0-beta.160",
+      "commit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+      "tree": "9ed5dd3792bca63ce87ebf449a180add918f59ed"
+    },
+    "nats": "2.14.4",
+    "reviews": [
+      "independent Go review approved",
+      "frontend review approved as not applicable",
+      "independent no-weakening review passed",
+      "independent persistence-r5 live evidence review approved"
+    ],
+    "persistenceR5": {
+      "volume": "semconnect-beta160-qualification-20260812-r5",
+      "readinessBefore": "target/indexed 3/3",
+      "readinessAfter": "target/indexed 3/3",
+      "beforeAfterByteIdentical": true,
+      "proofSha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+      "covers": ["System", "Datastream", "schema", "global Observation", "scoped Observation"]
+    },
+    "externalConformance": {"total": 137, "passed": 137, "failed": 0, "skipped": 0},
+    "rootOnlySensorMLBake": "passed"
+  },
+  "waiver": {
+    "task": "9.5",
+    "status": "waived-not-proven",
+    "residualRisk": "No preserved beta.159 deployment and volume was available to prove rollback isolation. There is no validated binary downgrade path if beta.160 production adoption fails.",
+    "notAuthorized": [
+      "opening beta.159 storage with beta.160",
+      "opening beta.160 storage with beta.159",
+      "in-place beta.159 storage migration",
+      "claiming rollback isolation passed"
+    ]
+  },
+  "mandatoryGuardrails": [
+    "use a newly provisioned, preflight-empty beta.160 volume only",
+    "record and verify exact release images, rendered Compose, configuration, and inputs",
+    "verify recoverable backups of authoritative reseed inputs, rendered configuration, deployment metadata, and nondisposable product data before production writes",
+    "retain r5, conformance, review, audit, and release-decision evidence",
+    "during cutover and for at least 60 minutes after traffic begins, poll health, GRAPH_STATUS revisions, critical CS API probes, observations, and artifact reads every 30-60 seconds",
+    "abort on retained state, pin drift, readiness regression, parity failure, panic, OOM, storage-limit breach, or unreconciled commit uncertainty",
+    "on abort stop traffic and writes, preserve evidence and beta.160 state, then use forward repair or a clean beta.160 rebuild from verified backups"
+  ],
+  "runtimeMutationPerformed": false
+}

@@ -1,0 +1,68 @@
+{
+  "recordType": "semstreams-beta160-production-risk-acceptance",
+  "recordedAt": "2026-08-12",
+  "role": "architect",
+  "decision": "GO WITH ACCEPTED RISK",
+  "productOwnerAuthorization": {
+    "recordedAt": "2026-08-12",
+    "statement": "roll back would have been nice but we have evidence that our 160 work is solid so let's proceed"
+  },
+  "acceptedRisk": {
+    "openTask": "9.5",
+    "disposition": "waived-by-explicit-product-owner-risk-acceptance",
+    "completed": false,
+    "fact": "No preserved beta.159 deployment and volume was available to prove rollback isolation.",
+    "consequence": "Production recovery cannot rely on a demonstrated beta.159 rollback environment."
+  },
+  "technicalEvidence": {
+    "goReview": "go-review-handoff.json: approved",
+    "frontendReview": "svelte-review-handoff.json: approved-not-applicable",
+    "externalConformance": "conformance-beta160: 137 passed, 0 failed, 0 skipped",
+    "noWeakening": "no-weakening-review.json: passed",
+    "persistence": {
+      "archive": "persistence-r5",
+      "volume": "semconnect-beta160-qualification-20260812-r5",
+      "emptyFirstStart": true,
+      "targetRevisionBeforeAfter": 3,
+      "indexedRevisionBeforeAfter": 3,
+      "canonicalProofByteIdentical": true,
+      "canonicalProofSha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32"
+    }
+  },
+  "mandatoryGuardrails": {
+    "freshState": [
+      "Provision a uniquely named beta.160 NATS volume.",
+      "Prove zero streams, consumers, messages, and bytes before the first production write.",
+      "Abort on retained state, ambiguous volume identity, or any beta.159 mount."
+    ],
+    "crossVersion": [
+      "Never attach beta.159 state to beta.160.",
+      "Never attach beta.160 state to beta.159.",
+      "Isolate any later-discovered beta.159 volume for separate owner-reviewed handling."
+    ],
+    "evidenceAndBackup": [
+      "Preserve the complete persistence-r5 archive and recorded hashes without overwrite.",
+      "Before writes, verify recoverable backups of authoritative reseed inputs and rendered configuration.",
+      "Back up deployment metadata and all nondisposable product data.",
+      "Restore only into newly provisioned beta.160 storage."
+    ],
+    "monitoring": [
+      "Poll authoritative health, target and indexed revisions, and critical CS API probes every 30-60 seconds.",
+      "Poll JetStream observation and schema artifact reads at the same cadence.",
+      "Continue heightened monitoring through cutover and at least 60 minutes after traffic begins.",
+      "Treat logs as supplementary evidence; silence is not success."
+    ],
+    "abort": [
+      "Stop new writes and remove traffic on failed preflight, wrong version or image, or failed canonical probes.",
+      "Abort on storage error, revision regression, or no progress for more than twice the expected step duration.",
+      "Preserve incident evidence and use forward repair or a clean beta.160 rebuild.",
+      "Do not attempt cross-version recovery."
+    ]
+  },
+  "nonClaims": [
+    "Task 9.5 is not complete.",
+    "Rollback isolation was not proven.",
+    "No beta.159 volume is approved for beta.160 use.",
+    "No technical or conformance gate is weakened by this acceptance."
+  ]
+}

@@ -4,7 +4,7 @@
 // claim is honest across both resource types the IUT implements.
 //
 // Implementation re-uses the entity mutation helpers from the systems
-// write path so write semantics and audit headers stay symmetric.
+// write path so write semantics and structured audit evidence stay symmetric.
 package csapi
 
 import (
@@ -115,7 +115,7 @@ func (c *Component) handleDatastreamPut(w http.ResponseWriter, r *http.Request) 
 }
 
 // handleDatastreamDelete serves DELETE /datastreams/{id} — CS API
-// §10.6. Idempotent (graph.mutation.entity.delete returns success even
+// §10.6. Idempotent (a missing exact authority read returns success without
 // when the entity never existed).
 //
 // Stage 36 also purges observations published on the datastream's exact

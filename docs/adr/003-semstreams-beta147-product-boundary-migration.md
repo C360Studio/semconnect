@@ -5,8 +5,11 @@
 - **Framework target**: `github.com/c360studio/semstreams v1.0.0-beta.147`
 - **Source provenance**: SemStreams commit `c8f0b92edf5ad5b491d5f4e81891bec817fae3cd`
 - **Execution contract**: `openspec/changes/migrate-semstreams-beta147/`
-- **Greenfield amendment**: Pre-v1 production is greenfield-only (2026-07-18); the active beta.159 qualification is
-  `openspec/changes/qualify-semstreams-beta159/`.
+- **Greenfield amendment**: Pre-v1 production is greenfield-only (2026-07-18); the historical beta.159 qualification
+  is `openspec/changes/qualify-semstreams-beta159/`.
+- **Typed graph amendment**: Beta.160 adoption is governed by
+  [ADR-S004](004-semstreams-beta160-typed-graph-migration.md) and
+  `openspec/changes/migrate-semstreams-beta160/`; ADR-S003's product boundary and greenfield rule remain in force.
 
 ## Context
 

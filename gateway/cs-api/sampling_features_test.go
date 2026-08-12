@@ -148,7 +148,7 @@ func TestHandleSamplingFeaturePost_Feature(t *testing.T) {
 		t.Errorf("Location: got %q, want /samplingFeatures/<prefix>.<token>", loc)
 	}
 
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}

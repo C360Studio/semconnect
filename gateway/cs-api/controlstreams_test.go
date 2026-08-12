@@ -3,6 +3,7 @@ package csapi
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -23,7 +24,11 @@ const (
 
 func controlStreamState(t *testing.T) []byte {
 	t.Helper()
-	artifactID := "c360.semconnect.systems.csapi.schema." + uniqueIDToToken(testControlStreamID+"-commandSchema")
+	canonical, err := normalizeSWESchema(testCommandParametersSchema())
+	if err != nil {
+		t.Fatalf("canonical command schema: %v", err)
+	}
+	artifactID := (&Component{cfg: DefaultConfig()}).contentAddressedSchemaArtifactID(sha256.Sum256(canonical))
 	propsBytes, _ := json.Marshal([]controlledProperty{{
 		Definition: "http://sensorml.com/ont/swe/property/PanAngle",
 		Label:      "Pan Angle",
@@ -373,7 +378,7 @@ func TestHandleCommandPost_JSON(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201; body=%s", rr.Code, rr.Body.String())
 	}
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}
@@ -415,7 +420,7 @@ func TestHandleControlStreamPost_JSON(t *testing.T) {
 	if loc := rr.Header().Get("Location"); !strings.HasPrefix(loc, "/controlstreams/"+c.cfg.ControlStreamIDPrefix+".") {
 		t.Errorf("Location: got %q", loc)
 	}
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}

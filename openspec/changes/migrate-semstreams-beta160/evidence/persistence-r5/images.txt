@@ -1,0 +1,4 @@
+[nats:2.14-alpine nats:2.14.4-alpine] sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66 arm64/linux
+[semconnect-semstreams:v1.0.0-beta.160] sha256:72c27b2e5b2ddf2cdfc2e3a16633894124434f768f5a9bd2d67ee45e41916c3d arm64/linux
+[semconnect-cs-api:beta.160] sha256:f6a3322fc4302b507f433ce99ac283e6d75f3538d78d4e746b3f120d12e1cf0c arm64/linux
+[semconnect-canonical-smoke:beta.160] sha256:3f11c8f883d34b8e7925b038a9297829aee354edd4f1345cb5d793047748283b arm64/linux

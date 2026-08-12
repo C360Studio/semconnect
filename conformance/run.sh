@@ -16,9 +16,8 @@
 #   0 — harness ran end-to-end; TestNG report archived (read it for pass/fail)
 #   1 — infrastructure failure (build, container start, health, network)
 #   2 — TeamEngine REST API returned non-2xx during suite invocation
-#   3 — ADR-055/056 foreign-edge bake FAILED (foreign_edge_unclaimed_total > 0;
-#       an emitted foreign edge would drop post-flip). BAKE_STRICT=0 downgrades
-#       this to a warning (exit 0).
+#   3 — beta.160 root-only SensorML bake FAILED (the inline child was
+#       materialized as an entity or the root was not readable).
 #
 # Stage 6 calibration note: the pinned Botts ETS is 0.1-SNAPSHOT (scaffold).
 # A zero-failure run today proves the harness, NOT the conformance picture.
@@ -79,6 +78,8 @@ SEED_SYSTEM_EVENT_ID="c360.semconnect.systems.csapi.systemevent.00Z"
 SEED_CONTROLSTREAM_ID="c360.semconnect.systems.csapi.controlstream.ptz-01"
 SEED_COMMAND_SCHEMA_ARTIFACT_ID="c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema"
 SEED_COMMAND_SCHEMA_ARTIFACT_OBJECT_KEY="${SEED_COMMAND_SCHEMA_ARTIFACT_ID}.json"
+SEED_HOSTED_SYSTEM_ID=""
+SEED_HOSTED_CHILD_ID=""
 
 COMPOSE_FILE="$SCRIPT_DIR/compose.yml"
 COMPOSE_PROJECT="${CONFORMANCE_PROJECT:-semconnect-conformance}"
@@ -319,18 +320,9 @@ EOF
     fi
     log "  seeded subsystem: id=$subsystem_id"
 
-    # Stage 56 — ADR-055/056 must-exist-flip bake fixture. POST a SensorML
-    # PhysicalSystem with an inline hosted component so the gateway emits a
-    # foreign-subject `child isHostedBy parent` edge (subject = the
-    # not-yet-existent child). This is the ONLY cs-api lane that emits a
-    # foreign-SUBJECT edge — the Stage-49 subsystem above is an own-subject
-    # object-reference, which does NOT exercise the routing seam. Seeding this
-    # is what makes assert_foreign_edge_bake's zero reading mean "zero by
-    # claimed" rather than the meaningless "zero by absence" (ADR-056 Decision
-    # 4): the registered NoBirthStub isHostedBy claim
-    # (gateway/cs-api/projection_contracts.go) must cover this edge so it is
-    # stubbed, not dropped, once the must-exist flip tags.
-    log "  POST /systems with $(basename "$fixtures_dir/system-hosted.sml.json") (foreign-edge bake)"
+    # beta.160 root-only SensorML fixture. The root retains its hosts reference;
+    # the embedded child's inverse fact is filtered and must not create a stub.
+    log "  POST /systems with $(basename "$fixtures_dir/system-hosted.sml.json") (root-only bake)"
     local hosted_resp
     hosted_resp="$(docker run --rm \
         --network "${COMPOSE_PROJECT}_default" \
@@ -352,12 +344,12 @@ EOF
     if [[ -z "$hosted_id" ]]; then
         die "POST /systems hosted bake fixture returned 201 but Location was empty or missing (see $SEED_LOG)"
     fi
-    # Symmetry with the sibling seeds — hosted_id is log-only here, but keep the
-    # same well-formedness guard so a future use can trust it.
     if ! [[ "$hosted_id" =~ ^[A-Za-z0-9_.:-]+$ ]]; then
         die "POST /systems hosted bake fixture returned 201 with malformed id '$hosted_id' (see $SEED_LOG)"
     fi
-    log "  seeded hosted platform (foreign isHostedBy lane fired): id=$hosted_id"
+    SEED_HOSTED_SYSTEM_ID="$hosted_id"
+    SEED_HOSTED_CHILD_ID="${hosted_id}_thermometer-bake-01"
+    log "  seeded hosted platform root: id=$hosted_id child-reference=$SEED_HOSTED_CHILD_ID"
 
     # Build a Datastream pointing at the just-seeded System. CS API §10
     # shape: explicit stable id, name, description, system
@@ -701,110 +693,22 @@ EOF
     log "  seed complete (log: $SEED_LOG)"
 }
 
-# Stage 56 — ADR-055/056 must-exist-flip readiness bake. After the full ETS
-# window, scrape graph-ingest's Prometheus counter
-# semstreams_graph_ingest_foreign_edge_unclaimed_total and assert ZERO. A
-# non-zero reading means cs-api emitted a foreign-subject edge with no
-# registered ForeignEdgeClaim — post-flip that edge is DROPPED instead of
-# routed via NoBirthStub, breaking hosted-child resolution. The Stage 56
-# hosted-platform seed guarantees the foreign isHostedBy lane actually fired,
-# so a clean zero is zero-BY-CLAIMED, corroborated by the backend "projected
-# write emitted cross-entity edges" WARN — not the meaningless zero-by-absence
-# (ADR-056:189).
-#
-# Sets globals BAKE_VERDICT (PASS|FAIL|INCONCLUSIVE) and BAKE_DETAIL for the
-# summary. The caller turns a FAIL into exit 3 unless BAKE_STRICT=0.
-assert_foreign_edge_bake() {
-    local bake_report="$OUTPUT_DIR/foreign-edge-bake-${UTC_STAMP}.txt"
-    local metrics
-    metrics="$(docker run --rm \
-        --network "${COMPOSE_PROJECT}_default" \
-        curlimages/curl:8.10.1 \
-        -sS "http://semstreams-backend:9090/metrics" 2>/dev/null || true)"
-
-    if [[ -z "$metrics" ]]; then
-        BAKE_VERDICT="INCONCLUSIVE"
-        BAKE_DETAIL="graph-ingest /metrics (semstreams-backend:9090) unreachable"
-        echo "BAKE INCONCLUSIVE — $BAKE_DETAIL" >"$bake_report"
-        log "  foreign-edge bake: INCONCLUSIVE ($BAKE_DETAIL)"
-        return 0
-    fi
-
-    # Persist every foreign_edge_* series for triage.
-    {
-        echo "# foreign-edge bake — $UTC_STAMP"
-        echo "$metrics" | grep 'foreign_edge' || echo "(no foreign_edge_* series emitted)"
-    } >"$bake_report"
-
-    # Sum the unclaimed AND dropped counters across all label sets. An absent
-    # series == 0 (a CounterVec emits nothing for a label combo it never
-    # incremented). Post-flip (beta.113, auto-vivify removed) BOTH must be zero:
-    # unclaimed>0 means a foreign edge has no registered claim; dropped>0 means a
-    # claimed edge's target was absent and its mode forbade materialising it (an
-    # EdgeStrict loud-drop) — either one breaks hosted-child resolution.
-    local bake_counts unclaimed dropped
-    bake_counts="$(echo "$metrics" | python3 -c '
-import re, sys
-# Anchor on the exact metric name, an optional {labels} block, then take the
-# VALUE field (group 1) — never a trailing optional timestamp, and never a
-# future sibling series like ..._total_created.
-pats = {
-    "unclaimed": re.compile(r"^semstreams_graph_ingest_foreign_edge_unclaimed_total(?:\{[^}]*\})?\s+(\S+)"),
-    "dropped":   re.compile(r"^semstreams_graph_ingest_foreign_edge_dropped_total(?:\{[^}]*\})?\s+(\S+)"),
-}
-totals = {"unclaimed": 0.0, "dropped": 0.0}
-ok = True
-for line in sys.stdin:
-    line = line.strip()
-    if not line or line.startswith("#"):
-        continue
-    for key, pat in pats.items():
-        m = pat.match(line)
-        if not m:
-            continue
-        try:
-            totals[key] += float(m.group(1))
-        except ValueError:
-            ok = False
-        break
-if ok:
-    print(int(totals["unclaimed"]), int(totals["dropped"]))
-else:
-    print("ERR ERR")
-' 2>/dev/null || echo "ERR ERR")"
-    read -r unclaimed dropped <<<"$bake_counts"
-
-    # Positive signal: did the foreign-subject lane actually fire this run?
-    # graph-ingest WARNs once per cross-entity projected write at
-    # normalizeProjection — its presence rules out zero-by-absence.
-    local fired=0
-    if grep -q "projected write emitted cross-entity edges" "$BACKEND_LOG" 2>/dev/null; then
-        fired=1
-    fi
-
-    if [[ "$unclaimed" == "ERR" || "$dropped" == "ERR" ]]; then
-        BAKE_VERDICT="INCONCLUSIVE"
-        BAKE_DETAIL="could not parse foreign_edge_* counters from /metrics (see $bake_report)"
-    elif [[ "$unclaimed" -gt 0 || "$dropped" -gt 0 ]]; then
-        BAKE_VERDICT="FAIL"
-        BAKE_DETAIL="foreign_edge_unclaimed_total=$unclaimed, foreign_edge_dropped_total=$dropped (both must be 0) — post-flip a hosted-child edge is dropped instead of NoBirthStub-stubbed; see $bake_report"
-    elif [[ "$fired" -eq 1 ]]; then
+assert_root_only_bake() {
+    local bake_report="$OUTPUT_DIR/root-only-bake-${UTC_STAMP}.txt"
+    local root_code child_code
+    root_code="$(docker run --rm --network "${COMPOSE_PROJECT}_default" curlimages/curl:8.10.1 \
+        -sS -o /dev/null -w '%{http_code}' "http://cs-api-server:8080/systems/${SEED_HOSTED_SYSTEM_ID}" || true)"
+    child_code="$(docker run --rm --network "${COMPOSE_PROJECT}_default" curlimages/curl:8.10.1 \
+        -sS -o /dev/null -w '%{http_code}' "http://cs-api-server:8080/systems/${SEED_HOSTED_CHILD_ID}" || true)"
+    if [[ "$root_code" == "200" && "$child_code" == "404" ]]; then
         BAKE_VERDICT="PASS"
-        BAKE_DETAIL="foreign_edge_unclaimed_total=0 + foreign_edge_dropped_total=0 with the isHostedBy lane exercised — zero by CLAIMED (NoBirthStub-routed)"
+        BAKE_DETAIL="root=$SEED_HOSTED_SYSTEM_ID readable; embedded child=$SEED_HOSTED_CHILD_ID absent"
     else
-        BAKE_VERDICT="INCONCLUSIVE"
-        BAKE_DETAIL="counters zero but the foreign lane never fired (no cross-entity-edge WARN in $BACKEND_LOG) — zero by ABSENCE, proves nothing; check the Stage 56 hosted-platform seed"
+        BAKE_VERDICT="FAIL"
+        BAKE_DETAIL="root HTTP=$root_code (want 200), embedded child HTTP=$child_code (want 404)"
     fi
-
-    {
-        echo
-        echo "verdict:    $BAKE_VERDICT"
-        echo "detail:     $BAKE_DETAIL"
-        echo "unclaimed:  $unclaimed"
-        echo "dropped:    $dropped"
-        echo "lane-fired: $fired"
-    } >>"$bake_report"
-    log "  foreign-edge bake: $BAKE_VERDICT — $BAKE_DETAIL"
+    printf 'beta.160 root-only SensorML bake — %s\n%s\n' "$UTC_STAMP" "$BAKE_DETAIL" >"$bake_report"
+    log "  root-only bake: $BAKE_VERDICT — $BAKE_DETAIL"
 }
 
 teardown_silent() {
@@ -943,7 +847,7 @@ fi
 log "step 5/8 — seeding CS-API fixtures"
 seed_fixtures
 
-# beta.159 readiness is published to GRAPH_STATUS KV. Collection non-emptiness
+# beta.160 readiness is published to GRAPH_STATUS KV. Collection non-emptiness
 # above remains useful resource evidence, but cannot prove that every post-seed
 # ENTITY_STATES revision is indexed. Watch only new graph-index heartbeats,
 # capture a stable target, then block on Ready and revision coverage before TE.
@@ -1005,10 +909,10 @@ compose logs semstreams-backend >"$BACKEND_LOG" 2>&1 || true
 # ETS window (and after the backend log is captured above, which the bake
 # greps for the cross-entity-edge WARN), so it sees every foreign edge the run
 # produced. Sets BAKE_VERDICT / BAKE_DETAIL; the exit-3 gate is at the tail.
-log "step 8/8 — ADR-055/056 foreign-edge readiness bake"
+log "step 8/8 — beta.160 root-only SensorML bake"
 BAKE_VERDICT="INCONCLUSIVE"
 BAKE_DETAIL="not run"
-assert_foreign_edge_bake
+assert_root_only_bake
 
 # 6. Parse TestNG attributes and emit a summary. Uses xml.etree.ElementTree
 #    rather than a regex so we tolerate XML preambles, stylesheets, and
@@ -1042,14 +946,14 @@ fi
     echo "IUT: $IUT_URL"
     echo
     echo "TestNG: total=$total passed=$passed failed=$failed skipped=$skipped"
-    echo "Foreign-edge bake (ADR-055/056): $BAKE_VERDICT — $BAKE_DETAIL"
+    echo "Root-only SensorML bake: $BAKE_VERDICT — $BAKE_DETAIL"
     echo "Report:        $REPORT_XML"
     echo "TE log:        $TE_LOG"
     echo "cs-api log:    $CS_LOG"
     echo "backend log:   $BACKEND_LOG"
     echo "seed log:      $SEED_LOG"
     echo "index status:  $INDEX_READINESS_EVIDENCE"
-    echo "bake report:   $OUTPUT_DIR/foreign-edge-bake-${UTC_STAMP}.txt"
+    echo "bake report:   $OUTPUT_DIR/root-only-bake-${UTC_STAMP}.txt"
     echo
     echo "Stage 9 note: cs-api-server now runs against a real graph backend"
     echo "(semstreams-backend), seeded with conformance/fixtures/system.sml.json"
@@ -1057,12 +961,8 @@ fi
     echo "fixture-loader 503s are eliminated — surviving failures are genuine"
     echo "spec assertions or upstream-ETS bugs."
     echo
-    echo "Stage 56 note: the foreign-edge bake POSTs system-hosted.sml.json (a"
-    echo "SensorML system with an inline hosted component) and asserts"
-    echo "graph-ingest's foreign_edge_unclaimed_total reads zero — proving every"
-    echo "isHostedBy foreign edge cs-api emits is CLAIMED (NoBirthStub-stubbed),"
-    echo "not dropped, once the must-exist flip tags. This clears cs-api's half"
-    echo "of the foreign-edge flip gate (semconnect#65)."
+    echo "beta.160 note: the root-only bake POSTs system-hosted.sml.json and"
+    echo "asserts the root is readable while the inline child was not materialized."
 } | tee "$SUMMARY"
 
 # ADR-055/056 flip gate: a non-zero unclaimed counter is a real readiness
@@ -1070,8 +970,7 @@ fi
 # default. INCONCLUSIVE (metrics unreachable / zero-by-absence) never fails the
 # run — it just isn't a clean bake. Set BAKE_STRICT=0 to downgrade FAIL to warn.
 if [[ "$BAKE_VERDICT" == "FAIL" && "${BAKE_STRICT:-1}" -eq 1 ]]; then
-    log "FATAL: foreign-edge bake FAILED — cs-api is NOT flip-ready ($BAKE_DETAIL)"
-    log "       (set BAKE_STRICT=0 to downgrade this gate to a warning)"
+    log "FATAL: root-only SensorML bake FAILED ($BAKE_DETAIL)"
     # A failing bake is precisely when an operator wants the stack up to poke
     # /metrics live. All triage logs (TE/cs-api/backend/bake report) are already
     # on disk above, so honour KEEP_STACK here: cancel the EXIT trap so on_exit

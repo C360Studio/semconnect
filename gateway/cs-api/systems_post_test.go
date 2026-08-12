@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -38,6 +39,36 @@ func minimalSensorML(uniqueID, label string) []byte {
 	return out
 }
 
+func TestTypedMutationEmitsCompleteStructuredAuditRecord(t *testing.T) {
+	fake := &fakeRequester{status: natsclient.StatusConnected}
+	var logBuffer bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&logBuffer, nil))
+	cfg := DefaultConfig()
+	c, err := New(cfg, fake, logger)
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := "c360.semconnect.systems.csapi.system.audit"
+	triples := []message.Triple{{Subject: id, Predicate: sensorml.PredType, Object: "http://www.w3.org/ns/ssn/System"}}
+	identity := Identity{Subject: "alice", Verified: true, Forwarded: map[string]string{"User": "alice", "Email": "alice@example.test"}}
+	if err := c.ingestProjectedTriples(context.Background(), id, triples, systemProjectionMessageType, identity); err != nil {
+		t.Fatal(err)
+	}
+	var record map[string]any
+	if err := json.Unmarshal(bytes.TrimSpace(logBuffer.Bytes()), &record); err != nil {
+		t.Fatalf("decode audit JSON: %v; log=%s", err, logBuffer.String())
+	}
+	for _, key := range []string{
+		"request_id", "trace_id", "identity_subject", "identity_verified",
+		"forwarded_user", "forwarded_email", "operation", "entity_id",
+		"commit_state", "kv_revision", "classified_error",
+	} {
+		if _, ok := record[key]; !ok {
+			t.Errorf("audit record missing %q: %+v", key, record)
+		}
+	}
+}
+
 func sensorMLWithComponent(uniqueID, label, childID string) []byte {
 	body := map[string]any{
 		"type":     "PhysicalSystem",
@@ -58,10 +89,7 @@ func sensorMLWithComponent(uniqueID, label, childID string) []byte {
 
 func encodeBatchOK(t *testing.T, written int) []byte {
 	t.Helper()
-	resp := graph.CreateEntityWithTriplesResponse{
-		MutationResponse: graph.MutationResponse{Timestamp: 1, KVRevision: 1},
-		TriplesAdded:     written,
-	}
+	resp := map[string]any{"legacy_test_hint": written}
 	out, err := json.Marshal(resp)
 	if err != nil {
 		t.Fatalf("encodeBatchOK: %v", err)
@@ -101,8 +129,8 @@ func TestHandleSystemPost_GoldenPath(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201 (body=%s)", rr.Code, rr.Body.String())
 	}
-	if fake.gotSubject != SubjectEntityCreateWithTriples {
-		t.Errorf("publish subject: got %q want %q", fake.gotSubject, SubjectEntityCreateWithTriples)
+	if fake.gotSubject != SubjectEntityCreate {
+		t.Errorf("publish subject: got %q want %q", fake.gotSubject, SubjectEntityCreate)
 	}
 	loc := rr.Header().Get("Location")
 	if !strings.HasPrefix(loc, "/systems/"+c.cfg.SystemIDPrefix+".") {
@@ -131,9 +159,9 @@ func TestHandleSystemPost_GoldenPath(t *testing.T) {
 	}
 
 	// Wire-shape check: the published body decodes as
-	// graph.CreateEntityWithTriplesRequest with all triples sharing the
+	// graph.CreateEntityRequest with all triples sharing the
 	// minted entity ID as Subject.
-	var sent graph.CreateEntityWithTriplesRequest
+	var sent graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode published body: %v", err)
 	}
@@ -153,7 +181,7 @@ func TestHandleSystemPost_GoldenPath(t *testing.T) {
 	}
 }
 
-func TestHandleSystemPost_SensorMLComponentForeignEdgeForwarded(t *testing.T) {
+func TestHandleSystemPost_SensorMLComponentKeepsOnlyRootFacts(t *testing.T) {
 	fake := &fakeRequester{
 		status: natsclient.StatusConnected,
 		reply:  encodeBatchOK(t, 4),
@@ -176,7 +204,7 @@ func TestHandleSystemPost_SensorMLComponentForeignEdgeForwarded(t *testing.T) {
 		t.Fatalf("body parse: %v", err)
 	}
 
-	var sent graph.CreateEntityWithTriplesRequest
+	var sent graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode published body: %v", err)
 	}
@@ -200,8 +228,8 @@ func TestHandleSystemPost_SensorMLComponentForeignEdgeForwarded(t *testing.T) {
 	if !sawHost {
 		t.Fatalf("missing parent hosts triple for child %q: %+v", childID, sent.Triples)
 	}
-	if !sawHostedBy {
-		t.Fatalf("missing child isHostedBy foreign edge for parent %q: %+v", body.ID, sent.Triples)
+	if sawHostedBy {
+		t.Fatalf("foreign-subject child edge was not filtered: %+v", sent.Triples)
 	}
 }
 
@@ -320,11 +348,20 @@ func TestHandleSystemPost_InvalidMutation(t *testing.T) {
 	}
 }
 
-// TestHandleSystemPost_AuditHeadersPropagate proves that X-Forwarded-* on
-// the inbound request lands on the NATS request's audit headers. Mirrors
-// observations.go's audit pattern — even though graph-ingest doesn't
-// capture these today, a trace-context audit subscriber needs them.
-func TestHandleSystemPost_AuditHeadersPropagate(t *testing.T) {
+func TestHandleSystemPost_InternalMutationIs500(t *testing.T) {
+	body, header := encodeEntityMutationFailure(t, graph.ErrorCodeInternal, "backend invariant failed")
+	fake := &fakeRequester{status: natsclient.StatusConnected, reply: body, replyHeader: header}
+	c := newTestComponent(t, fake)
+	req := httptest.NewRequest(http.MethodPost, "/systems", bytes.NewReader(minimalSensorML("urn:test:internal", "Internal")))
+	req.Header.Set("Content-Type", string(MediaSensorMLLegacy))
+	rr := httptest.NewRecorder()
+	c.handleSystemPost(rr, req)
+	if rr.Code != http.StatusInternalServerError {
+		t.Fatalf("status: got %d want 500; body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestHandleSystemPost_DoesNotPropagateCustomMutationHeaders(t *testing.T) {
 	fake := &fakeRequester{status: natsclient.StatusConnected, reply: encodeBatchOK(t, 2)}
 	c := newTestComponent(t, fake)
 
@@ -339,8 +376,8 @@ func TestHandleSystemPost_AuditHeadersPropagate(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201 (body=%s)", rr.Code, rr.Body.String())
 	}
-	if got := fake.gotHeaders["X-CS-Forwarded-User"]; got != "alice@example.org" {
-		t.Errorf("X-CS-Forwarded-User: got %q want %q (headers=%v)", got, "alice@example.org", fake.gotHeaders)
+	if len(fake.gotHeaders) != 0 {
+		t.Errorf("typed mutation wire unexpectedly carried custom headers: %v", fake.gotHeaders)
 	}
 }
 

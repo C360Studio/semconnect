@@ -1,0 +1,88 @@
+{
+  "recordType": "semstreams-beta160-operational-closeout",
+  "recordedAt": "2026-08-12T13:34:34Z",
+  "release": {
+    "version": "v1.0.0-beta.160",
+    "commit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+    "tree": "9ed5dd3792bca63ce87ebf449a180add918f59ed",
+    "natsVersion": "2.14.4",
+    "natsImage": "nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66"
+  },
+  "freshVolume": {
+    "status": "passed",
+    "completedTask": "9.3",
+    "volume": "semconnect-beta160-qualification-20260812-r5",
+    "firstStart": {"streams": 0, "consumers": 0, "messages": 0, "bytes": 0},
+    "readiness": "actively polled target_revision=3 and indexed_revision=3 before and after restart",
+    "evidenceDirectory": "persistence-r5"
+  },
+  "restartParity": {
+    "status": "passed",
+    "completedTask": "9.4",
+    "normalStop": {
+      "semconnect": {"exitCode": 0, "oomKilled": false},
+      "semstreams": {"exitCode": 0, "oomKilled": false},
+      "nats": {"exitCode": 0, "oomKilled": false}
+    },
+    "readinessBefore": {"targetRevision": 3, "indexedRevision": 3},
+    "readinessAfter": {"targetRevision": 3, "indexedRevision": 3},
+    "beforeSha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+    "afterSha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+    "byteIdentical": true,
+    "system": {
+      "id": "c360.semconnect.systems.csapi.system.v1",
+      "sha256": "29aa791b31dfa40c1f14cd5ac8768a4a2cdb9c0e8ca17324cb321f76138e169b",
+      "numberMatched": 1,
+      "numberReturned": 1
+    },
+    "datastream": {
+      "id": "c360.semconnect.systems.csapi.datastream.v1",
+      "sha256": "5d354129860f8b29e4c3b50800385dfff306079261b1de9496d1c512ad060dc3"
+    },
+    "schemaSha256": "3080f94b266c42c43c00fe2966280c52d7179e999f9dca258088ddcd04747d8e",
+    "observation": {
+      "id": "deployment-smoke-observation-v1",
+      "globalSha256": "1b9e952fd77ddef28c1f0759f48660fd5772c305aa0ab919b1c29e8eecc42702",
+      "scopedSha256": "1b9e952fd77ddef28c1f0759f48660fd5772c305aa0ab919b1c29e8eecc42702",
+      "globalNumberReturned": 1,
+      "scopedNumberReturned": 1
+    },
+    "historicalPartialEvidence": "persistence-r3"
+  },
+  "externalConformance": {
+    "status": "passed",
+    "completedTask": "10.1",
+    "recordedAt": "2026-08-12T12:39:21Z",
+    "total": 137,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "rootOnlySensorMLBake": "passed",
+    "evidenceDirectory": "conformance-beta160"
+  },
+  "rollbackIsolation": {
+    "status": "waived-not-proven",
+    "completedTask": null,
+    "waivedTask": "9.5",
+    "completed": false,
+    "reason": "Local Docker inventory contained no preserved beta.159 deployment volume to test.",
+    "requiredProof": "Record separate beta.159 deployment and volume identities and prove neither version opens the other version's state.",
+    "waivedBy": "product-owner",
+    "waivedAt": "2026-08-12",
+    "authorizationRecord": "product-owner-release-decision.json"
+  },
+  "releaseDecision": {
+    "task": "10.3",
+    "decision": "GO WITH ACCEPTED RISK",
+    "reason": "The product owner accepted the unproven beta.159 rollback environment based on independent reviews, authoritative r5 persistence, and unchanged external 137/0/0 evidence.",
+    "implementationQualified": true,
+    "productionApproved": true,
+    "residualRisk": "No validated beta.159 rollback deployment or volume exists.",
+    "guardrailsRecord": "product-owner-release-decision.json"
+  },
+  "archive": {
+    "completedTask": "10.4",
+    "status": "complete-with-accepted-risk-go",
+    "note": "Authoritative r5 supersedes partial r3. Task 9.5 remains truthfully unproven and is archived as a product-owner waiver with mandatory guardrails."
+  }
+}

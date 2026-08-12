@@ -8,7 +8,6 @@ package csapi
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -16,21 +15,19 @@ import (
 
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
-	"github.com/c360studio/semstreams/pkg/errs"
-	"github.com/nats-io/nats.go"
 )
 
 // handleSystemPut serves PUT /systems/{id} — CS API §7.6
 // create-replace-delete. Replace semantics: existing triples for the
 // entity are replaced by the new body's triples through
-// graph.mutation.entity.update_with_triples. Body must use the GeoJSON
+// exact-revision representation reconcile. Body must use the GeoJSON
 // Feature shape (application/json or
 // application/geo+json) — PUT does NOT accept SensorML because the
 // reverse-mapping triple set would mismatch the read-back JSON shape
 // and surprise clients.
 //
 // Upsert: PUT against a never-created entity creates it via
-// graph.mutation.entity.create_with_triples. Matches the CS API §7.6
+// typed strict create. Matches the CS API §7.6
 // idiomatic upsert behavior.
 //
 // Status semantics: 204 No Content on success (CS API §7.6.5).
@@ -91,7 +88,7 @@ func (c *Component) handleSystemPut(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleSystemDelete serves DELETE /systems/{id} — CS API §7.6
-// create-replace-delete. Deletes the entity via graph.mutation.entity.delete.
+// create-replace-delete. Deletes the entity at its exact authority revision.
 // 204 No Content on success; unknown IDs are still 204 because the
 // framework primitive is idempotent.
 func (c *Component) handleSystemDelete(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +110,7 @@ func (c *Component) handleSystemDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Component) putEntityTriples(ctx context.Context, entityID string, triples []message.Triple, id Identity) error {
-	current, err := c.fetchEntity(ctx, entityID)
+	current, err := c.fetchEntityExact(ctx, entityID)
 	if err != nil {
 		if errors.Is(err, errEntityNotFound) {
 			return c.ingestTriples(ctx, triples, id)
@@ -125,79 +122,22 @@ func (c *Component) putEntityTriples(ctx context.Context, entityID string, tripl
 
 func (c *Component) replaceEntityTriples(
 	ctx context.Context,
-	current graph.EntityState,
+	current graph.ExactEntity,
 	triples []message.Triple,
 	id Identity,
 ) error {
-	if err := validateProjectedTriples(current.ID, triples); err != nil {
-		return errs.WrapInvalid(err, "cs-api", "replaceEntityTriples", "invalid triple set")
-	}
-
-	req := graph.UpdateEntityWithTriplesRequest{
-		Entity:        &current,
-		AddTriples:    triples,
-		RemoveTriples: uniquePredicates(current.Triples),
-	}
-	reqBody, err := json.Marshal(req)
-	if err != nil {
-		return errs.Wrap(err, "cs-api", "replaceEntityTriples", "marshal entity update request")
-	}
-
-	reply, err := c.nats.RequestWithHeaders(ctx, SubjectEntityUpdateWithTriples, reqBody, id.AuditHeaders(), c.cfg.QueryTimeout)
-	if err != nil {
-		switch {
-		case errors.Is(err, nats.ErrNoResponders),
-			errors.Is(err, nats.ErrTimeout),
-			errors.Is(err, context.DeadlineExceeded),
-			errors.Is(err, nats.ErrConnectionClosed):
-			return errs.WrapTransient(err, "cs-api", "replaceEntityTriples", "graph backend unavailable")
-		default:
-			return errs.Wrap(err, "cs-api", "replaceEntityTriples", "entity update request")
-		}
-	}
-
-	data, err := classifyMutationReply(reply, "replaceEntityTriples")
-	if err != nil {
-		return err
-	}
-
-	var resp graph.UpdateEntityWithTriplesResponse
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return errs.Wrap(err, "cs-api", "replaceEntityTriples", "decode entity update response")
-	}
-	if resp.Degraded {
-		c.logger.Warn("entity update committed with degraded read-back", "entity", current.ID, "err", resp.DegradedReason)
-	}
-	return nil
+	return c.reconcileEntity(ctx, current, triples, id, "replaceEntityTriples")
 }
 
 func (c *Component) deleteEntity(ctx context.Context, entityID string, id Identity) error {
-	reqBody, err := json.Marshal(graph.DeleteEntityRequest{EntityID: entityID})
+	exact, err := c.fetchEntityExact(ctx, entityID)
 	if err != nil {
-		return errs.Wrap(err, "cs-api", "deleteEntity", "marshal entity delete request")
-	}
-	reply, err := c.nats.RequestWithHeaders(ctx, SubjectEntityDelete, reqBody, id.AuditHeaders(), c.cfg.QueryTimeout)
-	if err != nil {
-		switch {
-		case errors.Is(err, nats.ErrNoResponders),
-			errors.Is(err, nats.ErrTimeout),
-			errors.Is(err, context.DeadlineExceeded),
-			errors.Is(err, nats.ErrConnectionClosed):
-			return errs.WrapTransient(err, "cs-api", "deleteEntity", "graph backend unavailable")
-		default:
-			return errs.Wrap(err, "cs-api", "deleteEntity", "entity delete request")
+		if errors.Is(err, errEntityNotFound) {
+			return nil
 		}
-	}
-	data, err := classifyMutationReply(reply, "deleteEntity")
-	if err != nil {
 		return err
 	}
-
-	var resp graph.DeleteEntityResponse
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return errs.Wrap(err, "cs-api", "deleteEntity", "decode entity delete response")
-	}
-	return nil
+	return c.deleteExactEntity(ctx, exact, id)
 }
 
 func uniquePredicates(triples []message.Triple) []string {

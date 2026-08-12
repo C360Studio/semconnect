@@ -1,0 +1,29 @@
+{
+  "recordType": "semstreams-beta160-no-weakening-review",
+  "recordedAt": "2026-08-12T12:53:26Z",
+  "status": "passed",
+  "completedTask": "10.2",
+  "evidence": {
+    "etsCommitUnchanged": "d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4",
+    "teamEngineUnchanged": "5.6.1",
+    "conformanceDeclarationSourceChanged": false,
+    "externalResult": {
+      "total": 137,
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0
+    },
+    "testngSha256": "6980560a5f51b8372e596275f982cb3ed7feeea53c20d4f45e62800f60a9c8e2",
+    "summarySha256": "837e94b7ca69055385ee93bac8e0bd782e10505ff31cb16a3288ad58ce01cc15"
+  },
+  "diffReview": [
+    "The ETS commit, TeamEngine version, suite invocation, and CS API conformance declaration are unchanged.",
+    "No OpenAPI path, success response, media type, or claimed conformance class was removed.",
+    "OpenAPI only adds commit-uncertainty headers to the existing 503 response.",
+    "The hosted SensorML fixture retains its inline child and changes only its beta.160 root-only intent text.",
+    "The removed ownership-metric bake was replaced by a strict HTTP proof that the root is readable and the embedded child is absent.",
+    "The archived TestNG report independently confirms all 137 tests passed with zero failures and zero skips.",
+    "Go review and frontend N/A review found no test, fixture, parser, declaration, filter, skip, or public-surface weakening."
+  ],
+  "productionApproved": false
+}

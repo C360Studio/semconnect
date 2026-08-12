@@ -182,7 +182,7 @@ func TestHandlePropertyPost_SensorMLProperty(t *testing.T) {
 		t.Errorf("Location: got %q, want /properties/<prefix>.<token>", loc)
 	}
 
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}

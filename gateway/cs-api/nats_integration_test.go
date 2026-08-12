@@ -30,39 +30,40 @@ func TestRealNATSEntityMutationCarriesCanonicalFinalState(t *testing.T) {
 	t.Cleanup(responder.Close)
 
 	observed := make(chan error, 1)
-	emptyResponse := encodeBatchOK(t, 0)
-	successResponse := encodeBatchOK(t, 2)
-	_, err = responder.Subscribe(SubjectEntityCreateWithTriples, func(msg *nats.Msg) {
-		var request graph.CreateEntityWithTriplesRequest
+	_, err = responder.Subscribe(SubjectEntityCreate, func(msg *nats.Msg) {
+		var request graph.CreateEntityRequest
 		if decodeErr := json.Unmarshal(msg.Data, &request); decodeErr != nil {
 			observed <- fmt.Errorf("decode mutation request: %w", decodeErr)
-			_ = msg.Respond(emptyResponse)
+			_ = msg.Respond([]byte(`{}`))
 			return
 		}
 		if request.Entity == nil {
 			observed <- fmt.Errorf("mutation request omitted entity")
 		} else if validationErr := graph.ValidateEntityStateContract(request.Entity); validationErr != nil {
 			observed <- fmt.Errorf("validate received entity: %w", validationErr)
-		} else if msg.Header.Get("X-CS-Forwarded-User") != "alice" {
-			observed <- fmt.Errorf("forwarded-user header: got %q", msg.Header.Get("X-CS-Forwarded-User"))
+		} else if len(request.Entity.Triples) != 0 {
+			observed <- fmt.Errorf("typed create entity carried embedded facts: %+v", request.Entity.Triples)
 		} else {
 			observed <- nil
 		}
-		_ = msg.Respond(successResponse)
+		response, _ := json.Marshal(graph.CreateEntityResponse{Outcome: graph.MutationApplied, Entity: request.Entity, KVRevision: 2, RequestID: request.RequestID, TraceID: request.TraceID})
+		_ = msg.Respond(response)
 	})
 	if err != nil {
 		t.Fatalf("subscribe mutation responder: %v", err)
 	}
 
-	entityID := "acme.ops.robotics.gcs.system.child"
-	parentID := "acme.ops.robotics.gcs.system.parent"
-	stateResponse, err := json.Marshal(graph.EntityState{
+	cfg := DefaultConfig()
+	entityID := cfg.SystemIDPrefix + ".child"
+	parentID := cfg.SystemIDPrefix + ".parent"
+	state := graph.EntityState{
 		ID: entityID,
 		Triples: []message.Triple{{
 			Subject: entityID, Predicate: sensorml.PredIsHostedBy,
 			Object: parentID, Datatype: message.EntityReferenceDatatype,
 		}},
-	})
+	}
+	stateResponse, err := json.Marshal(graph.ExactEntity{Entity: &state, KVRevision: 2})
 	if err != nil {
 		t.Fatalf("marshal query response: %v", err)
 	}
@@ -94,7 +95,7 @@ func TestRealNATSEntityMutationCarriesCanonicalFinalState(t *testing.T) {
 
 	client := connectSemStreamsClient(t, server.ClientURL())
 
-	config := DefaultConfig()
+	config := cfg
 	config.QueryTimeout = 2 * time.Second
 	component, err := New(config, client, nil)
 	if err != nil {
@@ -123,12 +124,12 @@ func TestRealNATSEntityMutationCarriesCanonicalFinalState(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	state, err := component.fetchEntity(context.Background(), entityID)
+	fetched, err := component.fetchEntity(context.Background(), entityID)
 	if err != nil {
 		t.Fatalf("real-NATS query: %v", err)
 	}
-	if state.ID != entityID || len(state.Triples) != 1 || state.Triples[0].Datatype != message.EntityReferenceDatatype {
-		t.Fatalf("queried entity lost canonical relationship state: %+v", state)
+	if fetched.ID != entityID || len(fetched.Triples) != 1 || fetched.Triples[0].Datatype != message.EntityReferenceDatatype {
+		t.Fatalf("queried entity lost canonical relationship state: %+v", fetched)
 	}
 	_, err = component.fetchEntity(context.Background(), "acme.ops.robotics.gcs.system.missing")
 	if !errors.Is(err, errEntityNotFound) {

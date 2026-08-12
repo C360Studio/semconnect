@@ -32,7 +32,7 @@ import (
 // gate) but not required (the path is authoritative).
 //
 // Implementation: read the existing entity, merge body fields onto
-// its triple set, then replace through graph.mutation.entity.update_with_triples.
+// its triple set, then reconcile the owned representation at the exact revision.
 //
 // **No `properties.geometry: null` support** — RFC 7396 says null
 // removes the field, but CS API spec doesn't explicitly require
@@ -88,7 +88,7 @@ func (c *Component) handleSystemPatch(w http.ResponseWriter, r *http.Request) {
 
 	identity := IdentityFrom(r.Context())
 
-	existing, err := c.fetchEntity(r.Context(), pathID)
+	exact, err := c.fetchEntityExact(r.Context(), pathID)
 	if err != nil {
 		// 404 surfaces through the normal classifier — PATCH against
 		// a non-existent entity is a client error, not an upsert
@@ -97,6 +97,7 @@ func (c *Component) handleSystemPatch(w http.ResponseWriter, r *http.Request) {
 		c.writeBackendError(w, err)
 		return
 	}
+	existing := *exact.Entity
 
 	// If the body specifies a uid, it MUST match the entity's
 	// preserved uid (framework uid triple). Two cases:
@@ -129,7 +130,7 @@ func (c *Component) handleSystemPatch(w http.ResponseWriter, r *http.Request) {
 
 	merged := mergePatchSystemTriples(pathID, existing.Triples, feat)
 
-	if err := c.replaceEntityTriples(r.Context(), existing, merged, identity); err != nil {
+	if err := c.replaceEntityTriples(r.Context(), exact, merged, identity); err != nil {
 		c.writeBackendError(w, err)
 		return
 	}

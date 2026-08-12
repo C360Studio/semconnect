@@ -1,23 +1,23 @@
 # Semstreams Upstream Asks
 
 This directory tracks framework asks that surfaced while implementing the CS
-API gateway in semconnect. ADR-S003 changes the ownership boundary: graph,
-NATS, JetStream, ObjectStore, ownership, and projection gaps remain SemStreams
+API gateway in semconnect. ADR-S003 changes the product boundary: graph,
+NATS, JetStream, ObjectStore, and projection gaps remain SemStreams
 asks, while OMS, SensorML, SWE Common, SOSA/SWE, CS API vocabulary, and related
 OGC package work is semconnect-owned. Keep asks short and actionable; retain
 resolved or transferred history without presenting it as an upstream blocker.
 
 ## Open asks
 
-No SemStreams framework ask currently blocks the beta.159 dependency pin.
-Exact alignment, fresh-update `GRAPH_STATUS` readiness, the bounded
-observations stream, live mutation/dedup/no-op regression, full Go
-test/race/vet/build, focused upstream, clean-volume Compose persistence, and
+No SemStreams framework ask currently blocks the beta.160 implementation.
+Exact pin, typed mutation, revision fencing, local projection, root-only
+SensorML, immutable artifact, full Go/live-NATS, fresh-volume restart, and
 unchanged external `137/0/0` gates pass. Independent review found no
-legacy/compatibility code or conformance weakening. Beta.153 remains a
-qualified historical baseline. The beta.159 greenfield bundle is
-production-ready for standard Compose on clean NATS, makes no in-place
-beta.153 volume claim, and has no runtime-unused manifest approval gate.
+compatibility code or conformance weakening. Beta.159 remains historical.
+No upstream gap blocks production. The product owner authorized **GO WITH
+ACCEPTED RISK** on 2026-08-12 despite the unavailable beta.159 rollback proof.
+Rollback isolation remains unproven and explicitly waived; the fresh-volume
+boundary remains mandatory.
 
 Transferred product-boundary history:
 
@@ -48,9 +48,9 @@ Common Phase 2, remains deferred and is not part of the dependency migration.
   from the current wire contract. semconnect now branches on classified NATS
   replies and reads mutation/query failure codes from `*errs.ClassifiedError`
   instead of legacy response-body `Success`, `Error`, or `ErrorCode` fields.
-- `v1.0.0-beta.111`: ADR-056 ownership/projection substrate plus the shared
-  projection-normalization seam now covers mutation-lane writes. semconnect
-  uses this for SensorML System projections by stamping the
+- `v1.0.0-beta.111` (historical): ADR-056 ownership/projection substrate plus
+  the shared projection-normalization seam covered mutation-lane writes.
+  Semconnect used it for SensorML System projections by stamping the
   `c360.csapi.system.v1` producer, forwarding child foreign-edge triples, and
   binding a `NoBirthStub` `sensorml.PredIsHostedBy` foreign-edge claim for its
   configured System ID prefix. SemStreams classifies unclaimed foreign edges in
@@ -96,9 +96,10 @@ Common Phase 2, remains deferred and is not part of the dependency migration.
   real NATS-backed harness.
 - Keep `conformance/nats.conf` for local server limits; semstreams now
   validates/warns, but the harness still owns the NATS server config.
-- Track SemStreams ADR-056 follow-ups for hard foreign-edge rejection,
-  pending-edge buffering, owner-token write leases, and projection-contract
-  boot binding before documenting graph ownership as hard enforcement.
-- Keep the user-facing distinction clear: ownership claims live in the
-  SemStreams ownership substrate, while entity triples may still describe
-  provenance such as referential-stub materialization (`core.identity.stub_owner`).
+- Keep beta.111 ownership and foreign-edge behavior documented as historical.
+  Beta.160 removes the ownership binding used by semconnect; the current
+  gateway validates local resource projection contracts and drops embedded
+  SensorML foreign-subject facts before typed create.
+- Track orphan schema artifact garbage collection as a semconnect product
+  follow-up. Beta.160 intentionally creates immutable digest artifacts and
+  performs no migration-time scan or delete.

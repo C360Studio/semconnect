@@ -10,9 +10,9 @@ name: semconnect-conformance
 
 services:
   nats:
-    image: nats:2.10-alpine
+    image: nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66
     # Stage 9 — config file (not CLI flags) is required to set JetStream
-    # max_file_store / max_memory_store. nats-server 2.10's CLI exposes
+    # max_file_store / max_memory_store. The NATS CLI exposes
     # only -js / -sd / -m. Auto-sizing on a Docker-for-Mac VM under
     # image-cache pressure can compute a limit too small for the
     # framework's baseline streams, surfacing as
@@ -26,7 +26,7 @@ services:
       - nats-data:/data
       - ./nats.conf:/etc/nats/nats.conf:ro
     healthcheck:
-      # nats:2.10-alpine includes busybox wget; -m 8222 enables the
+      # nats:2.14.4-alpine includes busybox wget; -m 8222 enables the
       # /healthz monitoring endpoint.
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8222/healthz || exit 1"]
       interval: 5s
@@ -41,7 +41,7 @@ services:
       - "${NATS_MON_HOST_PORT:-8222}:8222"
 
   # Stage 9 — slim graph-only semstreams instance. Responds to the
-  # NATS subjects cs-api-server publishes to: graph.mutation.triple.*
+  # NATS subjects cs-api-server requests: graph.mutation.entity.*
   # (writes), graph.index.query.predicate (collection reads),
   # graph.query.entity (single-entity reads), graph.spatial.query.*
   # (GET /areas). Without this service every cs-api-server read or
@@ -88,10 +88,8 @@ services:
       # 9090 — the framework's Prometheus /metrics endpoint. `cmd/semstreams`
       # auto-injects a `metrics` service at boot (ensureMetricsConfig, port
       # 9090) even when the config file omits it, so this endpoint is always
-      # live. The Stage 56 foreign-edge bake in run.sh scrapes
-      # semstreams_graph_ingest_foreign_edge_unclaimed_total here. (Inter-service
-      # traffic on the compose network ignores `expose`, which is informational —
-      # this documents the dependency for the human reading the harness.)
+      # live for private-network diagnostics. Inter-service traffic on the
+      # compose network ignores `expose`, which is informational.
       - "9090"
 
   cs-api-server:

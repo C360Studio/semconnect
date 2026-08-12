@@ -1,0 +1,62 @@
+{
+  "recordType": "semstreams-beta160-technical-writer-closeout",
+  "recordedAt": "2026-08-12T13:34:34Z",
+  "status": "complete-with-accepted-risk-go",
+  "completedTasks": ["8.5", "9.1", "9.2", "10.4"],
+  "documentsUpdated": [
+    "README.md",
+    "AGENTS.md",
+    "docs/000-getting-started.md",
+    "docs/adr/003-semstreams-beta147-product-boundary-migration.md",
+    "docs/adr/004-semstreams-beta160-typed-graph-migration.md",
+    "docs/semstreams-beta160-operations.md",
+    "deploy/README.md",
+    "conformance/README.md",
+    "docs/upstream-asks/README.md",
+    "openspec/changes/migrate-semstreams-beta160/tasks.md"
+  ],
+  "documentedContracts": [
+    "exact beta.160 commit and source tree",
+    "exact NATS 2.14.4 image and nats.go alignment",
+    "typed one-attempt mutation and exact-revision concurrency",
+    "HTTP 409 conflict and HTTP 503 commit uncertainty behavior",
+    "structured gateway mutation audit without custom mutation-wire identity headers",
+    "root-only SensorML projection and no embedded-child materialization",
+    "immutable content-addressed schema artifacts and deferred orphan garbage collection",
+    "new-volume-only startup and full same-version persistence restart evidence",
+    "external 137 passed, 0 failed, 0 skipped result and strict root-only bake",
+    "explicit product-owner accepted-risk production decision with rollback isolation waived, not proven"
+  ],
+  "verification": [
+    {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"},
+    {"command": "jq -e on beta.160 top-level evidence JSON", "result": "pass"},
+    {"command": "relative Markdown link audit on current documents", "result": "pass"},
+    {"command": "markdown line-length audit on new and rewritten current documents", "result": "pass"},
+    {"command": "go test ./deploy ./conformance -count=1", "result": "pass with isolated writable Go build cache"},
+    {"command": "git diff --check", "result": "pass"}
+  ],
+  "releaseDecision": "GO WITH ACCEPTED RISK",
+  "completedOperationalTasks": ["9.3", "9.4", "10.1", "10.2", "10.3", "10.4"],
+  "authoritativePersistenceEvidence": "persistence-r5",
+  "historicalPartialPersistenceEvidence": "persistence-r3",
+  "persistenceCloseout": {
+    "volume": "semconnect-beta160-qualification-20260812-r5",
+    "beforeAndAfterSha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+    "byteIdentical": true,
+    "readinessBefore": "target/indexed 3/3",
+    "readinessAfter": "target/indexed 3/3",
+    "covers": ["System", "Datastream", "schema", "global Observation", "scoped Observation"]
+  },
+  "waivedUnprovenTask": "9.5",
+  "productOwnerDecision": "product-owner-release-decision.json",
+  "residualRisks": [
+    "No preserved beta.159 rollback deployment and volume was available locally for isolation proof."
+  ],
+  "mandatoryGuardrails": [
+    "fresh beta.160 volume only",
+    "never open storage across beta.159 and beta.160",
+    "retain evidence and verify authoritative reseed, configuration, metadata, and product-data backups before writes",
+    "poll readiness, health, CS API probes, observations, and artifacts every 30-60 seconds through cutover and for at least 60 minutes after traffic begins",
+    "abort and preserve beta.160 evidence/state, then use forward repair or a clean beta.160 rebuild when a guardrail fails"
+  ]
+}

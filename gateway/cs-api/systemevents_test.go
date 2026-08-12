@@ -191,7 +191,7 @@ func TestHandleSystemScopedEventPost_JSON(t *testing.T) {
 	if loc := rr.Header().Get("Location"); !strings.HasPrefix(loc, "/systemEvents/"+c.cfg.SystemEventIDPrefix+".") {
 		t.Errorf("Location: got %q", loc)
 	}
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode batch: %v", err)
 	}

@@ -252,8 +252,9 @@ func TestHandleDatastreamDelete_GoldenPath(t *testing.T) {
 // Observation subject purge still runs so the final state is clean for
 // that id.
 func TestHandleDatastreamDelete_NotFound_Idempotent(t *testing.T) {
+	notFoundBody, notFoundHeader := encodeEntityMutationFailure(t, graph.ErrorCodeEntityNotFound, "not found")
 	fake := &crdFakeRequester{
-		removeReply: encodeRemoveOK(t),
+		entityReply: notFoundBody, entityHeader: notFoundHeader,
 	}
 	c := newComponentWithRequester(t, fake)
 	cleaner := &fakeStreamCleaner{}
@@ -267,8 +268,8 @@ func TestHandleDatastreamDelete_NotFound_Idempotent(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204 (idempotent); body=%s", rr.Code, rr.Body.String())
 	}
-	if len(fake.deleteCalls) != 1 {
-		t.Errorf("delete should still be called for idempotent delete; got %d calls", len(fake.deleteCalls))
+	if len(fake.deleteCalls) != 0 {
+		t.Errorf("missing entity must not send delete; got %d calls", len(fake.deleteCalls))
 	}
 	if cleaner.calls != 1 {
 		t.Errorf("observation purge calls: got %d want 1", cleaner.calls)
@@ -321,10 +322,10 @@ func TestHandleDatastreamDelete_ObservationPurgeTransient(t *testing.T) {
 }
 
 // TestDeleteDatastream_AuditHeadersSymmetric — destructive deletes for
-// datastream entities carry the same audit headers as POST.
-func TestDeleteDatastream_AuditHeadersSymmetric(t *testing.T) {
+// datastream entity mutations do not carry gateway-local identity headers.
+func TestDeleteDatastream_DoesNotPropagateCustomMutationHeaders(t *testing.T) {
 	fake := &crdFakeRequester{
-		removeReply: encodeRemoveOK(t),
+		entityReply: mustMarshal(t, existingDatastreamState(testDatastreamID)),
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -332,8 +333,8 @@ func TestDeleteDatastream_AuditHeadersSymmetric(t *testing.T) {
 	if err := c.deleteEntity(context.Background(), testDatastreamID, identity); err != nil {
 		t.Fatalf("deleteEntity: %v", err)
 	}
-	if got := fake.deleteHeaders["X-CS-Forwarded-User"]; got != "alice" {
-		t.Errorf("X-CS-Forwarded-User on delete: got %q want alice (headers=%+v)", got, fake.deleteHeaders)
+	if len(fake.deleteHeaders) != 0 {
+		t.Errorf("typed delete unexpectedly carried custom headers: %+v", fake.deleteHeaders)
 	}
 }
 

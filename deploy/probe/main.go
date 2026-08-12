@@ -16,13 +16,17 @@ import (
 )
 
 const (
-	defaultBaseURL = "http://semconnect:8080"
-	defaultNATSURL = "http://nats:8222"
-	fixturePath    = "/fixtures/canonical-system.v1.json"
-	expectedID     = "c360.semconnect.systems.csapi.system.v1"
-	expectedUID    = "urn:c360:semconnect:deployment-smoke:system:v1"
-	probeLimit     = 45 * time.Second
-	retryInterval  = 500 * time.Millisecond
+	defaultBaseURL         = "http://semconnect:8080"
+	defaultNATSURL         = "http://nats:8222"
+	systemFixturePath      = "/fixtures/canonical-system.v1.json"
+	datastreamFixturePath  = "/fixtures/canonical-datastream.v1.json"
+	observationFixturePath = "/fixtures/canonical-observation.v1.json"
+	expectedSystemID       = "c360.semconnect.systems.csapi.system.v1"
+	expectedSystemUID      = "urn:c360:semconnect:deployment-smoke:system:v1"
+	expectedDatastreamID   = "c360.semconnect.systems.csapi.datastream.v1"
+	expectedObservationID  = "deployment-smoke-observation-v1"
+	probeLimit             = 45 * time.Second
+	retryInterval          = 500 * time.Millisecond
 )
 
 type systemCollection struct {
@@ -44,10 +48,34 @@ type systemResource struct {
 }
 
 type result struct {
-	EntityID       string `json:"entityId"`
-	ItemSHA256     string `json:"itemSha256"`
-	NumberMatched  int    `json:"numberMatched"`
-	NumberReturned int    `json:"numberReturned"`
+	SystemID                string `json:"systemId"`
+	SystemSHA256            string `json:"systemSha256"`
+	SystemNumberMatched     int    `json:"systemNumberMatched"`
+	SystemNumberReturned    int    `json:"systemNumberReturned"`
+	DatastreamID            string `json:"datastreamId"`
+	DatastreamSHA256        string `json:"datastreamSha256"`
+	SchemaSHA256            string `json:"schemaSha256"`
+	ObservationID           string `json:"observationId"`
+	GlobalObservationSHA256 string `json:"globalObservationSha256"`
+	ScopedObservationSHA256 string `json:"scopedObservationSha256"`
+	GlobalNumberReturned    int    `json:"globalNumberReturned"`
+	ScopedNumberReturned    int    `json:"scopedNumberReturned"`
+}
+
+type datastreamResource struct {
+	ID       string `json:"id"`
+	SystemID string `json:"system@id"`
+}
+
+type observationCollection struct {
+	NumberMatched  int               `json:"numberMatched"`
+	NumberReturned int               `json:"numberReturned"`
+	Items          []json.RawMessage `json:"items"`
+}
+
+type observationResource struct {
+	ID           string `json:"id"`
+	DatastreamID string `json:"datastream@id"`
 }
 
 type jetStreamResponse struct {
@@ -205,11 +233,23 @@ func waitHealthy(ctx context.Context, client *http.Client, baseURL string) error
 }
 
 func seed(ctx context.Context, client *http.Client, baseURL string) error {
-	body, err := os.ReadFile(fixturePath)
+	systemBody, err := os.ReadFile(systemFixturePath)
 	if err != nil {
-		return fmt.Errorf("read canonical fixture: %w", err)
+		return fmt.Errorf("read canonical System fixture: %w", err)
 	}
-	resp, err := do(ctx, client, http.MethodPost, baseURL+"/systems", body, "application/geo+json")
+	datastreamBody, err := os.ReadFile(datastreamFixturePath)
+	if err != nil {
+		return fmt.Errorf("read canonical Datastream fixture: %w", err)
+	}
+	observationBody, err := os.ReadFile(observationFixturePath)
+	if err != nil {
+		return fmt.Errorf("read canonical Observation fixture: %w", err)
+	}
+	return seedFixtures(ctx, client, baseURL, systemBody, datastreamBody, observationBody)
+}
+
+func seedFixtures(ctx context.Context, client *http.Client, baseURL string, systemBody, datastreamBody, observationBody []byte) error {
+	resp, err := do(ctx, client, http.MethodPost, baseURL+"/systems", systemBody, "application/geo+json")
 	if err != nil {
 		return fmt.Errorf("seed canonical system: %w", err)
 	}
@@ -218,8 +258,36 @@ func seed(ctx context.Context, client *http.Client, baseURL string) error {
 		responseBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 		return fmt.Errorf("seed canonical system: status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
 	}
-	if got := resp.Header.Get("Location"); got != "/systems/"+expectedID {
-		return fmt.Errorf("seed Location %q, want /systems/%s", got, expectedID)
+	if got := resp.Header.Get("Location"); got != "/systems/"+expectedSystemID {
+		return fmt.Errorf("seed System Location %q, want /systems/%s", got, expectedSystemID)
+	}
+
+	resp, err = do(ctx, client, http.MethodPost, baseURL+"/datastreams", datastreamBody, "application/json")
+	if err != nil {
+		return fmt.Errorf("seed canonical Datastream: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		responseBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("seed canonical Datastream: status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
+	}
+	if got := resp.Header.Get("Location"); got != "/datastreams/"+expectedDatastreamID {
+		return fmt.Errorf("seed Datastream Location %q, want /datastreams/%s", got, expectedDatastreamID)
+	}
+
+	observationPath := "/datastreams/" + expectedDatastreamID + "/observations"
+	resp, err = do(ctx, client, http.MethodPost, baseURL+observationPath, observationBody, "application/om+json")
+	if err != nil {
+		return fmt.Errorf("seed canonical Observation: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusCreated {
+		responseBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("seed canonical Observation: status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
+	}
+	wantLocation := observationPath + "/" + expectedObservationID
+	if got := resp.Header.Get("Location"); got != wantLocation {
+		return fmt.Errorf("seed Observation Location %q, want %s", got, wantLocation)
 	}
 	return nil
 }
@@ -235,24 +303,57 @@ func waitForProof(ctx context.Context, client *http.Client, baseURL string) (res
 			return fmt.Errorf("system counts not ready: matched=%d returned=%d items=%d",
 				collection.NumberMatched, collection.NumberReturned, len(collection.Items))
 		}
-		if collection.Items[0].ID != expectedID {
-			return fmt.Errorf("system id %q, want %q", collection.Items[0].ID, expectedID)
+		if collection.Items[0].ID != expectedSystemID {
+			return fmt.Errorf("system id %q, want %q", collection.Items[0].ID, expectedSystemID)
 		}
 
 		itemBody, item, err := getItem(ctx, client, baseURL)
 		if err != nil {
 			return err
 		}
-		if item.ID != expectedID || item.UID != expectedUID || item.Properties.UID != expectedUID {
+		if item.ID != expectedSystemID || item.UID != expectedSystemUID || item.Properties.UID != expectedSystemUID {
 			return fmt.Errorf("canonical item mismatch: id=%q uid=%q properties.uid=%q",
 				item.ID, item.UID, item.Properties.UID)
 		}
-		sum := sha256.Sum256(itemBody)
+		datastreamBody, err := getCanonicalJSON(ctx, client, baseURL+"/datastreams/"+expectedDatastreamID)
+		if err != nil {
+			return err
+		}
+		var datastream datastreamResource
+		if err := json.Unmarshal(datastreamBody, &datastream); err != nil {
+			return fmt.Errorf("decode Datastream: %w", err)
+		}
+		if datastream.ID != expectedDatastreamID || datastream.SystemID != expectedSystemID {
+			return fmt.Errorf("canonical Datastream mismatch: id=%q system@id=%q", datastream.ID, datastream.SystemID)
+		}
+		schemaBody, err := getCanonicalJSON(ctx, client, baseURL+"/datastreams/"+expectedDatastreamID+"/schema")
+		if err != nil {
+			return err
+		}
+		global, err := getObservationCollection(ctx, client, baseURL+"/observations?limit=10")
+		if err != nil {
+			return err
+		}
+		scoped, err := getObservationCollection(ctx, client,
+			baseURL+"/datastreams/"+expectedDatastreamID+"/observations?limit=10")
+		if err != nil {
+			return err
+		}
+		globalItem, err := requireCanonicalObservation(global)
+		if err != nil {
+			return fmt.Errorf("global observations: %w", err)
+		}
+		scopedItem, err := requireCanonicalObservation(scoped)
+		if err != nil {
+			return fmt.Errorf("scoped observations: %w", err)
+		}
 		proof = result{
-			EntityID:       expectedID,
-			ItemSHA256:     hex.EncodeToString(sum[:]),
-			NumberMatched:  collection.NumberMatched,
-			NumberReturned: collection.NumberReturned,
+			SystemID: expectedSystemID, SystemSHA256: digestBytes(itemBody),
+			SystemNumberMatched: collection.NumberMatched, SystemNumberReturned: collection.NumberReturned,
+			DatastreamID: expectedDatastreamID, DatastreamSHA256: digestBytes(datastreamBody),
+			SchemaSHA256: digestBytes(schemaBody), ObservationID: expectedObservationID,
+			GlobalObservationSHA256: digestBytes(globalItem), ScopedObservationSHA256: digestBytes(scopedItem),
+			GlobalNumberReturned: global.NumberReturned, ScopedNumberReturned: scoped.NumberReturned,
 		}
 		return nil
 	})
@@ -277,7 +378,7 @@ func getCollection(ctx context.Context, client *http.Client, baseURL string) (sy
 
 func getItem(ctx context.Context, client *http.Client, baseURL string) ([]byte, systemResource, error) {
 	var item systemResource
-	resp, err := do(ctx, client, http.MethodGet, baseURL+"/systems/"+expectedID, nil, "")
+	resp, err := do(ctx, client, http.MethodGet, baseURL+"/systems/"+expectedSystemID, nil, "")
 	if err != nil {
 		return nil, item, err
 	}
@@ -301,6 +402,64 @@ func getItem(ctx context.Context, client *http.Client, baseURL string) ([]byte, 
 		return nil, item, fmt.Errorf("decode normalized system item: %w", err)
 	}
 	return canonical, item, nil
+}
+
+func getCanonicalJSON(ctx context.Context, client *http.Client, url string) ([]byte, error) {
+	resp, err := do(ctx, client, http.MethodGet, url, nil, "")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return nil, fmt.Errorf("GET %s status %d: %s", url, resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	var normalized any
+	if err := json.NewDecoder(resp.Body).Decode(&normalized); err != nil {
+		return nil, fmt.Errorf("decode GET %s: %w", url, err)
+	}
+	canonical, err := json.Marshal(normalized)
+	if err != nil {
+		return nil, fmt.Errorf("normalize GET %s: %w", url, err)
+	}
+	return canonical, nil
+}
+
+func getObservationCollection(ctx context.Context, client *http.Client, url string) (observationCollection, error) {
+	body, err := getCanonicalJSON(ctx, client, url)
+	if err != nil {
+		return observationCollection{}, err
+	}
+	var collection observationCollection
+	if err := json.Unmarshal(body, &collection); err != nil {
+		return collection, fmt.Errorf("decode ObservationCollection: %w", err)
+	}
+	return collection, nil
+}
+
+func requireCanonicalObservation(collection observationCollection) ([]byte, error) {
+	if collection.NumberMatched != 1 || collection.NumberReturned != 1 || len(collection.Items) != 1 {
+		return nil, fmt.Errorf("counts not ready: matched=%d returned=%d items=%d",
+			collection.NumberMatched, collection.NumberReturned, len(collection.Items))
+	}
+	var observation observationResource
+	if err := json.Unmarshal(collection.Items[0], &observation); err != nil {
+		return nil, fmt.Errorf("decode canonical Observation: %w", err)
+	}
+	if observation.ID != expectedObservationID || observation.DatastreamID != expectedDatastreamID {
+		return nil, fmt.Errorf("canonical Observation mismatch: id=%q datastream@id=%q",
+			observation.ID, observation.DatastreamID)
+	}
+	var normalized any
+	if err := json.Unmarshal(collection.Items[0], &normalized); err != nil {
+		return nil, err
+	}
+	return json.Marshal(normalized)
+}
+
+func digestBytes(body []byte) string {
+	sum := sha256.Sum256(body)
+	return hex.EncodeToString(sum[:])
 }
 
 func do(

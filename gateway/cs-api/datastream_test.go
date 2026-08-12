@@ -3,6 +3,7 @@ package csapi
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -40,12 +41,7 @@ func encodeDatastreamEntityStateWithTimes(t *testing.T, id, name, system, obsPro
 	if resultTime != "" {
 		triples = append(triples, message.Triple{Subject: id, Predicate: predDatastreamResultTime, Object: resultTime})
 	}
-	state := graph.EntityState{ID: id, Triples: triples}
-	out, err := json.Marshal(state)
-	if err != nil {
-		t.Fatalf("encode datastream entity state: %v", err)
-	}
-	return out
+	return encodeEntityState(t, graph.EntityState{ID: id, Triples: triples})
 }
 
 func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsProp, artifactID string) []byte {
@@ -57,12 +53,7 @@ func encodeDatastreamEntityStateWithSchema(t *testing.T, id, name, system, obsPr
 		{Subject: id, Predicate: csapivocab.ObservedProperty, Object: obsProp},
 		{Subject: id, Predicate: PredDatastreamSchema, Object: artifactID, Datatype: message.EntityReferenceDatatype},
 	}
-	state := graph.EntityState{ID: id, Triples: triples}
-	out, err := json.Marshal(state)
-	if err != nil {
-		t.Fatalf("encode datastream schema entity state: %v", err)
-	}
-	return out
+	return encodeEntityState(t, graph.EntityState{ID: id, Triples: triples})
 }
 
 const testSWEDataRecordSchema = `{"type":"DataRecord","fields":[{"name":"time","type":"Time"},{"name":"temperature","type":"Quantity","uomCode":"Cel"}]}`
@@ -89,25 +80,26 @@ func seedSchemaArtifact(t *testing.T, c *Component, store *fakeSchemaObjectStore
 			{Subject: artifactID, Predicate: sensorml.PredType, Object: csapivocab.SWESchemaDocument},
 		},
 		StorageRef: &message.StorageReference{
-			StorageInstance: c.cfg.SchemaArtifactsBucket,
+			StorageInstance: schemaArtifactStorageInstance,
 			Key:             key,
 			ContentType:     schemaArtifactContentType,
 			Size:            int64(len(canonical)),
 		},
 	}
-	out, err := json.Marshal(state)
-	if err != nil {
-		t.Fatalf("encode schema artifact entity state: %v", err)
-	}
-	return out
+	return encodeEntityState(t, state)
 }
 
 func schemaArtifactIDForTest(c *Component, parentID, relationshipPredicate string) string {
-	role, err := schemaArtifactRole(relationshipPredicate)
-	if err != nil {
-		panic(fmt.Sprintf("test schema relationship: %v", err))
+	_ = parentID
+	var raw json.RawMessage = json.RawMessage(testSWEDataRecordSchema)
+	if relationshipPredicate == predControlStreamSchema {
+		raw = testCommandParametersSchema()
 	}
-	return c.mintSchemaArtifactEntityID(parentID, role)
+	canonical, err := normalizeSWESchema(raw)
+	if err != nil {
+		panic(fmt.Sprintf("test schema canonicalization: %v", err))
+	}
+	return c.contentAddressedSchemaArtifactID(sha256.Sum256(canonical))
 }
 
 // TestHandleDatastreams_GoldenPath pins the list shape for a populated
@@ -397,7 +389,7 @@ func TestHandleDatastreamPost_GoldenPath(t *testing.T) {
 
 	// Wire-shape: every triple Subject should be the minted entity ID,
 	// and the triple list should contain rdf:type → DatastreamTypeIRI.
-	var sent graph.AddTriplesBatchRequest
+	var sent graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode published body: %v", err)
 	}
@@ -465,7 +457,7 @@ func TestHandleDatastreamPost_StoresSchema(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201 (body=%s)", rr.Code, rr.Body.String())
 	}
-	var sent graph.AddTriplesBatchRequest
+	var sent graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &sent); err != nil {
 		t.Fatalf("decode published body: %v", err)
 	}

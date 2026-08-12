@@ -1,0 +1,14 @@
+{
+  "id": "c360.semconnect.systems.csapi.datastream.v1",
+  "name": "Greenfield deployment smoke temperature",
+  "description": "Schema-backed Datastream used only to prove restart persistence.",
+  "system": "c360.semconnect.systems.csapi.system.v1",
+  "observedProperty": "https://example.org/properties/deployment-smoke-temperature",
+  "schema": {
+    "type": "DataRecord",
+    "fields": [
+      {"name": "time", "type": "Time"},
+      {"name": "temperature", "type": "Quantity", "uomCode": "Cel"}
+    ]
+  }
+}

@@ -2534,7 +2534,16 @@ components:
     ServiceUnavailable:
       description: |-
         Transient backend error — NATS unreachable, JetStream
-        responder absent, request/reply timeout.
+        responder absent, or request/reply failure. For a typed graph mutation
+        whose commit outcome cannot be established, the uncertainty headers
+        are present and the client must verify state before retrying.
+      headers:
+        X-CS-Commit-Uncertain:
+          description: "true only when a graph mutation may have committed."
+          schema: {type: boolean, enum: [true]}
+        X-CS-Correlation-ID:
+          description: Mutation request ID used to correlate audit evidence before retry.
+          schema: {type: string, minLength: 1}
       content:
         application/json:
           schema: {$ref: "#/components/schemas/ErrorResponse"}

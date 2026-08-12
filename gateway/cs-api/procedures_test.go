@@ -314,7 +314,7 @@ func TestHandleProcedurePost_Feature_GoldenPath(t *testing.T) {
 	// Pin that the publish batch carries sosa.Procedure (not SSNSystem)
 	// as the rdf:type triple — collisions with /systems would be very
 	// confusing.
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	if err := json.Unmarshal(fake.gotBody, &batch); err != nil {
 		t.Fatalf("decode publish body: %v", err)
 	}
@@ -368,13 +368,34 @@ func TestHandleProcedurePost_Sensorml(t *testing.T) {
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("status: got %d want 201; body=%s", rr.Code, rr.Body.String())
 	}
-	var batch graph.AddTriplesBatchRequest
+	var batch graph.CreateEntityRequest
 	_ = json.Unmarshal(fake.gotBody, &batch)
 	for _, tr := range batch.Triples {
 		if tr.Predicate == sensorml.PredType {
 			if s, ok := tr.Object.(string); ok && s != sosa.Procedure {
 				t.Errorf("rdf:type should be overridden to sosa.Procedure; got %q", s)
 			}
+		}
+	}
+}
+
+func TestBuildProcedureTriplesFromSensorML_RootFiltersEmbeddedComponents(t *testing.T) {
+	c := newTestComponent(t, &fakeRequester{status: natsclient.StatusConnected})
+	entityID, triples, err := c.buildProcedureTriplesFromSensorML(
+		sensorMLWithComponent("urn:example:proc:root-only", "Root procedure", "camera"),
+	)
+	if err != nil {
+		t.Fatalf("buildProcedureTriplesFromSensorML: %v", err)
+	}
+	if len(triples) == 0 {
+		t.Fatal("root procedure emitted no triples")
+	}
+	for _, triple := range triples {
+		if triple.Subject != entityID {
+			t.Fatalf("embedded component leaked into authoritative projection: %+v", triple)
+		}
+		if triple.Predicate == sensorml.PredLabel && triple.Object == "Camera" {
+			t.Fatalf("embedded component label leaked into root projection: %+v", triple)
 		}
 	}
 }

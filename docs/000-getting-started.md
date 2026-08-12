@@ -26,18 +26,18 @@ Beta.151 then passed its authoritative post-review fresh-volume `137/0/0` run,
 retained-state, normal-SIGTERM, readiness, no-write replay, and foreign-edge
 gates. It remains qualified historical evidence.
 
-Beta.153 subsequently qualified graph-ingest bug/performance fixes and remains
-the qualified historical dependency baseline. The active OpenSpec change,
-`openspec/changes/qualify-semstreams-beta159/`, qualifies beta.159's breaking
-readiness distribution and ordinary-stream capacity contract. Exact alignment,
-fresh-update `GRAPH_STATUS` readiness, a bounded 1 GiB/30-day observations
-stream, live graph mutation/dedup/no-op regression, full Go test/race/vet/build,
-focused upstream race gates, clean-volume Compose persistence, and unchanged
-external `137/0/0` all pass. Independent review found no compatibility code or
-conformance weakening. Frontend/Svelte is N/A because the public CS API and UI
-did not change. The beta.159 Compose bundle is production-ready for standard
-startup on clean NATS; it makes no in-place beta.153 volume claim and requires
-no runtime manifest or product-owner hash approval.
+Beta.153 and beta.159 subsequently qualified additional graph and operational
+behavior and remain historical dependency baselines. The active OpenSpec
+change, `openspec/changes/migrate-semstreams-beta160/`, records the breaking
+beta.160 typed graph migration. The exact tag, typed revision-fenced mutation,
+local projection, root-only SensorML, immutable artifact, full Go/live-NATS,
+full persistence restart parity, and unchanged external `137/0/0` gates pass. Independent
+review found no compatibility code or conformance weakening; frontend/Svelte
+is N/A. On 2026-08-12, the product owner authorized **GO WITH ACCEPTED RISK**
+despite the unavailable beta.159 rollback-isolation proof. That task is waived,
+not passed; beta.160 remains fresh-volume-only.
+See [the beta.160 operations guide](semstreams-beta160-operations.md) for the
+current runbook. Historical stage descriptions below are not rewritten.
 
 The framework half of [ADR-044](https://github.com/C360Studio/semstreams/blob/main/docs/adr/044-ogc-connected-systems-framework-split.md)
 (Phases 2-6) is complete and merged on `semstreams` main.

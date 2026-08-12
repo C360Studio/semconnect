@@ -111,7 +111,7 @@ func (c *Component) buildProcedureTriplesFromSensorML(body []byte) (string, []me
 	asset.ChildIDFn = func(localID string) string {
 		return mintNestedSensorMLEntityID(entityID, localID)
 	}
-	triples := asset.Triples()
+	triples := rootSubjectTriples(entityID, asset.Triples())
 	if len(triples) == 0 {
 		return entityID, nil, errors.New("SensorML process produced no representable triples")
 	}

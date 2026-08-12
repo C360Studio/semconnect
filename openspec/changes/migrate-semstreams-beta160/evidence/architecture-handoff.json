@@ -1,0 +1,98 @@
+{
+  "recordType": "semstreams-beta160-architecture-handoff",
+  "recordedAt": "2026-08-12",
+  "amendedAt": "2026-08-12",
+  "role": "architect",
+  "decision": "production-go-with-explicitly-accepted-rollback-risk",
+  "target": {
+    "version": "v1.0.0-beta.160",
+    "releaseCommit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+    "sourceTree": "9ed5dd3792bca63ce87ebf449a180add918f59ed",
+    "migrationGuide": "migration-beta159-to-beta160.md"
+  },
+  "bindingArtifacts": [
+    "docs/adr/004-semstreams-beta160-typed-graph-migration.md",
+    "openspec/changes/migrate-semstreams-beta160/proposal.md",
+    "openspec/changes/migrate-semstreams-beta160/design.md",
+    "openspec/changes/migrate-semstreams-beta160/tasks.md",
+    "openspec/changes/migrate-semstreams-beta160/specs/semstreams-beta160-migration/spec.md"
+  ],
+  "approvedRulings": {
+    "state": "newly-provisioned NATS storage only; no beta159 volume migration or compatibility path",
+    "mutation": "typed single-attempt create, exact-revision reconcile, and exact-revision delete",
+    "conflictHttpStatus": 409,
+    "hiddenRetry": false,
+    "commitUnknown": "HTTP 503 with uncertainty marker and correlation; verify before caller retry",
+    "reconcileAdapter": "local revision-fenced adapter using exported types and declared typed family",
+    "projection": "one local contract per resource family with stable valid message types",
+    "sensorML": "root entity only; foreign-subject inverse facts dropped; embedded child creation out of scope",
+    "schemaArtifacts": "immutable content-addressed artifacts; orphan garbage collection deferred",
+    "storageInstance": "objectstore",
+    "storageBucket": "CS_API_ARTIFACTS",
+    "audit": "structured gateway audit; no durable custom mutation-wire identity-header requirement",
+    "ports": "canonical closed beta160 declarations; no custom http or objectstore ports",
+    "nats": "align development, conformance, and deployment qualification to NATS 2.14"
+  },
+  "requiredGates": [
+    "failing-first exact read, batch missing, mutation outcome, and HTTP concurrency tests",
+    "resource projection, SensorML root-only, immutable artifact, and structured audit tests",
+    "exact release, Go toolchain, nats.go, backend, Compose, schema, and NATS alignment",
+    "full Go test, race, vet, module verification, build, and live-NATS verification",
+    "fresh-volume startup and same-beta160 no-write restart parity",
+    "unchanged external 137 passed, 0 failed, 0 skipped and independent no-weakening review"
+  ],
+  "notApplicable": [
+    "trajectories",
+    "tool discovery",
+    "agent-run milestones",
+    "metric server changes",
+    "GraphQL similarity search",
+    "aggregate graph clients",
+    "component status",
+    "context and structural persistence",
+    "frontend unless generated public types or UI behavior change"
+  ],
+  "deferred": [
+    "orphan schema artifact garbage collection",
+    "embedded SensorML child multi-entity creation"
+  ],
+  "riskAcceptance": {
+    "decision": "GO WITH ACCEPTED RISK",
+    "authorizedAt": "2026-08-12",
+    "authorizedBy": "product owner",
+    "statement": "roll back would have been nice but we have evidence that our 160 work is solid so let's proceed",
+    "waivedGate": {
+      "task": "9.5",
+      "status": "waived-by-explicit-risk-acceptance-not-complete",
+      "missingProof": "No preserved beta.159 deployment and volume was available to prove rollback isolation."
+    },
+    "technicalBasis": [
+      "independent Go approval with full Go and live-NATS verification",
+      "frontend approved not applicable",
+      "external conformance 137 passed, 0 failed, 0 skipped",
+      "independent no-weakening review",
+      "authoritative persistence-r5 fresh-start and full same-volume restart parity"
+    ],
+    "r5Evidence": {
+      "directory": "evidence/persistence-r5",
+      "volume": "semconnect-beta160-qualification-20260812-r5",
+      "targetRevisionBeforeAfter": 3,
+      "indexedRevisionBeforeAfter": 3,
+      "canonicalProofSha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+      "disposition": "preserve without overwrite"
+    },
+    "guardrails": [
+      "use a uniquely named newly provisioned beta.160 volume with zero-state preflight",
+      "never attach beta.159 state to beta.160 or beta.160 state to beta.159",
+      "verify backups of authoritative reseed inputs, rendered configuration, deployment metadata, and product data",
+      "restore only into newly provisioned beta.160 storage",
+      "poll authoritative readiness, revisions, CS API probes, observations, and artifact reads every 30-60 seconds",
+      "maintain heightened monitoring through cutover and at least 60 minutes after traffic begins",
+      "abort writes and traffic on retained state, version mismatch, failed probes, or storage error",
+      "abort on revision regression or stalled progress",
+      "preserve incident evidence and use forward repair or clean beta.160 rebuild instead of cross-version recovery"
+    ]
+  },
+  "blockers": [],
+  "runtimeEvidence": "Completed technical evidence supports GO; rollback task 9.5 remains waived and unproven."
+}

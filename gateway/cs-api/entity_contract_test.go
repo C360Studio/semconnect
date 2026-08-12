@@ -91,14 +91,16 @@ func TestConfigRejectsPrefixWithoutDigestBudget(t *testing.T) {
 }
 
 func TestAuthoritativeFinalStateValidationRejectsBeforeNATS(t *testing.T) {
-	entityID := "acme.ops.robotics.gcs.system.alpha"
+	entityID := DefaultConfig().SystemIDPrefix + ".alpha"
 	tests := []struct {
 		name   string
 		triple message.Triple
+		want   string
 	}{
 		{
 			name:   "invalid predicate",
 			triple: message.Triple{Subject: entityID, Predicate: "cs-api.system.camelCase", Object: "bad"},
+			want:   "predicate",
 		},
 		{
 			name: "invalid entity reference",
@@ -106,6 +108,7 @@ func TestAuthoritativeFinalStateValidationRejectsBeforeNATS(t *testing.T) {
 				Subject: entityID, Predicate: sensorml.PredIsHostedBy,
 				Object: "not-an-entity-id", Datatype: message.EntityReferenceDatatype,
 			},
+			want: "reference",
 		},
 		{
 			name: "non-string entity reference",
@@ -113,6 +116,7 @@ func TestAuthoritativeFinalStateValidationRejectsBeforeNATS(t *testing.T) {
 				Subject: entityID, Predicate: sensorml.PredIsHostedBy,
 				Object: 42, Datatype: message.EntityReferenceDatatype,
 			},
+			want: "reference",
 		},
 	}
 	for _, tt := range tests {
@@ -120,10 +124,13 @@ func TestAuthoritativeFinalStateValidationRejectsBeforeNATS(t *testing.T) {
 			fake := &fakeRequester{status: natsclient.StatusConnected}
 			component := newTestComponent(t, fake)
 			err := component.ingestProjectedTriples(
-				context.Background(), entityID, []message.Triple{tt.triple}, message.Type{}, Identity{},
+				context.Background(), entityID, []message.Triple{tt.triple}, systemProjectionMessageType, Identity{},
 			)
 			if err == nil || !errs.IsInvalid(err) {
 				t.Fatalf("ingestProjectedTriples(): got %v, want invalid error", err)
+			}
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("ingestProjectedTriples() error = %q, want %q validation", err, tt.want)
 			}
 			if fake.gotSubject != "" {
 				t.Fatalf("NATS request occurred for invalid final state: %q", fake.gotSubject)

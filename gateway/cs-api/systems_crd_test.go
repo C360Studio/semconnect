@@ -28,7 +28,7 @@ import (
 
 // crdFakeRequester is a multi-subject stub for the CRD flow:
 //   - subjectEntityQuery → return entityReply (or entityErr)
-//   - SubjectEntityUpdateWithTriples / SubjectEntityCreateWithTriples →
+//   - SubjectEntityReconcile / SubjectEntityCreate →
 //     return batchReply and capture batchBody
 //   - SubjectEntityDelete → return removeReply and capture deleteCalls
 type crdFakeRequester struct {
@@ -41,10 +41,10 @@ type crdFakeRequester struct {
 	removeErr    error
 	batchReply   []byte
 	batchErr     error
+	batchHeader  nats.Header
 
 	entityQueryCalls int
-	removeCalls      []graph.RemoveTripleRequest
-	removeHeaders    map[string]string
+	removeCalls      []struct{}
 	deleteCalls      []graph.DeleteEntityRequest
 	deleteHeaders    map[string]string
 	batchCount       int
@@ -60,7 +60,7 @@ func (f *crdFakeRequester) Request(_ context.Context, subj string, _ []byte, _ t
 		if f.entityErr != nil {
 			return nil, f.entityErr
 		}
-		return f.entityReply, nil
+		return ensureExactTestReply(f.entityReply), nil
 	}
 	return nil, errors.New("crdFakeRequester: unexpected Request subject " + subj)
 }
@@ -74,8 +74,8 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 		if f.entityErr != nil {
 			return nil, f.entityErr
 		}
-		return &nats.Msg{Data: f.entityReply, Header: f.entityHeader}, nil
-	case SubjectEntityCreateWithTriples, SubjectEntityUpdateWithTriples:
+		return &nats.Msg{Data: ensureExactTestReply(f.entityReply), Header: f.entityHeader}, nil
+	case SubjectEntityCreate, SubjectEntityReconcile:
 		f.batchCount++
 		f.batchBody = append([]byte(nil), data...)
 		if headers != nil {
@@ -87,7 +87,23 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 		if f.batchErr != nil {
 			return nil, f.batchErr
 		}
-		return &nats.Msg{Data: f.batchReply}, nil
+		if len(f.batchHeader) > 0 {
+			return &nats.Msg{Data: f.batchReply, Header: f.batchHeader}, nil
+		}
+		if subj == SubjectEntityCreate {
+			var request graph.CreateEntityRequest
+			if err := json.Unmarshal(data, &request); err != nil {
+				return nil, err
+			}
+			body, _ := json.Marshal(graph.CreateEntityResponse{Outcome: graph.MutationApplied, Entity: request.Entity, KVRevision: 8})
+			return &nats.Msg{Data: body}, nil
+		}
+		var request graph.ReconcilePredicatesRequest
+		if err := json.Unmarshal(data, &request); err != nil {
+			return nil, err
+		}
+		body, _ := json.Marshal(graph.ReconcilePredicatesResponse{Outcome: graph.MutationApplied, Entity: &graph.EntityState{ID: request.EntityID, Triples: request.Desired}, KVRevision: request.ExpectedRevision + 1})
+		return &nats.Msg{Data: body}, nil
 	case SubjectEntityDelete:
 		var req graph.DeleteEntityRequest
 		if err := json.Unmarshal(data, &req); err != nil {
@@ -103,7 +119,8 @@ func (f *crdFakeRequester) RequestWithHeaders(_ context.Context, subj string, da
 		if f.removeErr != nil {
 			return nil, f.removeErr
 		}
-		return &nats.Msg{Data: f.removeReply}, nil
+		body, _ := json.Marshal(graph.DeleteEntityResponse{Outcome: graph.MutationApplied, EntityID: req.EntityID, ExpectedRevision: req.ExpectedRevision})
+		return &nats.Msg{Data: body}, nil
 	}
 	return nil, errors.New("crdFakeRequester: unexpected header subject " + subj)
 }
@@ -120,14 +137,26 @@ func (f *crdFakeRequester) EnsureStream(_ context.Context, _ jetstream.StreamCon
 
 func encodeRemoveOK(t *testing.T) []byte {
 	t.Helper()
-	resp := graph.DeleteEntityResponse{
-		MutationResponse: graph.MutationResponse{Timestamp: 1, KVRevision: 1},
-		Deleted:          true,
-	}
+	resp := graph.DeleteEntityResponse{Outcome: graph.MutationApplied}
 	out, err := json.Marshal(resp)
 	if err != nil {
 		t.Fatalf("encodeRemoveOK: %v", err)
 	}
+	return out
+}
+
+func ensureExactTestReply(data []byte) []byte {
+	var probe struct {
+		Entity json.RawMessage `json:"entity"`
+	}
+	if json.Unmarshal(data, &probe) == nil && len(probe.Entity) > 0 {
+		return data
+	}
+	var state graph.EntityState
+	if json.Unmarshal(data, &state) != nil || state.ID == "" {
+		return data
+	}
+	out, _ := json.Marshal(graph.ExactEntity{Entity: &state, KVRevision: 7})
 	return out
 }
 
@@ -187,8 +216,8 @@ func TestHandleSystemPost_JSONFeature_GoldenPath(t *testing.T) {
 	if got := rr.Header().Get("Location"); got != wantSuffix {
 		t.Errorf("Location: got %q want %q", got, wantSuffix)
 	}
-	if fake.gotSubject != SubjectEntityCreateWithTriples {
-		t.Errorf("subject: got %q want %q", fake.gotSubject, SubjectEntityCreateWithTriples)
+	if fake.gotSubject != SubjectEntityCreate {
+		t.Errorf("subject: got %q want %q", fake.gotSubject, SubjectEntityCreate)
 	}
 }
 
@@ -238,8 +267,8 @@ func existingSystemState(id string) graph.EntityState {
 			{Subject: id, Predicate: sensorml.PredLabel, Object: "Old label"},
 			{Subject: id, Predicate: sensorml.PredDescription, Object: "Old description"},
 			// Duplicate predicate (extra hosted child) — dedup must collapse to one remove call.
-			{Subject: id, Predicate: sensorml.PredHosts, Object: id + ".camera", Datatype: message.EntityReferenceDatatype},
-			{Subject: id, Predicate: sensorml.PredHosts, Object: id + ".gps", Datatype: message.EntityReferenceDatatype},
+			{Subject: id, Predicate: sensorml.PredHosts, Object: id + "_camera", Datatype: message.EntityReferenceDatatype},
+			{Subject: id, Predicate: sensorml.PredHosts, Object: id + "_gps", Datatype: message.EntityReferenceDatatype},
 		},
 	}
 }
@@ -247,7 +276,7 @@ func existingSystemState(id string) graph.EntityState {
 // TestHandleSystemDelete_GoldenPath — DELETE returns 204 and issues one
 // entity-scoped delete request.
 func TestHandleSystemDelete_GoldenPath(t *testing.T) {
-	pathID := "acme.ops.robotics.gcs.drone.099"
+	pathID := DefaultConfig().SystemIDPrefix + ".099"
 	fake := &crdFakeRequester{
 		entityReply: mustMarshal(t, existingSystemState(pathID)),
 		removeReply: encodeRemoveOK(t),
@@ -275,8 +304,9 @@ func TestHandleSystemDelete_GoldenPath(t *testing.T) {
 // errEntityNotFound is swallowed).
 func TestHandleSystemDelete_NotFound_Idempotent(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.404"
+	notFoundBody, notFoundHeader := encodeEntityMutationFailure(t, graph.ErrorCodeEntityNotFound, "not found")
 	fake := &crdFakeRequester{
-		removeReply: encodeRemoveOK(t),
+		entityReply: notFoundBody, entityHeader: notFoundHeader,
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -288,8 +318,8 @@ func TestHandleSystemDelete_NotFound_Idempotent(t *testing.T) {
 	if rr.Code != http.StatusNoContent {
 		t.Fatalf("status: got %d want 204 (idempotent); body=%s", rr.Code, rr.Body.String())
 	}
-	if len(fake.deleteCalls) != 1 {
-		t.Errorf("delete should still be called for idempotent delete; got %d calls", len(fake.deleteCalls))
+	if len(fake.deleteCalls) != 0 {
+		t.Errorf("missing entity must not send delete; got %d calls", len(fake.deleteCalls))
 	}
 }
 
@@ -344,7 +374,7 @@ func TestHandleSystemPut_GoldenPath(t *testing.T) {
 }
 
 func TestReplaceEntityTriples_ForwardsForeignEdgeProjection(t *testing.T) {
-	parentID := "acme.ops.robotics.gcs.drone.099"
+	parentID := DefaultConfig().SystemIDPrefix + ".099"
 	childID := parentID + "_camera"
 	current := existingSystemState(parentID)
 	current.MessageType = systemProjectionMessageType
@@ -358,28 +388,29 @@ func TestReplaceEntityTriples_ForwardsForeignEdgeProjection(t *testing.T) {
 		{Subject: parentID, Predicate: sensorml.PredHosts, Object: childID, Datatype: message.EntityReferenceDatatype},
 		{Subject: childID, Predicate: sensorml.PredIsHostedBy, Object: parentID, Datatype: message.EntityReferenceDatatype},
 	}
-	if err := c.replaceEntityTriples(context.Background(), current, triples, Identity{}); err != nil {
+	if err := c.replaceEntityTriples(context.Background(), graph.ExactEntity{Entity: &current, KVRevision: 7}, triples, Identity{}); err == nil {
+		t.Fatal("replaceEntityTriples accepted foreign-subject facts")
+	}
+	triples = rootSubjectTriples(parentID, triples)
+	if err := c.replaceEntityTriples(context.Background(), graph.ExactEntity{Entity: &current, KVRevision: 7}, triples, Identity{}); err != nil {
 		t.Fatalf("replaceEntityTriples: %v", err)
 	}
 
-	var sent graph.UpdateEntityWithTriplesRequest
+	var sent graph.ReconcilePredicatesRequest
 	if err := json.Unmarshal(fake.batchBody, &sent); err != nil {
 		t.Fatalf("decode update body: %v", err)
 	}
-	if sent.Entity == nil || sent.Entity.ID != parentID {
-		t.Fatalf("entity: got %+v want ID %q", sent.Entity, parentID)
-	}
-	if !sent.Entity.MessageType.Equal(systemProjectionMessageType) {
-		t.Fatalf("entity.MessageType: got %+v want %+v", sent.Entity.MessageType, systemProjectionMessageType)
+	if sent.EntityID != parentID || sent.ExpectedRevision != 7 {
+		t.Fatalf("request: got %+v want ID %q revision 7", sent, parentID)
 	}
 	var sawForeign bool
-	for _, tr := range sent.AddTriples {
+	for _, tr := range sent.Desired {
 		if tr.Subject == childID && tr.Predicate == sensorml.PredIsHostedBy && tr.Object == parentID {
 			sawForeign = true
 		}
 	}
-	if !sawForeign {
-		t.Fatalf("foreign edge not forwarded in update AddTriples: %+v", sent.AddTriples)
+	if sawForeign {
+		t.Fatalf("foreign edge forwarded in reconcile desired facts: %+v", sent.Desired)
 	}
 }
 
@@ -452,13 +483,92 @@ func TestHandleSystemPut_TransientUpdate(t *testing.T) {
 	}
 }
 
-// TestDeleteEntity_AuditHeadersSymmetric — destructive deletes carry
-// the same audit headers as POST so the audit trail stays uniform
-// across the lifecycle.
-func TestDeleteEntity_AuditHeadersSymmetric(t *testing.T) {
+func TestHandleSystemPut_RevisionConflictIs409WithoutRetry(t *testing.T) {
+	pathID := "acme.ops.robotics.gcs.drone.099"
+	failureBody, failureHeader := encodeEntityMutationFailure(t, graph.ErrorCodeRevisionMismatch, "stale revision")
+	fake := &crdFakeRequester{
+		entityReply: mustMarshal(t, existingSystemState(pathID)),
+		batchReply:  failureBody,
+		batchHeader: failureHeader,
+	}
+	c := newComponentWithRequester(t, fake)
+	c.cfg.SystemIDPrefix = "acme.ops.robotics.gcs.drone"
+
+	req := httptest.NewRequest(http.MethodPut, "/systems/"+pathID, bytes.NewReader(systemFeatureJSON("099", "Drone 99")))
+	req.SetPathValue("id", pathID)
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleSystemPut(rr, req)
+
+	if rr.Code != http.StatusConflict {
+		t.Fatalf("status: got %d want 409; body=%s", rr.Code, rr.Body.String())
+	}
+	if fake.entityQueryCalls != 1 || fake.batchCount != 1 {
+		t.Fatalf("calls: exact=%d mutation=%d want one each", fake.entityQueryCalls, fake.batchCount)
+	}
+}
+
+func TestHandleSystemPut_CommitUnknownIsExplicit503WithoutRetry(t *testing.T) {
 	pathID := "acme.ops.robotics.gcs.drone.099"
 	fake := &crdFakeRequester{
-		removeReply: encodeRemoveOK(t),
+		entityReply: mustMarshal(t, existingSystemState(pathID)),
+		batchErr:    nats.ErrTimeout,
+	}
+	c := newComponentWithRequester(t, fake)
+	c.cfg.SystemIDPrefix = "acme.ops.robotics.gcs.drone"
+
+	req := httptest.NewRequest(http.MethodPut, "/systems/"+pathID, bytes.NewReader(systemFeatureJSON("099", "Drone 99")))
+	req.SetPathValue("id", pathID)
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleSystemPut(rr, req)
+
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status: got %d want 503; body=%s", rr.Code, rr.Body.String())
+	}
+	if rr.Header().Get("X-CS-Commit-Uncertain") != "true" || rr.Header().Get("X-CS-Correlation-ID") == "" {
+		t.Fatalf("uncertainty headers: %+v", rr.Header())
+	}
+	if fake.entityQueryCalls != 1 || fake.batchCount != 1 {
+		t.Fatalf("calls: exact=%d mutation=%d want one each", fake.entityQueryCalls, fake.batchCount)
+	}
+}
+
+func TestHandleSystemPut_MissingCreateRaceIs409WithoutReconcile(t *testing.T) {
+	pathID := "acme.ops.robotics.gcs.drone.099"
+	notFoundBody, notFoundHeader := encodeEntityMutationFailure(t, graph.ErrorCodeEntityNotFound, "missing")
+	conflictBody, conflictHeader := encodeEntityMutationFailure(t, graph.ErrorCodeEntityExists, "exists")
+	fake := &crdFakeRequester{
+		entityReply: notFoundBody, entityHeader: notFoundHeader,
+		batchReply: conflictBody, batchHeader: conflictHeader,
+	}
+	c := newComponentWithRequester(t, fake)
+	c.cfg.SystemIDPrefix = "acme.ops.robotics.gcs.drone"
+
+	req := httptest.NewRequest(http.MethodPut, "/systems/"+pathID, bytes.NewReader(systemFeatureJSON("099", "Drone 99")))
+	req.SetPathValue("id", pathID)
+	req.Header.Set("Content-Type", string(MediaJSON))
+	rr := httptest.NewRecorder()
+	c.handleSystemPut(rr, req)
+
+	if rr.Code != http.StatusConflict {
+		t.Fatalf("status: got %d want 409; body=%s", rr.Code, rr.Body.String())
+	}
+	if fake.entityQueryCalls != 1 || fake.batchCount != 1 {
+		t.Fatalf("calls: exact=%d mutation=%d want one each", fake.entityQueryCalls, fake.batchCount)
+	}
+	var request graph.CreateEntityRequest
+	if err := json.Unmarshal(fake.batchBody, &request); err != nil || request.Entity == nil {
+		t.Fatalf("mutation was not strict typed create: err=%v request=%+v", err, request)
+	}
+}
+
+// TestDeleteEntity_DoesNotPropagateCustomMutationHeaders proves mutation
+// identity remains in gateway audit evidence rather than the typed wire.
+func TestDeleteEntity_DoesNotPropagateCustomMutationHeaders(t *testing.T) {
+	pathID := "acme.ops.robotics.gcs.drone.099"
+	fake := &crdFakeRequester{
+		entityReply: mustMarshal(t, existingSystemState(pathID)),
 	}
 	c := newComponentWithRequester(t, fake)
 
@@ -468,8 +578,8 @@ func TestDeleteEntity_AuditHeadersSymmetric(t *testing.T) {
 	if err := c.deleteEntity(context.Background(), pathID, identity); err != nil {
 		t.Fatalf("deleteEntity: %v", err)
 	}
-	if got := fake.deleteHeaders["X-CS-Forwarded-User"]; got != "alice" {
-		t.Errorf("X-CS-Forwarded-User on delete: got %q want alice (headers=%+v)", got, fake.deleteHeaders)
+	if len(fake.deleteHeaders) != 0 {
+		t.Errorf("typed delete unexpectedly carried custom headers: %+v", fake.deleteHeaders)
 	}
 }
 

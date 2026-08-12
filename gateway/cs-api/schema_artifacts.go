@@ -1,16 +1,19 @@
 package csapi
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/c360studio/semconnect/parser/sensorml"
 	csapivocab "github.com/c360studio/semconnect/vocabulary/csapi"
-	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/pkg/errs"
+	"github.com/nats-io/nats.go/jetstream"
 )
 
 const schemaArtifactContentType = string(MediaJSON)
@@ -28,8 +31,7 @@ func (c *Component) createSchemaArtifact(
 	if parentID == "" {
 		return message.Triple{}, errs.WrapInvalid(errors.New("parent entity ID required"), "cs-api", "createSchemaArtifact", "build artifact")
 	}
-	role, err := schemaArtifactRole(relationshipPredicate)
-	if err != nil {
+	if _, err := schemaArtifactRole(relationshipPredicate); err != nil {
 		return message.Triple{}, errs.WrapInvalid(err, "cs-api", "createSchemaArtifact", "build artifact")
 	}
 	canonical, err := normalizeSWESchema(rawSchema)
@@ -40,20 +42,17 @@ func (c *Component) createSchemaArtifact(
 		return message.Triple{}, errs.WrapInvalid(errors.New("SWE schema required"), "cs-api", "createSchemaArtifact", "build artifact")
 	}
 
-	artifactID := c.mintSchemaArtifactEntityID(parentID, role)
+	digest := sha256.Sum256(canonical)
+	artifactID := c.contentAddressedSchemaArtifactID(digest)
 	key := schemaArtifactObjectKey(artifactID)
 	triples := []message.Triple{
 		{Subject: artifactID, Predicate: sensorml.PredType, Object: csapivocab.SWESchemaDocument},
 	}
-	entity := &graph.EntityState{
-		ID:      artifactID,
-		Triples: triples,
-		StorageRef: &message.StorageReference{
-			StorageInstance: c.cfg.SchemaArtifactsBucket,
-			Key:             key,
-			ContentType:     schemaArtifactContentType,
-			Size:            int64(len(canonical)),
-		},
+	storageRef := &message.StorageReference{
+		StorageInstance: schemaArtifactStorageInstance,
+		Key:             key,
+		ContentType:     schemaArtifactContentType,
+		Size:            int64(len(canonical)),
 	}
 	if err := validateProjectedTriples(artifactID, triples); err != nil {
 		return message.Triple{}, errs.WrapInvalid(err, "cs-api", "createSchemaArtifact", "validate final artifact state")
@@ -63,23 +62,63 @@ func (c *Component) createSchemaArtifact(
 	if storePtr == nil || *storePtr == nil {
 		return message.Triple{}, errs.WrapTransient(errors.New("schema artifact object store not initialized"), "cs-api", "createSchemaArtifact", "store schema")
 	}
-	if _, err := (*storePtr).PutBytes(ctx, key, []byte(canonical)); err != nil {
-		return message.Triple{}, classifyJetStreamErr(err, "createSchemaArtifact", "store schema")
-	}
-	if err := c.createEntityWithTriples(ctx, entity, triples, id, "createSchemaArtifact"); err != nil {
-		if !errors.Is(err, errEntityConflict) {
-			return message.Triple{}, err
+	store := *storePtr
+	existing, getErr := store.GetBytes(ctx, key)
+	switch {
+	case getErr == nil:
+		if err := verifySchemaArtifactBytes(artifactID, existing, canonical, digest); err != nil {
+			return message.Triple{}, errs.Wrap(err, "cs-api", "createSchemaArtifact", "verify content-addressed object")
 		}
-		current, fetchErr := c.fetchEntity(ctx, artifactID)
+	case errors.Is(getErr, jetstream.ErrObjectNotFound):
+		if _, putErr := store.PutBytes(ctx, key, []byte(canonical)); putErr != nil {
+			return message.Triple{}, classifyJetStreamErr(putErr, "createSchemaArtifact", "store schema")
+		}
+		stored, verifyErr := store.GetBytes(ctx, key)
+		if verifyErr != nil {
+			return message.Triple{}, classifyJetStreamErr(verifyErr, "createSchemaArtifact", "verify stored schema")
+		}
+		if err := verifySchemaArtifactBytes(artifactID, stored, canonical, digest); err != nil {
+			return message.Triple{}, errs.Wrap(err, "cs-api", "createSchemaArtifact", "verify stored schema")
+		}
+	default:
+		return message.Triple{}, classifyJetStreamErr(getErr, "createSchemaArtifact", "inspect content-addressed object")
+	}
+
+	// Object durability precedes graph visibility. A later graph failure may
+	// leave a digest-addressed orphan for deferred GC, but no graph artifact is
+	// ever created before its canonical bytes are verified present.
+	createErr := c.createProjectedEntity(ctx, schemaArtifactProjectionContractName, artifactID, triples,
+		schemaArtifactProjectionMessageType, storageRef, id, "createSchemaArtifact")
+	if createErr != nil {
+		if !errors.Is(createErr, errEntityConflict) {
+			return message.Triple{}, createErr
+		}
+		current, fetchErr := c.fetchEntityExact(ctx, artifactID)
 		if fetchErr != nil {
 			return message.Triple{}, fetchErr
 		}
-		current.StorageRef = entity.StorageRef
-		if err := c.replaceEntityTriples(ctx, current, triples, id); err != nil {
-			return message.Triple{}, err
+		if current.Entity == nil || !isSWESchemaArtifact(current.Entity.Triples) || !storageReferencesEqual(current.Entity.StorageRef, storageRef) {
+			return message.Triple{}, errs.Wrap(
+				fmt.Errorf("immutable schema artifact %q conflicts with digest identity or storage reference", artifactID),
+				"cs-api", "createSchemaArtifact", "verify immutable artifact")
 		}
+		existing, getErr := store.GetBytes(ctx, key)
+		if getErr != nil {
+			return message.Triple{}, classifyJetStreamErr(getErr, "createSchemaArtifact", "verify immutable artifact bytes")
+		}
+		if err := verifySchemaArtifactBytes(artifactID, existing, canonical, digest); err != nil {
+			return message.Triple{}, errs.Wrap(err, "cs-api", "createSchemaArtifact", "verify immutable artifact bytes")
+		}
+		return message.Triple{Subject: parentID, Predicate: relationshipPredicate, Object: artifactID, Datatype: message.EntityReferenceDatatype}, nil
 	}
 	return message.Triple{Subject: parentID, Predicate: relationshipPredicate, Object: artifactID, Datatype: message.EntityReferenceDatatype}, nil
+}
+
+func verifySchemaArtifactBytes(artifactID string, actual, canonical []byte, digest [sha256.Size]byte) error {
+	if sha256.Sum256(actual) != digest || !bytes.Equal(actual, canonical) {
+		return fmt.Errorf("immutable schema artifact %q object bytes do not match canonical digest identity", artifactID)
+	}
+	return nil
 }
 
 func (c *Component) readSchemaArtifact(ctx context.Context, triples []message.Triple, relationshipPredicate string) (json.RawMessage, bool, error) {
@@ -119,12 +158,24 @@ func isSWESchemaArtifact(triples []message.Triple) bool {
 	return ok && typeIRI == csapivocab.SWESchemaDocument
 }
 
-func (c *Component) mintSchemaArtifactEntityID(parentID, role string) string {
-	return mintSchemaArtifactID(c.cfg.SchemaArtifactIDPrefix, parentID, role)
+func (c *Component) contentAddressedSchemaArtifactID(digest [sha256.Size]byte) string {
+	return fmt.Sprintf("%s.sha256-%x", c.cfg.SchemaArtifactIDPrefix, digest)
 }
 
 func schemaArtifactObjectKey(artifactID string) string {
-	return artifactID + ".json"
+	token := artifactID
+	if separator := strings.LastIndexByte(artifactID, '.'); separator >= 0 {
+		token = artifactID[separator+1:]
+	}
+	return token + ".json"
+}
+
+func storageReferencesEqual(left, right *message.StorageReference) bool {
+	if left == nil || right == nil {
+		return left == right
+	}
+	return left.StorageInstance == right.StorageInstance && left.Key == right.Key &&
+		left.ContentType == right.ContentType && left.Size == right.Size
 }
 
 func schemaArtifactRole(relationshipPredicate string) (string, error) {

@@ -26,15 +26,6 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-// Entity-level mutation subjects exposed by semstreams graph-ingest.
-// Duplicated locally because the upstream processor package is not a
-// public API surface for gateways.
-const (
-	SubjectEntityCreateWithTriples = "graph.mutation.entity.create_with_triples"
-	SubjectEntityUpdateWithTriples = "graph.mutation.entity.update_with_triples"
-	SubjectEntityDelete            = "graph.mutation.entity.delete"
-)
-
 // PredSystemPosition and PredSystemUID are the framework-owned SensorML
 // predicates semconnect uses for CS API uid / geometry round-trips. They
 // are kept behind gateway-local names because Feature-shaped resources
@@ -52,8 +43,6 @@ var jsonNull = []byte("null")
 // Matches SemStreams' ADR-056 cs-api System projection contract. SensorML
 // System writes can emit child->parent foreign edges, so graph-ingest needs a
 // concrete producer key to classify the edge claim instead of "_invalid".
-var systemProjectionMessageType = message.Type{Domain: "c360", Category: "csapi.system", Version: "v1"}
-
 func firstSystemPositionObject(triples []message.Triple) (string, bool) {
 	return firstStringObject(triples, PredSystemPosition)
 }
@@ -159,6 +148,7 @@ func (c *Component) buildSystemTriplesFromSensorML(body []byte) (string, []messa
 		return mintNestedSensorMLEntityID(entityID, localID)
 	}
 	triples := asset.Triples()
+	triples = rootSubjectTriples(entityID, triples)
 	if len(triples) == 0 {
 		return entityID, nil, errors.New("SensorML process produced no representable triples")
 	}
@@ -387,8 +377,8 @@ func mintSchemaArtifactID(prefix, parentID, role string) string {
 }
 
 // ingestTriples creates one entity with its triples through
-// graph.mutation.entity.create_with_triples via NATS request-reply,
-// attaching audit headers from the request identity. Returns a
+// the typed graph mutation family via one NATS request-reply,
+// recording request identity in the gateway's structured audit log. Returns a
 // classified error so writeBackendError maps cleanly to HTTP status.
 //
 // Timeout: QueryTimeout, NOT PublishTimeout. This is a request/reply
@@ -401,84 +391,15 @@ func (c *Component) ingestTriples(ctx context.Context, triples []message.Triple,
 	if err != nil {
 		return errs.WrapInvalid(err, "cs-api", "ingestTriples", "invalid triple set")
 	}
-	return c.ingestProjectedTriples(ctx, entityID, triples, message.Type{}, id)
+	contractName, mt := c.projectionForTriples(entityID, triples)
+	return c.createProjectedEntity(ctx, contractName, entityID, triples, mt, nil, id, "ingestTriples")
 }
 
 func (c *Component) ingestProjectedTriples(ctx context.Context, entityID string, triples []message.Triple, mt message.Type, id Identity) error {
 	if err := validateProjectedTriples(entityID, triples); err != nil {
 		return errs.WrapInvalid(err, "cs-api", "ingestProjectedTriples", "invalid triple set")
 	}
-	return c.createEntityWithTriples(ctx, &graph.EntityState{
-		ID:          entityID,
-		Triples:     triples,
-		MessageType: mt,
-	}, triples, id, "ingestTriples")
-}
-
-func (c *Component) createEntityWithTriples(
-	ctx context.Context,
-	entity *graph.EntityState,
-	triples []message.Triple,
-	id Identity,
-	op string,
-) error {
-	if entity == nil {
-		return errs.WrapInvalid(errors.New("entity state required"), "cs-api", op, "build entity")
-	}
-	if len(entity.Triples) == 0 {
-		entity.Triples = triples
-	}
-	if err := validateProjectedTriples(entity.ID, entity.Triples); err != nil {
-		return errs.WrapInvalid(err, "cs-api", op, "validate final entity state")
-	}
-	if err := validateProjectedTriples(entity.ID, triples); err != nil {
-		return errs.WrapInvalid(err, "cs-api", op, "validate mutation triples")
-	}
-	req := graph.CreateEntityWithTriplesRequest{
-		Entity:  entity,
-		Triples: triples,
-	}
-	reqBody, err := json.Marshal(req)
-	if err != nil {
-		return errs.Wrap(err, "cs-api", op, "marshal entity create request")
-	}
-
-	// Audit headers + trace context are attached on the request envelope.
-	// graph-ingest doesn't capture these in the stored EntityState today,
-	// but a NATS-level audit subscriber (or trace-context propagation)
-	// needs them — and the symmetry with observations.go's audited
-	// publish path keeps the operator runbook uniform.
-	hdrs := id.AuditHeaders()
-
-	// RequestWithHeaders applies its own context.WithTimeout from the
-	// timeout argument; we pass ctx through unwrapped so cancellation
-	// from the HTTP request still propagates without double-budgeting.
-	reply, err := c.nats.RequestWithHeaders(ctx, SubjectEntityCreateWithTriples, reqBody, hdrs, c.cfg.QueryTimeout)
-	if err != nil {
-		switch {
-		case errors.Is(err, nats.ErrNoResponders),
-			errors.Is(err, nats.ErrTimeout),
-			errors.Is(err, context.DeadlineExceeded),
-			errors.Is(err, nats.ErrConnectionClosed):
-			return errs.WrapTransient(err, "cs-api", op, "graph backend unavailable")
-		default:
-			return errs.Wrap(err, "cs-api", op, "entity create request")
-		}
-	}
-
-	data, err := classifyMutationReply(reply, op)
-	if err != nil {
-		return err
-	}
-
-	var resp graph.CreateEntityWithTriplesResponse
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return errs.Wrap(err, "cs-api", op, "decode entity create response")
-	}
-	if resp.Degraded {
-		c.logger.Warn("entity create committed with degraded read-back", "entity", entity.ID, "err", resp.DegradedReason)
-	}
-	return nil
+	return c.createProjectedEntity(ctx, systemProjectionContractName, entityID, triples, mt, nil, id, "ingestTriples")
 }
 
 func singleSubject(triples []message.Triple) (string, error) {
@@ -504,17 +425,13 @@ func validateProjectedTriples(entityID string, triples []message.Triple) error {
 	if len(triples) == 0 {
 		return errors.New("no triples to ingest")
 	}
-	hasPrimary := false
 	for i, tr := range triples {
 		if tr.Subject == "" {
 			return fmt.Errorf("triple[%d] subject is empty", i)
 		}
-		if tr.Subject == entityID {
-			hasPrimary = true
+		if tr.Subject != entityID {
+			return fmt.Errorf("triple[%d] subject %q does not match primary entity %q", i, tr.Subject, entityID)
 		}
-	}
-	if !hasPrimary {
-		return fmt.Errorf("no triples target primary entity %q", entityID)
 	}
 	if _, err := graph.MarshalEntityState(&graph.EntityState{ID: entityID, Triples: triples}); err != nil {
 		return fmt.Errorf("authoritative entity-state validation: %w", err)
@@ -541,10 +458,15 @@ func mutationFailure(op string, err error) error {
 			return fmt.Errorf("%w: %s", errEntityConflict, err.Error())
 		case graph.ErrorCodeEntityNotFound:
 			return fmt.Errorf("%w: %s", errEntityNotFound, err.Error())
-		case graph.ErrorCodeInvalidRequest, graph.ErrorCodeRevisionMismatch, graph.ErrorCodeOwnerLeaseStale:
+		case graph.ErrorCodeRevisionMismatch:
+			return fmt.Errorf("%w: %s", errEntityConflict, err.Error())
+		case graph.ErrorCodeInvalidRequest, graph.ErrorCodeStructuralInvalid:
 			return errs.WrapInvalid(err, "cs-api", op, "graph rejected entity mutation")
 		case graph.ErrorCodeInternal:
-			return errs.WrapTransient(err, "cs-api", op, "graph backend mutation failed")
+			// The graph error code is authoritative. Do not retain a transport
+			// classification that may have arrived in the reply header, because
+			// an INTERNAL backend failure is an HTTP 500, not a client 400.
+			return errs.Wrap(errors.New(err.Error()), "cs-api", op, "graph backend mutation failed")
 		}
 	}
 	if errs.IsInvalid(err) {

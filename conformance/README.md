@@ -12,7 +12,7 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-The authoritative beta.159 clean-volume run `2026-07-31T18-13-41Z` is:
+The beta.160 disposable fresh-volume run `2026-08-12T12-39-21Z` is:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
@@ -22,37 +22,33 @@ The qualified pins are:
 
 - Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
 - TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- semstreams backend `v1.0.0-beta.159` at
-  `8813270c5ba441286d9120cba82fbf72bdcf9a6c`.
+- SemStreams backend `v1.0.0-beta.160` at commit
+  `8403a2218000e45a31c5132fbfe01af42ed04f14`, source tree
+  `9ed5dd3792bca63ce87ebf449a180add918f59ed`.
+- NATS `2.14.4`, pinned by exact image digest in `compose.yml`.
 
-The run reached graph-index revision `80/80` in two fresh `GRAPH_STATUS` updates
-before Team Engine. The foreign-edge
-bake passed with the hosted-child lane exercised and both unclaimed and dropped
-counts at zero. Exact pin alignment, the bounded 1 GiB/30-day observations
-stream, live mutation/dedup/no-op regression, full Go test/race/vet/build,
-focused upstream gates, and clean-volume Compose persistence also pass.
-Independent review found no ETS, fixture, OpenAPI,
-declaration, filter, skip, parser, or harness weakening. The conformance stack
-was torn down after evidence capture.
+The seed phase actively polled fresh `GRAPH_STATUS` updates to authoritative
+index readiness before Team Engine. The strict root-only SensorML bake proved
+the posted root readable and its inline child absent. Exact pins, typed graph
+operations, bounded observations, artifact access, and clean-volume persistence
+also pass. Independent review found no ETS, fixture, OpenAPI, declaration,
+filter, skip, parser, or harness weakening. The conformance stack was torn down
+after evidence capture.
 
-Beta.153 is the qualified historical baseline; beta.141, beta.147, beta.149,
-and beta.151 results also remain historical evidence. Their records are not
-rewritten. Pre-v1 production is standard Compose on a clean NATS volume. The
-beta.159 bundle is production-ready without an in-place beta.153 volume claim,
-runtime manifest, or product-owner hash approval gate.
+Beta.141 through beta.159 remain historical evidence and are not rewritten.
+The beta.160 result qualifies the current disposable conformance stack. The
+separate production decision is **GO WITH ACCEPTED RISK** by product-owner
+authorization on 2026-08-12. Rollback isolation is waived, not proven.
 
-Beta.159 evidence is under
-`openspec/changes/qualify-semstreams-beta159/evidence/`, including the
-ordinary external record `external-conformance.json` with archived artifact
-hashes.
+Beta.160 evidence is under
+`openspec/changes/migrate-semstreams-beta160/evidence/conformance-beta160/`.
 
 The run exercises real gateway/framework behavior:
 
 - graph reads through `graph.query.entity`, `graph.query.batch`,
   `graph.index.query.predicate`, and `graph.spatial.query.*`
-- graph writes through `graph.mutation.entity.create_with_triples`,
-  `graph.mutation.entity.update_with_triples`, and
-  `graph.mutation.entity.delete`
+- graph writes through typed `semstreams.graph.mutation/v1` create, reconcile,
+  and exact-revision delete
 - observation publish/readback through JetStream
 - schema artifact storage through NATS ObjectStore and typed artifact entities
 - OGC Common discovery, OpenAPI, content negotiation, and all claimed CS API
@@ -89,6 +85,7 @@ Outputs land in `conformance/output/` (gitignored):
 - `seed-<UTC>.log` - fixture POST responses and readiness probes.
 - `seed-evidence/index-readiness-<UTC>.jsonl` - fresh `GRAPH_STATUS`
   graph-index updates and the captured/final revision decision.
+- `root-only-bake-<UTC>.txt` - root readable and embedded child absent.
 - `teamengine-container-<UTC>.log` - Team Engine logs.
 - `cs-api-server-container-<UTC>.log` - gateway logs.
 - `semstreams-backend-container-<UTC>.log` - framework backend logs.
@@ -136,11 +133,11 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_TAG_OBJECT=ba2c4f8e03bb42c56319b2363ca89f4ab0f9ccec
-SEMSTREAMS_COMMIT=8813270c5ba441286d9120cba82fbf72bdcf9a6c
-SEMSTREAMS_TREE=c9a8014cbf6b91837769c8fb8a3dea051f6f11d9
-SEMSTREAMS_COMMIT_DATE=2026-07-31
-SEMSTREAMS_VERSION=v1.0.0-beta.159
+SEMSTREAMS_TAG_OBJECT=8403a2218000e45a31c5132fbfe01af42ed04f14
+SEMSTREAMS_COMMIT=8403a2218000e45a31c5132fbfe01af42ed04f14
+SEMSTREAMS_TREE=9ed5dd3792bca63ce87ebf449a180add918f59ed
+SEMSTREAMS_COMMIT_DATE=2026-08-12
+SEMSTREAMS_VERSION=v1.0.0-beta.160
 ```
 
 Bumping is intentional, not auto-pulled.
@@ -161,24 +158,23 @@ gateway's compiled wire expectations match the running backend.
 
 1. Bump `go.mod`: `go get github.com/c360studio/semstreams@v1.0.0-beta.NN`.
 2. Run `go mod tidy`.
-3. Resolve the tag commit SHA. Tags are annotated, so distinguish the tag
-   object SHA from the commit SHA.
+3. Resolve the tag commit SHA and tree. Distinguish annotated tag objects from
+   commits; beta.160 itself is a lightweight tag.
 4. Edit `SEMSTREAMS_TAG_OBJECT`, `SEMSTREAMS_COMMIT`, `SEMSTREAMS_TREE`,
    `SEMSTREAMS_COMMIT_DATE`, and `SEMSTREAMS_VERSION`.
 5. Run `go test ./...`, `go build ./...`, and `./conformance/run.sh`.
 6. Include the framework delta and conformance result in the PR description.
 
-The beta.147 migration procedure is historical. Current pre-v1 production is a
-greenfield deployment: use `deploy/compose.yml` only with a clean NATS volume.
-The bundle does not migrate, delete, translate, or import old state.
+The beta.147 through beta.159 procedures are historical. Beta.160 may use
+`deploy/compose.yml` only with a newly provisioned NATS volume. The bundle does
+not migrate, delete, translate, or import old state. The accepted-risk decision
+does not relax this fresh-volume-only boundary.
 
 ## NATS Config
 
-`nats.conf` pins JetStream `max_file_store` and `max_memory_store`.
-nats-server 2.10's CLI does not expose those flags, and Docker defaults can be
-too small for the framework baseline streams plus the CS API observation and
-artifact stores. The harness owns the server-side limits; semstreams validates
-and warns against the connected account's observed limits.
+`nats.conf` pins JetStream `max_file_store` and `max_memory_store`. The harness
+uses exact NATS 2.14.4 and owns the server-side limits; SemStreams validates the
+connected account's observed limits.
 
 ## Migrating Off Source Builds
 

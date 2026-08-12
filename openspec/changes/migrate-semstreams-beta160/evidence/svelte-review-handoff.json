@@ -1,0 +1,33 @@
+{
+  "role": "svelte-reviewer",
+  "status": "approved-not-applicable",
+  "recorded_at": "2026-08-12T12:29:57Z",
+  "change": "migrate-semstreams-beta160",
+  "scope": {
+    "ui_source_changed": false,
+    "typescript_types_changed": false,
+    "frontend_dependencies_changed": false,
+    "generated_public_client_changed": false,
+    "labels_interactions_accessibility_changed": false
+  },
+  "contract_review": [
+    "The working-tree diff contains no ui/ path or Svelte, TypeScript, JavaScript, CSS, or HTML source change.",
+    "The OpenAPI delta only documents uncertainty headers on the existing 503 response; it removes no path, representation, or success response consumed by the UI.",
+    "The beta.160 port, backend, NATS, and storage configuration changes are internal runtime declarations and do not alter the browser runtime configuration shape.",
+    "The UI reads existing CS API collections and posts observations; those public response shapes and operations are unchanged.",
+    "The full-stack comparison helper already treats 409 during idempotent fixture seeding as an existing resource and requires no migration change."
+  ],
+  "independent_verification": [
+    {"command": "npm run check", "working_directory": "ui", "result": "pass: 0 errors and 0 warnings"},
+    {"command": "npm run build", "working_directory": "ui", "result": "pass"},
+    {"command": "git diff --check", "result": "pass"},
+    {"command": "openspec validate migrate-semstreams-beta160 --strict", "result": "pass"}
+  ],
+  "findings": [],
+  "approval": {
+    "conditional": false,
+    "frontend_disposition": "not-applicable",
+    "completed_task": "8.4",
+    "task_8_5_left_for_combined_reviewer_handoff": true
+  }
+}

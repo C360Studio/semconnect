@@ -1,18 +1,17 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "platform": {
     "org": "c360",
     "id": "semconnect-production-backend",
     "type": "graph-backend",
     "region": "local",
-    "instance_id": "semconnect-001",
+    "instance_id": "semconnect-beta160-001",
     "environment": "production"
   },
   "tier": "rules",
   "nats": {"urls": ["nats://nats:4222"]},
   "services": {
     "service-manager": {
-      "name": "service-manager",
       "enabled": true,
       "config": {
         "http_port": 8090,
@@ -24,7 +23,7 @@
         }
       }
     },
-    "component-manager": {"name": "component-manager", "enabled": true, "config": {}}
+    "component-manager": {"enabled": true, "config": {}}
   },
   "components": {
     "graph-ingest": {
@@ -33,8 +32,17 @@
       "enabled": true,
       "config": {
         "ports": {
-          "inputs": [{"name": "unused_in", "subject": "_semconnect.unused.ingest", "type": "nats"}],
-          "outputs": [{"name": "entity_states", "subject": "ENTITY_STATES", "type": "kv-write"}]
+          "inputs": [{
+            "name": "graph_mutations",
+            "required": true,
+            "description": "Canonical typed graph mutation family",
+            "config": {
+              "kind": "nats-request",
+              "subject": "graph.mutation.>",
+              "interface": {"type": "semstreams.graph.mutation", "version": "v1"}
+            }
+          }],
+          "outputs": [{"name": "entity_states", "config": {"kind": "kv-write", "bucket": "ENTITY_STATES"}}]
         },
         "enable_hierarchy": true
       }
@@ -45,12 +53,12 @@
       "enabled": true,
       "config": {
         "ports": {
-          "inputs": [{"name": "entity_watch", "subject": "ENTITY_STATES", "type": "kv-watch"}],
+          "inputs": [{"name": "entity_watch", "config": {"kind": "kv-watch", "bucket": "ENTITY_STATES"}}],
           "outputs": [
-            {"name": "outgoing_index", "subject": "OUTGOING_INDEX", "type": "kv"},
-            {"name": "incoming_index", "subject": "INCOMING_INDEX", "type": "kv"},
-            {"name": "alias_index", "subject": "ALIAS_INDEX", "type": "kv"},
-            {"name": "predicate_index", "subject": "PREDICATE_INDEX", "type": "kv"}
+            {"name": "outgoing_index", "config": {"kind": "kv-write", "bucket": "OUTGOING_INDEX"}},
+            {"name": "incoming_index", "config": {"kind": "kv-write", "bucket": "INCOMING_INDEX"}},
+            {"name": "alias_index", "config": {"kind": "kv-write", "bucket": "ALIAS_INDEX"}},
+            {"name": "predicate_index", "config": {"kind": "kv-write", "bucket": "PREDICATE_INDEX"}}
           ]
         },
         "workers": 2,
@@ -63,8 +71,8 @@
       "enabled": true,
       "config": {
         "ports": {
-          "inputs": [{"name": "entity_watch", "subject": "ENTITY_STATES", "type": "kv-watch"}],
-          "outputs": [{"name": "spatial_index", "subject": "SPATIAL_INDEX", "type": "kv"}]
+          "inputs": [{"name": "entity_watch", "config": {"kind": "kv-watch", "bucket": "ENTITY_STATES"}}],
+          "outputs": [{"name": "spatial_index", "config": {"kind": "kv-write", "bucket": "SPATIAL_INDEX"}}]
         },
         "geohash_precision": 6,
         "workers": 1,
@@ -77,8 +85,8 @@
       "enabled": true,
       "config": {
         "ports": {
-          "inputs": [{"name": "entity_watch", "subject": "ENTITY_STATES", "type": "kv-watch"}],
-          "outputs": [{"name": "temporal_index", "subject": "TEMPORAL_INDEX", "type": "kv"}]
+          "inputs": [{"name": "entity_watch", "config": {"kind": "kv-watch", "bucket": "ENTITY_STATES"}}],
+          "outputs": [{"name": "temporal_index", "config": {"kind": "kv-write", "bucket": "TEMPORAL_INDEX"}}]
         },
         "time_resolution": "hour",
         "workers": 1,
@@ -91,7 +99,15 @@
       "enabled": true,
       "config": {
         "ports": {
-          "inputs": [{"name": "query_requests", "subject": "graph.query.>", "type": "nats-request"}],
+          "inputs": [{
+            "name": "graph_queries",
+            "required": true,
+            "config": {
+              "kind": "nats-request",
+              "subject": "graph.query.*",
+              "interface": {"type": "graph.query", "version": "v1"}
+            }
+          }],
           "outputs": []
         },
         "request_timeout": "30s",

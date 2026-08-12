@@ -1,0 +1,26 @@
+{
+  "recordType": "semstreams-beta160-reviewer-to-writer-handoff",
+  "recordedAt": "2026-08-12T12:53:26Z",
+  "status": "approved",
+  "conditional": false,
+  "goReview": {
+    "status": "approved",
+    "record": "go-review-handoff.json",
+    "sha256": "c5ee216ac5d177e3493ef520e3fae0fb1ba4e6aa98ff30955e55916700616dc8",
+    "completedTasks": ["8.1", "8.2", "8.3"]
+  },
+  "frontendReview": {
+    "status": "approved-not-applicable",
+    "record": "svelte-review-handoff.json",
+    "sha256": "fc0677dd9862635ce55120d67d98ee4e5106821ff5396e1665f3aa70133256d7",
+    "completedTask": "8.4"
+  },
+  "combinedHandoff": {
+    "completedTask": "8.5",
+    "recipient": "technical-writer",
+    "findings": [],
+    "implementationApprovedForDocumentationCloseout": true,
+    "productionApproved": false,
+    "note": "Review approval advances documentation and operational closeout only. Production remains subject to task 10.3."
+  }
+}

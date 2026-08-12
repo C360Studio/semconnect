@@ -3,8 +3,8 @@
   "id": "doc-hosted-platform-01",
   "uniqueId": "urn:ets:system:hosted-platform-bake-01",
   "definition": "http://www.w3.org/ns/ssn/System",
-  "label": "Conformance hosted platform (foreign-edge bake)",
-  "description": "ADR-055/056 must-exist-flip bake fixture. Declares one inline hosted component, so POST /systems emits a foreign-subject `child isHostedBy parent` edge (subject = the not-yet-existent child). Exercising this lane is what lets the harness prove foreign_edge_unclaimed_total reads zero BY CLAIMED (the registered NoBirthStub isHostedBy claim covers it), not zero by absence.",
+  "label": "Conformance hosted platform (root-only bake)",
+  "description": "Beta.160 root-only projection fixture. The root retains its hosts reference while the embedded child's inverse fact is filtered, so the child is not materialized as a graph entity.",
   "position": {
     "type": "Point",
     "coordinates": [-122.4194, 37.7749, 12.0]

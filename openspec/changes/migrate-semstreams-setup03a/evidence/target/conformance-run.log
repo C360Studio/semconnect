@@ -1,0 +1,131 @@
+[run.sh 10:09:16] Stages 6+9 conformance harness — 2026-10-01T10-09-16Z
+[run.sh 10:09:16] ETS pin:        https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10.git @ d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4 (TE 5.6.1, 0.1-SNAPSHOT)
+[run.sh 10:09:16] semstreams pin: https://github.com/C360Studio/semstreams.git @ 8b99efe9c66a4faa4fa509f9f62cc6bad8392128 (v1.0.0-beta.162.0.20260930150212-8b99efe9c66a)
+[run.sh 10:09:16] IUT URL (inside compose network): http://cs-api-server:8080
+[run.sh 10:09:16] Output dir: /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance
+[run.sh 10:09:16] step 1/8 — materialising pinned ETS + framework sources, tearing down previous stack
+[run.sh 10:09:16]   ETS vendor is clean at pinned SHA — reusing /Users/coby/Code/c360/semconnect/conformance/.vendor/ets
+[run.sh 10:09:17]   semstreams vendor is clean at pinned SHA — reusing /Users/coby/Code/c360/semconnect/conformance/.vendor/semstreams
+[run.sh 10:09:17] step 2/8 — docker compose build (cold ETS build is ~5–6 min)
+[run.sh 10:09:21] step 3/8 — docker compose up -d (waits for all healthchecks)
+ Network semconnect-03a-target-r3-20261001_default Creating 
+ Volume semconnect-03a-target-r3-20261001_nats-data Creating 
+ Volume semconnect-03a-target-r3-20261001_nats-data Creating 
+ Network semconnect-03a-target-r3-20261001_default Creating 
+ Volume semconnect-03a-target-r3-20261001_nats-data Created 
+ Volume semconnect-03a-target-r3-20261001_nats-data Created 
+ Network semconnect-03a-target-r3-20261001_default Created 
+ Network semconnect-03a-target-r3-20261001_default Created 
+ Container semconnect-03a-target-r3-20261001-nats-1 Creating 
+ Container semconnect-03a-target-r3-20261001-nats-1 Created 
+ Container semconnect-03a-target-r3-20261001-provision-identity-1 Creating 
+ Container semconnect-03a-target-r3-20261001-provision-identity-1 Created 
+ Container semconnect-03a-target-r3-20261001-semstreams-backend-1 Creating 
+ Container semconnect-03a-target-r3-20261001-semstreams-backend-1 Created 
+ Container semconnect-03a-target-r3-20261001-cs-api-server-1 Creating 
+ Container semconnect-03a-target-r3-20261001-cs-api-server-1 Created 
+ Container semconnect-03a-target-r3-20261001-teamengine-1 Creating 
+ Container semconnect-03a-target-r3-20261001-teamengine-1 Created 
+ Container semconnect-03a-target-r3-20261001-nats-1 Starting 
+ Container semconnect-03a-target-r3-20261001-nats-1 Started 
+ Container semconnect-03a-target-r3-20261001-nats-1 Waiting 
+ Container semconnect-03a-target-r3-20261001-nats-1 Healthy 
+ Container semconnect-03a-target-r3-20261001-provision-identity-1 Starting 
+ Container semconnect-03a-target-r3-20261001-provision-identity-1 Started 
+ Container semconnect-03a-target-r3-20261001-provision-identity-1 Waiting 
+ Container semconnect-03a-target-r3-20261001-nats-1 Waiting 
+ Container semconnect-03a-target-r3-20261001-provision-identity-1 Exited 
+ Container semconnect-03a-target-r3-20261001-nats-1 Healthy 
+ Container semconnect-03a-target-r3-20261001-semstreams-backend-1 Starting 
+ Container semconnect-03a-target-r3-20261001-semstreams-backend-1 Started 
+ Container semconnect-03a-target-r3-20261001-semstreams-backend-1 Waiting 
+ Container semconnect-03a-target-r3-20261001-nats-1 Waiting 
+ Container semconnect-03a-target-r3-20261001-nats-1 Healthy 
+ Container semconnect-03a-target-r3-20261001-semstreams-backend-1 Healthy 
+ Container semconnect-03a-target-r3-20261001-cs-api-server-1 Starting 
+ Container semconnect-03a-target-r3-20261001-cs-api-server-1 Started 
+ Container semconnect-03a-target-r3-20261001-teamengine-1 Starting 
+ Container semconnect-03a-target-r3-20261001-teamengine-1 Started 
+[run.sh 10:09:32]   waiting for cs-api-server /health on compose network (budget 900s)
+[run.sh 10:09:33]   cs-api-server reachable after 1s
+[run.sh 10:09:33] step 4/8 — verifying TeamEngine is reachable on host port 55595
+[run.sh 10:09:35]   TeamEngine UI reachable after 2s
+[run.sh 10:09:35] step 5/8 — seeding CS-API fixtures
+[run.sh 10:09:35]   POST /systems with system.sml.json
+[run.sh 10:09:35]   seeded system: id=c360.semconnect.systems.csapi.system.weather-station-01
+[run.sh 10:09:35]   POST /systems with child subsystem referencing parent=c360.semconnect.systems.csapi.system.weather-station-01
+[run.sh 10:09:35]   seeded subsystem: id=c360.semconnect.systems.csapi.system.01
+[run.sh 10:09:35]   POST /systems with system-hosted.sml.json (root-only bake)
+[run.sh 10:09:35]   seeded hosted platform root: id=c360.semconnect.systems.csapi.system.hosted-platform-bake-01 child-reference=c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01
+[run.sh 10:09:35]   POST /datastreams referencing system=c360.semconnect.systems.csapi.system.weather-station-01
+[run.sh 10:09:36]   seeded datastream: id=c360.semconnect.systems.csapi.datastream.weather-temperature-01
+[run.sh 10:09:36]   stable schema artifact identity: id=c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_datastream_weather-temperature-01-resultSchema key=c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_datastream_weather-temperature-01-resultSchema.json
+[run.sh 10:09:36]   POST /datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations
+[run.sh 10:09:36]   seeded observation (HTTP 201): id=ets-observation-001 subject=cs-api.observations.c360.semconnect.systems.csapi.datastream.weather-temperature-01
+[run.sh 10:09:36]   waiting for predicate index to reflect seed (eventual consistency)
+[run.sh 10:09:36]   predicate index ready after 1 attempt(s); /systems numberReturned=3
+[run.sh 10:09:36]   predicate index ready after 1 attempt(s); /systems/c360.semconnect.systems.csapi.system.weather-station-01/subsystems numberReturned=1
+[run.sh 10:09:37]   predicate index ready after 1 attempt(s); /datastreams items=1
+[run.sh 10:09:37]   predicate index ready after 1 attempt(s); /observations numberReturned=1
+[run.sh 10:09:37]   predicate index ready after 1 attempt(s); /datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations numberReturned=1
+[run.sh 10:09:37]   POST /procedures with seed Feature
+[run.sh 10:09:37]   seeded procedure: id=c360.semconnect.systems.csapi.procedure.01
+[run.sh 10:09:37]   POST /deployments with seed Feature
+[run.sh 10:09:38]   seeded deployment: id=c360.semconnect.systems.csapi.deployment.01
+[run.sh 10:09:38]   POST /deployments with child subdeployment referencing parent=c360.semconnect.systems.csapi.deployment.01
+[run.sh 10:09:38]   seeded subdeployment: id=c360.semconnect.systems.csapi.deployment.child01
+[run.sh 10:09:38]   predicate index ready after 1 attempt(s); /deployments/c360.semconnect.systems.csapi.deployment.01/subdeployments numberReturned=1
+[run.sh 10:09:38]   POST /samplingFeatures with seed Feature
+[run.sh 10:09:38]   seeded sampling feature (HTTP 201)
+[run.sh 10:09:38]   POST /properties with seed DerivedProperty
+[run.sh 10:09:39]   seeded property (HTTP 201)
+[run.sh 10:09:39]   POST /controlstreams with seed command schema
+[run.sh 10:09:39]   seeded controlstream: id=c360.semconnect.systems.csapi.controlstream.ptz-01
+[run.sh 10:09:39]   stable command schema artifact identity: id=c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema key=c360.semconnect.systems.csapi.schema.c360_semconnect_systems_csapi_controlstream_ptz-01-commandSchema.json
+[run.sh 10:09:39]   predicate index ready after 1 attempt(s); /controlstreams items=1
+[run.sh 10:09:39]   POST /commands with seed command metadata referencing controlstream=c360.semconnect.systems.csapi.controlstream.ptz-01
+[run.sh 10:09:40]   seeded command metadata (HTTP 201)
+[run.sh 10:09:40]   predicate index ready after 1 attempt(s); /controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/commands items=1
+[run.sh 10:09:40]   POST /feasibility with seed feasibility metadata referencing controlstream=c360.semconnect.systems.csapi.controlstream.ptz-01
+[run.sh 10:09:40]   seeded feasibility metadata (HTTP 201)
+[run.sh 10:09:40]   predicate index ready after 1 attempt(s); /feasibility items=1
+[run.sh 10:09:40]   predicate index ready after 1 attempt(s); /controlstream/c360.semconnect.systems.csapi.controlstream.ptz-01/feasibility items=1
+[run.sh 10:09:41]   POST /systems/{id}/events with seed SystemEvent
+[run.sh 10:09:41]   seeded system event: id=c360.semconnect.systems.csapi.systemevent.00Z
+[run.sh 10:09:41]   predicate index ready after 1 attempt(s); /systemEvents items=1
+[run.sh 10:09:41]   seed complete (log: /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/seed-2026-10-01T10-09-16Z.log)
+[run.sh 10:09:41]   watching GRAPH_STATUS for stable post-seed target and index catch-up
+2026/10/01 05:09:41 INFO Connecting to NATS urls=nats://127.0.0.1:55596
+2026/10/01 05:09:41 INFO Successfully connected to NATS urls=nats://127.0.0.1:55596
+graph index ready: target_revision=15 indexed_revision=15 updates=2 evidence=/Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/seed-evidence/index-readiness-2026-10-01T10-09-16Z.jsonl
+[run.sh 10:09:47] step 6/8 — verifying suite ogcapi-connectedsystems10 is registered
+[run.sh 10:09:47] step 7/8 — invoking suite ogcapi-connectedsystems10 against http://cs-api-server:8080 (timeout 600s)
+[run.sh 10:09:49] step 8/8 — beta.160 root-only SensorML bake
+[run.sh 10:09:49]   root-only bake: PASS — root=c360.semconnect.systems.csapi.system.hosted-platform-bake-01 readable; embedded child=c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01 absent
+Stages 6+9 conformance harness — 2026-10-01T10-09-16Z
+ETS pin:        https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10.git @ d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4
+TeamEngine:     5.6.1 (0.1-SNAPSHOT)
+semstreams pin: https://github.com/C360Studio/semstreams.git @ 8b99efe9c66a4faa4fa509f9f62cc6bad8392128 (v1.0.0-beta.162.0.20260930150212-8b99efe9c66a)
+IUT: http://cs-api-server:8080
+
+TestNG: total=137 passed=137 failed=0 skipped=0
+Root-only SensorML bake: PASS — root=c360.semconnect.systems.csapi.system.hosted-platform-bake-01 readable; embedded child=c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01 absent
+Report:        /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/testng-report-2026-10-01T10-09-16Z.xml
+TE log:        /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/teamengine-container-2026-10-01T10-09-16Z.log
+cs-api log:    /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/cs-api-server-container-2026-10-01T10-09-16Z.log
+backend log:   /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/semstreams-backend-container-2026-10-01T10-09-16Z.log
+seed log:      /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/seed-2026-10-01T10-09-16Z.log
+index status:  /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/seed-evidence/index-readiness-2026-10-01T10-09-16Z.jsonl
+bake report:   /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/root-only-bake-2026-10-01T10-09-16Z.txt
+
+Stage 9 note: cs-api-server now runs against a real graph backend
+(semstreams-backend), seeded with conformance/fixtures/system.sml.json
+and a referencing datastream before suite invocation. The Botts
+fixture-loader 503s are eliminated — surviving failures are genuine
+spec assertions or upstream-ETS bugs.
+
+beta.160 note: the root-only bake POSTs system-hosted.sml.json and
+asserts the root is readable while the inline child was not materialized.
+[run.sh 10:09:50] done — exit 0 means harness ran; read /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/testng-report-2026-10-01T10-09-16Z.xml for the conformance picture
+[run.sh] stack left running for triage; tear down with:
+    ./conformance/run.sh --teardown-only

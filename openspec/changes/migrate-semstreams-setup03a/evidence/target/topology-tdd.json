@@ -1,0 +1,47 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-count=1",
+    "./deploy",
+    "./conformance"
+  ],
+  "red": [
+    {
+      "log": "topology-red.log",
+      "exit_code": 1,
+      "expected_failures": [
+        "removed platform.instance_id",
+        "old backend topology",
+        "baseline volume and pins"
+      ]
+    },
+    {
+      "log": "identity-topology-red.log",
+      "exit_code": 1,
+      "expected_failures": [
+        "missing explicit identity provisioning service and startup dependency",
+        "module tidy pending"
+      ]
+    },
+    {
+      "log": "shared-config-red.log",
+      "exit_code": 1,
+      "expected_failures": [
+        "missing shared CS API configuration flag and read-only mount"
+      ]
+    }
+  ],
+  "adaptation": [
+    "consumer-registered graph host image",
+    "exact frozen pin",
+    "digest-pinned images",
+    "target-exclusive fresh volume",
+    "create-only identity provisioning before host boot",
+    "unchanged empty-storage preflight order"
+  ],
+  "green": {
+    "log": "topology-final-green.log",
+    "exit_code": 0
+  }
+}

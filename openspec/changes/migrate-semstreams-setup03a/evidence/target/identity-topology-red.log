@@ -1,0 +1,13 @@
+--- FAIL: TestComposeIsGreenfieldProductionTopology (0.00s)
+    contract_test.go:54: services = [semstreams semconnect canonical-smoke greenfield-preflight nats], want exactly [nats provision-identity semstreams semconnect canonical-smoke greenfield-preflight]
+FAIL
+FAIL	github.com/c360studio/semconnect/deploy	0.443s
+--- FAIL: TestConformanceUsesConsumerRegisteredGraphHost (0.00s)
+    pin_alignment_test.go:65: conformance graph startup must wait for explicit identity provisioning
+--- FAIL: TestSemStreamsPinsAreAligned (0.00s)
+    pin_alignment_test.go:98: go.sum contains checksum for a different SemStreams version: "github.com/c360studio/semstreams v1.0.0-beta.160 h1:sVkaLPOqs0Jy/iyYvfamkSi9An+Vq0o/5nqMxZVCvtk="
+    pin_alignment_test.go:98: go.sum contains checksum for a different SemStreams version: "github.com/c360studio/semstreams v1.0.0-beta.160/go.mod h1:hrXy53pvnlwI2cg4BlOmXNJtXRKZ9WlrM5ZHmZPn2d8="
+    pin_alignment_test.go:103: go.sum contains 4 SemStreams checksum entries, want module and go.mod entries only
+FAIL
+FAIL	github.com/c360studio/semconnect/conformance	0.433s
+FAIL

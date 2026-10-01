@@ -1,0 +1,50 @@
+{
+  "completed_at": "2026-10-01T10:02:16.036759+00:00",
+  "exact_resource_parity": {
+    "persistence/before-restart.json": {
+      "byte_identical": true,
+      "baseline_sha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+      "target_sha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32"
+    },
+    "persistence/after-restart.json": {
+      "byte_identical": true,
+      "baseline_sha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32",
+      "target_sha256": "4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32"
+    },
+    "spatial/before-restart/summary.json": {
+      "byte_identical": true,
+      "baseline_sha256": "0dfd7b356c14534142a4b3644be7183130f562b9dfc23de7ba32fd89dab07f20",
+      "target_sha256": "0dfd7b356c14534142a4b3644be7183130f562b9dfc23de7ba32fd89dab07f20"
+    },
+    "spatial/after-restart/summary.json": {
+      "byte_identical": true,
+      "baseline_sha256": "0dfd7b356c14534142a4b3644be7183130f562b9dfc23de7ba32fd89dab07f20",
+      "target_sha256": "0dfd7b356c14534142a4b3644be7183130f562b9dfc23de7ba32fd89dab07f20"
+    }
+  },
+  "external_ets": {
+    "baseline": {
+      "total": "137",
+      "passed": "137",
+      "failed": "0",
+      "skipped": "0"
+    },
+    "target": {
+      "total": "137",
+      "passed": "137",
+      "failed": "0",
+      "skipped": "0"
+    }
+  },
+  "unchanged_qualification_inputs": {
+    "conformance/run.sh": true,
+    "gateway/cs-api/openapi.yaml": true
+  },
+  "post_start_source_changes": [
+    "gateway/cs-api/component_lifecycle_test.go",
+    "gateway/cs-api/payloads_test.go",
+    "gateway/cs-api/schema_artifacts_test.go"
+  ],
+  "production_source_drift": false,
+  "note": "Only test-only source changes after runtime snapshot; final runtime qualification does not remove separately reproduced foreign-authority mutation blocker."
+}

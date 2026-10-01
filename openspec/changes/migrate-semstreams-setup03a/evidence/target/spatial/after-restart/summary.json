@@ -1,0 +1,55 @@
+{
+  "bbox-hit": {
+    "response": {
+      "features": [
+        {
+          "geometry": {
+            "coordinates": [
+              -96.797,
+              32.777
+            ],
+            "type": "Point"
+          },
+          "id": "c360.semconnect.systems.csapi.system.v1",
+          "properties": {
+            "href": "/systems/c360.semconnect.systems.csapi.system.v1",
+            "type": "entity"
+          },
+          "type": "Feature"
+        }
+      ],
+      "type": "FeatureCollection"
+    },
+    "status": 200
+  },
+  "bbox-miss": {
+    "response": {
+      "features": [],
+      "type": "FeatureCollection"
+    },
+    "status": 200
+  },
+  "polygon-hit": {
+    "response": {
+      "features": [
+        {
+          "geometry": {
+            "coordinates": [
+              -96.797,
+              32.777
+            ],
+            "type": "Point"
+          },
+          "id": "c360.semconnect.systems.csapi.system.v1",
+          "properties": {
+            "href": "/systems/c360.semconnect.systems.csapi.system.v1",
+            "type": "entity"
+          },
+          "type": "Feature"
+        }
+      ],
+      "type": "FeatureCollection"
+    },
+    "status": 200
+  }
+}

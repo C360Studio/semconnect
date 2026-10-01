@@ -1,0 +1,23 @@
+{
+  "compile.log": "Intended lifecycle Stop(context.Context) and structured projection MessageType changes.",
+  "contracts.log": "Intended ADR-107 rejects vocabulary declaration @id; target neutral declarations are entity_id. Relationship triple marker stays @id.",
+  "registration.log": "Intended ADR-103 requires host payload registry on graph-ingest construction.",
+  "payload-api.log": "Environment-only Go build-cache sandbox denial; not a contract red. Registry TDD red evidence is registration.log.",
+  "lifecycle.log": "Behavioral test red: gateway did not propagate Start runtime cancellation to admitted HTTP requests. Target lifecycle adaptation sets HTTP BaseContext and bounds/join server shutdown under caller Stop context.",
+  "metadata_deltas": {
+    "vocabulary_relationship_datatype": {
+      "baseline": "@id",
+      "target": "entity_id"
+    },
+    "boolean_declaration": {
+      "baseline": "boolean",
+      "target": "bool"
+    },
+    "geo_float_declaration": {
+      "baseline": "float64",
+      "target": "float"
+    },
+    "triple_relationship_datatype": "@id unchanged",
+    "standard_iris": "unchanged"
+  }
+}

@@ -1,0 +1,9 @@
+--- FAIL: TestComposeIsGreenfieldProductionTopology (0.00s)
+    contract_test.go:84: graph host must share the gateway's resource-prefix and artifact configuration
+FAIL
+FAIL	github.com/c360studio/semconnect/deploy	0.481s
+--- FAIL: TestConformanceUsesConsumerRegisteredGraphHost (0.00s)
+    pin_alignment_test.go:66: conformance host must share CS API resource configuration: [-config /etc/semstreams/config.json]
+FAIL
+FAIL	github.com/c360studio/semconnect/conformance	0.505s
+FAIL

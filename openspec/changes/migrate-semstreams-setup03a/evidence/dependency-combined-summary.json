@@ -1,0 +1,14 @@
+{
+  "baseline_source_commit": "55ea4121aba8658aeac9d70bdfe80f19c15fd4cd",
+  "baseline_source": "Untouched git archive; supplemental updated measurement script only. Original evidence/dependency-baseline preserved.",
+  "script_sha256": "6d421acfa226a1e896f022e3019c7dc2497925779ce4b683b056cd314e9e631d",
+  "scope": "Union of actual consumer + stable backend production framework packages; test union enumerates every retained framework package under default/custom/race-custom tags.",
+  "baseline": {
+    "production": 63,
+    "with_retained_tests": 99
+  },
+  "target": {
+    "production": 67,
+    "with_retained_tests": 113
+  }
+}

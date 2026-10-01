@@ -1,0 +1,94 @@
+{
+  "baseline": [
+    {
+      "level": "WARN",
+      "msg": "Failed to check KV config existence",
+      "service": "semstreams",
+      "version": "v1.0.0-beta.160",
+      "pid": 1,
+      "error": "list KV keys: nats: no keys found"
+    },
+    {
+      "level": "WARN",
+      "msg": "persona file loader: directory does not exist, skipping",
+      "service": "semstreams",
+      "version": "v1.0.0-beta.160",
+      "pid": 1,
+      "root": "/app/configs/personas/fragments"
+    }
+  ],
+  "target": [
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "disconnected_node",
+      "component": "graph-query",
+      "port": "",
+      "message": "component has no connections"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-index",
+      "port": "alias_index",
+      "message": "output port 'alias_index' (watch): optional_index_unwatched"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-index",
+      "port": "incoming_index",
+      "message": "output port 'incoming_index' (watch): optional_index_unwatched"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-index",
+      "port": "outgoing_index",
+      "message": "output port 'outgoing_index' (watch): optional_index_unwatched"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-index",
+      "port": "predicate_index",
+      "message": "output port 'predicate_index' (watch): optional_index_unwatched"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-index-spatial",
+      "port": "spatial_index",
+      "message": "output port 'spatial_index' (watch): optional_index_unwatched"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-index-temporal",
+      "port": "temporal_index",
+      "message": "output port 'temporal_index' (watch): optional_index_unwatched"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-ingest",
+      "port": "graph_mutations",
+      "message": "input port 'graph_mutations' (request): optional_api_unused"
+    },
+    {
+      "level": "WARN",
+      "msg": "composition finding",
+      "type": "orphaned_port",
+      "component": "graph-query",
+      "port": "graph_queries",
+      "message": "input port 'graph_queries' (request): optional_api_unused"
+    }
+  ]
+}

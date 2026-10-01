@@ -1,0 +1,24 @@
+--- FAIL: TestSetup03AConfigurationsValidateWithPinnedSemStreams (0.00s)
+    --- FAIL: TestSetup03AConfigurationsValidateWithPinnedSemStreams/semstreams.json (0.00s)
+        contract_test.go:37: load SETUP 03A config: failed to load semstreams.json: config field platform.instance_id was removed (ADR-102, BREAKING): platform.id is the single deployment authority field and positions 1-2 of every minted entity ID. Delete instance_id and put its value in platform.id
+--- FAIL: TestComposeIsGreenfieldProductionTopology (0.00s)
+    contract_test.go:70: NATS does not use the explicit persistent volume
+    contract_test.go:73: "semconnect-nats-setup03a-8b99efe9c66a-data" is not a mapping
+FAIL
+FAIL	github.com/c360studio/semconnect/deploy	0.495s
+--- FAIL: TestSetup03AConformanceConfigurationValidates (0.00s)
+    pin_alignment_test.go:37: load SETUP 03A config: failed to load compose.semstreams.config.json: config field platform.instance_id was removed (ADR-102, BREAKING): platform.id is the single deployment authority field and positions 1-2 of every minted entity ID. Delete instance_id and put its value in platform.id
+--- FAIL: TestConformanceUsesConsumerRegisteredGraphHost (0.00s)
+    pin_alignment_test.go:61: conformance graph host must include consumer payload registrations: {Context:./.vendor/semstreams Dockerfile:docker/Dockerfile}
+--- FAIL: TestSemStreamsPinsAreAligned (0.00s)
+    pin_alignment_test.go:87: go.sum contains checksum for a different SemStreams version: "github.com/c360studio/semstreams v1.0.0-beta.160 h1:sVkaLPOqs0Jy/iyYvfamkSi9An+Vq0o/5nqMxZVCvtk="
+    pin_alignment_test.go:87: go.sum contains checksum for a different SemStreams version: "github.com/c360studio/semstreams v1.0.0-beta.160/go.mod h1:hrXy53pvnlwI2cg4BlOmXNJtXRKZ9WlrM5ZHmZPn2d8="
+    pin_alignment_test.go:92: go.sum contains 4 SemStreams checksum entries, want module and go.mod entries only
+    pin_alignment_test.go:113: conformance/.ets-pin assignments for SEMSTREAMS_TAG_OBJECT = ["8403a2218000e45a31c5132fbfe01af42ed04f14"], want exactly ["8b99efe9c66a4faa4fa509f9f62cc6bad8392128"]
+    pin_alignment_test.go:113: conformance/.ets-pin assignments for SEMSTREAMS_COMMIT = ["8403a2218000e45a31c5132fbfe01af42ed04f14"], want exactly ["8b99efe9c66a4faa4fa509f9f62cc6bad8392128"]
+    pin_alignment_test.go:113: conformance/.ets-pin assignments for SEMSTREAMS_TREE = ["9ed5dd3792bca63ce87ebf449a180add918f59ed"], want exactly ["605f83cb8492eda3bd347ac30a211b9babf3931f"]
+    pin_alignment_test.go:113: conformance/.ets-pin assignments for SEMSTREAMS_COMMIT_DATE = ["2026-08-12"], want exactly ["2026-09-30"]
+    pin_alignment_test.go:113: conformance/.ets-pin assignments for SEMSTREAMS_VERSION = ["v1.0.0-beta.160"], want exactly ["v1.0.0-beta.162.0.20260930150212-8b99efe9c66a"]
+FAIL
+FAIL	github.com/c360studio/semconnect/conformance	0.510s
+FAIL

@@ -1,0 +1,5 @@
+ Container semconnect-03a-target-r3-persistence-canonical-smoke-run-fe267e1b5c68 Creating 
+ Container semconnect-03a-target-r3-persistence-canonical-smoke-run-fe267e1b5c68 Created 
+2026/10/01 10:12:23 INFO Connecting to NATS urls=nats://nats:4222
+2026/10/01 10:12:23 INFO Successfully connected to NATS urls=nats://nats:4222
+graph index ready: target_revision=3 indexed_revision=3 updates=2 evidence=/evidence/after-restart-index-readiness.jsonl

@@ -1,0 +1,760 @@
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.180908548Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.182191381Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.183344673Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.186210381Z","level":"INFO","msg":"Adopted platform identity","org":"c360","stem":"semconnect","platform":"semconnect"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.186466673Z","level":"INFO","msg":"First boot detected, pushing config to KV"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.192642423Z","level":"INFO","msg":"Created JetStream stream","stream":"FLOWS","subjects":["flows.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.193353131Z","level":"INFO","msg":"Created JetStream stream","stream":"GOVERNANCE_VERDICT_AUDIT","subjects":["governance.verdict.>"],"storage":"file","source":"framework constant (config/streams.go)","max_age":7776000000000000,"max_bytes":524288000,"discard":"DiscardOld","duplicates":0}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.193708631Z","level":"INFO","msg":"Created JetStream stream","stream":"HEALTH","subjects":["health.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.194204715Z","level":"INFO","msg":"Created JetStream stream","stream":"LOGS","subjects":["logs.>"],"storage":"file","source":"framework constant (config/streams.go)","max_age":3600000000000,"max_bytes":104857600,"discard":"DiscardOld","duplicates":0}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.194642256Z","level":"INFO","msg":"Created JetStream stream","stream":"MAX_DELIVERY_EVENTS","subjects":["$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.>"],"storage":"file","source":"framework constant (config/streams.go)","max_age":604800000000000,"max_bytes":67108864,"discard":"DiscardOld","duplicates":0}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.194964131Z","level":"INFO","msg":"Created JetStream stream","stream":"METRICS","subjects":["metrics.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":52428800,"discard":"DiscardOld","duplicates":0}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.194983756Z","level":"INFO","msg":"Ensured JetStream streams","count":6,"migration_overrides":0,"archival":0}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.197833465Z","level":"INFO","msg":"component initialized","component":"graph-index","component":"graph-index"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.19789959Z","level":"INFO","msg":"component initialized","component":"graph-index-spatial","component":"graph-index-spatial"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.197968756Z","level":"INFO","msg":"component initialized","component":"graph-index-temporal","component":"graph-index-temporal"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.19814159Z","level":"INFO","msg":"component initialized","component":"graph-ingest","component":"graph-ingest"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198243965Z","level":"INFO","msg":"graph-query coordinator initialized","component":"graph-query"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198319006Z","level":"WARN","msg":"composition finding","type":"disconnected_node","component":"graph-query","port":"","message":"component has no connections"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198324298Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"alias_index","message":"output port 'alias_index' (watch): optional_index_unwatched"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.19832559Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"incoming_index","message":"output port 'incoming_index' (watch): optional_index_unwatched"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.19832659Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"outgoing_index","message":"output port 'outgoing_index' (watch): optional_index_unwatched"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198327548Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"predicate_index","message":"output port 'predicate_index' (watch): optional_index_unwatched"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198328506Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-spatial","port":"spatial_index","message":"output port 'spatial_index' (watch): optional_index_unwatched"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198329506Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-temporal","port":"temporal_index","message":"output port 'temporal_index' (watch): optional_index_unwatched"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198330506Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-ingest","port":"graph_mutations","message":"input port 'graph_mutations' (request): optional_api_unused"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.198331506Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-query","port":"graph_queries","message":"input port 'graph_queries' (request): optional_api_unused"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.19833284Z","level":"INFO","msg":"composition validated at boot","status":"warnings","errors":0,"warnings":9,"components":5,"edges":3}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.203736131Z","level":"INFO","msg":"Created new KV bucket","bucket":"TEMPORAL_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.203753131Z","level":"INFO","msg":"Created new KV bucket","bucket":"SPATIAL_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.20375459Z","level":"INFO","msg":"Created new KV bucket","bucket":"OUTGOING_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.203735923Z","level":"INFO","msg":"Created new KV bucket","bucket":"ENTITY_STATES"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.204596423Z","level":"INFO","msg":"query handlers registered","component":"graph-index-spatial","subjects":["graph.spatial.query.bounds","graph.spatial.query.polygon"]}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.204976048Z","level":"INFO","msg":"resource available","component":"graph-index-spatial","resource":"ENTITY_STATES","attempt":1}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.205537881Z","level":"INFO","msg":"component started","component":"graph-index-spatial","component":"graph-index-spatial","start_time":"2026-10-01T10:09:27.205524673Z","geohash_precision":6,"workers":1,"batch_size":50}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.206042298Z","level":"INFO","msg":"entity watcher started","component":"graph-index-spatial","bucket":"ENTITY_STATES"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.20605259Z","level":"INFO","msg":"Created new KV bucket","bucket":"ENTITY_SUFFIX_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.20607959Z","level":"INFO","msg":"Created new KV bucket","bucket":"TEMPORAL_INDEX_REVERSE"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.20609759Z","level":"INFO","msg":"Created new KV bucket","bucket":"INCOMING_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.207492548Z","level":"INFO","msg":"query handlers registered","component":"graph-index-temporal","subjects":["graph.temporal.query.range"]}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.207851381Z","level":"INFO","msg":"resource available","component":"graph-index-temporal","resource":"ENTITY_STATES","attempt":1}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.20797784Z","level":"INFO","msg":"Created new KV bucket","bucket":"GRAPH_INGEST_APPLIED_SEQ"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.208046131Z","level":"INFO","msg":"component started","component":"graph-index-temporal","component":"graph-index-temporal","start_time":"2026-10-01T10:09:27.208043756Z","time_resolution":"hour","workers":1}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.208418715Z","level":"INFO","msg":"entity watcher started","component":"graph-index-temporal","bucket":"ENTITY_STATES"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.208613173Z","level":"INFO","msg":"Created new KV bucket","bucket":"ALIAS_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.210149631Z","level":"INFO","msg":"Created new KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.210517923Z","level":"INFO","msg":"Created new KV bucket","bucket":"PREDICATE_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.210908256Z","level":"INFO","msg":"query handlers registered","component":"graph-ingest","subjects":["graph.ingest.query.entity","graph.ingest.query.batch","graph.ingest.query.prefix","graph.ingest.query.suffix"]}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.210937381Z","level":"INFO","msg":"mutation handlers registered","component":"graph-ingest","subjects":["graph.mutation.entity.create","graph.mutation.entity.reconcile","graph.mutation.triple.append","graph.mutation.entity.delete"]}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.210942298Z","level":"INFO","msg":"component started","component":"graph-ingest","component":"graph-ingest","start_time":"2026-10-01T10:09:27.210940381Z"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.211002173Z","level":"INFO","msg":"query handlers registered","component":"graph-query","subjects":["graph.query.entity","graph.query.entityByAlias","graph.query.batch","graph.query.relationships","graph.query.pathSearch","graph.query.hierarchyStats","graph.query.prefix","graph.query.spatial","graph.query.temporal","graph.query.semantic","graph.query.similar","graph.query.globalSearch","graph.query.summary","graph.query.searchGraph","graph.query.byName","graph.query.localSearch"]}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.21101459Z","level":"INFO","msg":"graph-query coordinator started","component":"graph-query"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.211419923Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.211439881Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":1,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.21383659Z","level":"INFO","msg":"Created new KV bucket","bucket":"NAME_INDEX"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.215608881Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.216891631Z","level":"INFO","msg":"resource available","component":"graph-index","resource":"ENTITY_STATES","attempt":1}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.217777715Z","level":"INFO","msg":"query handlers registered","component":"graph-index","subjects":["graph.index.query.outgoing","graph.index.query.incoming","graph.index.query.alias","graph.index.query.predicate","graph.index.query.predicateList","graph.index.query.predicateStats","graph.index.query.predicateCompound","graph.index.query.byName"]}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.217793256Z","level":"INFO","msg":"component started","component":"graph-index","component":"graph-index","start_time":"2026-10-01T10:09:27.217791965Z"}
+semstreams-backend-1  | 2026/10/01 10:09:27 INFO Heartbeat service started source=heartbeat interval=30s
+semstreams-backend-1  | 2026/10/01 10:09:27 INFO Metrics service started successfully url=http://localhost:9090/metrics
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.217851965Z","level":"INFO","msg":"ComponentManager HTTP handlers registered","prefix":"/components/"}
+semstreams-backend-1  | 2026/10/01 10:09:27 INFO Manager HTTP server started service=service-manager-registry port=8090
+semstreams-backend-1  | 2026/10/01 10:09:27 INFO Manager.StartAll: All services started service=service-manager-registry count=3
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.217886256Z","level":"INFO","msg":"SemConnect graph backend ready","org":"c360","platform":"semconnect"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:27.21833334Z","level":"INFO","msg":"entity watcher started","component":"graph-index","bucket":"ENTITY_STATES"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:32.212587259Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:32.212595342Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":2,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:37.214798053Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:37.214801219Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":3,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:42.215487722Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":4,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:42.215487763Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:47.218231752Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:47.218477752Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":5,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:49.867627919Z","level":"ERROR","msg":"query failed","component":"graph-query","error":"not found: c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01"}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:52.218998046Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":6,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:52.219103587Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:57.220157131Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":7,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:09:57.220219131Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:02.221212717Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":8,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:02.221255092Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:07.222241803Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":9,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:07.222233011Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:12.222768972Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:12.222829347Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":10,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:17.223753793Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:17.22375371Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":11,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:22.224422296Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:22.224426171Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":12,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:27.22527684Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":13,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:27.225442298Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:32.226312425Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:32.226423009Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":14,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:37.227547469Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":15,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:37.227614719Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:42.228703347Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":16,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:42.228808472Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:47.230605918Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:47.230717543Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":17,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:52.232285504Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":18,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:52.232401754Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:57.233186298Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:10:57.23321534Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":19,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:02.234684259Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":20,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:02.234684259Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:07.238367719Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:07.238404428Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":21,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:12.239611888Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":22,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:12.239801055Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:17.243871918Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:17.243973293Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":23,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:22.249616837Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:22.249616129Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":24,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:27.250913465Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:27.250934298Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":25,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:32.252122425Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:32.25213505Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":26,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:37.252410594Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":27,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:37.252410636Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:42.253866722Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":28,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:42.253911305Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:47.260757585Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:47.260758293Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":29,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:52.266689629Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:52.266708504Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":30,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:57.268290048Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":31,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:11:57.268284256Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:02.274819175Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":32,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:02.274847842Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:07.276015136Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:07.276062678Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":33,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:12.277260305Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:12.277264638Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":34,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:17.279396418Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:17.279447835Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":35,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:22.282576212Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:22.282694671Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":36,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:27.28488884Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":37,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:27.28488734Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:32.290568259Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:32.29075405Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":38,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:37.296671594Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:37.296672219Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":39,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:42.301821763Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":40,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:42.301821805Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:47.304029918Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:47.304113335Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":41,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:52.305226837Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:52.305224671Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":42,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:57.30761209Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:12:57.307725423Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":43,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:02.31141555Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":44,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:02.311415509Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:07.313238594Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:07.313333136Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":45,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:12.319281513Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":46,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:12.319340388Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:17.320057502Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":47,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:17.320057585Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:22.325456254Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":48,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:22.325456837Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:27.329226298Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":49,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-backend-1  | {"time":"2026-10-01T10:13:27.329226465Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+nats-1                | [1] 2026/10/01 10:09:21.517471 [INF] Starting nats-server
+nats-1                | [1] 2026/10/01 10:09:21.517520 [INF]   Version:  2.14.4
+nats-1                | [1] 2026/10/01 10:09:21.517523 [INF]   Git:      [bbd6dc5]
+nats-1                | [1] 2026/10/01 10:09:21.517524 [INF]   Name:     NAEXB72YCRXSN5IY2KIGUJSTQFKZHGWT5BD7Z7A7SZY3QJRAOOAD7DJU
+nats-1                | [1] 2026/10/01 10:09:21.517525 [INF]   Node:     XHZTv1hS
+nats-1                | [1] 2026/10/01 10:09:21.517526 [INF]   ID:       NAEXB72YCRXSN5IY2KIGUJSTQFKZHGWT5BD7Z7A7SZY3QJRAOOAD7DJU
+nats-1                | [1] 2026/10/01 10:09:21.517531 [INF] Using configuration file: /etc/nats/nats.conf (sha256:10876a340fdaaba3d0d74ed1f61b6265db4979694fc64244665d8928741883c7)
+nats-1                | [1] 2026/10/01 10:09:21.519796 [INF] Starting http monitor on 0.0.0.0:8222
+teamengine-1          | NOTE: Picked up JDK_JAVA_OPTIONS:  --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+nats-1                | [1] 2026/10/01 10:09:21.519861 [INF] Starting JetStream
+provision-identity-1  | {"time":"2026-10-01T10:09:26.610671048Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:09:26.612677631Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:09:26.614443798Z","level":"INFO","msg":"Created new KV bucket","bucket":"semstreams_config_c360_semconnect"}
+nats-1                | [1] 2026/10/01 10:09:21.519944 [INF]     _ ___ _____ ___ _____ ___ ___   _   __  __
+nats-1                | [1] 2026/10/01 10:09:21.519950 [INF]  _ | | __|_   _/ __|_   _| _ \ __| /_\ |  \/  |
+nats-1                | [1] 2026/10/01 10:09:21.519950 [INF] | || | _|  | | \__ \ | | |   / _| / _ \| |\/| |
+nats-1                | [1] 2026/10/01 10:09:21.519951 [INF]  \__/|___| |_| |___/ |_| |_|_\___/_/ \_\_|  |_|
+nats-1                | [1] 2026/10/01 10:09:21.519952 [INF] 
+nats-1                | [1] 2026/10/01 10:09:21.519952 [INF]          https://docs.nats.io/jetstream
+nats-1                | [1] 2026/10/01 10:09:21.519953 [INF] 
+nats-1                | [1] 2026/10/01 10:09:21.519953 [INF] ---------------- JETSTREAM ----------------
+nats-1                | [1] 2026/10/01 10:09:21.519954 [INF]   Strict:          true
+teamengine-1          | 01-Oct-2026 10:09:33.315 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/8.5.100
+cs-api-server-1       | {"time":"2026-10-01T10:09:32.763302759Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+cs-api-server-1       | {"time":"2026-10-01T10:09:32.764174967Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+cs-api-server-1       | {"time":"2026-10-01T10:09:32.764191051Z","level":"INFO","msg":"connected to NATS","url":"nats://nats:4222"}
+cs-api-server-1       | {"time":"2026-10-01T10:09:32.764205051Z","level":"INFO","msg":"initialized","component":"cs-api"}
+cs-api-server-1       | {"time":"2026-10-01T10:09:32.767154426Z","level":"INFO","msg":"validated cs-api projection contracts","component":"cs-api","count":11}
+cs-api-server-1       | {"time":"2026-10-01T10:09:32.770567301Z","level":"INFO","msg":"started","component":"cs-api","standalone":true}
+cs-api-server-1       | {"time":"2026-10-01T10:09:32.770614259Z","level":"INFO","msg":"HTTP server listening","component":"cs-api","bind":"[::]:8080"}
+cs-api-server-1       | {"time":"2026-10-01T10:09:35.278030427Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"055c611c-3a87-4119-88fc-b6035df072d1","trace_id":"e322608006a42326107ab4a093c1f76c","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.weather-station-01","commit_state":"verified","kv_revision":1,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:35.527446219Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"3b398014-13ec-45a5-b752-87af9d413410","trace_id":"03c8a556e408235549b38088a7ccf837","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.01","commit_state":"verified","kv_revision":2,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:35.785004219Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"2c39f38d-2e8d-4538-88a5-f3dffea36444","trace_id":"f41b2d815684d3d02223967c7869b15a","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.hosted-platform-bake-01","commit_state":"verified","kv_revision":3,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:36.017721594Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"6662bca4-d9ad-474b-bfe7-06d93ff3d9fe","trace_id":"1de01a0de57137e79cf264d18b8fa3da","operation":"createSchemaArtifact","entity_id":"c360.semconnect.systems.csapi.schema.sha256-f11974ada89c6fc6b1de03454ab821aa2afacf11b9140d3c028e02869be10e27","commit_state":"verified","kv_revision":4,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:36.019809135Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"6fd03057-6afa-4082-a09a-3c6905a5fee7","trace_id":"b758442550e82343a5d2d02bdc906a99","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","commit_state":"verified","kv_revision":5,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:37.557536345Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","limit":100,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:37.837220886Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"d2d01373-9a3e-4bf2-947f-aef0c6780bce","trace_id":"283a89d195735a2f1994c7b439a6ad4f","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.procedure.01","commit_state":"verified","kv_revision":6,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:38.075151595Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"13639099-7465-424e-bd1c-b4e2024f0d7c","trace_id":"0a3bc2aaeff9b92bec29bcb61232b403","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.deployment.01","commit_state":"verified","kv_revision":7,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:38.313958012Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"93cedd70-6f7a-4ef0-a437-170925a1ed99","trace_id":"533df9ed22fea781fbc9c1c4a4fa65a2","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.deployment.child01","commit_state":"verified","kv_revision":8,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Mar 19 2024 13:54:42 UTC
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 8.5.100.0
+cs-api-server-1       | {"time":"2026-10-01T10:09:38.853292887Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"1ae22e18-f812-49a1-b510-654f66f91431","trace_id":"b5dfd01a5fa298c77f60a5fcaf0a05f5","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.samplingfeature.01","commit_state":"verified","kv_revision":9,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:39.118398804Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"37f2361f-3841-4f31-a8b1-9b98e0eda975","trace_id":"c63d17bac381416962aef09b1a7310a4","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.property.air-temperature","commit_state":"verified","kv_revision":10,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:39.38499122Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"ac307be9-f6c9-4ad8-918c-c2e3ed865639","trace_id":"163ccf2476ea1e11faf762d70bd84b13","operation":"createSchemaArtifact","entity_id":"c360.semconnect.systems.csapi.schema.sha256-24a3ed00c839a1dd700d8faf90ee05838035b2f2c7c2e5e44a24852a460b4057","commit_state":"verified","kv_revision":11,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            7.0.12-linuxkit
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          aarch64
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /opt/java/openjdk
+nats-1                | [1] 2026/10/01 10:09:21.519959 [INF]   Max Memory:      1.00 GB
+nats-1                | [1] 2026/10/01 10:09:21.519960 [INF]   Max Storage:     10.00 GB
+nats-1                | [1] 2026/10/01 10:09:21.519960 [INF]   Store Directory: "/data/jetstream"
+nats-1                | [1] 2026/10/01 10:09:21.519961 [INF]   API Level:       4
+cs-api-server-1       | {"time":"2026-10-01T10:09:39.387970554Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"a63ea99c-5aa0-4ff3-b983-2a144b7c46ec","trace_id":"79bf89cbfad99349b9b48b330eeb2361","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.controlstream.ptz-01","commit_state":"verified","kv_revision":12,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:39.918452596Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"dca0fb52-c017-42ef-a149-9970faca79b4","trace_id":"950df0d35427670a40a8706e615856ad","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.command.ets-ptz-001","commit_state":"verified","kv_revision":13,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:40.374745888Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"8dc7baf1-6b72-42d7-93f7-bfc7359cdd40","trace_id":"75714f46fb09d70535a600ef0dae5a49","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.feasibility.ets-ptz-001","commit_state":"verified","kv_revision":14,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           17.0.10+7
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Eclipse Adoptium
+cs-api-server-1       | {"time":"2026-10-01T10:09:41.11976618Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"d7745a4d-7b63-42e5-9e58-f940fe5280bd","trace_id":"40dc9b192d42a9ba5fa2b7594606ca15","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.systemevent.00Z","commit_state":"verified","kv_revision":15,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.236461794Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","limit":2,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.245029627Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.weather-temperature-01","limit":10,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /usr/local/tomcat
+teamengine-1          | 01-Oct-2026 10:09:33.317 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /usr/local/tomcat
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.732489586Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"7c230e43-9c5b-417e-aa11-28016ff04a2c","trace_id":"598cffb7b417077950a95f754c42ad06","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.a7c717e1-ddd5-4d2a-a076-59cb0cf490c1","commit_state":"verified","kv_revision":16,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.740244002Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"90a62fa7-d5a4-4103-b013-7017279e3ace","trace_id":"f0c13cbf80cb2f89b9a2fcddb1196b08","operation":"deleteEntity","entity_id":"c360.semconnect.systems.csapi.system.a7c717e1-ddd5-4d2a-a076-59cb0cf490c1","commit_state":"verified","kv_revision":16,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.813763877Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"fa9db1af-506d-4bfc-8ce4-9210eb9f58f0","trace_id":"591e6bd9ecf9b1cf9fd062e4f2e41ba5","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.b4df3566-6c92-4f36-88ed-40041ca2fe44","commit_state":"verified","kv_revision":18,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.819669127Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"749a35ba-ab06-4fe6-9e5b-be2a32917189","trace_id":"86acdbe2ee1b90dc88a8b7ee4b597531","operation":"deleteEntity","entity_id":"c360.semconnect.systems.csapi.system.b4df3566-6c92-4f36-88ed-40041ca2fe44","commit_state":"verified","kv_revision":18,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.873351211Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"9a2675ac-a4ef-4dc7-aed1-28556297b511","trace_id":"bcda1e45f13ad1ba08d5fbdec1d53c09","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.f0f39df2-aae4-4f4e-a54c-67c44a3d4b08","commit_state":"verified","kv_revision":20,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+nats-1                | [1] 2026/10/01 10:09:21.519962 [INF] -------------------------------------------
+nats-1                | [1] 2026/10/01 10:09:21.520084 [INF] Took 203.25µs to start JetStream
+nats-1                | [1] 2026/10/01 10:09:21.520111 [INF] Listening for client connections on 0.0.0.0:4222
+nats-1                | [1] 2026/10/01 10:09:21.520255 [INF] Server is ready
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.878813669Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"e263aa98-ff1f-45cd-8cb7-7d2d5d47f5ea","trace_id":"4cd8466532b375b2bdd0c8905e5a8cc2","operation":"replaceEntityTriples","entity_id":"c360.semconnect.systems.csapi.system.f0f39df2-aae4-4f4e-a54c-67c44a3d4b08","commit_state":"verified","kv_revision":21,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:48.882517586Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"5e941c6e-e981-4748-b229-ebaddb1a3202","trace_id":"e456b7a056d08f652f6d0dd7139890f7","operation":"deleteEntity","entity_id":"c360.semconnect.systems.csapi.system.f0f39df2-aae4-4f4e-a54c-67c44a3d4b08","commit_state":"verified","kv_revision":21,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:49.041286169Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"fff4681e-bb0f-4aa3-93d4-28fc53947ead","trace_id":"07d5a2a94acbde9216b86462983fc6df","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.dde9b5a6-5db3-47d9-888e-36658f3ae7a4","commit_state":"verified","kv_revision":23,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+cs-api-server-1       | {"time":"2026-10-01T10:09:49.046532127Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"bd8213fc-4812-4a3a-a275-40f6072ebd71","trace_id":"6ca0f328018f4e778ae93001b7ad1921","operation":"replaceEntityTriples","entity_id":"c360.semconnect.systems.csapi.system.dde9b5a6-5db3-47d9-888e-36658f3ae7a4","commit_state":"verified","kv_revision":24,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:49.052036127Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"362997bc-ba34-4765-9c9a-5c685e54084e","trace_id":"641e0f0e270a2a5b60b1c88515dd8e4d","operation":"deleteEntity","entity_id":"c360.semconnect.systems.csapi.system.dde9b5a6-5db3-47d9-888e-36658f3ae7a4","commit_state":"verified","kv_revision":24,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+cs-api-server-1       | {"time":"2026-10-01T10:09:49.870314419Z","level":"WARN","msg":"backend error","component":"cs-api","err":"cs-api: entity not found: not found: c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01","status":404}
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/usr/local/tomcat/conf/logging.properties
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xms1024m
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Xmx2048m
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -DTE_BASE=/usr/local/tomcat/te_base
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djavax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dorg.apache.catalina.security.SecurityListener.UMASK=0027
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dlog4j2.formatMsgNoLookups=true
+teamengine-1          | 01-Oct-2026 10:09:33.318 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dignore.endorsed.dirs=
+teamengine-1          | 01-Oct-2026 10:09:33.319 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/usr/local/tomcat
+teamengine-1          | 01-Oct-2026 10:09:33.319 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/usr/local/tomcat
+teamengine-1          | 01-Oct-2026 10:09:33.319 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/usr/local/tomcat/temp
+teamengine-1          | 01-Oct-2026 10:09:33.319 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [1.2.39] using APR version [1.7.0].
+teamengine-1          | 01-Oct-2026 10:09:33.319 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR capabilities: IPv6 [true], sendfile [true], accept filters [false], random [true], UDS [{4}].
+teamengine-1          | 01-Oct-2026 10:09:33.319 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent APR/OpenSSL configuration: useAprConnector [false], useOpenSSL [true]
+teamengine-1          | 01-Oct-2026 10:09:33.322 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.2 15 Mar 2022]
+teamengine-1          | 01-Oct-2026 10:09:33.336 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+teamengine-1          | 01-Oct-2026 10:09:33.346 INFO [main] org.apache.catalina.startup.Catalina.load Initialization processed in 304 ms
+teamengine-1          | 01-Oct-2026 10:09:33.360 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+teamengine-1          | 01-Oct-2026 10:09:33.360 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/8.5.100]
+teamengine-1          | 01-Oct-2026 10:09:33.363 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory [/usr/local/tomcat/webapps/teamengine]
+teamengine-1          | 01-Oct-2026 10:09:33.372 WARNING [localhost-startStop-1] org.apache.catalina.startup.SetContextPropertiesRule.begin [SetContextPropertiesRule]{Context} Setting property 'processTlds' to 'false' did not find a matching property.
+teamengine-1          | 01-Oct-2026 10:09:33.372 WARNING [localhost-startStop-1] org.apache.catalina.startup.SetContextPropertiesRule.begin [SetContextPropertiesRule]{Context} Setting property 'aliases' to '/docs=/usr/local/tomcat/te_base/resources/docs,/about=/usr/local/tomcat/te_base/scripts,/reports=/usr/local/tomcat/te_base/users,/site=/usr/local/tomcat/te_base/resources/site' did not find a matching property.
+teamengine-1          | 01-Oct-2026 10:09:33.373 WARNING [localhost-startStop-1] org.apache.tomcat.util.digester.SetPropertiesRule.begin [SetPropertiesRule]{Context/Realm} Setting property 'root' to '/usr/local/tomcat/te_base/users' did not find a matching property.
+teamengine-1          | Oct 01, 2026 10:09:34 AM org.apache.tomcat.dbcp.dbcp2.BasicDataSourceFactory getObjectInstance
+teamengine-1          | WARNING: Name = EPSG Property maxActive is not used in DBCP2, use maxTotal instead. maxTotal default value is 8. You have set value of "8" for "maxActive" property, which is being ignored.
+teamengine-1          | 01-Oct-2026 10:09:34.893 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory [/usr/local/tomcat/webapps/teamengine] has finished in [1,529] ms
+teamengine-1          | 01-Oct-2026 10:09:34.894 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+teamengine-1          | 01-Oct-2026 10:09:34.898 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in 1551 ms
+teamengine-1          | 01-Oct-2026 10:09:47.325 WARNING [http-nio-8080-exec-4] org.apache.catalina.connector.Response.setContentType The encoding ['utf-8'] is not recognised by the JRE
+teamengine-1          | 	java.lang.IllegalArgumentException: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1          | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:479)
+teamengine-1          | 		at org.apache.catalina.connector.Response.setContentType(Response.java:760)
+teamengine-1          | 		at org.apache.catalina.connector.Response.checkSpecialHeader(Response.java:1055)
+teamengine-1          | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1037)
+teamengine-1          | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1016)
+teamengine-1          | 		at org.apache.catalina.connector.ResponseFacade.addHeader(ResponseFacade.java:406)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeHeaders(WebComponent.java:340)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeStatusAndHeaders(WebComponent.java:328)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.initiate(WebComponent.java:319)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.write(WebComponent.java:299)
+teamengine-1          | 		at com.sun.jersey.spi.container.ContainerResponse$CommittingOutputStream.write(ContainerResponse.java:135)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.writeBytes(Unknown Source)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.implFlushBuffer(Unknown Source)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.implFlush(Unknown Source)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.flush(Unknown Source)
+teamengine-1          | 		at java.base/java.io.OutputStreamWriter.flush(Unknown Source)
+teamengine-1          | 		at java.base/java.io.BufferedWriter.flush(Unknown Source)
+teamengine-1          | 		at net.sf.saxon.event.XMLEmitter.close(XMLEmitter.java:262)
+teamengine-1          | 		at net.sf.saxon.event.UncommittedSerializer.close(UncommittedSerializer.java:53)
+teamengine-1          | 		at net.sf.saxon.event.ProxyReceiver.close(ProxyReceiver.java:90)
+teamengine-1          | 		at net.sf.saxon.dom.DOMSender.send(DOMSender.java:100)
+teamengine-1          | 		at net.sf.saxon.dom.DOMObjectModel.sendSource(DOMObjectModel.java:112)
+teamengine-1          | 		at net.sf.saxon.event.Sender.send(Sender.java:218)
+teamengine-1          | 		at net.sf.saxon.IdentityTransformer.transform(IdentityTransformer.java:29)
+teamengine-1          | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:208)
+teamengine-1          | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:172)
+teamengine-1          | 		at com.sun.jersey.spi.container.ContainerResponse.write(ContainerResponse.java:302)
+teamengine-1          | 		at com.sun.jersey.server.impl.application.WebApplicationImpl._handleRequest(WebApplicationImpl.java:1510)
+teamengine-1          | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1419)
+teamengine-1          | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1409)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent.service(WebComponent.java:409)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:558)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:733)
+teamengine-1          | 		at javax.servlet.http.HttpServlet.service(HttpServlet.java:583)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:212)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1          | 		at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1          | 		at com.occamlab.te.realm.RestAuthenticationFilter.doFilter(RestAuthenticationFilter.java:72)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1          | 		at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+teamengine-1          | 		at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+teamengine-1          | 		at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+teamengine-1          | 		at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+teamengine-1          | 		at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+teamengine-1          | 		at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:679)
+teamengine-1          | 		at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+teamengine-1          | 		at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+teamengine-1          | 		at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:617)
+teamengine-1          | 		at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+teamengine-1          | 		at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:934)
+teamengine-1          | 		at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1690)
+teamengine-1          | 		at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+teamengine-1          | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+teamengine-1          | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+teamengine-1          | 		at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+teamengine-1          | 		at java.base/java.lang.Thread.run(Unknown Source)
+teamengine-1          | 	Caused by: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1          | 		at org.apache.tomcat.util.buf.B2CConverter.getCharsetLower(B2CConverter.java:85)
+teamengine-1          | 		at org.apache.tomcat.util.buf.B2CConverter.getCharset(B2CConverter.java:63)
+teamengine-1          | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:477)
+teamengine-1          | 		... 58 more
+teamengine-1          | log4j:WARN No appenders could be found for logger (Jena).
+teamengine-1          | log4j:WARN Please initialize the log4j system properly.
+teamengine-1          | log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+teamengine-1          | Oct 01, 2026 10:09:47 AM org.glassfish.jersey.client.innate.inject.NonInjectionManager <init>
+teamengine-1          | WARNING: Jersey-HK2 module is missing. Falling back to injection-less client. Injection may not be supported on the client.
+teamengine-1          | Oct 01, 2026 10:09:47 AM org.glassfish.jersey.message.internal.MessagingBinders$EnabledProvidersBinder bindToBinder
+teamengine-1          | WARNING: A class jakarta.activation.DataSource for a default provider MessageBodyWriter<jakarta.activation.DataSource> was not found. The provider is not available.
+teamengine-1          | [Fatal Error] entity-8857867533771371221.tmp:1:1: Content is not allowed in prolog.
+teamengine-1          | Request: GET http://cs-api-server:8080
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/api
+teamengine-1          | 	Accept=*/*
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/collections
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/?f=json
+teamengine-1          | 	Accept=*/*
+teamengine-1          | Request: GET http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Part 2 API Common group reached runtime after Core/Common prerequisites resolved.
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/commands?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systemEvents?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | IUT declares both /conf/datastream and /conf/api-common; full-class prerequisite is visible.
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/schema
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations/ets-observation-001
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams/c360.semconnect.systems.csapi.datastream.weather-temperature-01/observations?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/datastreams?limit=100
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/commands?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | IUT declares both /conf/controlstream and /conf/api-common; full-class prerequisite is visible.
+teamengine-1          | Request: GET http://cs-api-server:8080/controls/c360.semconnect.systems.csapi.controlstream.ptz-01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/schema
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams/c360.semconnect.systems.csapi.controlstream.ptz-01/commands?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/commands?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/controlstreams?limit=100
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstream/c360.semconnect.systems.csapi.controlstream.ptz-01/feasibility?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/feasibility?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/feasibility/c360.semconnect.systems.csapi.feasibility.ets-ptz-001
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/collections?limit=100
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/collections/all_feasibility/items?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | IUT declares both /conf/feasibility and /conf/controlstream; full-class prerequisite is visible.
+teamengine-1          | Request: GET http://cs-api-server:8080/feasibility?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/feasibility/c360.semconnect.systems.csapi.feasibility.ets-ptz-001/result?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/feasibility?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/feasibility/c360.semconnect.systems.csapi.feasibility.ets-ptz-001/status?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/collections
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01/subsystems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.hosted-platform-bake-01/subsystems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/subsystems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.weather-station-01/subsystems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/samplingFeatures
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/samplingFeatures/c360.semconnect.systems.csapi.samplingfeature.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/properties
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/geo+json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1          | 	Accept=application/geo+json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1          | 	Accept=application/geo+json
+teamengine-1          | Request: GET http://cs-api-server:8080/samplingFeatures?limit=1
+teamengine-1          | 	Accept=application/geo+json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: POST http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | 	Content-Type=application/geo+json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.a7c717e1-ddd5-4d2a-a076-59cb0cf490c1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.a7c717e1-ddd5-4d2a-a076-59cb0cf490c1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/samplingFeatures?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/samplingFeatures/c360.semconnect.systems.csapi.samplingfeature.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/sml+json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=application/sml+json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1          | 	Accept=application/sml+json
+teamengine-1          | Deployment SensorML representation source: direct Accept application/sml+json (http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01)
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1          | 	Accept=application/sml+json
+teamengine-1          | Procedure SensorML representation source: direct Accept application/sml+json (http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01)
+teamengine-1          | Request: GET http://cs-api-server:8080/properties?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature
+teamengine-1          | 	Accept=application/sml+json
+teamengine-1          | Property SensorML representation source: direct Accept application/sml+json (http://cs-api-server:8080/properties/c360.semconnect.systems.csapi.property.air-temperature)
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01
+teamengine-1          | 	Accept=application/sml+json
+teamengine-1          | Request: POST http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | 	Content-Type=application/sml+json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.b4df3566-6c92-4f36-88ed-40041ca2fe44
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.b4df3566-6c92-4f36-88ed-40041ca2fe44
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/procedures/c360.semconnect.systems.csapi.procedure.01
+teamengine-1          | 	Accept=application/sml+json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?geom=POLYGON%28%28-180%20-90%2C180%20-90%2C180%2090%2C-180%2090%2C-180%20-90%29%29
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?id=c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?q=Conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: OPTIONS http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=*/*
+teamengine-1          | Request: OPTIONS http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=*/*
+teamengine-1          | Request: POST http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | 	Content-Type=application/json
+teamengine-1          | Request: PUT http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.f0f39df2-aae4-4f4e-a54c-67c44a3d4b08
+teamengine-1          | 	Accept=application/json
+teamengine-1          | 	Content-Type=application/json
+teamengine-1          | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.f0f39df2-aae4-4f4e-a54c-67c44a3d4b08
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systemEvents?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systemEvents/c360.semconnect.systems.csapi.systemevent.00Z
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/collections?limit=100
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/collections/all_system_events/items?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | IUT declares /conf/system-event, /conf/api-common, and Part 1 /conf/system prerequisites.
+teamengine-1          | Request: GET http://cs-api-server:8080/systemEvents?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01/events?limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | IUT declares Part 2 /conf/advanced-filtering and its visible prerequisite classes.
+teamengine-1          | Request: GET http://cs-api-server:8080/commands?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/commands?issueTime=2026-05-19T12%3A00%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/commands?executionTime=2026-05-19T12%3A01%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/commands?statusCode=accepted&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/commands?sender=ets&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?controlledProperty=http%3A%2F%2Fsensorml.com%2Font%2Fswe%2Fproperty%2FPanAngle&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?issueTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/controlstreams?executionTime=2026-06-02T18%3A05%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams?observedProperty=http%3A%2F%2Fwww.w3.org%2Fns%2Fsosa%2FProperty%2FAirTemperature&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams?phenomenonTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/datastreams?resultTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations?phenomenonTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/observations?resultTime=2026-06-02T18%3A00%3A00Z&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systemEvents?limit=10
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systemEvents?eventType=SystemChanged&limit=2
+teamengine-1          | 	Accept=application/json
+teamengine-1          | SensorML representation source: direct Accept application/sml+json on selected system (http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01)
+teamengine-1          | Request: GET http://cs-api-server:8080/conformance
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: OPTIONS http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=*/*
+teamengine-1          | Request: GET http://cs-api-server:8080/systems?limit=1
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: OPTIONS http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.01
+teamengine-1          | 	Accept=*/*
+teamengine-1          | Request: POST http://cs-api-server:8080/systems
+teamengine-1          | 	Accept=application/json
+teamengine-1          | 	Content-Type=application/json
+teamengine-1          | Request: PATCH http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.dde9b5a6-5db3-47d9-888e-36658f3ae7a4
+teamengine-1          | 	Accept=application/json
+teamengine-1          | 	Content-Type=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.dde9b5a6-5db3-47d9-888e-36658f3ae7a4
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: DELETE http://cs-api-server:8080/systems/c360.semconnect.systems.csapi.system.dde9b5a6-5db3-47d9-888e-36658f3ae7a4
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.01/subdeployments
+teamengine-1          | 	Accept=application/json
+teamengine-1          | Request: GET http://cs-api-server:8080/deployments/c360.semconnect.systems.csapi.deployment.child01
+teamengine-1          | 	Accept=application/json
+teamengine-1          | 01-Oct-2026 10:09:49.196 WARNING [http-nio-8080-exec-6] org.apache.catalina.connector.Response.setContentType The encoding ['utf-8'] is not recognised by the JRE
+teamengine-1          | 	java.lang.IllegalArgumentException: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1          | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:479)
+teamengine-1          | 		at org.apache.catalina.connector.Response.setContentType(Response.java:760)
+teamengine-1          | 		at org.apache.catalina.connector.Response.checkSpecialHeader(Response.java:1055)
+teamengine-1          | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1037)
+teamengine-1          | 		at org.apache.catalina.connector.Response.addHeader(Response.java:1016)
+teamengine-1          | 		at org.apache.catalina.connector.ResponseFacade.addHeader(ResponseFacade.java:406)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeHeaders(WebComponent.java:340)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.writeStatusAndHeaders(WebComponent.java:328)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.initiate(WebComponent.java:319)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent$Writer.write(WebComponent.java:299)
+teamengine-1          | 		at com.sun.jersey.spi.container.ContainerResponse$CommittingOutputStream.write(ContainerResponse.java:135)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.writeBytes(Unknown Source)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.implWrite(Unknown Source)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.implWrite(Unknown Source)
+teamengine-1          | 		at java.base/sun.nio.cs.StreamEncoder.write(Unknown Source)
+teamengine-1          | 		at java.base/java.io.OutputStreamWriter.write(Unknown Source)
+teamengine-1          | 		at java.base/java.io.BufferedWriter.flushBuffer(Unknown Source)
+teamengine-1          | 		at java.base/java.io.BufferedWriter.write(Unknown Source)
+teamengine-1          | 		at java.base/java.io.Writer.write(Unknown Source)
+teamengine-1          | 		at net.sf.saxon.event.XMLEmitter.writeCharSequence(XMLEmitter.java:622)
+teamengine-1          | 		at net.sf.saxon.event.XMLEmitter.writeEscape(XMLEmitter.java:715)
+teamengine-1          | 		at net.sf.saxon.event.XMLEmitter.writeAttribute(XMLEmitter.java:474)
+teamengine-1          | 		at net.sf.saxon.event.XMLEmitter.attribute(XMLEmitter.java:395)
+teamengine-1          | 		at net.sf.saxon.event.ProxyReceiver.attribute(ProxyReceiver.java:154)
+teamengine-1          | 		at net.sf.saxon.event.ProxyReceiver.attribute(ProxyReceiver.java:154)
+teamengine-1          | 		at net.sf.saxon.event.ReceivingContentHandler.startElement(ReceivingContentHandler.java:361)
+teamengine-1          | 		at org.apache.xerces.parsers.AbstractSAXParser.startElement(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.parsers.AbstractXMLDocumentParser.emptyElement(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.impl.XMLNSDocumentScannerImpl.scanStartElement(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.impl.XMLDocumentFragmentScannerImpl$FragmentContentDispatcher.dispatch(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.impl.XMLDocumentFragmentScannerImpl.scanDocument(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.parsers.XML11Configuration.parse(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.parsers.XML11Configuration.parse(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.parsers.XMLParser.parse(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.parsers.AbstractSAXParser.parse(Unknown Source)
+teamengine-1          | 		at org.apache.xerces.jaxp.SAXParserImpl$JAXPSAXParser.parse(Unknown Source)
+teamengine-1          | 		at net.sf.saxon.event.Sender.sendSAXSource(Sender.java:371)
+teamengine-1          | 		at net.sf.saxon.event.Sender.send(Sender.java:164)
+teamengine-1          | 		at net.sf.saxon.IdentityTransformer.transform(IdentityTransformer.java:29)
+teamengine-1          | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:208)
+teamengine-1          | 		at com.sun.jersey.core.impl.provider.entity.SourceProvider$SourceWriter.writeTo(SourceProvider.java:172)
+teamengine-1          | 		at com.sun.jersey.spi.container.ContainerResponse.write(ContainerResponse.java:302)
+teamengine-1          | 		at com.sun.jersey.server.impl.application.WebApplicationImpl._handleRequest(WebApplicationImpl.java:1510)
+teamengine-1          | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1419)
+teamengine-1          | 		at com.sun.jersey.server.impl.application.WebApplicationImpl.handleRequest(WebApplicationImpl.java:1409)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.WebComponent.service(WebComponent.java:409)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:558)
+teamengine-1          | 		at com.sun.jersey.spi.container.servlet.ServletContainer.service(ServletContainer.java:733)
+teamengine-1          | 		at javax.servlet.http.HttpServlet.service(HttpServlet.java:583)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:212)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1          | 		at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1          | 		at com.occamlab.te.realm.RestAuthenticationFilter.doFilter(RestAuthenticationFilter.java:72)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:181)
+teamengine-1          | 		at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:156)
+teamengine-1          | 		at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+teamengine-1          | 		at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+teamengine-1          | 		at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483)
+teamengine-1          | 		at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+teamengine-1          | 		at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+teamengine-1          | 		at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:679)
+teamengine-1          | 		at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+teamengine-1          | 		at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+teamengine-1          | 		at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:617)
+teamengine-1          | 		at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+teamengine-1          | 		at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:934)
+teamengine-1          | 		at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1690)
+teamengine-1          | 		at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+teamengine-1          | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+teamengine-1          | 		at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+teamengine-1          | 		at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+teamengine-1          | 		at java.base/java.lang.Thread.run(Unknown Source)
+teamengine-1          | 	Caused by: java.io.UnsupportedEncodingException: The character encoding ['utf-8'] is not supported
+teamengine-1          | 		at org.apache.tomcat.util.buf.B2CConverter.getCharsetLower(B2CConverter.java:85)
+teamengine-1          | 		at org.apache.tomcat.util.buf.B2CConverter.getCharset(B2CConverter.java:63)
+teamengine-1          | 		at org.apache.coyote.Response.setCharacterEncoding(Response.java:477)
+teamengine-1          | 		... 73 more

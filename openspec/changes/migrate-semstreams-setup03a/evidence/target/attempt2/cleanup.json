@@ -1,0 +1,32 @@
+[
+  {
+    "project": "semconnect-03a-target-r2-20261001",
+    "command": [
+      "docker",
+      "compose",
+      "-p",
+      "semconnect-03a-target-r2-20261001",
+      "-f",
+      "conformance/compose.yml",
+      "down",
+      "--remove-orphans"
+    ],
+    "exit_code": 0,
+    "timestamp": "2026-10-01T10:01:42.577174+00:00"
+  },
+  {
+    "project": "semconnect-03a-target-r2-persistence",
+    "command": [
+      "docker",
+      "compose",
+      "-p",
+      "semconnect-03a-target-r2-persistence",
+      "-f",
+      "deploy/compose.yml",
+      "down",
+      "--remove-orphans"
+    ],
+    "exit_code": 0,
+    "timestamp": "2026-10-01T10:01:43.218679+00:00"
+  }
+]

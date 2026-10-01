@@ -1,0 +1,10 @@
+{
+  "url": "http://127.0.0.1:54467/areas?bbox=10%2C10%2C11%2C11",
+  "status": 200,
+  "headers": {
+    "Content-Type": "application/geo+json",
+    "Date": "Thu, 01 Oct 2026 10:01:15 GMT",
+    "Content-Length": "43",
+    "Connection": "close"
+  }
+}

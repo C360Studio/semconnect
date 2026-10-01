@@ -1,0 +1,8 @@
+ok  	github.com/c360studio/semconnect/deploy	0.259s
+--- FAIL: TestSemStreamsPinsAreAligned (0.00s)
+    pin_alignment_test.go:98: go.sum contains checksum for a different SemStreams version: "github.com/c360studio/semstreams v1.0.0-beta.160 h1:sVkaLPOqs0Jy/iyYvfamkSi9An+Vq0o/5nqMxZVCvtk="
+    pin_alignment_test.go:98: go.sum contains checksum for a different SemStreams version: "github.com/c360studio/semstreams v1.0.0-beta.160/go.mod h1:hrXy53pvnlwI2cg4BlOmXNJtXRKZ9WlrM5ZHmZPn2d8="
+    pin_alignment_test.go:103: go.sum contains 4 SemStreams checksum entries, want module and go.mod entries only
+FAIL
+FAIL	github.com/c360studio/semconnect/conformance	0.606s
+FAIL

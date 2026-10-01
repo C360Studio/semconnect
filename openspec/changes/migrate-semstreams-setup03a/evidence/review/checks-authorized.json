@@ -1,0 +1,41 @@
+[
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "./..."
+    ],
+    "start": "2026-10-01T10:00:38.162961+00:00",
+    "finish": "2026-10-01T10:00:44.234681+00:00",
+    "exit_code": 0,
+    "log": "unit-race-authorized.log"
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-tags=integration",
+      "-count=1",
+      "./..."
+    ],
+    "start": "2026-10-01T10:00:44.234997+00:00",
+    "finish": "2026-10-01T10:00:49.879318+00:00",
+    "exit_code": 1,
+    "log": "integration-race-authorized.log"
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      "-tags=integration",
+      "./..."
+    ],
+    "start": "2026-10-01T10:00:49.879582+00:00",
+    "finish": "2026-10-01T10:00:50.274511+00:00",
+    "exit_code": 0,
+    "log": "vet.log"
+  }
+]

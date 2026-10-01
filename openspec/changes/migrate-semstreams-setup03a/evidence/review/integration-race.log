@@ -1,0 +1,84 @@
+ok  	github.com/c360studio/semconnect/cmd/cs-api-server	1.355s
+--- FAIL: TestBackendRealNATSConsumerBirthAndControlledStop (5.02s)
+    backend_integration_test.go:27: NATS failed readiness
+--- FAIL: TestBackendFailedStartReleasesOwnedResources (5.02s)
+    backend_integration_test.go:217: NATS failed readiness
+FAIL
+FAIL	github.com/c360studio/semconnect/cmd/cs-graph-backend	10.500s
+ok  	github.com/c360studio/semconnect/conformance	1.725s
+ok  	github.com/c360studio/semconnect/conformance/cmd/index-readiness	1.901s
+ok  	github.com/c360studio/semconnect/deploy	2.073s
+--- FAIL: TestSeedFixturesCreatesPersistenceChainInOrder (0.00s)
+panic: httptest: failed to listen on a port: listen tcp6 [::1]:0: bind: operation not permitted [recovered, repanicked]
+
+goroutine 8 [running]:
+testing.tRunner.func1.2({0x1027ed920, 0xc000034490})
+	/usr/local/go/src/testing/testing.go:1974 +0x2b8
+testing.tRunner.func1()
+	/usr/local/go/src/testing/testing.go:1977 +0x460
+panic({0x1027ed920?, 0xc000034490?})
+	/usr/local/go/src/runtime/panic.go:860 +0x12c
+net/http/httptest.newLocalListener()
+	/usr/local/go/src/net/http/httptest/server.go:72 +0x13c
+net/http/httptest.NewUnstartedServer(...)
+	/usr/local/go/src/net/http/httptest/server.go:120
+net/http/httptest.NewServer({0x10287cf40, 0xc0000102b8})
+	/usr/local/go/src/net/http/httptest/server.go:107 +0x30
+github.com/c360studio/semconnect/deploy/probe.TestSeedFixturesCreatesPersistenceChainInOrder(0xc0000da488)
+	/Users/coby/Code/c360/semconnect/deploy/probe/main_test.go:23 +0x10c
+testing.tRunner(0xc0000da488, 0x102878a00)
+	/usr/local/go/src/testing/testing.go:2036 +0x168
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go/src/testing/testing.go:2101 +0x7c0
+FAIL	github.com/c360studio/semconnect/deploy/probe	0.703s
+--- FAIL: TestBeta160TypedGraphLifecycle (0.00s)
+panic: check host "unix:///var/run/docker.sock": docker info: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get "http://%2Fvar%2Frun%2Fdocker.sock/v1.51/info": dial unix /var/run/docker.sock: connect: operation not permitted
+	check host "unix:///Users/coby/.docker/run/docker.sock": docker info: permission denied while trying to connect to the Docker daemon socket at unix:///Users/coby/.docker/run/docker.sock: Get "http://%2FUsers%2Fcoby%2F.docker%2Frun%2Fdocker.sock/v1.51/info": dial unix /Users/coby/.docker/run/docker.sock: connect: operation not permitted [recovered, repanicked]
+
+goroutine 54 [running]:
+testing.tRunner.func1.2({0x10444e080, 0xc000470030})
+	/usr/local/go/src/testing/testing.go:1974 +0x2b8
+testing.tRunner.func1()
+	/usr/local/go/src/testing/testing.go:1977 +0x460
+panic({0x10444e080?, 0xc000470030?})
+	/usr/local/go/src/runtime/panic.go:860 +0x12c
+github.com/testcontainers/testcontainers-go/internal/core.NewClient.MustExtractDockerHost.func2()
+	/Users/coby/go/pkg/mod/github.com/testcontainers/testcontainers-go@v0.40.0/internal/core/docker_host.go:91 +0xbc
+sync.(*Once).doSlow(0x10567a0c0, 0xc00004bbb8)
+	/usr/local/go/src/sync/once.go:78 +0x98
+sync.(*Once).Do(0x10567a0c0, 0xc00004bbb8)
+	/usr/local/go/src/sync/once.go:69 +0x38
+github.com/testcontainers/testcontainers-go/internal/core.MustExtractDockerHost(...)
+	/Users/coby/go/pkg/mod/github.com/testcontainers/testcontainers-go@v0.40.0/internal/core/docker_host.go:88
+github.com/testcontainers/testcontainers-go/internal/core.NewClient({0x104610be8, 0x1056799c0}, {0x0, 0x0, 0x104465540?})
+	/Users/coby/go/pkg/mod/github.com/testcontainers/testcontainers-go@v0.40.0/internal/core/client.go:17 +0x100
+github.com/testcontainers/testcontainers-go.NewDockerClientWithOpts({0x104610be8, 0x1056799c0}, {0x0, 0x0, 0x0})
+	/Users/coby/go/pkg/mod/github.com/testcontainers/testcontainers-go@v0.40.0/docker_client.go:118 +0x60
+github.com/testcontainers/testcontainers-go.NewDockerProvider({0xc00055d680, 0x2, 0x1?})
+	/Users/coby/go/pkg/mod/github.com/testcontainers/testcontainers-go@v0.40.0/provider.go:144 +0x1b4
+github.com/testcontainers/testcontainers-go.ProviderType.GetProvider(0x0, {0xc00004c9a8, 0x1, 0xb73bb23af58025d1?})
+	/Users/coby/go/pkg/mod/github.com/testcontainers/testcontainers-go@v0.40.0/provider.go:115 +0x96c
+github.com/testcontainers/testcontainers-go.GenericContainer({_, _}, {{{{0x0, 0x0}, {0x0, 0x0}, {0x0, 0x0}, {0x0, 0x0}, ...}, ...}, ...})
+	/Users/coby/go/pkg/mod/github.com/testcontainers/testcontainers-go@v0.40.0/generic.go:62 +0x134
+github.com/c360studio/semstreams/natsclient.runTestClientAttempt({0x104610f48, 0xc00029a690}, 0xc0002ce000, 0x1)
+	/Users/coby/go/pkg/mod/github.com/c360studio/semstreams@v1.0.0-beta.162.0.20260930150212-8b99efe9c66a/natsclient/test_client.go:702 +0xe0
+github.com/c360studio/semstreams/natsclient.newTestClient({0x104610f48, 0xc00029a690}, {0x8?}, {0xc000419df8, 0x1, 0x10374696c?})
+	/Users/coby/go/pkg/mod/github.com/c360studio/semstreams@v1.0.0-beta.162.0.20260930150212-8b99efe9c66a/natsclient/test_client.go:623 +0x1b0
+github.com/c360studio/semstreams/natsclient.NewTestClient({0x104624fd8, 0xc000578d88}, {0xc000419df8, 0x1, 0x1})
+	/Users/coby/go/pkg/mod/github.com/c360studio/semstreams@v1.0.0-beta.162.0.20260930150212-8b99efe9c66a/natsclient/test_client.go:856 +0x88
+github.com/c360studio/semconnect/gateway/cs-api.TestBeta160TypedGraphLifecycle(0xc000578d88)
+	/Users/coby/Code/c360/semconnect/gateway/cs-api/beta160_structural_integration_test.go:29 +0x98
+testing.tRunner(0xc000578d88, 0x1045f8b48)
+	/usr/local/go/src/testing/testing.go:2036 +0x168
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go/src/testing/testing.go:2101 +0x7c0
+FAIL	github.com/c360studio/semconnect/gateway/cs-api	2.161s
+ok  	github.com/c360studio/semconnect/message/oms	2.632s
+?   	github.com/c360studio/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/retained-scan	[no test files]
+ok  	github.com/c360studio/semconnect/parser/sensorml	2.198s
+ok  	github.com/c360studio/semconnect/pkg/swecommon	2.064s
+ok  	github.com/c360studio/semconnect/vocabulary/csapi	2.314s
+ok  	github.com/c360studio/semconnect/vocabulary/oms	2.427s
+ok  	github.com/c360studio/semconnect/vocabulary/sosa	2.439s
+ok  	github.com/c360studio/semconnect/vocabulary/swe	2.224s
+FAIL

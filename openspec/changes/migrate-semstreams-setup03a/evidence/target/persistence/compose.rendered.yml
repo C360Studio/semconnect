@@ -1,0 +1,143 @@
+name: semconnect-03a-target-r3-persistence
+services:
+  nats:
+    command:
+      - -c
+      - /etc/nats/nats.conf
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O - http://localhost:8222/healthz >/dev/null || exit 1
+      timeout: 3s
+      interval: 5s
+      retries: 20
+      start_period: 5s
+    image: nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66
+    networks:
+      backend: null
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: semconnect-nats-setup03a-8b99efe9c66a-data
+        target: /data
+        volume: {}
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/nats.conf
+        target: /etc/nats/nats.conf
+        read_only: true
+        bind: {}
+  provision-identity:
+    build:
+      context: /Users/coby/Code/c360/semconnect
+      dockerfile: deploy/backend.Dockerfile
+      target: production
+    command:
+      - -config
+      - /etc/semstreams/config.json
+      - -provision-identity
+      - semconnect
+    depends_on:
+      nats:
+        condition: service_healthy
+        required: true
+    image: semconnect-graph-backend:setup03a-8b99efe9c66a
+    networks:
+      backend: null
+    volumes:
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/semstreams.json
+        target: /etc/semstreams/config.json
+        read_only: true
+        bind: {}
+  semconnect:
+    build:
+      context: /Users/coby/Code/c360/semconnect
+      dockerfile: Dockerfile
+    command:
+      - -config
+      - /etc/semconnect/config.json
+    depends_on:
+      nats:
+        condition: service_healthy
+        required: true
+      semstreams:
+        condition: service_healthy
+        required: true
+    healthcheck:
+      test:
+        - CMD
+        - /usr/local/bin/cs-api-server
+        - -healthcheck
+      timeout: 3s
+      interval: 5s
+      retries: 20
+      start_period: 5s
+    image: semconnect-cs-api:setup03a-8b99efe9c66a
+    networks:
+      backend: null
+      public: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "55609"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/semconnect.json
+        target: /etc/semconnect/config.json
+        read_only: true
+        bind: {}
+  semstreams:
+    build:
+      context: /Users/coby/Code/c360/semconnect
+      dockerfile: deploy/backend.Dockerfile
+      target: production
+    command:
+      - -config
+      - /etc/semstreams/config.json
+      - -cs-api-config
+      - /etc/semconnect/config.json
+    depends_on:
+      nats:
+        condition: service_healthy
+        required: true
+      provision-identity:
+        condition: service_completed_successfully
+        required: true
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://localhost:8090/health
+      timeout: 3s
+      interval: 5s
+      retries: 30
+      start_period: 20s
+    image: semconnect-graph-backend:setup03a-8b99efe9c66a
+    networks:
+      backend: null
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/semstreams.json
+        target: /etc/semstreams/config.json
+        read_only: true
+        bind: {}
+      - type: bind
+        source: /Users/coby/Code/c360/semconnect/deploy/semconnect.json
+        target: /etc/semconnect/config.json
+        read_only: true
+        bind: {}
+networks:
+  backend:
+    name: semconnect-03a-target-r3-persistence_backend
+    internal: true
+  public:
+    name: semconnect-03a-target-r3-persistence_public
+volumes:
+  semconnect-nats-setup03a-8b99efe9c66a-data:
+    name: semconnect-03a-8b99efe9-20261001-r3-fresh

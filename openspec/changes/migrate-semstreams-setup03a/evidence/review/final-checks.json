@@ -1,0 +1,52 @@
+[
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "./..."
+    ],
+    "start": "2026-10-01T10:10:39.437118+00:00",
+    "finish": "2026-10-01T10:10:44.433308+00:00",
+    "exit_code": 0,
+    "log": "final-unit-race.log"
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-tags=integration",
+      "-count=1",
+      "./..."
+    ],
+    "start": "2026-10-01T10:10:44.433678+00:00",
+    "finish": "2026-10-01T10:10:50.558196+00:00",
+    "exit_code": 1,
+    "log": "final-integration-race.log"
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      "-tags=integration",
+      "./..."
+    ],
+    "start": "2026-10-01T10:10:50.558492+00:00",
+    "finish": "2026-10-01T10:10:51.051694+00:00",
+    "exit_code": 0,
+    "log": "final-vet.log"
+  },
+  {
+    "command": [
+      "go",
+      "build",
+      "./..."
+    ],
+    "start": "2026-10-01T10:10:51.051987+00:00",
+    "finish": "2026-10-01T10:10:53.016648+00:00",
+    "exit_code": 0,
+    "log": "final-build.log"
+  }
+]

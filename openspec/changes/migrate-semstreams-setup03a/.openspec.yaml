@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-10-01
+goal: Qualify SemConnect against the frozen SemEngine SETUP 03A SemStreams pin
+  while preserving consumer contracts and blocking release on reproduced incompatibilities.

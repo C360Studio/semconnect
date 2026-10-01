@@ -1,0 +1,5 @@
+--- FAIL: TestGatewayStartupSignalAbortsBlockedStart (1.00s)
+    startup_test.go:31: shutdown signal did not abort blocked gateway startup
+FAIL
+FAIL	github.com/c360studio/semconnect/cmd/cs-api-server	1.315s
+FAIL

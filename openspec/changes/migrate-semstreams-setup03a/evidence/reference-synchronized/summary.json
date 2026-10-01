@@ -1,0 +1,13 @@
+{
+  "result": "PASS on beta160 and exact target",
+  "baseline_commit": "55ea4121aba8658aeac9d70bdfe80f19c15fd4cd",
+  "target_semstreams_commit": "8b99efe9c66a4faa4fa509f9f62cc6bad8392128",
+  "test_source_sha256": "296068869d380fc258402f8b3e3847f9db64f44626dbec0a3ea61e543b43f169",
+  "commands": "go test -json -race -tags=integration ./gateway/cs-api -run '^TestSetup03AReference' -count=1",
+  "synchronization": "Real NATS callback records receipt before request context is canceled; no reply supplied; exact one attempt, HTTP503, uncertain header and correlation retained. Ten-second watchdog only guards deadlock.",
+  "baseline_source_changes": [
+    "Same synchronized reference integration test copied onto baseline55ea412",
+    "Explicit c360.semconnect Platform in existing beta160 graph helper; no production edits"
+  ],
+  "expectations": "Unchanged assertions; documented ADR107 metadata declaration @id-to-entity_id remains only golden metadata difference, triple @id and standard IRIs unchanged."
+}

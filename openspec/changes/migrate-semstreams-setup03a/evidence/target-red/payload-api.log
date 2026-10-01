@@ -1,0 +1,6 @@
+# github.com/c360studio/semconnect/gateway/cs-api
+gateway/cs-api/controlstreams.go:16:2: open /Users/coby/Library/Caches/go-build/92/921e9d18b95863556843aac805c89139babdf2cb174a70b3bb4a484716a32e0c-d: operation not permitted
+# github.com/c360studio/semconnect/gateway/cs-api
+gateway/cs-api/association_links.go:4:2: open /Users/coby/Library/Caches/go-build/ff/ffb5cc5c41a9fa4fa1f1e14a42a24561344d00a084700a2dcc0b367f6d7805f8-d: operation not permitted
+FAIL	github.com/c360studio/semconnect/gateway/cs-api [setup failed]
+FAIL

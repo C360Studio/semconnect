@@ -1,0 +1,32 @@
+{
+  "test": "TestSetup03AFederatedDatastreamCreate",
+  "source_sha256": "26749b8f4e11f00a55c22e1e11d4e0810de2613932ab08ca5c36e2abafeac19e",
+  "request": {
+    "method": "POST",
+    "path": "/datastreams",
+    "id": "foreign.remote.systems.csapi.datastream.setup03a-reference"
+  },
+  "authority": {
+    "org": "c360",
+    "platform": "semconnect"
+  },
+  "assertion": "HTTP 201 and unmodified Location identity; nonzero exact read revision",
+  "baseline": {
+    "source_commit": "55ea412",
+    "semstreams": "v1.0.0-beta.160",
+    "result": "PASS",
+    "source_changes": [
+      "Copied identical setup03a_federation_integration_test.go",
+      "Added explicit component.PlatformMeta{Org: c360, Platform: semconnect} to existing graph-ingest test helper; no other changes"
+    ]
+  },
+  "target": {
+    "semstreams_commit": "8b99efe9c66a4faa4fa509f9f62cc6bad8392128",
+    "result": "FAIL",
+    "http_status": 400,
+    "authoritative_reason": "authority_foreign",
+    "lane": "local",
+    "segment_index": 0
+  },
+  "attribution": "Intended upstream ADR-102/ADR-104 local-authority fence conflicts with existing SemConnect client-supplied federated Datastream contract. No compatibility bypass, changed expectation, skip, or newer pin."
+}

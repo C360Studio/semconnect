@@ -1,0 +1,9 @@
+panic: register predicate "sensorml.system.hosts": unrecognized data type "@id": expected one of string, entity_id, int, float, bool, datetime, json, or none (see docs/operations/migration-predicate-datatype.md)
+
+goroutine 1 [running]:
+github.com/c360studio/semstreams/vocabulary.Register({0x10346df69, 0x15}, {0x620cc2defdb8, 0x3, 0x0?})
+	/Users/coby/go/pkg/mod/github.com/c360studio/semstreams@v1.0.0-beta.162.0.20260930150212-8b99efe9c66a/vocabulary/registry.go:342 +0x2d8
+github.com/c360studio/semconnect/parser/sensorml.init.0()
+	/Users/coby/Code/c360/semconnect/parser/sensorml/predicates.go:104 +0x1d4
+FAIL	github.com/c360studio/semconnect/gateway/cs-api	0.390s
+FAIL

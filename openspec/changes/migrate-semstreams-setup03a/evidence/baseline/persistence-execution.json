@@ -1,0 +1,13 @@
+{
+  "command": [
+    "./deploy/verify-persistence.sh"
+  ],
+  "project": "semconnect-03a-base-persistence",
+  "volume": "semconnect-03a-beta160-20261001-fresh",
+  "semconnect_port": "53017",
+  "semstreams_version": "v1.0.0-beta.160",
+  "started_at": "2026-10-01T09:39:21.091150+00:00",
+  "fresh_volume_preflight": "Volume absent before execution",
+  "exit_code": 0,
+  "completed_at": "2026-10-01T09:40:48.465546+00:00"
+}

@@ -1,0 +1,653 @@
+ Volume semconnect-03a-beta160-20261001-fresh Creating 
+ Network semconnect-03a-base-persistence_backend Creating 
+ Volume semconnect-03a-beta160-20261001-fresh Creating 
+ Network semconnect-03a-base-persistence_backend Creating 
+ Volume semconnect-03a-beta160-20261001-fresh Created 
+ Volume semconnect-03a-beta160-20261001-fresh Created 
+ Network semconnect-03a-base-persistence_backend Created 
+ Network semconnect-03a-base-persistence_backend Created 
+ Container semconnect-03a-base-persistence-nats-1 Creating 
+ Container semconnect-03a-base-persistence-nats-1 Created 
+ Container semconnect-03a-base-persistence-nats-1 Starting 
+ Container semconnect-03a-base-persistence-nats-1 Started 
+ Image semconnect-canonical-smoke:beta.160 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.62kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.43kB done
+#2 DONE 0.0s
+
+#3 resolve image config for docker-image://docker.io/docker/dockerfile:1.6
+#3 DONE 0.2s
+
+#4 docker-image://docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+#4 resolve docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021 0.0s done
+#4 sha256:cf80d9b4bd1c75ee551ce5ff6f950a178fbb62e661c02e42d41b8c772d1efc1d 11.02MB / 11.02MB 0.3s done
+#4 extracting sha256:cf80d9b4bd1c75ee551ce5ff6f950a178fbb62e661c02e42d41b8c772d1efc1d 0.1s done
+#4 DONE 0.5s
+
+#5 [internal] load metadata for gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#5 DONE 0.0s
+
+#6 [internal] load metadata for docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#6 DONE 0.0s
+
+#7 [internal] load .dockerignore
+#7 transferring context: 798B done
+#7 DONE 0.0s
+
+#8 [stage-2 1/6] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#8 resolve gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b 0.0s done
+#8 DONE 0.0s
+
+#9 [internal] load build context
+#9 transferring context: 492B 0.1s done
+#9 DONE 0.1s
+
+#8 [stage-2 1/6] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#8 CACHED
+
+#10 [readiness-builder 1/6] FROM docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#10 resolve docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b 0.0s done
+#10 DONE 0.0s
+
+#11 [readiness-builder 2/6] WORKDIR /src
+#11 CACHED
+
+#12 [readiness-builder 3/6] COPY go.mod go.sum ./
+#12 CACHED
+
+#13 [readiness-builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download
+#13 CACHED
+
+#14 [builder 3/4] COPY deploy/probe/main.go ./main.go
+#14 DONE 0.0s
+
+#15 [readiness-builder 5/6] COPY conformance/cmd/index-readiness/main.go ./main.go
+#15 DONE 0.0s
+
+#16 [readiness-builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/index-readiness ./main.go
+#16 DONE 0.5s
+
+#17 [builder 4/4] RUN CGO_ENABLED=0 GO111MODULE=off go build -trimpath -ldflags="-s -w" -o /out/canonical-smoke ./main.go
+#17 DONE 3.2s
+
+#18 [stage-2 2/6] COPY --from=builder /out/canonical-smoke /usr/local/bin/canonical-smoke
+#18 DONE 0.0s
+
+#19 [stage-2 3/6] COPY --from=readiness-builder /out/index-readiness /usr/local/bin/index-readiness
+#19 DONE 0.0s
+
+#20 [stage-2 4/6] COPY deploy/canonical-system.v1.json /fixtures/canonical-system.v1.json
+#20 DONE 0.0s
+
+#21 [stage-2 5/6] COPY deploy/canonical-datastream.v1.json /fixtures/canonical-datastream.v1.json
+#21 DONE 0.0s
+
+#22 [stage-2 6/6] COPY deploy/canonical-observation.v1.json /fixtures/canonical-observation.v1.json
+#22 DONE 0.0s
+
+#23 exporting to image
+#23 exporting layers
+#23 exporting layers 0.2s done
+#23 exporting manifest sha256:c6c12a3300fa0504a4f60ed3e3edb381b174771335413c8bed971df410034809 done
+#23 exporting config sha256:65f788279da493467556f8ded5897f9fe80be2c60c08b3320814a8700d4c13cd done
+#23 exporting attestation manifest sha256:75cae144d5e6b8813b3663444568a7cd28c9150edb36a58545220680af1bfbb6 done
+#23 exporting manifest list sha256:1d9fc3b6413ba9d72cb8e8362390734a642965ff7ebf0444738662c79a6ca0a3 done
+#23 naming to docker.io/library/semconnect-canonical-smoke:beta.160 done
+#23 unpacking to docker.io/library/semconnect-canonical-smoke:beta.160 0.1s done
+#23 DONE 0.3s
+
+#24 resolving provenance for metadata file
+#24 DONE 0.0s
+ Image semconnect-canonical-smoke:beta.160 Built 
+ Container semconnect-03a-base-persistence-nats-1 Running 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-greenfield-preflight-run-9f3974dc03cf Creating 
+ Container semconnect-03a-base-persistence-greenfield-preflight-run-9f3974dc03cf Created 
+ Image semconnect-semstreams:v1.0.0-beta.160 Building 
+ Image semconnect-cs-api:beta.160 Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.15kB done
+#1 DONE 0.0s
+
+#2 [internal] load git source https://github.com/C360Studio/semstreams.git#8403a2218000e45a31c5132fbfe01af42ed04f14
+#2 0.011 Initialized empty Git repository in /var/lib/desktop-containerd/daemon/io.containerd.snapshotter.v1.overlayfs/snapshots/1324138/fs/
+#2 0.014 fatal: Not a valid object name 8403a2218000e45a31c5132fbfe01af42ed04f14^{commit}
+#2 11.37 From https://github.com/C360Studio/semstreams
+#2 11.37  * branch              8403a2218000e45a31c5132fbfe01af42ed04f14 -> FETCH_HEAD
+#2 11.37  * [new tag]           candidate-proof-8403a2218000e45a31c5132fbfe01af42ed04f14 -> candidate-proof-8403a2218000e45a31c5132fbfe01af42ed04f14
+#2 11.37  * [new tag]           candidate-proof-9d0ff67f377ea3dd82dca2f3bf614871c0100766 -> candidate-proof-9d0ff67f377ea3dd82dca2f3bf614871c0100766
+#2 11.37  * [new tag]           candidate-proof-e95c27b31db233529bd950916b030ca3b11e3382 -> candidate-proof-e95c27b31db233529bd950916b030ca3b11e3382
+#2 11.37  * [new tag]           v1.0.0-alpha    -> v1.0.0-alpha
+#2 11.37  * [new tag]           v1.0.0-alpha.1  -> v1.0.0-alpha.1
+#2 11.37  * [new tag]           v1.0.0-alpha.10 -> v1.0.0-alpha.10
+#2 11.37  * [new tag]           v1.0.0-alpha.11 -> v1.0.0-alpha.11
+#2 11.37  * [new tag]           v1.0.0-alpha.12 -> v1.0.0-alpha.12
+#2 11.37  * [new tag]           v1.0.0-alpha.13 -> v1.0.0-alpha.13
+#2 11.37  * [new tag]           v1.0.0-alpha.14 -> v1.0.0-alpha.14
+#2 11.37  * [new tag]           v1.0.0-alpha.15 -> v1.0.0-alpha.15
+#2 11.37  * [new tag]           v1.0.0-alpha.16 -> v1.0.0-alpha.16
+#2 11.37  * [new tag]           v1.0.0-alpha.17 -> v1.0.0-alpha.17
+#2 11.37  * [new tag]           v1.0.0-alpha.18 -> v1.0.0-alpha.18
+#2 11.37  * [new tag]           v1.0.0-alpha.19 -> v1.0.0-alpha.19
+#2 11.37  * [new tag]           v1.0.0-alpha.2  -> v1.0.0-alpha.2
+#2 11.37  * [new tag]           v1.0.0-alpha.20 -> v1.0.0-alpha.20
+#2 11.37  * [new tag]           v1.0.0-alpha.21 -> v1.0.0-alpha.21
+#2 11.37  * [new tag]           v1.0.0-alpha.22 -> v1.0.0-alpha.22
+#2 11.37  * [new tag]           v1.0.0-alpha.23 -> v1.0.0-alpha.23
+#2 11.37  * [new tag]           v1.0.0-alpha.24 -> v1.0.0-alpha.24
+#2 11.37  * [new tag]           v1.0.0-alpha.25 -> v1.0.0-alpha.25
+#2 11.37  * [new tag]           v1.0.0-alpha.26 -> v1.0.0-alpha.26
+#2 11.37  * [new tag]           v1.0.0-alpha.27 -> v1.0.0-alpha.27
+#2 11.37  * [new tag]           v1.0.0-alpha.28 -> v1.0.0-alpha.28
+#2 11.37  * [new tag]           v1.0.0-alpha.29 -> v1.0.0-alpha.29
+#2 11.37  * [new tag]           v1.0.0-alpha.3  -> v1.0.0-alpha.3
+#2 11.37  * [new tag]           v1.0.0-alpha.30 -> v1.0.0-alpha.30
+#2 11.37  * [new tag]           v1.0.0-alpha.31 -> v1.0.0-alpha.31
+#2 11.37  * [new tag]           v1.0.0-alpha.32 -> v1.0.0-alpha.32
+#2 11.37  * [new tag]           v1.0.0-alpha.33 -> v1.0.0-alpha.33
+#2 11.37  * [new tag]           v1.0.0-alpha.34 -> v1.0.0-alpha.34
+#2 11.37  * [new tag]           v1.0.0-alpha.35 -> v1.0.0-alpha.35
+#2 11.37  * [new tag]           v1.0.0-alpha.36 -> v1.0.0-alpha.36
+#2 11.37  * [new tag]           v1.0.0-alpha.37 -> v1.0.0-alpha.37
+#2 11.37  * [new tag]           v1.0.0-alpha.38 -> v1.0.0-alpha.38
+#2 11.37  * [new tag]           v1.0.0-alpha.39 -> v1.0.0-alpha.39
+#2 11.37  * [new tag]           v1.0.0-alpha.4  -> v1.0.0-alpha.4
+#2 11.37  * [new tag]           v1.0.0-alpha.40 -> v1.0.0-alpha.40
+#2 11.37  * [new tag]           v1.0.0-alpha.41 -> v1.0.0-alpha.41
+#2 11.37  * [new tag]           v1.0.0-alpha.42 -> v1.0.0-alpha.42
+#2 11.37  * [new tag]           v1.0.0-alpha.43 -> v1.0.0-alpha.43
+#2 11.37  * [new tag]           v1.0.0-alpha.44 -> v1.0.0-alpha.44
+#2 11.37  * [new tag]           v1.0.0-alpha.45 -> v1.0.0-alpha.45
+#2 11.37  * [new tag]           v1.0.0-alpha.46 -> v1.0.0-alpha.46
+#2 11.37  * [new tag]           v1.0.0-alpha.47 -> v1.0.0-alpha.47
+#2 11.37  * [new tag]           v1.0.0-alpha.48 -> v1.0.0-alpha.48
+#2 11.37  * [new tag]           v1.0.0-alpha.49 -> v1.0.0-alpha.49
+#2 11.37  * [new tag]           v1.0.0-alpha.5  -> v1.0.0-alpha.5
+#2 11.37  * [new tag]           v1.0.0-alpha.50 -> v1.0.0-alpha.50
+#2 11.37  * [new tag]           v1.0.0-alpha.51 -> v1.0.0-alpha.51
+#2 11.37  * [new tag]           v1.0.0-alpha.52 -> v1.0.0-alpha.52
+#2 11.37  * [new tag]           v1.0.0-alpha.53 -> v1.0.0-alpha.53
+#2 11.37  * [new tag]           v1.0.0-alpha.54 -> v1.0.0-alpha.54
+#2 11.37  * [new tag]           v1.0.0-alpha.55 -> v1.0.0-alpha.55
+#2 11.37  * [new tag]           v1.0.0-alpha.56 -> v1.0.0-alpha.56
+#2 11.38  * [new tag]           v1.0.0-alpha.57 -> v1.0.0-alpha.57
+#2 11.38  * [new tag]           v1.0.0-alpha.58 -> v1.0.0-alpha.58
+#2 11.38  * [new tag]           v1.0.0-alpha.59 -> v1.0.0-alpha.59
+#2 11.38  * [new tag]           v1.0.0-alpha.6  -> v1.0.0-alpha.6
+#2 11.38  * [new tag]           v1.0.0-alpha.60 -> v1.0.0-alpha.60
+#2 11.38  * [new tag]           v1.0.0-alpha.61 -> v1.0.0-alpha.61
+#2 11.38  * [new tag]           v1.0.0-alpha.62 -> v1.0.0-alpha.62
+#2 11.38  * [new tag]           v1.0.0-alpha.63 -> v1.0.0-alpha.63
+#2 11.38  * [new tag]           v1.0.0-alpha.64 -> v1.0.0-alpha.64
+#2 11.38  * [new tag]           v1.0.0-alpha.65 -> v1.0.0-alpha.65
+#2 11.38  * [new tag]           v1.0.0-alpha.66 -> v1.0.0-alpha.66
+#2 11.38  * [new tag]           v1.0.0-alpha.67 -> v1.0.0-alpha.67
+#2 11.38  * [new tag]           v1.0.0-alpha.68 -> v1.0.0-alpha.68
+#2 11.38  * [new tag]           v1.0.0-alpha.69 -> v1.0.0-alpha.69
+#2 11.38  * [new tag]           v1.0.0-alpha.7  -> v1.0.0-alpha.7
+#2 11.38  * [new tag]           v1.0.0-alpha.70 -> v1.0.0-alpha.70
+#2 11.38  * [new tag]           v1.0.0-alpha.71 -> v1.0.0-alpha.71
+#2 11.38  * [new tag]           v1.0.0-alpha.72 -> v1.0.0-alpha.72
+#2 11.38  * [new tag]           v1.0.0-alpha.73 -> v1.0.0-alpha.73
+#2 11.38  * [new tag]           v1.0.0-alpha.74 -> v1.0.0-alpha.74
+#2 11.38  * [new tag]           v1.0.0-alpha.75 -> v1.0.0-alpha.75
+#2 11.38  * [new tag]           v1.0.0-alpha.76 -> v1.0.0-alpha.76
+#2 11.38  * [new tag]           v1.0.0-alpha.77 -> v1.0.0-alpha.77
+#2 11.38  * [new tag]           v1.0.0-alpha.78 -> v1.0.0-alpha.78
+#2 11.38  * [new tag]           v1.0.0-alpha.79 -> v1.0.0-alpha.79
+#2 11.38  * [new tag]           v1.0.0-alpha.8  -> v1.0.0-alpha.8
+#2 11.38  * [new tag]           v1.0.0-alpha.80 -> v1.0.0-alpha.80
+#2 11.38  * [new tag]           v1.0.0-alpha.81 -> v1.0.0-alpha.81
+#2 11.38  * [new tag]           v1.0.0-alpha.82 -> v1.0.0-alpha.82
+#2 11.38  * [new tag]           v1.0.0-alpha.83 -> v1.0.0-alpha.83
+#2 11.38  * [new tag]           v1.0.0-alpha.84 -> v1.0.0-alpha.84
+#2 11.38  * [new tag]           v1.0.0-alpha.85 -> v1.0.0-alpha.85
+#2 11.38  * [new tag]           v1.0.0-alpha.86 -> v1.0.0-alpha.86
+#2 11.38  * [new tag]           v1.0.0-alpha.87 -> v1.0.0-alpha.87
+#2 11.38  * [new tag]           v1.0.0-alpha.88 -> v1.0.0-alpha.88
+#2 11.38  * [new tag]           v1.0.0-alpha.89 -> v1.0.0-alpha.89
+#2 11.38  * [new tag]           v1.0.0-alpha.9  -> v1.0.0-alpha.9
+#2 11.38  * [new tag]           v1.0.0-alpha.90 -> v1.0.0-alpha.90
+#2 11.38  * [new tag]           v1.0.0-alpha.91 -> v1.0.0-alpha.91
+#2 11.38  * [new tag]           v1.0.0-alpha.92 -> v1.0.0-alpha.92
+#2 11.38  * [new tag]           v1.0.0-alpha.93 -> v1.0.0-alpha.93
+#2 11.38  * [new tag]           v1.0.0-beta.1   -> v1.0.0-beta.1
+#2 11.38  * [new tag]           v1.0.0-beta.10  -> v1.0.0-beta.10
+#2 11.38  * [new tag]           v1.0.0-beta.100 -> v1.0.0-beta.100
+#2 11.38  * [new tag]           v1.0.0-beta.101 -> v1.0.0-beta.101
+#2 11.38  * [new tag]           v1.0.0-beta.102 -> v1.0.0-beta.102
+#2 11.38  * [new tag]           v1.0.0-beta.103 -> v1.0.0-beta.103
+#2 11.38  * [new tag]           v1.0.0-beta.104 -> v1.0.0-beta.104
+#2 11.38  * [new tag]           v1.0.0-beta.105 -> v1.0.0-beta.105
+#2 11.38  * [new tag]           v1.0.0-beta.106 -> v1.0.0-beta.106
+#2 11.38  * [new tag]           v1.0.0-beta.107 -> v1.0.0-beta.107
+#2 11.38  * [new tag]           v1.0.0-beta.108 -> v1.0.0-beta.108
+#2 11.38  * [new tag]           v1.0.0-beta.109 -> v1.0.0-beta.109
+#2 11.38  * [new tag]           v1.0.0-beta.11  -> v1.0.0-beta.11
+#2 11.38  * [new tag]           v1.0.0-beta.110 -> v1.0.0-beta.110
+#2 11.38  * [new tag]           v1.0.0-beta.111 -> v1.0.0-beta.111
+#2 11.38  * [new tag]           v1.0.0-beta.112 -> v1.0.0-beta.112
+#2 11.38  * [new tag]           v1.0.0-beta.113 -> v1.0.0-beta.113
+#2 11.38  * [new tag]           v1.0.0-beta.114 -> v1.0.0-beta.114
+#2 11.38  * [new tag]           v1.0.0-beta.115 -> v1.0.0-beta.115
+#2 11.38  * [new tag]           v1.0.0-beta.116 -> v1.0.0-beta.116
+#2 11.38  * [new tag]           v1.0.0-beta.117 -> v1.0.0-beta.117
+#2 11.38  * [new tag]           v1.0.0-beta.118 -> v1.0.0-beta.118
+#2 11.38  * [new tag]           v1.0.0-beta.119 -> v1.0.0-beta.119
+#2 11.38  * [new tag]           v1.0.0-beta.12  -> v1.0.0-beta.12
+#2 11.38  * [new tag]           v1.0.0-beta.120 -> v1.0.0-beta.120
+#2 11.38  * [new tag]           v1.0.0-beta.121 -> v1.0.0-beta.121
+#2 11.38  * [new tag]           v1.0.0-beta.122 -> v1.0.0-beta.122
+#2 11.38  * [new tag]           v1.0.0-beta.123 -> v1.0.0-beta.123
+#2 11.38  * [new tag]           v1.0.0-beta.124 -> v1.0.0-beta.124
+#2 11.38  * [new tag]           v1.0.0-beta.125 -> v1.0.0-beta.125
+#2 11.38  * [new tag]           v1.0.0-beta.126 -> v1.0.0-beta.126
+#2 11.38  * [new tag]           v1.0.0-beta.127 -> v1.0.0-beta.127
+#2 11.38  * [new tag]           v1.0.0-beta.128 -> v1.0.0-beta.128
+#2 11.38  * [new tag]           v1.0.0-beta.129 -> v1.0.0-beta.129
+#2 11.38  * [new tag]           v1.0.0-beta.13  -> v1.0.0-beta.13
+#2 11.38  * [new tag]           v1.0.0-beta.130 -> v1.0.0-beta.130
+#2 11.38  * [new tag]           v1.0.0-beta.131 -> v1.0.0-beta.131
+#2 11.38  * [new tag]           v1.0.0-beta.132 -> v1.0.0-beta.132
+#2 11.38  * [new tag]           v1.0.0-beta.133 -> v1.0.0-beta.133
+#2 11.38  * [new tag]           v1.0.0-beta.134 -> v1.0.0-beta.134
+#2 11.38  * [new tag]           v1.0.0-beta.135 -> v1.0.0-beta.135
+#2 11.38  * [new tag]           v1.0.0-beta.136 -> v1.0.0-beta.136
+#2 11.38  * [new tag]           v1.0.0-beta.137 -> v1.0.0-beta.137
+#2 11.38  * [new tag]           v1.0.0-beta.138 -> v1.0.0-beta.138
+#2 11.38  * [new tag]           v1.0.0-beta.139 -> v1.0.0-beta.139
+#2 11.38  * [new tag]           v1.0.0-beta.14  -> v1.0.0-beta.14
+#2 11.38  * [new tag]           v1.0.0-beta.140 -> v1.0.0-beta.140
+#2 11.38  * [new tag]           v1.0.0-beta.141 -> v1.0.0-beta.141
+#2 11.38  * [new tag]           v1.0.0-beta.142 -> v1.0.0-beta.142
+#2 11.38  * [new tag]           v1.0.0-beta.143 -> v1.0.0-beta.143
+#2 11.38  * [new tag]           v1.0.0-beta.144 -> v1.0.0-beta.144
+#2 11.38  * [new tag]           v1.0.0-beta.145 -> v1.0.0-beta.145
+#2 11.38  * [new tag]           v1.0.0-beta.146 -> v1.0.0-beta.146
+#2 11.38  * [new tag]           v1.0.0-beta.147 -> v1.0.0-beta.147
+#2 11.38  * [new tag]           v1.0.0-beta.148 -> v1.0.0-beta.148
+#2 11.38  * [new tag]           v1.0.0-beta.149 -> v1.0.0-beta.149
+#2 11.38  * [new tag]           v1.0.0-beta.15  -> v1.0.0-beta.15
+#2 11.38  * [new tag]           v1.0.0-beta.150 -> v1.0.0-beta.150
+#2 11.38  * [new tag]           v1.0.0-beta.151 -> v1.0.0-beta.151
+#2 11.38  * [new tag]           v1.0.0-beta.152 -> v1.0.0-beta.152
+#2 11.38  * [new tag]           v1.0.0-beta.153 -> v1.0.0-beta.153
+#2 11.38  * [new tag]           v1.0.0-beta.154 -> v1.0.0-beta.154
+#2 11.38  * [new tag]           v1.0.0-beta.155 -> v1.0.0-beta.155
+#2 11.38  * [new tag]           v1.0.0-beta.156 -> v1.0.0-beta.156
+#2 11.38  * [new tag]           v1.0.0-beta.157 -> v1.0.0-beta.157
+#2 11.38  * [new tag]           v1.0.0-beta.158 -> v1.0.0-beta.158
+#2 11.38  * [new tag]           v1.0.0-beta.159 -> v1.0.0-beta.159
+#2 11.38  * [new tag]           v1.0.0-beta.16  -> v1.0.0-beta.16
+#2 11.38  * [new tag]           v1.0.0-beta.160 -> v1.0.0-beta.160
+#2 11.38  * [new tag]           v1.0.0-beta.161 -> v1.0.0-beta.161
+#2 11.38  * [new tag]           v1.0.0-beta.162 -> v1.0.0-beta.162
+#2 11.38  * [new tag]           v1.0.0-beta.17  -> v1.0.0-beta.17
+#2 11.38  * [new tag]           v1.0.0-beta.18  -> v1.0.0-beta.18
+#2 11.38  * [new tag]           v1.0.0-beta.19  -> v1.0.0-beta.19
+#2 11.38  * [new tag]           v1.0.0-beta.2   -> v1.0.0-beta.2
+#2 11.38  * [new tag]           v1.0.0-beta.20  -> v1.0.0-beta.20
+#2 11.38  * [new tag]           v1.0.0-beta.21  -> v1.0.0-beta.21
+#2 11.38  * [new tag]           v1.0.0-beta.22  -> v1.0.0-beta.22
+#2 11.38  * [new tag]           v1.0.0-beta.23  -> v1.0.0-beta.23
+#2 11.38  * [new tag]           v1.0.0-beta.24  -> v1.0.0-beta.24
+#2 11.38  * [new tag]           v1.0.0-beta.25  -> v1.0.0-beta.25
+#2 11.38  * [new tag]           v1.0.0-beta.26  -> v1.0.0-beta.26
+#2 11.38  * [new tag]           v1.0.0-beta.27  -> v1.0.0-beta.27
+#2 11.38  * [new tag]           v1.0.0-beta.28  -> v1.0.0-beta.28
+#2 11.38  * [new tag]           v1.0.0-beta.29  -> v1.0.0-beta.29
+#2 11.38  * [new tag]           v1.0.0-beta.3   -> v1.0.0-beta.3
+#2 11.38  * [new tag]           v1.0.0-beta.30  -> v1.0.0-beta.30
+#2 11.38  * [new tag]           v1.0.0-beta.31  -> v1.0.0-beta.31
+#2 11.38  * [new tag]           v1.0.0-beta.32  -> v1.0.0-beta.32
+#2 11.38  * [new tag]           v1.0.0-beta.33  -> v1.0.0-beta.33
+#2 11.38  * [new tag]           v1.0.0-beta.34  -> v1.0.0-beta.34
+#2 11.38  * [new tag]           v1.0.0-beta.35  -> v1.0.0-beta.35
+#2 11.38  * [new tag]           v1.0.0-beta.36  -> v1.0.0-beta.36
+#2 11.38  * [new tag]           v1.0.0-beta.37  -> v1.0.0-beta.37
+#2 11.38  * [new tag]           v1.0.0-beta.38  -> v1.0.0-beta.38
+#2 11.38  * [new tag]           v1.0.0-beta.39  -> v1.0.0-beta.39
+#2 11.38  * [new tag]           v1.0.0-beta.4   -> v1.0.0-beta.4
+#2 11.38  * [new tag]           v1.0.0-beta.40  -> v1.0.0-beta.40
+#2 11.38  * [new tag]           v1.0.0-beta.41  -> v1.0.0-beta.41
+#2 11.38  * [new tag]           v1.0.0-beta.42  -> v1.0.0-beta.42
+#2 11.38  * [new tag]           v1.0.0-beta.43  -> v1.0.0-beta.43
+#2 11.38  * [new tag]           v1.0.0-beta.44  -> v1.0.0-beta.44
+#2 11.38  * [new tag]           v1.0.0-beta.45  -> v1.0.0-beta.45
+#2 11.38  * [new tag]           v1.0.0-beta.46  -> v1.0.0-beta.46
+#2 11.38  * [new tag]           v1.0.0-beta.47  -> v1.0.0-beta.47
+#2 11.38  * [new tag]           v1.0.0-beta.48  -> v1.0.0-beta.48
+#2 11.38  * [new tag]           v1.0.0-beta.49  -> v1.0.0-beta.49
+#2 11.38  * [new tag]           v1.0.0-beta.5   -> v1.0.0-beta.5
+#2 11.38  * [new tag]           v1.0.0-beta.50  -> v1.0.0-beta.50
+#2 11.38  * [new tag]           v1.0.0-beta.51  -> v1.0.0-beta.51
+#2 11.38  * [new tag]           v1.0.0-beta.52  -> v1.0.0-beta.52
+#2 11.38  * [new tag]           v1.0.0-beta.53  -> v1.0.0-beta.53
+#2 11.38  * [new tag]           v1.0.0-beta.54  -> v1.0.0-beta.54
+#2 11.38  * [new tag]           v1.0.0-beta.55  -> v1.0.0-beta.55
+#2 11.38  * [new tag]           v1.0.0-beta.56  -> v1.0.0-beta.56
+#2 11.38  * [new tag]           v1.0.0-beta.57  -> v1.0.0-beta.57
+#2 11.38  * [new tag]           v1.0.0-beta.58  -> v1.0.0-beta.58
+#2 11.38  * [new tag]           v1.0.0-beta.59  -> v1.0.0-beta.59
+#2 11.38  * [new tag]           v1.0.0-beta.6   -> v1.0.0-beta.6
+#2 11.38  * [new tag]           v1.0.0-beta.60  -> v1.0.0-beta.60
+#2 11.38  * [new tag]           v1.0.0-beta.61  -> v1.0.0-beta.61
+#2 11.38  * [new tag]           v1.0.0-beta.62  -> v1.0.0-beta.62
+#2 11.38  * [new tag]           v1.0.0-beta.63  -> v1.0.0-beta.63
+#2 11.38  * [new tag]           v1.0.0-beta.64  -> v1.0.0-beta.64
+#2 11.38  * [new tag]           v1.0.0-beta.65  -> v1.0.0-beta.65
+#2 11.38  * [new tag]           v1.0.0-beta.66  -> v1.0.0-beta.66
+#2 11.38  * [new tag]           v1.0.0-beta.67  -> v1.0.0-beta.67
+#2 11.38  * [new tag]           v1.0.0-beta.68  -> v1.0.0-beta.68
+#2 11.38  * [new tag]           v1.0.0-beta.7   -> v1.0.0-beta.7
+#2 11.38  * [new tag]           v1.0.0-beta.70  -> v1.0.0-beta.70
+#2 11.38  * [new tag]           v1.0.0-beta.71  -> v1.0.0-beta.71
+#2 11.38  * [new tag]           v1.0.0-beta.72  -> v1.0.0-beta.72
+#2 11.38  * [new tag]           v1.0.0-beta.73  -> v1.0.0-beta.73
+#2 11.38  * [new tag]           v1.0.0-beta.74  -> v1.0.0-beta.74
+#2 11.38  * [new tag]           v1.0.0-beta.75  -> v1.0.0-beta.75
+#2 11.38  * [new tag]           v1.0.0-beta.76  -> v1.0.0-beta.76
+#2 11.38  * [new tag]           v1.0.0-beta.77  -> v1.0.0-beta.77
+#2 11.38  * [new tag]           v1.0.0-beta.78  -> v1.0.0-beta.78
+#2 11.38  * [new tag]           v1.0.0-beta.79  -> v1.0.0-beta.79
+#2 11.38  * [new tag]           v1.0.0-beta.8   -> v1.0.0-beta.8
+#2 11.38  * [new tag]           v1.0.0-beta.80  -> v1.0.0-beta.80
+#2 11.38  * [new tag]           v1.0.0-beta.81  -> v1.0.0-beta.81
+#2 11.38  * [new tag]           v1.0.0-beta.82  -> v1.0.0-beta.82
+#2 11.38  * [new tag]           v1.0.0-beta.83  -> v1.0.0-beta.83
+#2 11.38  * [new tag]           v1.0.0-beta.84  -> v1.0.0-beta.84
+#2 11.38  * [new tag]           v1.0.0-beta.85  -> v1.0.0-beta.85
+#2 11.38  * [new tag]           v1.0.0-beta.86  -> v1.0.0-beta.86
+#2 11.38  * [new tag]           v1.0.0-beta.87  -> v1.0.0-beta.87
+#2 11.38  * [new tag]           v1.0.0-beta.88  -> v1.0.0-beta.88
+#2 11.38  * [new tag]           v1.0.0-beta.89  -> v1.0.0-beta.89
+#2 11.38  * [new tag]           v1.0.0-beta.9   -> v1.0.0-beta.9
+#2 11.38  * [new tag]           v1.0.0-beta.90  -> v1.0.0-beta.90
+#2 11.38  * [new tag]           v1.0.0-beta.91  -> v1.0.0-beta.91
+#2 11.38  * [new tag]           v1.0.0-beta.92  -> v1.0.0-beta.92
+#2 11.38  * [new tag]           v1.0.0-beta.93  -> v1.0.0-beta.93
+#2 11.38  * [new tag]           v1.0.0-beta.94  -> v1.0.0-beta.94
+#2 11.38  * [new tag]           v1.0.0-beta.95  -> v1.0.0-beta.95
+#2 11.38  * [new tag]           v1.0.0-beta.96  -> v1.0.0-beta.96
+#2 11.38  * [new tag]           v1.0.0-beta.97  -> v1.0.0-beta.97
+#2 11.38  * [new tag]           v1.0.0-beta.98  -> v1.0.0-beta.98
+#2 11.38  * [new tag]           v1.0.0-beta.99  -> v1.0.0-beta.99
+#2 11.38 8403a2218000e45a31c5132fbfe01af42ed04f14
+#2 DONE 11.6s
+
+#3 [semconnect internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.39kB done
+#3 DONE 0.0s
+
+#4 [semstreams internal] load build definition from Dockerfile
+#4 transferring dockerfile: 1.04kB done
+#4 DONE 0.0s
+
+#5 [semconnect] resolve image config for docker-image://docker.io/docker/dockerfile:1.6
+#5 DONE 0.1s
+
+#6 [semstreams internal] load metadata for docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#6 ...
+
+#7 [semconnect] docker-image://docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+#7 resolve docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021 0.0s done
+#7 sha256:cf80d9b4bd1c75ee551ce5ff6f950a178fbb62e661c02e42d41b8c772d1efc1d 11.02MB / 11.02MB 0.3s done
+#7 extracting sha256:cf80d9b4bd1c75ee551ce5ff6f950a178fbb62e661c02e42d41b8c772d1efc1d 0.1s done
+#7 DONE 0.5s
+
+#8 [semconnect internal] load metadata for docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#8 DONE 0.0s
+
+#9 [semconnect internal] load metadata for gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#9 DONE 0.0s
+
+#10 [semconnect internal] load .dockerignore
+#10 transferring context: 798B done
+#10 DONE 0.0s
+
+#11 [semconnect stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#11 resolve gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b 0.0s done
+#11 DONE 0.0s
+
+#12 [semconnect builder 1/6] FROM docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#12 resolve docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b 0.0s done
+#12 DONE 0.0s
+
+#13 [semconnect internal] load build context
+#13 ...
+
+#2 [semstreams internal] load git source https://github.com/C360Studio/semstreams.git#8403a2218000e45a31c5132fbfe01af42ed04f14
+#2 DONE 11.6s
+
+#6 [semstreams internal] load metadata for docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#6 DONE 0.5s
+
+#14 [semstreams internal] load metadata for docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+#14 DONE 0.5s
+
+#13 [semconnect internal] load build context
+#13 ...
+
+#15 [semstreams builder 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#15 resolve docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 0.0s done
+#15 DONE 0.1s
+
+#13 [semconnect internal] load build context
+#13 ...
+
+#16 [semstreams production 1/6] FROM docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+#16 resolve docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b 0.0s done
+#16 sha256:5de55e5ef9c033997441461efe7ba23a986db059c0bb78b38f84ee0d72b99167 4.18MB / 4.18MB 0.1s done
+#16 extracting sha256:5de55e5ef9c033997441461efe7ba23a986db059c0bb78b38f84ee0d72b99167 0.1s done
+#16 DONE 0.3s
+
+#13 [semconnect internal] load build context
+#13 transferring context: 115.37MB 1.5s done
+#13 DONE 1.5s
+
+#15 [semstreams builder 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#15 sha256:c46b3da72838fcc08809d7b7b9b74504e390e2c83a78042435d5cb4ea0467b37 127B / 127B 0.0s done
+#15 sha256:9e4d5c89bdd324edeb5721c09064e2659473bba39ae9d84fae53c9cc0181cf15 64.18MB / 64.18MB 0.8s done
+#15 sha256:aeb60d774e748fc8e1175c75ffa3c47b99f167c67645ce2fe81fcbec8a146704 247.51kB / 247.51kB 0.1s done
+#15 extracting sha256:aeb60d774e748fc8e1175c75ffa3c47b99f167c67645ce2fe81fcbec8a146704 0.0s done
+#15 extracting sha256:9e4d5c89bdd324edeb5721c09064e2659473bba39ae9d84fae53c9cc0181cf15
+#15 ...
+
+#17 [semconnect builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download
+#17 CACHED
+
+#18 [semconnect builder 5/6] COPY . .
+#18 CACHED
+
+#19 [semconnect builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux     go build -trimpath -ldflags="-s -w"         -o /out/cs-api-server ./cmd/cs-api-server
+#19 CACHED
+
+#20 [semconnect builder 2/6] WORKDIR /src
+#20 CACHED
+
+#21 [semconnect builder 3/6] COPY go.mod go.sum ./
+#21 CACHED
+
+#22 [semconnect stage-1 2/2] COPY --from=builder /out/cs-api-server /usr/local/bin/cs-api-server
+#22 CACHED
+
+#23 [semstreams production 2/6] RUN apk add --no-cache ca-certificates tzdata wget
+#23 0.745 (1/6) Installing ca-certificates (20260909-r0)
+#23 0.762 (2/6) Installing tzdata (2026d-r0)
+#23 0.786 (3/6) Installing libunistring (1.4.2-r0)
+#23 0.808 (4/6) Installing libidn2 (2.3.8-r0)
+#23 0.816 (5/6) Installing pcre2 (10.48-r0)
+#23 0.831 (6/6) Installing wget (1.25.0-r3)
+#23 0.849 Executing busybox-1.37.0-r31.trigger
+#23 0.854 Executing ca-certificates-20260909-r0.trigger
+#23 0.870 OK: 12.3 MiB in 22 packages
+#23 DONE 1.1s
+
+#24 [semconnect] exporting to image
+#24 exporting layers done
+#24 exporting manifest sha256:f576314418a364de50d7568dedf6fc38cd38bc3dccf3d7b5f100422f08ffdef5 0.1s done
+#24 exporting config sha256:e3f9bb8b5c076eb7886c3216f4e83a8fcece1c2720ce2ac0fd631ea077d06947 0.1s done
+#24 exporting attestation manifest sha256:36f4e4eb475648afa7e28e45231edea3a8d6a6b003c7fcf6f94f451ac1c5f5e6 0.0s done
+#24 exporting manifest list sha256:02b2e916930a2af8270ebf95d282799fbbf8b50b39101145b6c83e3105be2a79 done
+#24 naming to docker.io/library/semconnect-cs-api:beta.160 done
+#24 unpacking to docker.io/library/semconnect-cs-api:beta.160 done
+#24 DONE 0.3s
+
+#25 [semstreams production 3/6] RUN addgroup -S -g 1000 semstreams &&     adduser -S -u 1000 -G semstreams -h /app semstreams
+#25 DONE 0.2s
+
+#15 [semstreams builder 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#15 ...
+
+#26 [semstreams production 4/6] WORKDIR /app
+#26 DONE 0.0s
+
+#27 [semconnect] resolving provenance for metadata file
+#27 DONE 0.0s
+
+#15 [semstreams builder 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#15 extracting sha256:9e4d5c89bdd324edeb5721c09064e2659473bba39ae9d84fae53c9cc0181cf15 1.4s done
+#15 DONE 2.4s
+
+#15 [semstreams builder 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2
+#15 extracting sha256:c46b3da72838fcc08809d7b7b9b74504e390e2c83a78042435d5cb4ea0467b37 done
+#15 extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 done
+#15 DONE 2.4s
+
+#28 [semstreams builder 2/7] RUN apk add --no-cache git ca-certificates tzdata
+#28 0.302 ( 1/13) Installing brotli-libs (1.2.0-r1)
+#28 0.316 ( 2/13) Installing c-ares (1.34.8-r0)
+#28 0.324 ( 3/13) Installing libunistring (1.4.2-r0)
+#28 0.338 ( 4/13) Installing libidn2 (2.3.8-r0)
+#28 0.345 ( 5/13) Installing nghttp2-libs (1.69.0-r0)
+#28 0.351 ( 6/13) Installing libpsl (0.21.5-r3)
+#28 0.356 ( 7/13) Installing zstd-libs (1.5.7-r2)
+#28 0.370 ( 8/13) Installing libcurl (8.22.0-r0)
+#28 0.412 ( 9/13) Installing libexpat (2.8.5-r0)
+#28 0.420 (10/13) Installing pcre2 (10.48-r0)
+#28 0.433 (11/13) Installing git (2.54.0-r0)
+#28 0.505 (12/13) Installing git-init-template (2.54.0-r0)
+#28 0.511 (13/13) Installing tzdata (2026d-r0)
+#28 0.531 Executing busybox-1.37.0-r31.trigger
+#28 0.534 OK: 21.9 MiB in 30 packages
+#28 DONE 0.6s
+
+#29 [semstreams builder 3/7] WORKDIR /build
+#29 DONE 0.0s
+
+#30 [semstreams builder 4/7] COPY go.mod go.sum ./
+#30 DONE 0.0s
+
+#31 [semstreams builder 5/7] RUN go mod download
+#31 DONE 2.3s
+
+#32 [semstreams builder 6/7] COPY . .
+#32 DONE 0.2s
+
+#33 [semstreams builder 7/7] RUN CGO_ENABLED=0 go build     -trimpath     -ldflags="-w -s       -X main.Version=v1.0.0-beta.160       -X main.GitCommit=8403a2218000e45a31c5132fbfe01af42ed04f14       -X main.BuildTime=2026-08-12T00:00:00Z"     -o /build/semstreams-bin ./cmd/semstreams
+#33 DONE 9.2s
+
+#34 [semstreams production 5/6] COPY --from=builder --chown=semstreams:semstreams /build/semstreams-bin /app/semstreams
+#34 DONE 0.0s
+
+#35 [semstreams production 6/6] RUN mkdir -p /etc/semstreams /data && chown -R semstreams:semstreams /etc/semstreams /data
+#35 DONE 0.1s
+
+#36 [semstreams] exporting to image
+#36 exporting layers
+#36 exporting layers 0.8s done
+#36 exporting manifest sha256:ad21bb15216690dd158316e994cb9137949646680186f80dd23c68b68e03af7e done
+#36 exporting config sha256:3f8032b8f9823396e28bc86e7def3515df38af96be487e345e2ec3877b0512a3 done
+#36 exporting attestation manifest sha256:08fe55c130a0d8d51ebd73ab4cdd7d04a446f64ce6aa8e9b047e4adb53e5b9b3 done
+#36 exporting manifest list sha256:a5501a52ecc8399bf3f580d037d8711c56a58d21d9f29565cf2dd8f309e43e50 done
+#36 naming to docker.io/library/semconnect-semstreams:v1.0.0-beta.160 done
+#36 unpacking to docker.io/library/semconnect-semstreams:v1.0.0-beta.160 0.1s done
+#36 DONE 1.0s
+
+#37 [semstreams] resolving provenance for metadata file
+#37 DONE 0.0s
+ Image semconnect-semstreams:v1.0.0-beta.160 Built 
+ Image semconnect-cs-api:beta.160 Built 
+ Container semconnect-03a-base-persistence-nats-1 Running 
+ Network semconnect-03a-base-persistence_public Creating 
+ Container semconnect-03a-base-persistence-semstreams-1 Creating 
+ Network semconnect-03a-base-persistence_public Creating 
+ Network semconnect-03a-base-persistence_public Created 
+ Network semconnect-03a-base-persistence_public Created 
+ Container semconnect-03a-base-persistence-semstreams-1 Created 
+ Container semconnect-03a-base-persistence-semconnect-1 Creating 
+ Container semconnect-03a-base-persistence-semconnect-1 Created 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-semstreams-1 Starting 
+ Container semconnect-03a-base-persistence-semstreams-1 Started 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-base-persistence-semconnect-1 Starting 
+ Container semconnect-03a-base-persistence-semconnect-1 Started 
+ Container semconnect-03a-base-persistence-semstreams-1 Running 
+ Container semconnect-03a-base-persistence-semconnect-1 Running 
+ Container semconnect-03a-base-persistence-nats-1 Running 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-base-persistence-semconnect-1 Waiting 
+ Container semconnect-03a-base-persistence-semconnect-1 Healthy 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-24540cc985a7 Creating 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-24540cc985a7 Created 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-e975c7749d9e Creating 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-e975c7749d9e Created 
+2026/10/01 09:40:15 INFO Connecting to NATS urls=nats://nats:4222
+2026/10/01 09:40:15 INFO Successfully connected to NATS urls=nats://nats:4222
+ Container semconnect-03a-base-persistence-semconnect-1 Stopping 
+ Container semconnect-03a-base-persistence-semconnect-1 Stopped 
+ Container semconnect-03a-base-persistence-semstreams-1 Stopping 
+ Container semconnect-03a-base-persistence-semstreams-1 Stopped 
+ Container semconnect-03a-base-persistence-nats-1 Stopping 
+ Container semconnect-03a-base-persistence-nats-1 Stopped 
+ Container semconnect-03a-base-persistence-nats-1 Starting 
+ Container semconnect-03a-base-persistence-nats-1 Started 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-semstreams-1 Starting 
+ Container semconnect-03a-base-persistence-semstreams-1 Started 
+ Container semconnect-03a-base-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-base-persistence-semconnect-1 Starting 
+ Container semconnect-03a-base-persistence-semconnect-1 Started 
+ Container semconnect-03a-base-persistence-nats-1 Running 
+ Container semconnect-03a-base-persistence-semstreams-1 Running 
+ Container semconnect-03a-base-persistence-semconnect-1 Running 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-nats-1 Waiting 
+ Container semconnect-03a-base-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-base-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-base-persistence-nats-1 Healthy 
+ Container semconnect-03a-base-persistence-semconnect-1 Waiting 
+ Container semconnect-03a-base-persistence-semconnect-1 Healthy 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-25af033f5847 Creating 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-25af033f5847 Created 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-a7a6ab4b64d3 Creating 
+ Container semconnect-03a-base-persistence-canonical-smoke-run-a7a6ab4b64d3 Created 
+2026/10/01 09:40:41 INFO Connecting to NATS urls=nats://nats:4222
+2026/10/01 09:40:41 INFO Successfully connected to NATS urls=nats://nats:4222
+greenfield first-start and restart-persistence proof passed
+evidence: /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/baseline/persistence
+compose sha256: 57b6c0505ec781216c0aed313bb1694b8542c6da9e599f351c5e9e414e607462
+canonical proof sha256: 4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32

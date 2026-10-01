@@ -1,0 +1,24 @@
+{
+  "commit": "d0d06e00bf05a545f30ceea798db1c2b1ee47d4f",
+  "timestamp": "2026-10-01T09:38:47.549255+00:00",
+  "sha256": {
+    "go.mod": "c36ccb0431d6be0dfdec2640c47df47f177fc93a44c3be5f0cb3d3d224707380",
+    "go.sum": "68a953cacfbc6941a21af4f6fd30a6856d065f5f183c75c6c623a9fe4b56311c",
+    "conformance/.ets-pin": "84eaa28af8386c69adb008059ee9aa3e65a68bbb853a6255a4e9c6abb7dae2a5",
+    "conformance/run.sh": "4f5c5601b0abe2596e788400c0f877242376e9a373ad9ba2693cc0771fa51785",
+    "conformance/compose.yml": "3b6762e98ba0c9c99db59411ce8dc049aee8d7203842e0730692e51fb49ab84c",
+    "conformance/compose.semstreams.config.json": "103c4db24f8846e6d434c3a740d7aa3692133da9bd4587387c85c0e4657f7d9f",
+    "gateway/cs-api/openapi.yaml": "e93d7401b2f99b395a9768a457cc4e95b2bdc06c9adac6cd79aee370a5bd6eb5",
+    "deploy/verify-persistence.sh": "a416a02ec7bc9d7594e88e266bc7407a70d6b59c1164b5db59c5a483e814f10b",
+    "deploy/compose.yml": "b969d3e04524e18c887ccb05e3e0596624a491c9effc6c5913be41550233fe69"
+  },
+  "docker_preflight": {
+    "server_version": "29.8.0",
+    "architecture": "aarch64",
+    "empty_projects": [
+      "semconnect-03a-baseline-20261001",
+      "semconnect-03a-base-persistence"
+    ],
+    "absent_volume": "semconnect-03a-beta160-20261001-fresh"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "volume": "semconnect-03a-beta160-20261001-fresh",
+  "exact_spatial_response_parity": true,
+  "clean_stop": true,
+  "completed_at": "2026-10-01T09:43:49.204832+00:00"
+}

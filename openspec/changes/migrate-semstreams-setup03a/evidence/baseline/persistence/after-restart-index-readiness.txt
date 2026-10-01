@@ -1,0 +1,1 @@
+graph index ready: target_revision=3 indexed_revision=3 updates=2 evidence=/evidence/after-restart-index-readiness.jsonl

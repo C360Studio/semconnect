@@ -1,0 +1,16 @@
+[
+    {
+        "CreatedAt": "2026-10-01T09:39:21Z",
+        "Driver": "local",
+        "Labels": {
+            "com.docker.compose.config-hash": "007f72f9621e23b1129e6c5b90016b44cf0d535e4b279ac526c7007780b71eb4",
+            "com.docker.compose.project": "semconnect-03a-base-persistence",
+            "com.docker.compose.version": "5.5.1",
+            "com.docker.compose.volume": "semconnect-nats-beta160-data"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/semconnect-03a-beta160-20261001-fresh/_data",
+        "Name": "semconnect-03a-beta160-20261001-fresh",
+        "Options": null,
+        "Scope": "local"
+    }
+]

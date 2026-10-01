@@ -1,0 +1,23 @@
+{
+  "root_id": "c360.semconnect.systems.csapi.system.setup03a-root",
+  "absent_target_id": "c360.semconnect.systems.csapi.system.setup03a-root_absent-child",
+  "triples": [
+    {"predicate":"sensorml.process.type","object":"http://www.w3.org/ns/ssn/System"},
+    {"predicate":"sensorml.process.label","object":"SETUP 03A platform"},
+    {"predicate":"sensorml.process.uid","object":"setup03a-root"},
+    {"predicate":"sensorml.system.hosts","object":"c360.semconnect.systems.csapi.system.setup03a-root_absent-child","datatype":"@id"}
+  ],
+  "vocabulary": [
+    {"predicate":"sensorml.process.type","iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},
+    {"predicate":"sensorml.process.label","iri":"http://purl.org/dc/terms/title"},
+    {"predicate":"sensorml.process.uid","iri":"http://purl.org/dc/terms/identifier"},
+    {"predicate":"sensorml.system.hosts","iri":"http://www.w3.org/ns/sosa/hosts","datatype":"entity_id","inverse":"sensorml.component.is-hosted-by"},
+    {"predicate":"csapi.datastream.result-schema","iri":"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/hasResultSchema","datatype":"entity_id"}
+  ],
+  "failures": [
+    {"code":"revision_mismatch","injection":"classified_reply","http_status":409,"uncertain":false,"attempts":1},
+    {"code":"commit_unknown","injection":"lost_reply","http_status":503,"uncertain":true,"attempts":1}
+  ],
+  "storage_instance":"objectstore",
+  "content_type":"application/json"
+}

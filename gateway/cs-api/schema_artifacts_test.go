@@ -28,6 +28,28 @@ type fakeSchemaObjectStore struct {
 	getErr      error
 }
 
+func TestSchemaArtifactRejectsInvalidRequestBeforeStorage(t *testing.T) {
+	for _, test := range []struct {
+		name, parent, predicate, schema string
+	}{
+		{name: "missing parent", predicate: csapivocab.HasResultSchema, schema: testSWEDataRecordSchema},
+		{name: "unknown relationship", parent: "c360.semconnect.systems.csapi.datastream.one", predicate: "unknown.relationship", schema: testSWEDataRecordSchema},
+		{name: "invalid schema", parent: "c360.semconnect.systems.csapi.datastream.one", predicate: csapivocab.HasResultSchema, schema: "{"},
+		{name: "absent schema", parent: "c360.semconnect.systems.csapi.datastream.one", predicate: csapivocab.HasResultSchema},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			fake := &fakeRequester{}
+			c := newTestComponent(t, fake)
+			store := &fakeSchemaObjectStore{}
+			wireSchemaStore(c, store)
+			_, err := c.createSchemaArtifact(t.Context(), test.parent, test.predicate, json.RawMessage(test.schema), Identity{})
+			if !errs.IsInvalid(err) || len(store.getCalls) != 0 || len(store.putCalls) != 0 || fake.gotSubject != "" {
+				t.Fatalf("invalid artifact reached storage: err=%v reads=%v writes=%v subject=%s", err, store.getCalls, store.putCalls, fake.gotSubject)
+			}
+		})
+	}
+}
+
 func (f *fakeSchemaObjectStore) PutBytes(_ context.Context, name string, data []byte) (*jetstream.ObjectInfo, error) {
 	f.putCalls = append(f.putCalls, name)
 	if f.putErr != nil {

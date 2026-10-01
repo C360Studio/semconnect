@@ -1,0 +1,10 @@
+{
+  "url": "http://127.0.0.1:55609/areas?polygon=%7B%22type%22%3A%22Polygon%22%2C%22coordinates%22%3A%5B%5B%5B-97%2C32%5D%2C%5B-96%2C32%5D%2C%5B-96%2C33%5D%2C%5B-97%2C33%5D%2C%5B-97%2C32%5D%5D%5D%7D",
+  "status": 200,
+  "headers": {
+    "Content-Type": "application/geo+json",
+    "Date": "Thu, 01 Oct 2026 10:12:06 GMT",
+    "Content-Length": "256",
+    "Connection": "close"
+  }
+}

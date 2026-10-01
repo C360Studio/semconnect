@@ -1,0 +1,6 @@
+{
+  "changed_production_paths": [
+    "cmd/cs-api-server/main.go"
+  ],
+  "reason": "Independent reviewer requested startup-only signal-abort handling in gateway CLI; final runtime qualification repeats every original gate."
+}

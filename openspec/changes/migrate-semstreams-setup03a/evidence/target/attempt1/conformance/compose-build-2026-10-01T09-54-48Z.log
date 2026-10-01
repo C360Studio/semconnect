@@ -1,0 +1,314 @@
+ Image semconnect-03a-target-20261001-teamengine Building 
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Building 
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Building 
+ Image semconnect-03a-target-20261001-cs-api-server Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.71kB done
+#1 DONE 0.0s
+
+#2 [teamengine internal] load build definition from Dockerfile
+#2 transferring dockerfile: 11.25kB done
+#2 DONE 0.0s
+
+#3 [cs-api-server internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.39kB done
+#3 DONE 0.0s
+
+#4 [semstreams-backend internal] load build definition from backend.Dockerfile
+#4 transferring dockerfile: 1.58kB done
+#4 DONE 0.0s
+
+#5 [semstreams-backend] resolve image config for docker-image://docker.io/docker/dockerfile:1.6
+#5 DONE 0.3s
+
+#6 [teamengine] docker-image://docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+#6 resolve docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021 0.0s done
+#6 CACHED
+
+#7 [semstreams-backend internal] load build definition from backend.Dockerfile
+#7 transferring dockerfile: 1.58kB done
+#7 DONE 0.0s
+
+#8 [provision-identity internal] load build definition from backend.Dockerfile
+#8 transferring dockerfile: 1.58kB done
+#8 DONE 0.0s
+
+#9 [cs-api-server internal] load metadata for gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#9 DONE 0.1s
+
+#10 [provision-identity internal] load metadata for docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#10 DONE 0.2s
+
+#11 [teamengine internal] load metadata for docker.io/library/eclipse-temurin:17-jdk-jammy
+#11 DONE 0.2s
+
+#12 [teamengine internal] load metadata for docker.io/library/tomcat:8.5-jre17
+#12 DONE 0.2s
+
+#13 [teamengine internal] load .dockerignore
+#13 transferring context: 759B done
+#13 DONE 0.0s
+
+#14 [cs-api-server internal] load .dockerignore
+#14 transferring context: 798B done
+#14 DONE 0.0s
+
+#15 [provision-identity internal] load metadata for docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+#15 DONE 0.2s
+
+#16 [provision-identity internal] load .dockerignore
+#16 transferring context: 798B done
+#16 DONE 0.0s
+
+#17 [teamengine builder 1/8] FROM docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:60fcdd4a85c94a23ef86d0d55867c6a8dbc4f7c3efc8286e259956c3ea4ef08c
+#17 resolve docker.io/library/eclipse-temurin:17-jdk-jammy@sha256:60fcdd4a85c94a23ef86d0d55867c6a8dbc4f7c3efc8286e259956c3ea4ef08c 0.0s done
+#17 DONE 0.0s
+
+#18 [teamengine stage-1  1/11] FROM docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874
+#18 resolve docker.io/library/tomcat:8.5-jre17@sha256:f6b9669ee34bb61fef38535c07e5095370f56251e9e1ef7704139824ed8c4874 0.0s done
+#18 DONE 0.0s
+
+#19 [semstreams-backend internal] load .dockerignore
+#19 transferring context: 798B done
+#19 DONE 0.0s
+
+#20 [cs-api-server stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#20 resolve gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b 0.0s done
+#20 DONE 0.0s
+
+#21 [semstreams-backend builder 1/6] FROM docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#21 resolve docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b 0.0s done
+#21 DONE 0.0s
+
+#22 [semstreams-backend production 1/4] FROM docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+#22 resolve docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b 0.0s done
+#22 CACHED
+
+#23 [semstreams-backend production 2/4] RUN apk add --no-cache ca-certificates tzdata wget &&     addgroup -S -g 1000 semstreams &&     adduser -S -u 1000 -G semstreams -h /app semstreams
+#23 ...
+
+#24 [teamengine internal] load build context
+#24 transferring context: 34.46kB 0.1s done
+#24 DONE 0.1s
+
+#25 [teamengine builder 7/8] COPY src ./src
+#25 CACHED
+
+#26 [teamengine stage-1  5/11] RUN cd /usr/local/tomcat/lib  && curl -fsSL "https://repo.maven.apache.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar" -o jaxb-api-2.3.1.jar  && curl -fsSL "https://repo.maven.apache.org/maven2/com/sun/xml/bind/jaxb-core/2.3.0.1/jaxb-core-2.3.0.1.jar" -o jaxb-core-2.3.0.1.jar  && curl -fsSL "https://repo.maven.apache.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.1/jaxb-impl-2.3.1.jar" -o jaxb-impl-2.3.1.jar  && curl -fsSL "https://repo.maven.apache.org/maven2/javax/activation/javax.activation-api/1.2.0/javax.activation-api-1.2.0.jar" -o javax.activation-api-1.2.0.jar  && chown tomcat:tomcat jaxb-api-2.3.1.jar jaxb-core-2.3.0.1.jar jaxb-impl-2.3.1.jar javax.activation-api-1.2.0.jar
+#26 CACHED
+
+#27 [teamengine stage-1  4/11] RUN sed -i '/<Loader className="org.apache.catalina.loader.VirtualWebappLoader"/,/\/>/d'         /usr/local/tomcat/webapps/teamengine/META-INF/context.xml
+#27 CACHED
+
+#28 [teamengine stage-1  7/11] COPY --from=builder --chown=tomcat:tomcat /build/target/ets-ogcapi-connectedsystems10-0.1-SNAPSHOT.jar /usr/local/tomcat/webapps/teamengine/WEB-INF/lib/
+#28 CACHED
+
+#29 [teamengine builder 6/8] COPY .git ./.git
+#29 CACHED
+
+#30 [teamengine stage-1  6/11] COPY --from=builder --chown=tomcat:tomcat /build/target/lib-runtime/ /usr/local/tomcat/webapps/teamengine/WEB-INF/lib/
+#30 CACHED
+
+#31 [teamengine builder 5/8] RUN --mount=type=cache,target=/root/.m2     mvn -B -q dependency:go-offline -DexcludeArtifactIds=teamengine-spi || true
+#31 CACHED
+
+#32 [teamengine stage-1  2/11] RUN groupadd -r tomcat && useradd -r -g tomcat -d /usr/local/tomcat -s /sbin/nologin tomcat  && chown tomcat:tomcat /usr/local/tomcat
+#32 CACHED
+
+#33 [teamengine stage-1  9/11] COPY --from=builder --chown=tomcat:tomcat /build/target/ets-ogcapi-connectedsystems10-0.1-SNAPSHOT-ctl.zip /tmp/ets-ctl.zip
+#33 CACHED
+
+#34 [teamengine builder 4/8] COPY pom.xml ./
+#34 CACHED
+
+#35 [teamengine builder 2/8] RUN apt-get update  && apt-get install -y --no-install-recommends curl ca-certificates git  && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz"     | tar -xz -C /opt  && ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn  && rm -rf /var/lib/apt/lists/*
+#35 CACHED
+
+#36 [teamengine builder 8/8] RUN --mount=type=cache,target=/root/.m2     mvn -B -q clean package -DskipTests  && mvn -B -q dependency:copy-dependencies         -DoutputDirectory=target/lib-runtime         -DincludeScope=runtime  && rm -f target/lib-runtime/teamengine-*.jar
+#36 CACHED
+
+#37 [teamengine stage-1  8/11] RUN cd /usr/local/tomcat/webapps/teamengine/WEB-INF/lib  && rm -f schema-utils-1.8.jar xercesImpl-2.12.2.jar xml-apis-1.4.01.jar xml-resolver-1.2.jar
+#37 CACHED
+
+#38 [teamengine builder 3/8] WORKDIR /build
+#38 CACHED
+
+#39 [teamengine stage-1  3/11] RUN apt-get update  && apt-get install -y --no-install-recommends unzip ca-certificates curl  && apt-get clean && rm -rf /var/lib/apt/lists/*  && mkdir -p /root/te-stage  && cd /root/te-stage  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1.war" -o teamengine-web.war  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-web/5.6.1/teamengine-web-5.6.1-common-libs.zip" -o teamengine-web-common-libs.zip  && curl -fsSL "https://repo.maven.apache.org/maven2/org/opengis/cite/teamengine/teamengine-console/5.6.1/teamengine-console-5.6.1-base.zip" -o teamengine-console-base.zip  && unzip -q teamengine-web.war -d /usr/local/tomcat/webapps/teamengine  && unzip -q teamengine-web-common-libs.zip -d /usr/local/tomcat/lib  && unzip -q teamengine-console-base.zip -d /usr/local/tomcat/te_base  && rm -rf /root/te-stage  && chown -R tomcat:tomcat /usr/local/tomcat/webapps /usr/local/tomcat/lib /usr/local/tomcat/te_base                           /usr/local/tomcat/conf /usr/local/tomcat/logs /usr/local/tomcat/work                           /usr/local/tomcat/temp
+#39 CACHED
+
+#40 [teamengine stage-1 10/11] RUN unzip -q -o /tmp/ets-ctl.zip -d /usr/local/tomcat/te_base/scripts  && rm /tmp/ets-ctl.zip  && chown -R tomcat:tomcat /usr/local/tomcat/te_base/scripts
+#40 CACHED
+
+#41 [teamengine stage-1 11/11] RUN rm -rf /usr/local/tomcat/te_base/scripts/note 2>/dev/null || true
+#41 CACHED
+
+#42 [teamengine] exporting to image
+#42 exporting layers done
+#42 exporting manifest sha256:e0a1df65a2c2a7928c3bc0532df6f5bf114f296681d1cbeea60cbb63ce244a45 0.0s done
+#42 exporting config sha256:63916918373dc6f1c7e812ebc811851daadb410e28452f7ef8cdb2589e24ba35 0.0s done
+#42 exporting attestation manifest sha256:592314ee508e9d0610177b57de521f0214b136f894ee2c25c5e9810b608663b7 0.1s done
+#42 exporting manifest list sha256:e7338df1c89c27118bff008c9c5983b894f6aa8ae7bc463f6faed8b942790614 0.0s done
+#42 naming to docker.io/library/semconnect-03a-target-20261001-teamengine:latest
+#42 naming to docker.io/library/semconnect-03a-target-20261001-teamengine:latest done
+#42 unpacking to docker.io/library/semconnect-03a-target-20261001-teamengine:latest 0.0s done
+#42 DONE 0.3s
+
+#43 [cs-api-server internal] load build context
+#43 ...
+
+#44 [teamengine] resolving provenance for metadata file
+#44 DONE 0.0s
+
+#43 [cs-api-server internal] load build context
+#43 transferring context: 1.01MB 0.7s done
+#43 DONE 0.7s
+
+#45 [semstreams-backend builder 2/6] WORKDIR /src
+#45 CACHED
+
+#46 [semstreams-backend internal] load build context
+#46 ...
+
+#45 [provision-identity builder 2/6] WORKDIR /src
+#45 CACHED
+
+#46 [semstreams-backend internal] load build context
+#46 ...
+
+#47 [cs-api-server builder 3/6] COPY go.mod go.sum ./
+#47 DONE 0.4s
+
+#46 [semstreams-backend internal] load build context
+#46 ...
+
+#23 [semstreams-backend production 2/4] RUN apk add --no-cache ca-certificates tzdata wget &&     addgroup -S -g 1000 semstreams &&     adduser -S -u 1000 -G semstreams -h /app semstreams
+#23 1.308 (1/6) Installing ca-certificates (20260909-r0)
+#23 1.327 (2/6) Installing tzdata (2026d-r0)
+#23 1.368 (3/6) Installing libunistring (1.4.2-r0)
+#23 1.390 (4/6) Installing libidn2 (2.3.8-r0)
+#23 1.401 (5/6) Installing pcre2 (10.48-r0)
+#23 1.419 (6/6) Installing wget (1.25.0-r3)
+#23 1.434 Executing busybox-1.37.0-r31.trigger
+#23 1.438 Executing ca-certificates-20260909-r0.trigger
+#23 1.458 OK: 12.3 MiB in 22 packages
+#23 DONE 1.6s
+
+#48 [semstreams-backend production 3/4] WORKDIR /app
+#48 DONE 0.1s
+
+#46 [semstreams-backend internal] load build context
+#46 transferring context: 115.49MB 1.9s done
+#46 DONE 2.0s
+
+#49 [provision-identity internal] load build context
+#49 ...
+
+#47 [semstreams-backend builder 3/6] COPY go.mod go.sum ./
+#47 DONE 0.4s
+
+#50 [semstreams-backend builder 3/6] COPY go.mod go.sum ./
+#50 CACHED
+
+#49 [provision-identity internal] load build context
+#49 transferring context: 115.49MB 2.1s done
+#49 DONE 2.1s
+
+#47 [provision-identity builder 3/6] COPY go.mod go.sum ./
+#47 DONE 0.4s
+
+#51 [provision-identity builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download &&     test "$(go list -m -f '{{.Version}}' github.com/c360studio/semstreams)" = "v1.0.0-beta.162.0.20260930150212-8b99efe9c66a"
+#51 DONE 0.7s
+
+#52 [cs-api-server builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download
+#52 DONE 1.6s
+
+#53 [provision-identity builder 5/6] COPY . .
+#53 DONE 0.5s
+
+#54 [semstreams-backend builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w"     -o /out/cs-graph-backend ./cmd/cs-graph-backend
+#54 ...
+
+#55 [cs-api-server builder 5/6] COPY . .
+#55 DONE 2.0s
+
+#56 [cs-api-server builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux     go build -trimpath -ldflags="-s -w"         -o /out/cs-api-server ./cmd/cs-api-server
+#56 DONE 0.8s
+
+#54 [semstreams-backend builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w"     -o /out/cs-graph-backend ./cmd/cs-graph-backend
+#54 DONE 2.3s
+
+#20 [cs-api-server stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#20 CACHED
+
+#57 [provision-identity builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w"     -o /out/cs-graph-backend ./cmd/cs-graph-backend
+#57 CACHED
+
+#58 [provision-identity builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download &&     test "$(go list -m -f '{{.Version}}' github.com/c360studio/semstreams)" = "v1.0.0-beta.162.0.20260930150212-8b99efe9c66a"
+#58 CACHED
+
+#59 [provision-identity builder 5/6] COPY . .
+#59 CACHED
+
+#60 [provision-identity builder 3/6] COPY go.mod go.sum ./
+#60 CACHED
+
+#61 [provision-identity production 4/4] COPY --from=builder --chown=semstreams:semstreams /out/cs-graph-backend /app/cs-graph-backend
+#61 CANCELED
+
+#62 [cs-api-server stage-1 2/2] COPY --from=builder /out/cs-api-server /usr/local/bin/cs-api-server
+#62 DONE 0.0s
+
+#63 [semstreams-backend production 4/4] COPY --from=builder --chown=semstreams:semstreams /out/cs-graph-backend /app/cs-graph-backend
+#63 DONE 0.0s
+
+#64 [semstreams-backend] exporting to image
+#64 exporting layers
+#64 exporting layers 0.4s done
+#64 exporting manifest sha256:190dfba8679a1464e8dcbe7415213da277a24550990b8f10d8610263b25aa05a
+#64 ...
+
+#65 [cs-api-server] exporting to image
+#65 exporting layers 0.3s done
+#65 exporting manifest sha256:7db9f4f661d81ea8b2522e2627df073ce386006986724ad1762ef7fa92f2b7fe 0.0s done
+#65 exporting config sha256:93f4afa96df326075b653850b66e56935130a7be18370784614a36f690b6549a done
+#65 exporting attestation manifest sha256:969558c39653110a81fface98d635911f6654582a27842db06739a22177651e9 done
+#65 exporting manifest list sha256:8d5cc275d7963e43b2f208e60b2f4fe117a54dab3b3ad55c5de59c49e3346297 done
+#65 naming to docker.io/library/semconnect-03a-target-20261001-cs-api-server:latest done
+#65 unpacking to docker.io/library/semconnect-03a-target-20261001-cs-api-server:latest 0.1s done
+#65 DONE 0.4s
+
+#64 [semstreams-backend] exporting to image
+#64 exporting manifest sha256:190dfba8679a1464e8dcbe7415213da277a24550990b8f10d8610263b25aa05a 0.0s done
+#64 exporting config sha256:b02fcd5d8a6a213ebea0c02cb1030b818de00546901d4fe3da2a0b766af2f9f0 0.0s done
+#64 exporting attestation manifest sha256:b36e6a6f61f153585d0443f5a0a86438d6094e69da31a9370ead22a35e50f500 0.0s done
+#64 exporting manifest list sha256:30f29da6fbfc5a0314336e582179fd854fdf11511da8a28f83efad7b8c54d9b6 done
+#64 naming to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a done
+#64 unpacking to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a
+#64 ...
+
+#66 [cs-api-server] resolving provenance for metadata file
+#66 DONE 0.0s
+
+#64 [semstreams-backend] exporting to image
+#64 unpacking to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a 0.1s done
+#64 DONE 0.6s
+
+#67 [provision-identity] exporting to image
+#67 exporting layers 0.4s done
+#67 exporting manifest sha256:c44539a723100f9a81ae6103648326827b17e90e6c29f2468db092035ea2ec15 0.0s done
+#67 exporting config sha256:9b281037fe3275d665700e3f60787237616b3781242577cd704e8ba3f4539ee4 0.0s done
+#67 exporting attestation manifest sha256:df12b981dac1822f309a70b349f9b7eb9f3a1038faed6fb2bd23b76b55b39aee 0.0s done
+#67 exporting manifest list sha256:59e3a21adef5e286020c14d4d795ac9636b05f9cc964d421bd41056c3e7d5c12 done
+#67 naming to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a done
+#67 unpacking to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a 0.1s done
+#67 DONE 0.6s
+
+#68 [semstreams-backend] resolving provenance for metadata file
+#68 DONE 0.0s
+
+#69 [provision-identity] resolving provenance for metadata file
+#69 DONE 0.0s
+ Image semconnect-03a-target-20261001-cs-api-server Built 
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Built 
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Built 
+ Image semconnect-03a-target-20261001-teamengine Built 

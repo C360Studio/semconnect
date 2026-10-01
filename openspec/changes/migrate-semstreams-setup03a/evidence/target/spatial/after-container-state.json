@@ -1,0 +1,920 @@
+[
+  {
+    "Id": "5cd88dc21c8c5a0b6f3119167416ae97e70086bb8d7fc1c4a39f250ce4b21b4e",
+    "Created": "2026-10-01T10:09:20.725261503Z",
+    "Path": "docker-entrypoint.sh",
+    "Args": [
+      "-c",
+      "/etc/nats/nats.conf"
+    ],
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 8998,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-10-01T10:12:07.010432053Z",
+      "FinishedAt": "2026-10-01T10:12:06.790067302Z",
+      "Health": {
+        "Status": "healthy",
+        "FailingStreak": 0,
+        "Log": [
+          {
+            "Start": "2026-10-01T10:11:58.21289984Z",
+            "End": "2026-10-01T10:11:58.235175757Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:12:03.236524676Z",
+            "End": "2026-10-01T10:12:03.260045676Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:12:12.015584805Z",
+            "End": "2026-10-01T10:12:12.041228638Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:12:17.04296296Z",
+            "End": "2026-10-01T10:12:17.071971585Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:12:22.07296392Z",
+            "End": "2026-10-01T10:12:22.100794754Z",
+            "ExitCode": 0,
+            "Output": ""
+          }
+        ]
+      }
+    },
+    "Image": "sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66",
+    "ResolvConfPath": "/var/lib/docker/containers/5cd88dc21c8c5a0b6f3119167416ae97e70086bb8d7fc1c4a39f250ce4b21b4e/resolv.conf",
+    "HostnamePath": "/var/lib/docker/containers/5cd88dc21c8c5a0b6f3119167416ae97e70086bb8d7fc1c4a39f250ce4b21b4e/hostname",
+    "HostsPath": "/var/lib/docker/containers/5cd88dc21c8c5a0b6f3119167416ae97e70086bb8d7fc1c4a39f250ce4b21b4e/hosts",
+    "LogPath": "/var/lib/docker/containers/5cd88dc21c8c5a0b6f3119167416ae97e70086bb8d7fc1c4a39f250ce4b21b4e/5cd88dc21c8c5a0b6f3119167416ae97e70086bb8d7fc1c4a39f250ce4b21b4e-json.log",
+    "Name": "/semconnect-03a-target-r3-persistence-nats-1",
+    "RestartCount": 0,
+    "Driver": "overlayfs",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": [
+        "semconnect-03a-8b99efe9-20261001-r3-fresh:/data:rw",
+        "/host_mnt/Users/coby/Code/c360/semconnect/deploy/nats.conf:/etc/nats/nats.conf:ro"
+      ],
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "semconnect-03a-target-r3-persistence_backend",
+      "PortBindings": {},
+      "RestartPolicy": {
+        "Name": "unless-stopped",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "private",
+      "Dns": null,
+      "DnsOptions": null,
+      "DnsSearch": null,
+      "ExtraHosts": [],
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 67108864,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 0,
+      "NanoCpus": 0,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": null,
+      "BlkioDeviceReadBps": null,
+      "BlkioDeviceWriteBps": null,
+      "BlkioDeviceReadIOps": null,
+      "BlkioDeviceWriteIOps": null,
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": null,
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 0,
+      "MemorySwappiness": null,
+      "OomKillDisable": null,
+      "PidsLimit": null,
+      "Ulimits": null,
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "MaskedPaths": [
+        "/proc/acpi",
+        "/proc/asound",
+        "/proc/interrupts",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/sys/devices/virtual/powercap",
+        "/sys/firmware"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "Storage": {
+      "RootFS": {
+        "Snapshot": {
+          "Name": "overlayfs"
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "volume",
+        "Name": "semconnect-03a-8b99efe9-20261001-r3-fresh",
+        "Source": "/var/lib/docker/volumes/semconnect-03a-8b99efe9-20261001-r3-fresh/_data",
+        "Destination": "/data",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      },
+      {
+        "Type": "bind",
+        "Source": "/host_mnt/Users/coby/Code/c360/semconnect/deploy/nats.conf",
+        "Destination": "/etc/nats/nats.conf",
+        "Mode": "ro",
+        "RW": false,
+        "Propagation": "rprivate"
+      }
+    ],
+    "Config": {
+      "Hostname": "5cd88dc21c8c",
+      "Domainname": "",
+      "User": "",
+      "AttachStdin": false,
+      "AttachStdout": true,
+      "AttachStderr": true,
+      "ExposedPorts": {
+        "4222/tcp": {},
+        "6222/tcp": {},
+        "8222/tcp": {}
+      },
+      "Tty": false,
+      "OpenStdin": false,
+      "StdinOnce": false,
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "NATS_SERVER=2.14.4"
+      ],
+      "Cmd": [
+        "-c",
+        "/etc/nats/nats.conf"
+      ],
+      "Healthcheck": {
+        "Test": [
+          "CMD-SHELL",
+          "wget -q -O - http://localhost:8222/healthz >/dev/null || exit 1"
+        ],
+        "Interval": 5000000000,
+        "Timeout": 3000000000,
+        "StartPeriod": 5000000000,
+        "Retries": 20
+      },
+      "Image": "nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66",
+      "Volumes": null,
+      "WorkingDir": "/",
+      "Entrypoint": [
+        "docker-entrypoint.sh"
+      ],
+      "Labels": {
+        "com.docker.compose.config-hash": "e925464c319909c12337e1b700d7999ee5bc070b74b78613cfad3f82f7f057ae",
+        "com.docker.compose.container-number": "1",
+        "com.docker.compose.depends_on": "",
+        "com.docker.compose.image": "sha256:862c0b3de443e209f342b8d224a88a54f4981834816849e27c40f4fc6b221b5c",
+        "com.docker.compose.oneoff": "False",
+        "com.docker.compose.project": "semconnect-03a-target-r3-persistence",
+        "com.docker.compose.project.config_files": "/Users/coby/Code/c360/semconnect/deploy/compose.yml",
+        "com.docker.compose.project.working_dir": "/Users/coby/Code/c360/semconnect/deploy",
+        "com.docker.compose.service": "nats",
+        "com.docker.compose.version": "5.5.1",
+        "org.opencontainers.image.description": "NATS is an open-source, high-performance, cloud native messaging system.",
+        "org.opencontainers.image.documentation": "https://docs.nats.io",
+        "org.opencontainers.image.licenses": "Apache-2.0",
+        "org.opencontainers.image.source": "https://github.com/nats-io/nats-docker",
+        "org.opencontainers.image.title": "NATS Server",
+        "org.opencontainers.image.url": "https://nats.io",
+        "org.opencontainers.image.vendor": "NATS.io",
+        "org.opencontainers.image.version": "2.14.4"
+      }
+    },
+    "NetworkSettings": {
+      "SandboxID": "7de6df5d3231c936dd7f5938ce0f3e84653b80d3f0f5e8dc12439e498ef3ec6c",
+      "SandboxKey": "/var/run/docker/netns/7de6df5d3231",
+      "Ports": {
+        "4222/tcp": null,
+        "6222/tcp": null,
+        "8222/tcp": null
+      },
+      "Networks": {
+        "semconnect-03a-target-r3-persistence_backend": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": [
+            "semconnect-03a-target-r3-persistence-nats-1",
+            "nats"
+          ],
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "2400ea1f998ea22063d5c6a8b2706c17bb93e01f1cad3922a43baa71570a3219",
+          "EndpointID": "e1d946ba65c07b3c7abe76276dfe19e93741ab415d703ad1eb4faed028c9050b",
+          "Gateway": "",
+          "IPAddress": "172.18.0.2",
+          "MacAddress": "5e:6a:bf:93:f6:8c",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": [
+            "semconnect-03a-target-r3-persistence-nats-1",
+            "nats",
+            "5cd88dc21c8c"
+          ]
+        }
+      }
+    },
+    "ImageManifestDescriptor": {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:862c0b3de443e209f342b8d224a88a54f4981834816849e27c40f4fc6b221b5c",
+      "size": 1730,
+      "annotations": {
+        "com.docker.official-images.bashbrew.arch": "arm64v8",
+        "org.opencontainers.image.base.digest": "sha256:2c9d26f410d032d5b1525aa8a873e238b05b90c4ae8618743d4311f0cc827e37",
+        "org.opencontainers.image.base.name": "alpine:3.22",
+        "org.opencontainers.image.created": "2026-07-30T19:54:06Z",
+        "org.opencontainers.image.revision": "2240af2a7067772eaa6453e3aa801c2c28657440",
+        "org.opencontainers.image.source": "https://github.com/nats-io/nats-docker.git#2240af2a7067772eaa6453e3aa801c2c28657440:2.14.x/alpine3.22",
+        "org.opencontainers.image.url": "https://hub.docker.com/_/nats",
+        "org.opencontainers.image.version": "2.14.4-alpine3.22"
+      },
+      "platform": {
+        "architecture": "arm64",
+        "os": "linux",
+        "variant": "v8"
+      }
+    }
+  },
+  {
+    "Id": "37689e289bbc1b7db8b932cdf75f1683b8a78e4c1b9743a492e559592d5a00b9",
+    "Created": "2026-10-01T10:09:30.123704758Z",
+    "Path": "/usr/local/bin/cs-api-server",
+    "Args": [
+      "-config",
+      "/etc/semconnect/config.json"
+    ],
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 9407,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-10-01T10:12:18.274087794Z",
+      "FinishedAt": "2026-10-01T10:12:06.563634469Z",
+      "Health": {
+        "Status": "healthy",
+        "FailingStreak": 0,
+        "Log": [
+          {
+            "Start": "2026-10-01T10:11:49.676516669Z",
+            "End": "2026-10-01T10:11:49.721908336Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:11:54.722323463Z",
+            "End": "2026-10-01T10:11:54.76959013Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:11:59.769979882Z",
+            "End": "2026-10-01T10:11:59.818167716Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:12:04.820668968Z",
+            "End": "2026-10-01T10:12:04.868254218Z",
+            "ExitCode": 0,
+            "Output": ""
+          },
+          {
+            "Start": "2026-10-01T10:12:23.274665379Z",
+            "End": "2026-10-01T10:12:23.311809088Z",
+            "ExitCode": 0,
+            "Output": ""
+          }
+        ]
+      }
+    },
+    "Image": "sha256:474b2536716e1538b39a736b5e2d6f353b917eb0955e4db6d45f7dc5c733c55d",
+    "ResolvConfPath": "/var/lib/docker/containers/37689e289bbc1b7db8b932cdf75f1683b8a78e4c1b9743a492e559592d5a00b9/resolv.conf",
+    "HostnamePath": "/var/lib/docker/containers/37689e289bbc1b7db8b932cdf75f1683b8a78e4c1b9743a492e559592d5a00b9/hostname",
+    "HostsPath": "/var/lib/docker/containers/37689e289bbc1b7db8b932cdf75f1683b8a78e4c1b9743a492e559592d5a00b9/hosts",
+    "LogPath": "/var/lib/docker/containers/37689e289bbc1b7db8b932cdf75f1683b8a78e4c1b9743a492e559592d5a00b9/37689e289bbc1b7db8b932cdf75f1683b8a78e4c1b9743a492e559592d5a00b9-json.log",
+    "Name": "/semconnect-03a-target-r3-persistence-semconnect-1",
+    "RestartCount": 0,
+    "Driver": "overlayfs",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": [
+        "/Users/coby/Code/c360/semconnect/deploy/semconnect.json:/etc/semconnect/config.json:ro"
+      ],
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "semconnect-03a-target-r3-persistence_backend",
+      "PortBindings": {
+        "8080/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "55609"
+          }
+        ]
+      },
+      "RestartPolicy": {
+        "Name": "unless-stopped",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "private",
+      "Dns": null,
+      "DnsOptions": null,
+      "DnsSearch": null,
+      "ExtraHosts": [],
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 67108864,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 0,
+      "NanoCpus": 0,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": null,
+      "BlkioDeviceReadBps": null,
+      "BlkioDeviceWriteBps": null,
+      "BlkioDeviceReadIOps": null,
+      "BlkioDeviceWriteIOps": null,
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": null,
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 0,
+      "MemorySwappiness": null,
+      "OomKillDisable": null,
+      "PidsLimit": null,
+      "Ulimits": null,
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "MaskedPaths": [
+        "/proc/acpi",
+        "/proc/asound",
+        "/proc/interrupts",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/sys/devices/virtual/powercap",
+        "/sys/firmware"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "Storage": {
+      "RootFS": {
+        "Snapshot": {
+          "Name": "overlayfs"
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "/Users/coby/Code/c360/semconnect/deploy/semconnect.json",
+        "Destination": "/etc/semconnect/config.json",
+        "Mode": "ro",
+        "RW": false,
+        "Propagation": "rprivate"
+      }
+    ],
+    "Config": {
+      "Hostname": "37689e289bbc",
+      "Domainname": "",
+      "User": "nonroot:nonroot",
+      "AttachStdin": false,
+      "AttachStdout": true,
+      "AttachStderr": true,
+      "ExposedPorts": {
+        "8080/tcp": {}
+      },
+      "Tty": false,
+      "OpenStdin": false,
+      "StdinOnce": false,
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt"
+      ],
+      "Cmd": [
+        "-config",
+        "/etc/semconnect/config.json"
+      ],
+      "Healthcheck": {
+        "Test": [
+          "CMD",
+          "/usr/local/bin/cs-api-server",
+          "-healthcheck"
+        ],
+        "Interval": 5000000000,
+        "Timeout": 3000000000,
+        "StartPeriod": 5000000000,
+        "Retries": 20
+      },
+      "Image": "semconnect-cs-api:setup03a-8b99efe9c66a",
+      "Volumes": null,
+      "WorkingDir": "/home/nonroot",
+      "Entrypoint": [
+        "/usr/local/bin/cs-api-server"
+      ],
+      "Labels": {
+        "com.docker.compose.config-hash": "57bd0a910afe84031826bbaa2b9bcaf218cdb7ec96da4a15c7925aff4eaa62a6",
+        "com.docker.compose.container-number": "1",
+        "com.docker.compose.depends_on": "nats:service_healthy:false,semstreams:service_healthy:false",
+        "com.docker.compose.image": "sha256:604e40c9072542c5e2f02361b0f80d873aca38c3cde1f982e51c3621c11b777c",
+        "com.docker.compose.oneoff": "False",
+        "com.docker.compose.project": "semconnect-03a-target-r3-persistence",
+        "com.docker.compose.project.config_files": "/Users/coby/Code/c360/semconnect/deploy/compose.yml",
+        "com.docker.compose.project.working_dir": "/Users/coby/Code/c360/semconnect/deploy",
+        "com.docker.compose.service": "semconnect",
+        "com.docker.compose.version": "5.5.1"
+      }
+    },
+    "NetworkSettings": {
+      "SandboxID": "2c4a4407f36863c6739e150d392920d733bc3f99639b252d8a06d8f772a40f0e",
+      "SandboxKey": "/var/run/docker/netns/2c4a4407f368",
+      "Ports": {
+        "8080/tcp": [
+          {
+            "HostIp": "0.0.0.0",
+            "HostPort": "55609"
+          },
+          {
+            "HostIp": "::",
+            "HostPort": "55609"
+          }
+        ]
+      },
+      "Networks": {
+        "semconnect-03a-target-r3-persistence_backend": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": [
+            "semconnect-03a-target-r3-persistence-semconnect-1",
+            "semconnect"
+          ],
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "2400ea1f998ea22063d5c6a8b2706c17bb93e01f1cad3922a43baa71570a3219",
+          "EndpointID": "9415c429323886365565353c35933d3e0c3802a480ad0ed6cdfe13f42a5507b3",
+          "Gateway": "",
+          "IPAddress": "172.18.0.4",
+          "MacAddress": "22:ad:82:20:c5:83",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": [
+            "semconnect-03a-target-r3-persistence-semconnect-1",
+            "semconnect",
+            "37689e289bbc"
+          ]
+        },
+        "semconnect-03a-target-r3-persistence_public": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": [
+            "semconnect-03a-target-r3-persistence-semconnect-1",
+            "semconnect"
+          ],
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "7ebbaefaa4d4eb680947418bb571ae4fe48b29a6b6d8bf886d170f5de3be972b",
+          "EndpointID": "bdb8337e11b89d58067ed9ef11cc9a2c457d3c0446792ffc7a2638ace80a7757",
+          "Gateway": "172.20.0.1",
+          "IPAddress": "172.20.0.2",
+          "MacAddress": "36:ba:6d:e5:00:71",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": [
+            "semconnect-03a-target-r3-persistence-semconnect-1",
+            "semconnect",
+            "37689e289bbc"
+          ]
+        }
+      }
+    },
+    "ImageManifestDescriptor": {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:604e40c9072542c5e2f02361b0f80d873aca38c3cde1f982e51c3621c11b777c",
+      "size": 2747,
+      "platform": {
+        "architecture": "arm64",
+        "os": "linux"
+      }
+    }
+  },
+  {
+    "Id": "87ef7ec1cbe1f380edd97f72e670ea2a9385c370a1e14a432241c5ba6ab4aa91",
+    "Created": "2026-10-01T10:09:30.092402633Z",
+    "Path": "/app/cs-graph-backend",
+    "Args": [
+      "-config",
+      "/etc/semstreams/config.json",
+      "-cs-api-config",
+      "/etc/semconnect/config.json"
+    ],
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 9245,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-10-01T10:12:12.705303305Z",
+      "FinishedAt": "2026-10-01T10:12:06.713976969Z",
+      "Health": {
+        "Status": "healthy",
+        "FailingStreak": 0,
+        "Log": [
+          {
+            "Start": "2026-10-01T10:11:53.927363755Z",
+            "End": "2026-10-01T10:11:53.962378088Z",
+            "ExitCode": 0,
+            "Output": "2026-10-01 10:11:53 URL: http://localhost:8090/health 200 OK\n"
+          },
+          {
+            "Start": "2026-10-01T10:11:58.96590509Z",
+            "End": "2026-10-01T10:11:58.989890965Z",
+            "ExitCode": 0,
+            "Output": "2026-10-01 10:11:58 URL: http://localhost:8090/health 200 OK\n"
+          },
+          {
+            "Start": "2026-10-01T10:12:03.990874926Z",
+            "End": "2026-10-01T10:12:04.02619176Z",
+            "ExitCode": 0,
+            "Output": "2026-10-01 10:12:04 URL: http://localhost:8090/health 200 OK\n"
+          },
+          {
+            "Start": "2026-10-01T10:12:17.756398543Z",
+            "End": "2026-10-01T10:12:17.791333252Z",
+            "ExitCode": 0,
+            "Output": "2026-10-01 10:12:17 URL: http://localhost:8090/health 200 OK\n"
+          },
+          {
+            "Start": "2026-10-01T10:12:22.795070671Z",
+            "End": "2026-10-01T10:12:22.830604296Z",
+            "ExitCode": 0,
+            "Output": "2026-10-01 10:12:22 URL: http://localhost:8090/health 200 OK\n"
+          }
+        ]
+      }
+    },
+    "Image": "sha256:c8ca287fd839d009c36a8b46e1f3aba5c564be46752fd56e150dbf1d0010264b",
+    "ResolvConfPath": "/var/lib/docker/containers/87ef7ec1cbe1f380edd97f72e670ea2a9385c370a1e14a432241c5ba6ab4aa91/resolv.conf",
+    "HostnamePath": "/var/lib/docker/containers/87ef7ec1cbe1f380edd97f72e670ea2a9385c370a1e14a432241c5ba6ab4aa91/hostname",
+    "HostsPath": "/var/lib/docker/containers/87ef7ec1cbe1f380edd97f72e670ea2a9385c370a1e14a432241c5ba6ab4aa91/hosts",
+    "LogPath": "/var/lib/docker/containers/87ef7ec1cbe1f380edd97f72e670ea2a9385c370a1e14a432241c5ba6ab4aa91/87ef7ec1cbe1f380edd97f72e670ea2a9385c370a1e14a432241c5ba6ab4aa91-json.log",
+    "Name": "/semconnect-03a-target-r3-persistence-semstreams-1",
+    "RestartCount": 0,
+    "Driver": "overlayfs",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": [
+        "/Users/coby/Code/c360/semconnect/deploy/semstreams.json:/etc/semstreams/config.json:ro",
+        "/Users/coby/Code/c360/semconnect/deploy/semconnect.json:/etc/semconnect/config.json:ro"
+      ],
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "semconnect-03a-target-r3-persistence_backend",
+      "PortBindings": {},
+      "RestartPolicy": {
+        "Name": "unless-stopped",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "private",
+      "Dns": null,
+      "DnsOptions": null,
+      "DnsSearch": null,
+      "ExtraHosts": [],
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 67108864,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 0,
+      "NanoCpus": 0,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": null,
+      "BlkioDeviceReadBps": null,
+      "BlkioDeviceWriteBps": null,
+      "BlkioDeviceReadIOps": null,
+      "BlkioDeviceWriteIOps": null,
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": null,
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 0,
+      "MemorySwappiness": null,
+      "OomKillDisable": null,
+      "PidsLimit": null,
+      "Ulimits": null,
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "MaskedPaths": [
+        "/proc/acpi",
+        "/proc/asound",
+        "/proc/interrupts",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/sys/devices/virtual/powercap",
+        "/sys/firmware"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "Storage": {
+      "RootFS": {
+        "Snapshot": {
+          "Name": "overlayfs"
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "/Users/coby/Code/c360/semconnect/deploy/semconnect.json",
+        "Destination": "/etc/semconnect/config.json",
+        "Mode": "ro",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/Users/coby/Code/c360/semconnect/deploy/semstreams.json",
+        "Destination": "/etc/semstreams/config.json",
+        "Mode": "ro",
+        "RW": false,
+        "Propagation": "rprivate"
+      }
+    ],
+    "Config": {
+      "Hostname": "87ef7ec1cbe1",
+      "Domainname": "",
+      "User": "semstreams",
+      "AttachStdin": false,
+      "AttachStdout": true,
+      "AttachStderr": true,
+      "ExposedPorts": {
+        "8090/tcp": {}
+      },
+      "Tty": false,
+      "OpenStdin": false,
+      "StdinOnce": false,
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      ],
+      "Cmd": [
+        "-config",
+        "/etc/semstreams/config.json",
+        "-cs-api-config",
+        "/etc/semconnect/config.json"
+      ],
+      "Healthcheck": {
+        "Test": [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8090/health"
+        ],
+        "Interval": 5000000000,
+        "Timeout": 3000000000,
+        "StartPeriod": 20000000000,
+        "Retries": 30
+      },
+      "Image": "semconnect-graph-backend:setup03a-8b99efe9c66a",
+      "Volumes": null,
+      "WorkingDir": "/app",
+      "Entrypoint": [
+        "/app/cs-graph-backend"
+      ],
+      "Labels": {
+        "com.docker.compose.config-hash": "a3193472fe44917d66ab753f9e028179598d00bfeb6abddcf898824cca6c7b90",
+        "com.docker.compose.container-number": "1",
+        "com.docker.compose.depends_on": "nats:service_healthy:false,provision-identity:service_completed_successfully:false",
+        "com.docker.compose.image": "sha256:4805531a24dcb3d94b4e3de6c0896d88345669fe90e49319bc35d44e5636fcad",
+        "com.docker.compose.oneoff": "False",
+        "com.docker.compose.project": "semconnect-03a-target-r3-persistence",
+        "com.docker.compose.project.config_files": "/Users/coby/Code/c360/semconnect/deploy/compose.yml",
+        "com.docker.compose.project.working_dir": "/Users/coby/Code/c360/semconnect/deploy",
+        "com.docker.compose.service": "semstreams",
+        "com.docker.compose.version": "5.5.1",
+        "org.semconnect.semstreams.revision": "8b99efe9c66a4faa4fa509f9f62cc6bad8392128",
+        "org.semconnect.semstreams.version": "v1.0.0-beta.162.0.20260930150212-8b99efe9c66a"
+      }
+    },
+    "NetworkSettings": {
+      "SandboxID": "926917d8f19b6745758fbc2ca4cf5fbb773824f0fcc9122b7e4a3ef37a333bc2",
+      "SandboxKey": "/var/run/docker/netns/926917d8f19b",
+      "Ports": {
+        "8090/tcp": null
+      },
+      "Networks": {
+        "semconnect-03a-target-r3-persistence_backend": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": [
+            "semconnect-03a-target-r3-persistence-semstreams-1",
+            "semstreams"
+          ],
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "2400ea1f998ea22063d5c6a8b2706c17bb93e01f1cad3922a43baa71570a3219",
+          "EndpointID": "4e91a4e35b277c48a576458e772dbad3f1d5e5b46bdd61153b21c4c49a8dbf3a",
+          "Gateway": "",
+          "IPAddress": "172.18.0.3",
+          "MacAddress": "1a:75:eb:66:4e:44",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": [
+            "semconnect-03a-target-r3-persistence-semstreams-1",
+            "semstreams",
+            "87ef7ec1cbe1"
+          ]
+        }
+      }
+    },
+    "ImageManifestDescriptor": {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:4805531a24dcb3d94b4e3de6c0896d88345669fe90e49319bc35d44e5636fcad",
+      "size": 1052,
+      "platform": {
+        "architecture": "arm64",
+        "os": "linux"
+      }
+    }
+  }
+]

@@ -1,0 +1,77 @@
+[
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "./..."
+    ],
+    "started_at": "2026-10-01T10:00:30.959709+00:00",
+    "completed_at": "2026-10-01T10:00:36.583861+00:00",
+    "exit_code": 0,
+    "log": "go-test-race.log"
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-tags=integration",
+      "-count=1",
+      "./..."
+    ],
+    "started_at": "2026-10-01T10:00:36.584133+00:00",
+    "completed_at": "2026-10-01T10:00:44.366180+00:00",
+    "exit_code": 1,
+    "log": "go-test-integration-race.log"
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "started_at": "2026-10-01T10:00:44.366452+00:00",
+    "completed_at": "2026-10-01T10:00:45.144950+00:00",
+    "exit_code": 0,
+    "log": "go-vet.log"
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      "-tags=integration",
+      "./..."
+    ],
+    "started_at": "2026-10-01T10:00:45.145268+00:00",
+    "completed_at": "2026-10-01T10:00:45.765046+00:00",
+    "exit_code": 0,
+    "log": "go-vet-integration.log"
+  },
+  {
+    "command": [
+      "go",
+      "build",
+      "./..."
+    ],
+    "started_at": "2026-10-01T10:00:45.765361+00:00",
+    "completed_at": "2026-10-01T10:00:47.870206+00:00",
+    "exit_code": 0,
+    "log": "go-build.log"
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "-tags=integration",
+      "-coverprofile=openspec/changes/migrate-semstreams-setup03a/evidence/target/gateway-coverage.out",
+      "./gateway/cs-api",
+      "-count=1"
+    ],
+    "started_at": "2026-10-01T10:00:47.870622+00:00",
+    "completed_at": "2026-10-01T10:00:52.417261+00:00",
+    "exit_code": 1,
+    "log": "gateway-coverage.log"
+  }
+]

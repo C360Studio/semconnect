@@ -1,0 +1,236 @@
+{
+  "profiles": [
+    "gateway-coverage.txt",
+    "backend-coverage.txt"
+  ],
+  "method": "Go cover statement block counts attributed to containing top-level function; groups explicitly enumerate functions and preserve individual percentages.",
+  "gateway_suite_status": "FAIL only active federation contract assertion; all tests executed, no exclusions.",
+  "backend_suite_status": "PASS",
+  "groups": {
+    "typed_mutation_adapter": {
+      "covered_statements": 95,
+      "statements": 103,
+      "percent": 92.23,
+      "passes_80_percent": true,
+      "functions": {
+        "gateway/cs-api/graph_mutations.go:requestTypedMutation": {
+          "covered_statements": 22,
+          "statements": 25,
+          "percent": 88.0
+        },
+        "gateway/cs-api/graph_mutations.go:createProjectedEntity": {
+          "covered_statements": 28,
+          "statements": 31,
+          "percent": 90.32
+        },
+        "gateway/cs-api/graph_mutations.go:reconcileEntity": {
+          "covered_statements": 27,
+          "statements": 28,
+          "percent": 96.43
+        },
+        "gateway/cs-api/graph_mutations.go:deleteExactEntity": {
+          "covered_statements": 18,
+          "statements": 19,
+          "percent": 94.74
+        }
+      }
+    },
+    "root_only_projection": {
+      "covered_statements": 19,
+      "statements": 21,
+      "percent": 90.48,
+      "passes_80_percent": true,
+      "functions": {
+        "gateway/cs-api/graph_mutations.go:rootSubjectTriples": {
+          "covered_statements": 5,
+          "statements": 5,
+          "percent": 100.0
+        },
+        "gateway/cs-api/systems_post.go:buildSystemTriplesFromSensorML": {
+          "covered_statements": 14,
+          "statements": 16,
+          "percent": 87.5
+        }
+      }
+    },
+    "immutable_artifacts": {
+      "covered_statements": 70,
+      "statements": 82,
+      "percent": 85.37,
+      "passes_80_percent": true,
+      "functions": {
+        "gateway/cs-api/schema_artifacts.go:createSchemaArtifact": {
+          "covered_statements": 41,
+          "statements": 48,
+          "percent": 85.42
+        },
+        "gateway/cs-api/schema_artifacts.go:verifySchemaArtifactBytes": {
+          "covered_statements": 3,
+          "statements": 3,
+          "percent": 100.0
+        },
+        "gateway/cs-api/schema_artifacts.go:readSchemaArtifact": {
+          "covered_statements": 12,
+          "statements": 17,
+          "percent": 70.59
+        },
+        "gateway/cs-api/schema_artifacts.go:isSWESchemaArtifact": {
+          "covered_statements": 2,
+          "statements": 2,
+          "percent": 100.0
+        },
+        "gateway/cs-api/schema_artifacts.go:contentAddressedSchemaArtifactID": {
+          "covered_statements": 1,
+          "statements": 1,
+          "percent": 100.0
+        },
+        "gateway/cs-api/schema_artifacts.go:schemaArtifactObjectKey": {
+          "covered_statements": 4,
+          "statements": 4,
+          "percent": 100.0
+        },
+        "gateway/cs-api/schema_artifacts.go:storageReferencesEqual": {
+          "covered_statements": 3,
+          "statements": 3,
+          "percent": 100.0
+        },
+        "gateway/cs-api/schema_artifacts.go:schemaArtifactRole": {
+          "covered_statements": 4,
+          "statements": 4,
+          "percent": 100.0
+        }
+      }
+    },
+    "gateway_lifecycle": {
+      "covered_statements": 75,
+      "statements": 87,
+      "percent": 86.21,
+      "passes_80_percent": true,
+      "functions": {
+        "gateway/cs-api/component.go:Start": {
+          "covered_statements": 55,
+          "statements": 65,
+          "percent": 84.62
+        },
+        "gateway/cs-api/component.go:Stop": {
+          "covered_statements": 20,
+          "statements": 22,
+          "percent": 90.91
+        }
+      }
+    },
+    "registry_and_payloads": {
+      "covered_statements": 30,
+      "statements": 31,
+      "percent": 96.77,
+      "passes_80_percent": true,
+      "functions": {
+        "gateway/cs-api/payloads.go:Schema": {
+          "covered_statements": 1,
+          "statements": 1,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:EntityID": {
+          "covered_statements": 1,
+          "statements": 1,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:Triples": {
+          "covered_statements": 1,
+          "statements": 1,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:StorageRef": {
+          "covered_statements": 1,
+          "statements": 1,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:Validate": {
+          "covered_statements": 9,
+          "statements": 9,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:MarshalJSON": {
+          "covered_statements": 4,
+          "statements": 4,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:UnmarshalJSON": {
+          "covered_statements": 2,
+          "statements": 2,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:RegisterPayloads": {
+          "covered_statements": 1,
+          "statements": 1,
+          "percent": 100.0
+        },
+        "gateway/cs-api/payloads.go:RegisterPayloadsWithConfig": {
+          "covered_statements": 10,
+          "statements": 11,
+          "percent": 90.91
+        }
+      }
+    },
+    "backend_boot_and_stop": {
+      "covered_statements": 69,
+      "statements": 81,
+      "percent": 85.19,
+      "passes_80_percent": true,
+      "functions": {
+        "cmd/cs-graph-backend/main.go:newBackend": {
+          "covered_statements": 12,
+          "statements": 14,
+          "percent": 85.71
+        },
+        "cmd/cs-graph-backend/main.go:start": {
+          "covered_statements": 35,
+          "statements": 43,
+          "percent": 81.4
+        },
+        "cmd/cs-graph-backend/main.go:stop": {
+          "covered_statements": 14,
+          "statements": 16,
+          "percent": 87.5
+        },
+        "cmd/cs-graph-backend/main.go:startWithAbort": {
+          "covered_statements": 8,
+          "statements": 8,
+          "percent": 100.0
+        }
+      }
+    },
+    "gateway_startup_abort": {
+      "covered_statements": 12,
+      "statements": 12,
+      "percent": 100.0,
+      "passes_80_percent": true,
+      "functions": {
+        "cmd/cs-api-server/main.go:startGatewayWithAbort": {
+          "covered_statements": 12,
+          "statements": 12,
+          "percent": 100.0
+        }
+      }
+    },
+    "backend_identity_provision": {
+      "covered_statements": 23,
+      "statements": 26,
+      "percent": 88.46,
+      "passes_80_percent": true,
+      "functions": {
+        "cmd/cs-graph-backend/main.go:provisionIdentity": {
+          "covered_statements": 17,
+          "statements": 20,
+          "percent": 85.0
+        },
+        "cmd/cs-graph-backend/main.go:verifyIdentity": {
+          "covered_statements": 6,
+          "statements": 6,
+          "percent": 100.0
+        }
+      }
+    }
+  },
+  "limits": "Gateway whole package74.3%; backend whole package65.0%; gateway CLI package21.5%. Main/run CLI wrappers have no Go statement coverage; operational qualification exercises binaries. Every enumerated critical group meets80%; individual functions are shown, including readSchemaArtifact70.59%; no claim that whole packages meet80%."
+}

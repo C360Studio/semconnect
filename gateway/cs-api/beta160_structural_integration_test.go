@@ -15,6 +15,8 @@ import (
 	"github.com/c360studio/semstreams/graph"
 	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/natsclient"
+	"github.com/c360studio/semstreams/payloadbuiltins"
+	"github.com/c360studio/semstreams/payloadregistry"
 	graphingest "github.com/c360studio/semstreams/processor/graph-ingest"
 )
 
@@ -141,7 +143,17 @@ func startBeta160GraphIngest(t *testing.T, ctx context.Context, client *natsclie
 	if err != nil {
 		t.Fatal(err)
 	}
-	discoverable, err := graphingest.CreateGraphIngest(rawConfig, semcomponent.Dependencies{NATSClient: client})
+	registry := payloadregistry.New()
+	if err := payloadbuiltins.Register(registry); err != nil {
+		t.Fatal(err)
+	}
+	if err := RegisterPayloads(registry); err != nil {
+		t.Fatal(err)
+	}
+	discoverable, err := graphingest.CreateGraphIngest(rawConfig, semcomponent.Dependencies{
+		NATSClient: client, PayloadRegistry: registry,
+		Platform: semcomponent.PlatformMeta{Org: "c360", Platform: "semconnect"},
+	})
 	if err != nil {
 		t.Fatalf("create beta.160 graph-ingest: %v", err)
 	}
@@ -152,11 +164,19 @@ func startBeta160GraphIngest(t *testing.T, ctx context.Context, client *natsclie
 	if err := lifecycle.Initialize(); err != nil {
 		t.Fatalf("initialize beta.160 graph-ingest: %v", err)
 	}
-	if err := lifecycle.Start(ctx); err != nil {
+	if err := ctx.Err(); err != nil {
+		t.Fatal(err)
+	}
+	runtimeCtx, cancelRuntime := context.WithCancel(context.Background())
+	if err := lifecycle.Start(runtimeCtx); err != nil {
+		cancelRuntime()
 		t.Fatalf("start beta.160 graph-ingest: %v", err)
 	}
 	t.Cleanup(func() {
-		if err := lifecycle.Stop(5 * time.Second); err != nil {
+		defer cancelRuntime()
+		stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := lifecycle.Stop(stopCtx); err != nil {
 			t.Errorf("stop beta.160 graph-ingest: %v", err)
 		}
 	})

@@ -2,10 +2,9 @@
   "version": "1.1.1",
   "platform": {
     "org": "c360",
-    "id": "semconnect-conformance-backend",
+    "id": "semconnect",
     "type": "graph-backend",
     "region": "local",
-    "instance_id": "conformance-beta160-001",
     "environment": "test"
   },
   "tier": "rules",

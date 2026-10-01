@@ -1,0 +1,496 @@
+semstreams-1  | {"time":"2026-10-01T10:09:31.451187133Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.4529508Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.453441008Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.4549943Z","level":"INFO","msg":"Adopted platform identity","org":"c360","stem":"semconnect","platform":"semconnect"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.4551843Z","level":"INFO","msg":"First boot detected, pushing config to KV"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.458751008Z","level":"INFO","msg":"Created JetStream stream","stream":"FLOWS","subjects":["flows.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:31.459263175Z","level":"INFO","msg":"Created JetStream stream","stream":"GOVERNANCE_VERDICT_AUDIT","subjects":["governance.verdict.>"],"storage":"file","source":"framework constant (config/streams.go)","max_age":7776000000000000,"max_bytes":524288000,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:31.45955605Z","level":"INFO","msg":"Created JetStream stream","stream":"HEALTH","subjects":["health.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:31.4599308Z","level":"INFO","msg":"Created JetStream stream","stream":"LOGS","subjects":["logs.>"],"storage":"file","source":"framework constant (config/streams.go)","max_age":3600000000000,"max_bytes":104857600,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:31.4603493Z","level":"INFO","msg":"Created JetStream stream","stream":"MAX_DELIVERY_EVENTS","subjects":["$JS.EVENT.ADVISORY.CONSUMER.MAX_DELIVERIES.>"],"storage":"file","source":"framework constant (config/streams.go)","max_age":604800000000000,"max_bytes":67108864,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:31.460623133Z","level":"INFO","msg":"Created JetStream stream","stream":"METRICS","subjects":["metrics.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":52428800,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:31.460632592Z","level":"INFO","msg":"Ensured JetStream streams","count":6,"migration_overrides":0,"archival":0}
+semstreams-1  | {"time":"2026-10-01T10:09:31.462706383Z","level":"INFO","msg":"component initialized","component":"graph-index","component":"graph-index"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.46278305Z","level":"INFO","msg":"component initialized","component":"graph-index-spatial","component":"graph-index-spatial"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.462856467Z","level":"INFO","msg":"component initialized","component":"graph-index-temporal","component":"graph-index-temporal"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463004342Z","level":"INFO","msg":"component initialized","component":"graph-ingest","component":"graph-ingest"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463110383Z","level":"INFO","msg":"graph-query coordinator initialized","component":"graph-query"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463196383Z","level":"WARN","msg":"composition finding","type":"disconnected_node","component":"graph-query","port":"","message":"component has no connections"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463201883Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"alias_index","message":"output port 'alias_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463203133Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"incoming_index","message":"output port 'incoming_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463204133Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"outgoing_index","message":"output port 'outgoing_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463205133Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"predicate_index","message":"output port 'predicate_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463206217Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-spatial","port":"spatial_index","message":"output port 'spatial_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463207175Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-temporal","port":"temporal_index","message":"output port 'temporal_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463208258Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-ingest","port":"graph_mutations","message":"input port 'graph_mutations' (request): optional_api_unused"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463209217Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-query","port":"graph_queries","message":"input port 'graph_queries' (request): optional_api_unused"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.463210508Z","level":"INFO","msg":"composition validated at boot","status":"warnings","errors":0,"warnings":9,"components":5,"edges":3}
+semstreams-1  | {"time":"2026-10-01T10:09:31.467507592Z","level":"INFO","msg":"Created new KV bucket","bucket":"OUTGOING_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.467578592Z","level":"INFO","msg":"Created new KV bucket","bucket":"TEMPORAL_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.467593425Z","level":"INFO","msg":"Created new KV bucket","bucket":"SPATIAL_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.468113508Z","level":"INFO","msg":"Created new KV bucket","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.469591342Z","level":"INFO","msg":"query handlers registered","component":"graph-index-spatial","subjects":["graph.spatial.query.bounds","graph.spatial.query.polygon"]}
+semstreams-1  | {"time":"2026-10-01T10:09:31.4702193Z","level":"INFO","msg":"resource available","component":"graph-index-spatial","resource":"ENTITY_STATES","attempt":1}
+semstreams-1  | {"time":"2026-10-01T10:09:31.470224425Z","level":"INFO","msg":"Created new KV bucket","bucket":"TEMPORAL_INDEX_REVERSE"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.470421508Z","level":"INFO","msg":"component started","component":"graph-index-spatial","component":"graph-index-spatial","start_time":"2026-10-01T10:09:31.470419342Z","geohash_precision":6,"workers":1,"batch_size":50}
+semstreams-1  | {"time":"2026-10-01T10:09:31.470448967Z","level":"INFO","msg":"Created new KV bucket","bucket":"ENTITY_SUFFIX_INDEX"}
+nats-1        | [1] 2026/10/01 10:09:20.834795 [INF] Starting nats-server
+nats-1        | [1] 2026/10/01 10:09:20.834845 [INF]   Version:  2.14.4
+nats-1        | [1] 2026/10/01 10:09:20.834846 [INF]   Git:      [bbd6dc5]
+nats-1        | [1] 2026/10/01 10:09:20.834847 [INF]   Name:     NAPBHWNUETSSRFFCVAWSPIHAUTLGOTDU2DBJFHGUGLQC2SVQI5NWR5SY
+nats-1        | [1] 2026/10/01 10:09:20.834849 [INF]   Node:     QYVfQzhq
+nats-1        | [1] 2026/10/01 10:09:20.834860 [INF]   ID:       NAPBHWNUETSSRFFCVAWSPIHAUTLGOTDU2DBJFHGUGLQC2SVQI5NWR5SY
+nats-1        | [1] 2026/10/01 10:09:20.834865 [INF] Using configuration file: /etc/nats/nats.conf (sha256:10876a340fdaaba3d0d74ed1f61b6265db4979694fc64244665d8928741883c7)
+nats-1        | [1] 2026/10/01 10:09:20.840354 [INF] Starting http monitor on 0.0.0.0:8222
+nats-1        | [1] 2026/10/01 10:09:20.840559 [INF] Starting JetStream
+nats-1        | [1] 2026/10/01 10:09:20.840672 [INF]     _ ___ _____ ___ _____ ___ ___   _   __  __
+nats-1        | [1] 2026/10/01 10:09:20.840682 [INF]  _ | | __|_   _/ __|_   _| _ \ __| /_\ |  \/  |
+nats-1        | [1] 2026/10/01 10:09:20.840683 [INF] | || | _|  | | \__ \ | | |   / _| / _ \| |\/| |
+nats-1        | [1] 2026/10/01 10:09:20.840684 [INF]  \__/|___| |_| |___/ |_| |_|_\___/_/ \_\_|  |_|
+nats-1        | [1] 2026/10/01 10:09:20.840684 [INF] 
+nats-1        | [1] 2026/10/01 10:09:20.840686 [INF]          https://docs.nats.io/jetstream
+nats-1        | [1] 2026/10/01 10:09:20.840686 [INF] 
+nats-1        | [1] 2026/10/01 10:09:20.840687 [INF] ---------------- JETSTREAM ----------------
+nats-1        | [1] 2026/10/01 10:09:20.840688 [INF]   Strict:          true
+nats-1        | [1] 2026/10/01 10:09:20.840707 [INF]   Max Memory:      1.00 GB
+nats-1        | [1] 2026/10/01 10:09:20.840709 [INF]   Max Storage:     10.00 GB
+nats-1        | [1] 2026/10/01 10:09:20.840710 [INF]   Store Directory: "/data/jetstream"
+nats-1        | [1] 2026/10/01 10:09:20.840711 [INF]   API Level:       4
+nats-1        | [1] 2026/10/01 10:09:20.840712 [INF] -------------------------------------------
+nats-1        | [1] 2026/10/01 10:09:20.841000 [INF] Took 428.042µs to start JetStream
+nats-1        | [1] 2026/10/01 10:09:20.841059 [INF] Listening for client connections on 0.0.0.0:4222
+nats-1        | [1] 2026/10/01 10:09:20.841620 [INF] Server is ready
+nats-1        | [1] 2026/10/01 10:09:51.994732 [INF] Trapped "terminated" signal
+nats-1        | [1] 2026/10/01 10:09:51.994839 [INF] Initiating Shutdown...
+nats-1        | [1] 2026/10/01 10:09:51.994848 [INF] Initiating JetStream Shutdown...
+nats-1        | [1] 2026/10/01 10:09:51.995352 [INF] JetStream Shutdown
+nats-1        | [1] 2026/10/01 10:09:51.995399 [INF] Server Exiting..
+nats-1        | [1] 2026/10/01 10:09:52.483570 [INF] Starting nats-server
+nats-1        | [1] 2026/10/01 10:09:52.483597 [INF]   Version:  2.14.4
+nats-1        | [1] 2026/10/01 10:09:52.483599 [INF]   Git:      [bbd6dc5]
+nats-1        | [1] 2026/10/01 10:09:52.483600 [INF]   Name:     NCITAHIMSW2N7KSFNUYEUVINFPTPHE7DO2FQERNDY5UZY7DLG6E35KTH
+nats-1        | [1] 2026/10/01 10:09:52.483601 [INF]   Node:     h4xQVa9o
+nats-1        | [1] 2026/10/01 10:09:52.483602 [INF]   ID:       NCITAHIMSW2N7KSFNUYEUVINFPTPHE7DO2FQERNDY5UZY7DLG6E35KTH
+nats-1        | [1] 2026/10/01 10:09:52.483605 [INF] Using configuration file: /etc/nats/nats.conf (sha256:10876a340fdaaba3d0d74ed1f61b6265db4979694fc64244665d8928741883c7)
+nats-1        | [1] 2026/10/01 10:09:52.486226 [INF] Starting http monitor on 0.0.0.0:8222
+nats-1        | [1] 2026/10/01 10:09:52.486322 [INF] Starting JetStream
+nats-1        | [1] 2026/10/01 10:09:52.486377 [INF]     _ ___ _____ ___ _____ ___ ___   _   __  __
+nats-1        | [1] 2026/10/01 10:09:52.486384 [INF]  _ | | __|_   _/ __|_   _| _ \ __| /_\ |  \/  |
+nats-1        | [1] 2026/10/01 10:09:52.486384 [INF] | || | _|  | | \__ \ | | |   / _| / _ \| |\/| |
+nats-1        | [1] 2026/10/01 10:09:52.486385 [INF]  \__/|___| |_| |___/ |_| |_|_\___/_/ \_\_|  |_|
+nats-1        | [1] 2026/10/01 10:09:52.486385 [INF] 
+nats-1        | [1] 2026/10/01 10:09:52.486386 [INF]          https://docs.nats.io/jetstream
+nats-1        | [1] 2026/10/01 10:09:52.486386 [INF] 
+nats-1        | [1] 2026/10/01 10:09:52.486387 [INF] ---------------- JETSTREAM ----------------
+nats-1        | [1] 2026/10/01 10:09:52.486387 [INF]   Strict:          true
+nats-1        | [1] 2026/10/01 10:09:52.486391 [INF]   Max Memory:      1.00 GB
+nats-1        | [1] 2026/10/01 10:09:52.486392 [INF]   Max Storage:     10.00 GB
+nats-1        | [1] 2026/10/01 10:09:52.486392 [INF]   Store Directory: "/data/jetstream"
+nats-1        | [1] 2026/10/01 10:09:52.486393 [INF]   API Level:       4
+nats-1        | [1] 2026/10/01 10:09:52.486394 [INF] -------------------------------------------
+nats-1        | [1] 2026/10/01 10:09:52.486642 [INF]   Starting restore for stream '$G > OBJ_CS_API_ARTIFACTS'
+nats-1        | [1] 2026/10/01 10:09:52.486654 [INF]   Starting restore for stream '$G > GOVERNANCE_VERDICT_AUDIT'
+nats-1        | [1] 2026/10/01 10:09:52.486665 [INF]   Starting restore for stream '$G > KV_ENTITY_STATES'
+nats-1        | [1] 2026/10/01 10:09:52.486676 [INF]   Starting restore for stream '$G > KV_PREDICATE_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.486693 [INF]   Starting restore for stream '$G > KV_TEMPORAL_INDEX_REVERSE'
+nats-1        | [1] 2026/10/01 10:09:52.486711 [INF]   Starting restore for stream '$G > KV_ENTITY_SUFFIX_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.486736 [INF]   Starting restore for stream '$G > KV_SPATIAL_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.486769 [INF]   Starting restore for stream '$G > KV_TEMPORAL_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.486824 [INF]   Starting restore for stream '$G > CS_API_OBSERVATIONS'
+nats-1        | [1] 2026/10/01 10:09:52.486855 [INF]   Starting restore for stream '$G > KV_GRAPH_INGEST_APPLIED_SEQ'
+nats-1        | [1] 2026/10/01 10:09:52.486881 [INF]   Starting restore for stream '$G > KV_GRAPH_STATUS'
+nats-1        | [1] 2026/10/01 10:09:52.486642 [INF]   Starting restore for stream '$G > KV_ALIAS_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.487360 [INF]   Starting restore for stream '$G > MAX_DELIVERY_EVENTS'
+nats-1        | [1] 2026/10/01 10:09:52.487361 [INF]   Starting restore for stream '$G > KV_OUTGOING_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.487638 [INF]   Restored 3 messages for stream '$G > KV_TEMPORAL_INDEX_REVERSE' in 1ms
+nats-1        | [1] 2026/10/01 10:09:52.487364 [INF]   Starting restore for stream '$G > KV_INCOMING_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.487455 [INF]   Starting restore for stream '$G > KV_semstreams_config_c360_semconnect'
+nats-1        | [1] 2026/10/01 10:09:52.487852 [INF]   Starting restore for stream '$G > KV_NAME_INDEX'
+nats-1        | [1] 2026/10/01 10:09:52.488560 [INF]   Restored 1 messages for stream '$G > CS_API_OBSERVATIONS' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.488579 [INF]   Restored 2 messages for stream '$G > OBJ_CS_API_ARTIFACTS' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.488588 [INF]   Restored 6 messages for stream '$G > KV_GRAPH_STATUS' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.489002 [INF]   Restored 1 messages for stream '$G > KV_SPATIAL_INDEX' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.489076 [INF]   Starting restore for stream '$G > LOGS'
+nats-1        | [1] 2026/10/01 10:09:52.489141 [INF]   Restored 3 messages for stream '$G > KV_OUTGOING_INDEX' in 1ms
+nats-1        | [1] 2026/10/01 10:09:52.489231 [INF]   Restored 0 messages for stream '$G > KV_GRAPH_INGEST_APPLIED_SEQ' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.489239 [INF]   Restored 0 messages for stream '$G > LOGS' in 0s
+nats-1        | [1] 2026/10/01 10:09:52.489782 [INF]   Restored 3 messages for stream '$G > KV_ENTITY_STATES' in 3ms
+nats-1        | [1] 2026/10/01 10:09:52.489793 [INF]   Restored 5 messages for stream '$G > KV_ENTITY_SUFFIX_INDEX' in 3ms
+nats-1        | [1] 2026/10/01 10:09:52.489819 [INF]   Restored 17 messages for stream '$G > KV_PREDICATE_INDEX' in 3ms
+nats-1        | [1] 2026/10/01 10:09:52.490056 [INF]   Restored 13 messages for stream '$G > KV_semstreams_config_c360_semconnect' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.490073 [INF]   Restored 0 messages for stream '$G > MAX_DELIVERY_EVENTS' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.490079 [INF]   Restored 1 messages for stream '$G > KV_TEMPORAL_INDEX' in 3ms
+nats-1        | [1] 2026/10/01 10:09:52.490096 [INF]   Restored 0 messages for stream '$G > KV_ALIAS_INDEX' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.490158 [INF]   Restored 0 messages for stream '$G > GOVERNANCE_VERDICT_AUDIT' in 3ms
+nats-1        | [1] 2026/10/01 10:09:52.490177 [INF]   Restored 2 messages for stream '$G > KV_INCOMING_INDEX' in 3ms
+nats-1        | [1] 2026/10/01 10:09:52.490198 [INF]   Restored 0 messages for stream '$G > KV_NAME_INDEX' in 2ms
+nats-1        | [1] 2026/10/01 10:09:52.490213 [INF] Took 3.886458ms to start JetStream
+nats-1        | [1] 2026/10/01 10:09:52.490240 [INF] Listening for client connections on 0.0.0.0:4222
+nats-1        | [1] 2026/10/01 10:09:52.490613 [INF] Server is ready
+nats-1        | [1] 2026/10/01 10:12:06.788018 [INF] Trapped "terminated" signal
+nats-1        | [1] 2026/10/01 10:12:06.788176 [INF] Initiating Shutdown...
+nats-1        | [1] 2026/10/01 10:12:06.788204 [INF] Initiating JetStream Shutdown...
+nats-1        | [1] 2026/10/01 10:12:06.788561 [INF] JetStream Shutdown
+nats-1        | [1] 2026/10/01 10:12:06.788783 [INF] Server Exiting..
+nats-1        | [1] 2026/10/01 10:12:07.071029 [INF] Starting nats-server
+nats-1        | [1] 2026/10/01 10:12:07.071084 [INF]   Version:  2.14.4
+nats-1        | [1] 2026/10/01 10:12:07.071086 [INF]   Git:      [bbd6dc5]
+nats-1        | [1] 2026/10/01 10:12:07.071088 [INF]   Name:     NBAHO4RX5S7R7SM4Y22SMOCL3DKF3XRRIMFSLLZBQ5YJMW2FZDMTWMWH
+nats-1        | [1] 2026/10/01 10:12:07.071092 [INF]   Node:     u9gCU1Qg
+nats-1        | [1] 2026/10/01 10:12:07.071093 [INF]   ID:       NBAHO4RX5S7R7SM4Y22SMOCL3DKF3XRRIMFSLLZBQ5YJMW2FZDMTWMWH
+nats-1        | [1] 2026/10/01 10:12:07.071099 [INF] Using configuration file: /etc/nats/nats.conf (sha256:10876a340fdaaba3d0d74ed1f61b6265db4979694fc64244665d8928741883c7)
+nats-1        | [1] 2026/10/01 10:12:07.075824 [INF] Starting http monitor on 0.0.0.0:8222
+nats-1        | [1] 2026/10/01 10:12:07.075900 [INF] Starting JetStream
+nats-1        | [1] 2026/10/01 10:12:07.075971 [INF]     _ ___ _____ ___ _____ ___ ___   _   __  __
+nats-1        | [1] 2026/10/01 10:12:07.075974 [INF]  _ | | __|_   _/ __|_   _| _ \ __| /_\ |  \/  |
+nats-1        | [1] 2026/10/01 10:12:07.075974 [INF] | || | _|  | | \__ \ | | |   / _| / _ \| |\/| |
+nats-1        | [1] 2026/10/01 10:12:07.075975 [INF]  \__/|___| |_| |___/ |_| |_|_\___/_/ \_\_|  |_|
+nats-1        | [1] 2026/10/01 10:12:07.075975 [INF] 
+nats-1        | [1] 2026/10/01 10:12:07.075976 [INF]          https://docs.nats.io/jetstream
+nats-1        | [1] 2026/10/01 10:12:07.075976 [INF] 
+nats-1        | [1] 2026/10/01 10:12:07.075977 [INF] ---------------- JETSTREAM ----------------
+nats-1        | [1] 2026/10/01 10:12:07.075977 [INF]   Strict:          true
+nats-1        | [1] 2026/10/01 10:12:07.075981 [INF]   Max Memory:      1.00 GB
+nats-1        | [1] 2026/10/01 10:12:07.075982 [INF]   Max Storage:     10.00 GB
+nats-1        | [1] 2026/10/01 10:12:07.075983 [INF]   Store Directory: "/data/jetstream"
+nats-1        | [1] 2026/10/01 10:12:07.075984 [INF]   API Level:       4
+nats-1        | [1] 2026/10/01 10:12:07.075984 [INF] -------------------------------------------
+nats-1        | [1] 2026/10/01 10:12:07.076303 [INF]   Starting restore for stream '$G > CS_API_OBSERVATIONS'
+nats-1        | [1] 2026/10/01 10:12:07.076303 [INF]   Starting restore for stream '$G > KV_ALIAS_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076316 [INF]   Starting restore for stream '$G > GOVERNANCE_VERDICT_AUDIT'
+nats-1        | [1] 2026/10/01 10:12:07.076428 [INF]   Starting restore for stream '$G > KV_ENTITY_STATES'
+nats-1        | [1] 2026/10/01 10:12:07.076439 [INF]   Starting restore for stream '$G > KV_ENTITY_SUFFIX_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076447 [INF]   Starting restore for stream '$G > KV_GRAPH_INGEST_APPLIED_SEQ'
+nats-1        | [1] 2026/10/01 10:12:07.076465 [INF]   Starting restore for stream '$G > KV_GRAPH_STATUS'
+nats-1        | [1] 2026/10/01 10:12:07.076456 [INF]   Restored 1 messages for stream '$G > CS_API_OBSERVATIONS' in 0s
+nats-1        | [1] 2026/10/01 10:12:07.076473 [INF]   Starting restore for stream '$G > KV_INCOMING_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076496 [INF]   Starting restore for stream '$G > KV_NAME_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076505 [INF]   Starting restore for stream '$G > KV_OUTGOING_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076537 [INF]   Starting restore for stream '$G > KV_TEMPORAL_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076568 [INF]   Starting restore for stream '$G > KV_TEMPORAL_INDEX_REVERSE'
+nats-1        | [1] 2026/10/01 10:12:07.076573 [INF]   Starting restore for stream '$G > KV_PREDICATE_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076576 [INF]   Starting restore for stream '$G > KV_SPATIAL_INDEX'
+nats-1        | [1] 2026/10/01 10:12:07.076602 [INF]   Starting restore for stream '$G > KV_semstreams_config_c360_semconnect'
+nats-1        | [1] 2026/10/01 10:12:07.076633 [INF]   Starting restore for stream '$G > MAX_DELIVERY_EVENTS'
+nats-1        | [1] 2026/10/01 10:12:07.076640 [INF]   Starting restore for stream '$G > OBJ_CS_API_ARTIFACTS'
+nats-1        | [1] 2026/10/01 10:12:07.076635 [INF]   Starting restore for stream '$G > LOGS'
+nats-1        | [1] 2026/10/01 10:12:07.076652 [INF]   Restored 6 messages for stream '$G > KV_GRAPH_STATUS' in 0s
+nats-1        | [1] 2026/10/01 10:12:07.076841 [INF]   Restored 0 messages for stream '$G > LOGS' in 0s
+nats-1        | [1] 2026/10/01 10:12:07.076924 [INF]   Restored 1 messages for stream '$G > KV_SPATIAL_INDEX' in 0s
+nats-1        | [1] 2026/10/01 10:12:07.076898 [INF]   Restored 3 messages for stream '$G > KV_OUTGOING_INDEX' in 0s
+nats-1        | [1] 2026/10/01 10:12:07.076950 [INF]   Restored 2 messages for stream '$G > KV_INCOMING_INDEX' in 0s
+nats-1        | [1] 2026/10/01 10:12:07.077284 [INF]   Restored 0 messages for stream '$G > KV_NAME_INDEX' in 1ms
+nats-1        | [1] 2026/10/01 10:12:07.077588 [INF]   Restored 2 messages for stream '$G > OBJ_CS_API_ARTIFACTS' in 1ms
+nats-1        | [1] 2026/10/01 10:12:07.077626 [INF]   Restored 0 messages for stream '$G > GOVERNANCE_VERDICT_AUDIT' in 1ms
+nats-1        | [1] 2026/10/01 10:12:07.077636 [INF]   Restored 13 messages for stream '$G > KV_semstreams_config_c360_semconnect' in 1ms
+nats-1        | [1] 2026/10/01 10:12:07.077702 [INF]   Restored 0 messages for stream '$G > KV_ALIAS_INDEX' in 1ms
+nats-1        | [1] 2026/10/01 10:12:07.078295 [INF]   Restored 0 messages for stream '$G > KV_GRAPH_INGEST_APPLIED_SEQ' in 2ms
+nats-1        | [1] 2026/10/01 10:12:07.078404 [INF]   Restored 0 messages for stream '$G > MAX_DELIVERY_EVENTS' in 2ms
+nats-1        | [1] 2026/10/01 10:12:07.078441 [INF]   Restored 1 messages for stream '$G > KV_TEMPORAL_INDEX' in 2ms
+nats-1        | [1] 2026/10/01 10:12:07.078478 [INF]   Restored 3 messages for stream '$G > KV_ENTITY_STATES' in 2ms
+nats-1        | [1] 2026/10/01 10:12:07.078522 [INF]   Restored 5 messages for stream '$G > KV_ENTITY_SUFFIX_INDEX' in 2ms
+nats-1        | [1] 2026/10/01 10:12:07.078568 [INF]   Restored 3 messages for stream '$G > KV_TEMPORAL_INDEX_REVERSE' in 2ms
+nats-1        | [1] 2026/10/01 10:12:07.078587 [INF]   Restored 17 messages for stream '$G > KV_PREDICATE_INDEX' in 2ms
+nats-1        | [1] 2026/10/01 10:12:07.078607 [INF] Took 2.704417ms to start JetStream
+nats-1        | [1] 2026/10/01 10:12:07.078638 [INF] Listening for client connections on 0.0.0.0:4222
+nats-1        | [1] 2026/10/01 10:12:07.078802 [INF] Server is ready
+semstreams-1  | {"time":"2026-10-01T10:09:31.470449467Z","level":"INFO","msg":"Created new KV bucket","bucket":"INCOMING_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.470702133Z","level":"INFO","msg":"entity watcher started","component":"graph-index-spatial","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.471027217Z","level":"INFO","msg":"query handlers registered","component":"graph-index-temporal","subjects":["graph.temporal.query.range"]}
+semstreams-1  | {"time":"2026-10-01T10:09:31.471407217Z","level":"INFO","msg":"resource available","component":"graph-index-temporal","resource":"ENTITY_STATES","attempt":1}
+semstreams-1  | {"time":"2026-10-01T10:09:31.471851633Z","level":"INFO","msg":"component started","component":"graph-index-temporal","component":"graph-index-temporal","start_time":"2026-10-01T10:09:31.471848592Z","time_resolution":"hour","workers":1}
+semstreams-1  | {"time":"2026-10-01T10:09:31.472263342Z","level":"INFO","msg":"entity watcher started","component":"graph-index-temporal","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.472929258Z","level":"INFO","msg":"Created new KV bucket","bucket":"ALIAS_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.472952842Z","level":"INFO","msg":"Created new KV bucket","bucket":"GRAPH_INGEST_APPLIED_SEQ"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.474627133Z","level":"INFO","msg":"Created new KV bucket","bucket":"PREDICATE_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.47525105Z","level":"INFO","msg":"Created new KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.475593217Z","level":"INFO","msg":"query handlers registered","component":"graph-query","subjects":["graph.query.entity","graph.query.entityByAlias","graph.query.batch","graph.query.relationships","graph.query.pathSearch","graph.query.hierarchyStats","graph.query.prefix","graph.query.spatial","graph.query.temporal","graph.query.semantic","graph.query.similar","graph.query.globalSearch","graph.query.summary","graph.query.searchGraph","graph.query.byName","graph.query.localSearch"]}
+semstreams-1  | {"time":"2026-10-01T10:09:31.47564205Z","level":"INFO","msg":"graph-query coordinator started","component":"graph-query"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.476029758Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:31.47609755Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":1,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:31.476379258Z","level":"INFO","msg":"query handlers registered","component":"graph-ingest","subjects":["graph.ingest.query.entity","graph.ingest.query.batch","graph.ingest.query.prefix","graph.ingest.query.suffix"]}
+semstreams-1  | {"time":"2026-10-01T10:09:31.476399925Z","level":"INFO","msg":"mutation handlers registered","component":"graph-ingest","subjects":["graph.mutation.entity.create","graph.mutation.entity.reconcile","graph.mutation.triple.append","graph.mutation.entity.delete"]}
+semstreams-1  | {"time":"2026-10-01T10:09:31.476404008Z","level":"INFO","msg":"component started","component":"graph-ingest","component":"graph-ingest","start_time":"2026-10-01T10:09:31.476402425Z"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.476830967Z","level":"INFO","msg":"Created new KV bucket","bucket":"NAME_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.477463008Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.478554217Z","level":"INFO","msg":"resource available","component":"graph-index","resource":"ENTITY_STATES","attempt":1}
+semstreams-1  | {"time":"2026-10-01T10:09:31.478994217Z","level":"INFO","msg":"query handlers registered","component":"graph-index","subjects":["graph.index.query.outgoing","graph.index.query.incoming","graph.index.query.alias","graph.index.query.predicate","graph.index.query.predicateList","graph.index.query.predicateStats","graph.index.query.predicateCompound","graph.index.query.byName"]}
+semstreams-1  | {"time":"2026-10-01T10:09:31.4790093Z","level":"INFO","msg":"component started","component":"graph-index","component":"graph-index","start_time":"2026-10-01T10:09:31.479008092Z"}
+semstreams-1  | 2026/10/01 10:09:31 INFO Heartbeat service started source=heartbeat interval=30s
+semstreams-1  | 2026/10/01 10:09:31 INFO Metrics service started successfully url=http://localhost:9090/metrics
+semstreams-1  | {"time":"2026-10-01T10:09:31.479061592Z","level":"INFO","msg":"ComponentManager HTTP handlers registered","prefix":"/components/"}
+semstreams-1  | 2026/10/01 10:09:31 INFO Manager HTTP server started service=service-manager-registry port=8090
+semstreams-1  | 2026/10/01 10:09:31 INFO Manager.StartAll: All services started service=service-manager-registry count=3
+semstreams-1  | {"time":"2026-10-01T10:09:31.479105342Z","level":"INFO","msg":"SemConnect graph backend ready","org":"c360","platform":"semconnect"}
+semstreams-1  | {"time":"2026-10-01T10:09:31.479534133Z","level":"INFO","msg":"entity watcher started","component":"graph-index","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:36.477205261Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":2,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:36.477186136Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:41.478887305Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":3,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:41.47895718Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:46.481292168Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":4,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:46.481292459Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:51.48223842Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":5,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:51.482238379Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | 2026/10/01 10:09:51 INFO Metrics service stopped
+semstreams-1  | 2026/10/01 10:09:51 INFO Heartbeat service stopping source=heartbeat
+semstreams-1  | {"time":"2026-10-01T10:09:51.904640587Z","level":"INFO","msg":"graph-query coordinator stopped","component":"graph-query"}
+semstreams-1  | {"time":"2026-10-01T10:09:51.905455504Z","level":"INFO","msg":"component stopped gracefully","component":"graph-ingest","component":"graph-ingest"}
+semstreams-1  | {"time":"2026-10-01T10:09:51.905583129Z","level":"INFO","msg":"component stopped gracefully","component":"graph-index-temporal","component":"graph-index-temporal"}
+semstreams-1  | {"time":"2026-10-01T10:09:51.90585742Z","level":"INFO","msg":"component stopped gracefully","component":"graph-index-spatial","component":"graph-index-spatial"}
+semstreams-1  | {"time":"2026-10-01T10:09:51.906457837Z","level":"INFO","msg":"component stopped gracefully","component":"graph-index","component":"graph-index"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.17342684Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.17462809Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.175184465Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.176799257Z","level":"INFO","msg":"Adopted platform identity","org":"c360","stem":"semconnect","platform":"semconnect"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.181514757Z","level":"INFO","msg":"Synced configuration from KV","keys":13}
+semstreams-1  | {"time":"2026-10-01T10:09:58.183815257Z","level":"INFO","msg":"Created JetStream stream","stream":"FLOWS","subjects":["flows.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:58.184624673Z","level":"INFO","msg":"Created JetStream stream","stream":"HEALTH","subjects":["health.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:58.185154882Z","level":"INFO","msg":"Created JetStream stream","stream":"METRICS","subjects":["metrics.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":52428800,"discard":"DiscardOld","duplicates":0}
+semstreams-1  | {"time":"2026-10-01T10:09:58.185163173Z","level":"INFO","msg":"Ensured JetStream streams","count":6,"migration_overrides":0,"archival":0}
+semstreams-1  | {"time":"2026-10-01T10:09:58.192380715Z","level":"INFO","msg":"graph-query coordinator initialized","component":"graph-query"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193204382Z","level":"INFO","msg":"component initialized","component":"graph-index","component":"graph-index"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193275757Z","level":"INFO","msg":"component initialized","component":"graph-index-spatial","component":"graph-index-spatial"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193350257Z","level":"INFO","msg":"component initialized","component":"graph-index-temporal","component":"graph-index-temporal"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193478382Z","level":"INFO","msg":"component initialized","component":"graph-ingest","component":"graph-ingest"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193547965Z","level":"WARN","msg":"composition finding","type":"disconnected_node","component":"graph-query","port":"","message":"component has no connections"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193549923Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"alias_index","message":"output port 'alias_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.19355109Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"incoming_index","message":"output port 'incoming_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193552173Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"outgoing_index","message":"output port 'outgoing_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193553132Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"predicate_index","message":"output port 'predicate_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.19355409Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-spatial","port":"spatial_index","message":"output port 'spatial_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193555215Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-temporal","port":"temporal_index","message":"output port 'temporal_index' (watch): optional_index_unwatched"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193556173Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-ingest","port":"graph_mutations","message":"input port 'graph_mutations' (request): optional_api_unused"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193557132Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-query","port":"graph_queries","message":"input port 'graph_queries' (request): optional_api_unused"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.193558423Z","level":"INFO","msg":"composition validated at boot","status":"warnings","errors":0,"warnings":9,"components":5,"edges":3}
+semstreams-1  | {"time":"2026-10-01T10:09:58.196545715Z","level":"INFO","msg":"Using existing KV bucket","bucket":"SPATIAL_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.19656009Z","level":"INFO","msg":"Using existing KV bucket","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.196589173Z","level":"INFO","msg":"Using existing KV bucket","bucket":"OUTGOING_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.196809173Z","level":"INFO","msg":"Using existing KV bucket","bucket":"TEMPORAL_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.19771634Z","level":"INFO","msg":"query handlers registered","component":"graph-index-spatial","subjects":["graph.spatial.query.bounds","graph.spatial.query.polygon"]}
+semstreams-1  | {"time":"2026-10-01T10:09:58.19779959Z","level":"INFO","msg":"Using existing KV bucket","bucket":"ENTITY_SUFFIX_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.19799909Z","level":"INFO","msg":"Using existing KV bucket","bucket":"TEMPORAL_INDEX_REVERSE"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.198034923Z","level":"INFO","msg":"resource available","component":"graph-index-spatial","resource":"ENTITY_STATES","attempt":1}
+semstreams-1  | {"time":"2026-10-01T10:09:58.19806834Z","level":"INFO","msg":"Using existing KV bucket","bucket":"INCOMING_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.198326757Z","level":"INFO","msg":"component started","component":"graph-index-spatial","component":"graph-index-spatial","start_time":"2026-10-01T10:09:58.19832459Z","geohash_precision":6,"workers":1,"batch_size":50}
+semstreams-1  | {"time":"2026-10-01T10:09:58.198620382Z","level":"INFO","msg":"entity watcher started","component":"graph-index-spatial","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.199028007Z","level":"INFO","msg":"query handlers registered","component":"graph-index-temporal","subjects":["graph.temporal.query.range"]}
+semstreams-1  | {"time":"2026-10-01T10:09:58.199320048Z","level":"INFO","msg":"resource available","component":"graph-index-temporal","resource":"ENTITY_STATES","attempt":1}
+semstreams-1  | {"time":"2026-10-01T10:09:58.199403548Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_INGEST_APPLIED_SEQ"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.199676882Z","level":"INFO","msg":"Using existing KV bucket","bucket":"ALIAS_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.199684257Z","level":"INFO","msg":"component started","component":"graph-index-temporal","component":"graph-index-temporal","start_time":"2026-10-01T10:09:58.199682548Z","time_resolution":"hour","workers":1}
+semstreams-1  | {"time":"2026-10-01T10:09:58.200008798Z","level":"INFO","msg":"entity watcher started","component":"graph-index-temporal","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.200952965Z","level":"INFO","msg":"Using existing KV bucket","bucket":"PREDICATE_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.20219234Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.203184673Z","level":"INFO","msg":"Using existing KV bucket","bucket":"NAME_INDEX"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.203387632Z","level":"INFO","msg":"query handlers registered","component":"graph-ingest","subjects":["graph.ingest.query.entity","graph.ingest.query.batch","graph.ingest.query.prefix","graph.ingest.query.suffix"]}
+semstreams-1  | {"time":"2026-10-01T10:09:58.203416215Z","level":"INFO","msg":"mutation handlers registered","component":"graph-ingest","subjects":["graph.mutation.entity.create","graph.mutation.entity.reconcile","graph.mutation.triple.append","graph.mutation.entity.delete"]}
+semstreams-1  | {"time":"2026-10-01T10:09:58.203420548Z","level":"INFO","msg":"component started","component":"graph-ingest","component":"graph-ingest","start_time":"2026-10-01T10:09:58.20341934Z"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.204194257Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.20523284Z","level":"INFO","msg":"resource available","component":"graph-index","resource":"ENTITY_STATES","attempt":1}
+semstreams-1  | {"time":"2026-10-01T10:09:58.205582757Z","level":"INFO","msg":"query handlers registered","component":"graph-index","subjects":["graph.index.query.outgoing","graph.index.query.incoming","graph.index.query.alias","graph.index.query.predicate","graph.index.query.predicateList","graph.index.query.predicateStats","graph.index.query.predicateCompound","graph.index.query.byName"]}
+semstreams-1  | {"time":"2026-10-01T10:09:58.205593882Z","level":"INFO","msg":"component started","component":"graph-index","component":"graph-index","start_time":"2026-10-01T10:09:58.205592382Z"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.205955257Z","level":"INFO","msg":"entity watcher started","component":"graph-index","bucket":"ENTITY_STATES"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.206507048Z","level":"INFO","msg":"query handlers registered","component":"graph-query","subjects":["graph.query.entity","graph.query.entityByAlias","graph.query.batch","graph.query.relationships","graph.query.pathSearch","graph.query.hierarchyStats","graph.query.prefix","graph.query.spatial","graph.query.temporal","graph.query.semantic","graph.query.similar","graph.query.globalSearch","graph.query.summary","graph.query.searchGraph","graph.query.byName","graph.query.localSearch"]}
+semstreams-1  | {"time":"2026-10-01T10:09:58.206525673Z","level":"INFO","msg":"graph-query coordinator started","component":"graph-query"}
+semstreams-1  | 2026/10/01 10:09:58 INFO Heartbeat service started source=heartbeat interval=30s
+semstreams-1  | 2026/10/01 10:09:58 INFO Metrics service started successfully url=http://localhost:9090/metrics
+semstreams-1  | {"time":"2026-10-01T10:09:58.206584465Z","level":"INFO","msg":"ComponentManager HTTP handlers registered","prefix":"/components/"}
+semstreams-1  | 2026/10/01 10:09:58 INFO Manager HTTP server started service=service-manager-registry port=8090
+semstreams-1  | 2026/10/01 10:09:58 INFO Manager.StartAll: All services started service=service-manager-registry count=3
+semstreams-1  | {"time":"2026-10-01T10:09:58.206623965Z","level":"INFO","msg":"SemConnect graph backend ready","org":"c360","platform":"semconnect"}
+semstreams-1  | {"time":"2026-10-01T10:09:58.206682632Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:09:58.206705215Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":1,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:03.207169509Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":2,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:03.207182384Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:08.208580887Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":3,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:08.208631303Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:13.208767708Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":4,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:13.2088495Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:18.20952896Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":5,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:18.209576377Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:23.210020796Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:23.210073296Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":6,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:28.210682298Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":7,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:28.210693007Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:33.211854842Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:33.211955467Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":8,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:38.21312647Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:38.213134803Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":9,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:43.214543666Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":10,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:43.214630625Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:48.214806627Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:48.214807794Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":11,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:53.216070838Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":12,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:53.216159213Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:58.217179257Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":13,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:10:58.217195257Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:03.218451467Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":14,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:03.218459884Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:08.220240845Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":15,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:08.220260928Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:13.221436583Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":16,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:13.22143675Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:18.222992502Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":17,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:18.22299396Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:23.224266421Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":18,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:23.224273671Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:28.226126632Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:28.22615684Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":19,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:33.229589634Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:33.229667301Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":20,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:38.233618887Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":21,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1  | {"time":"2026-10-01T10:11:38.233618678Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:11:43.236336958Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":22,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:11:43.236346583Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+provision-identity-1  | {"time":"2026-10-01T10:09:30.740521633Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:09:30.74154555Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:09:30.742689508Z","level":"INFO","msg":"Created new KV bucket","bucket":"semstreams_config_c360_semconnect"}
+provision-identity-1  | {"time":"2026-10-01T10:09:43.577088916Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:09:43.578726916Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:09:43.580148083Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+semstreams-1          | {"time":"2026-10-01T10:11:48.239509877Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":23,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:11:48.239560169Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:11:53.239988838Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:11:53.240004754Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":24,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:11:58.24038709Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:11:58.240395298Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":25,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:03.242202301Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:03.242210676Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":26,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | 2026/10/01 10:12:06 INFO Metrics service stopped
+semstreams-1          | 2026/10/01 10:12:06 INFO Heartbeat service stopping source=heartbeat
+semstreams-1          | {"time":"2026-10-01T10:12:06.694561094Z","level":"INFO","msg":"component stopped gracefully","component":"graph-ingest","component":"graph-ingest"}
+semstreams-1          | {"time":"2026-10-01T10:12:06.694826761Z","level":"INFO","msg":"component stopped gracefully","component":"graph-index-temporal","component":"graph-index-temporal"}
+semstreams-1          | {"time":"2026-10-01T10:12:06.695291261Z","level":"INFO","msg":"component stopped gracefully","component":"graph-index-spatial","component":"graph-index-spatial"}
+semstreams-1          | {"time":"2026-10-01T10:12:06.696456552Z","level":"INFO","msg":"component stopped gracefully","component":"graph-index","component":"graph-index"}
+semstreams-1          | {"time":"2026-10-01T10:12:06.699085469Z","level":"INFO","msg":"graph-query coordinator stopped","component":"graph-query"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.765783014Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.767188305Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.767773805Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+semconnect-1          | {"time":"2026-10-01T10:09:37.098266594Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:09:37.099817178Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:09:37.099855761Z","level":"INFO","msg":"connected to NATS","url":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:09:37.099871386Z","level":"INFO","msg":"initialized","component":"cs-api"}
+semconnect-1          | {"time":"2026-10-01T10:09:37.104767053Z","level":"INFO","msg":"validated cs-api projection contracts","component":"cs-api","count":11}
+semconnect-1          | {"time":"2026-10-01T10:09:37.109606469Z","level":"INFO","msg":"started","component":"cs-api","standalone":true}
+semconnect-1          | {"time":"2026-10-01T10:09:37.109633261Z","level":"INFO","msg":"HTTP server listening","component":"cs-api","bind":"[::]:8080"}
+semconnect-1          | {"time":"2026-10-01T10:09:45.261361792Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"b70448e4-ea2c-4bcf-9c9b-af9f41092721","trace_id":"5fc1ac658a21d95ee36e45efa7fff182","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.system.v1","commit_state":"verified","kv_revision":1,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+provision-identity-1  | {"time":"2026-10-01T10:09:57.596906715Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:09:57.598194465Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:09:45.265966626Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"576db767-645c-486c-aed9-9876c9397506","trace_id":"3bbc433c2899fd5e1e339a0edc135983","operation":"createSchemaArtifact","entity_id":"c360.semconnect.systems.csapi.schema.sha256-f11974ada89c6fc6b1de03454ab821aa2afacf11b9140d3c028e02869be10e27","commit_state":"verified","kv_revision":2,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+semconnect-1          | {"time":"2026-10-01T10:09:45.267882417Z","level":"INFO","msg":"graph mutation audit","component":"cs-api","request_id":"165e298d-ea44-4650-8578-e119bcf38fec","trace_id":"70ad9773bee761fa8f181f0ba7d01b44","operation":"ingestTriples","entity_id":"c360.semconnect.systems.csapi.datastream.v1","commit_state":"verified","kv_revision":3,"identity_subject":"","identity_verified":false,"forwarded_user":"","forwarded_email":"","classified_error":""}
+semconnect-1          | {"time":"2026-10-01T10:09:45.280525584Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.v1","limit":10,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}
+semconnect-1          | {"time":"2026-10-01T10:09:51.760166795Z","level":"INFO","msg":"shutting down","reason":"context canceled"}
+semconnect-1          | {"time":"2026-10-01T10:09:51.760294212Z","level":"INFO","msg":"stopped","component":"cs-api"}
+semconnect-1          | {"time":"2026-10-01T10:10:03.778271843Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:10:03.779294843Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.76983218Z","level":"INFO","msg":"Adopted platform identity","org":"c360","stem":"semconnect","platform":"semconnect"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.775048722Z","level":"INFO","msg":"Synced configuration from KV","keys":13}
+semstreams-1          | {"time":"2026-10-01T10:12:12.777577514Z","level":"INFO","msg":"Created JetStream stream","stream":"FLOWS","subjects":["flows.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-1          | {"time":"2026-10-01T10:12:12.778004847Z","level":"INFO","msg":"Created JetStream stream","stream":"HEALTH","subjects":["health.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":10485760,"discard":"DiscardOld","duplicates":0}
+semstreams-1          | {"time":"2026-10-01T10:12:12.77853318Z","level":"INFO","msg":"Created JetStream stream","stream":"METRICS","subjects":["metrics.>"],"storage":"memory","source":"framework constant (config/streams.go)","max_age":300000000000,"max_bytes":52428800,"discard":"DiscardOld","duplicates":0}
+semstreams-1          | {"time":"2026-10-01T10:12:12.77854318Z","level":"INFO","msg":"Ensured JetStream streams","count":6,"migration_overrides":0,"archival":0}
+provision-identity-1  | {"time":"2026-10-01T10:09:57.59932259Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+provision-identity-1  | {"time":"2026-10-01T10:10:10.377355346Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:10:10.378725096Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:10:10.379180721Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+provision-identity-1  | {"time":"2026-10-01T10:12:12.178512763Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:12:12.180006013Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+provision-identity-1  | {"time":"2026-10-01T10:12:12.180748597Z","level":"INFO","msg":"Using existing KV bucket","bucket":"semstreams_config_c360_semconnect"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.786647014Z","level":"INFO","msg":"component initialized","component":"graph-index","component":"graph-index"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.786712097Z","level":"INFO","msg":"component initialized","component":"graph-index-spatial","component":"graph-index-spatial"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.786788347Z","level":"INFO","msg":"component initialized","component":"graph-index-temporal","component":"graph-index-temporal"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.786922597Z","level":"INFO","msg":"component initialized","component":"graph-ingest","component":"graph-ingest"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.787021014Z","level":"INFO","msg":"graph-query coordinator initialized","component":"graph-query"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.787097389Z","level":"WARN","msg":"composition finding","type":"disconnected_node","component":"graph-query","port":"","message":"component has no connections"}
+semconnect-1          | {"time":"2026-10-01T10:10:03.779314926Z","level":"INFO","msg":"connected to NATS","url":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:10:03.779328926Z","level":"INFO","msg":"initialized","component":"cs-api"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.78710518Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"alias_index","message":"output port 'alias_index' (watch): optional_index_unwatched"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.787106472Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"incoming_index","message":"output port 'incoming_index' (watch): optional_index_unwatched"}
+semconnect-1          | {"time":"2026-10-01T10:10:03.780187843Z","level":"INFO","msg":"validated cs-api projection contracts","component":"cs-api","count":11}
+semconnect-1          | {"time":"2026-10-01T10:10:03.783046051Z","level":"INFO","msg":"started","component":"cs-api","standalone":true}
+semconnect-1          | {"time":"2026-10-01T10:10:03.783074426Z","level":"INFO","msg":"HTTP server listening","component":"cs-api","bind":"[::]:8080"}
+semconnect-1          | {"time":"2026-10-01T10:10:12.061554097Z","level":"INFO","msg":"observations read","component":"cs-api","datastream":"c360.semconnect.systems.csapi.datastream.v1","limit":10,"after":0,"returned":1,"last_seq":1,"forwarded_user":"","forwarded_email":""}
+semconnect-1          | {"time":"2026-10-01T10:12:06.550748969Z","level":"INFO","msg":"shutting down","reason":"context canceled"}
+semconnect-1          | {"time":"2026-10-01T10:12:06.550834136Z","level":"INFO","msg":"stopped","component":"cs-api"}
+semconnect-1          | {"time":"2026-10-01T10:12:18.334841752Z","level":"INFO","msg":"Connecting to NATS","urls":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:12:18.335758294Z","level":"INFO","msg":"Successfully connected to NATS","urls":"nats://nats:4222"}
+semconnect-1          | {"time":"2026-10-01T10:12:18.335777252Z","level":"INFO","msg":"connected to NATS","url":"nats://nats:4222"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.787107472Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"outgoing_index","message":"output port 'outgoing_index' (watch): optional_index_unwatched"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.78710843Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index","port":"predicate_index","message":"output port 'predicate_index' (watch): optional_index_unwatched"}
+semconnect-1          | {"time":"2026-10-01T10:12:18.335793252Z","level":"INFO","msg":"initialized","component":"cs-api"}
+semconnect-1          | {"time":"2026-10-01T10:12:18.337061085Z","level":"INFO","msg":"validated cs-api projection contracts","component":"cs-api","count":11}
+semstreams-1          | {"time":"2026-10-01T10:12:12.787109389Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-spatial","port":"spatial_index","message":"output port 'spatial_index' (watch): optional_index_unwatched"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.787110389Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-index-temporal","port":"temporal_index","message":"output port 'temporal_index' (watch): optional_index_unwatched"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.787111347Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-ingest","port":"graph_mutations","message":"input port 'graph_mutations' (request): optional_api_unused"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.78711268Z","level":"WARN","msg":"composition finding","type":"orphaned_port","component":"graph-query","port":"graph_queries","message":"input port 'graph_queries' (request): optional_api_unused"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.78711393Z","level":"INFO","msg":"composition validated at boot","status":"warnings","errors":0,"warnings":9,"components":5,"edges":3}
+semstreams-1          | {"time":"2026-10-01T10:12:12.790045347Z","level":"INFO","msg":"Using existing KV bucket","bucket":"SPATIAL_INDEX"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.790076847Z","level":"INFO","msg":"Using existing KV bucket","bucket":"TEMPORAL_INDEX"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.79044518Z","level":"INFO","msg":"Using existing KV bucket","bucket":"ENTITY_STATES"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.791169722Z","level":"INFO","msg":"Using existing KV bucket","bucket":"OUTGOING_INDEX"}
+semconnect-1          | {"time":"2026-10-01T10:12:18.339729752Z","level":"INFO","msg":"started","component":"cs-api","standalone":true}
+semconnect-1          | {"time":"2026-10-01T10:12:18.339750544Z","level":"INFO","msg":"HTTP server listening","component":"cs-api","bind":"[::]:8080"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.791949055Z","level":"INFO","msg":"query handlers registered","component":"graph-index-spatial","subjects":["graph.spatial.query.bounds","graph.spatial.query.polygon"]}
+semstreams-1          | {"time":"2026-10-01T10:12:12.79218418Z","level":"INFO","msg":"resource available","component":"graph-index-spatial","resource":"ENTITY_STATES","attempt":1}
+semstreams-1          | {"time":"2026-10-01T10:12:12.79241968Z","level":"INFO","msg":"Using existing KV bucket","bucket":"TEMPORAL_INDEX_REVERSE"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.792453097Z","level":"INFO","msg":"component started","component":"graph-index-spatial","component":"graph-index-spatial","start_time":"2026-10-01T10:12:12.792450347Z","geohash_precision":6,"workers":1,"batch_size":50}
+semstreams-1          | {"time":"2026-10-01T10:12:12.792767764Z","level":"INFO","msg":"entity watcher started","component":"graph-index-spatial","bucket":"ENTITY_STATES"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.792796972Z","level":"INFO","msg":"Using existing KV bucket","bucket":"INCOMING_INDEX"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.793000389Z","level":"INFO","msg":"Using existing KV bucket","bucket":"ENTITY_SUFFIX_INDEX"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.793432847Z","level":"INFO","msg":"query handlers registered","component":"graph-index-temporal","subjects":["graph.temporal.query.range"]}
+semstreams-1          | {"time":"2026-10-01T10:12:12.793827847Z","level":"INFO","msg":"resource available","component":"graph-index-temporal","resource":"ENTITY_STATES","attempt":1}
+semstreams-1          | {"time":"2026-10-01T10:12:12.79383568Z","level":"INFO","msg":"Using existing KV bucket","bucket":"ALIAS_INDEX"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.793966639Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_INGEST_APPLIED_SEQ"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.794010639Z","level":"INFO","msg":"component started","component":"graph-index-temporal","component":"graph-index-temporal","start_time":"2026-10-01T10:12:12.79400868Z","time_resolution":"hour","workers":1}
+semstreams-1          | {"time":"2026-10-01T10:12:12.794800805Z","level":"INFO","msg":"entity watcher started","component":"graph-index-temporal","bucket":"ENTITY_STATES"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.796032639Z","level":"INFO","msg":"Using existing KV bucket","bucket":"PREDICATE_INDEX"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.796434055Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.796923722Z","level":"INFO","msg":"Using existing KV bucket","bucket":"NAME_INDEX"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.797516264Z","level":"INFO","msg":"query handlers registered","component":"graph-ingest","subjects":["graph.ingest.query.entity","graph.ingest.query.batch","graph.ingest.query.prefix","graph.ingest.query.suffix"]}
+semstreams-1          | {"time":"2026-10-01T10:12:12.79755568Z","level":"INFO","msg":"mutation handlers registered","component":"graph-ingest","subjects":["graph.mutation.entity.create","graph.mutation.entity.reconcile","graph.mutation.triple.append","graph.mutation.entity.delete"]}
+semstreams-1          | {"time":"2026-10-01T10:12:12.79756118Z","level":"INFO","msg":"component started","component":"graph-ingest","component":"graph-ingest","start_time":"2026-10-01T10:12:12.79755893Z"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.799028722Z","level":"INFO","msg":"Using existing KV bucket","bucket":"GRAPH_STATUS"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.799921722Z","level":"INFO","msg":"query handlers registered","component":"graph-query","subjects":["graph.query.entity","graph.query.entityByAlias","graph.query.batch","graph.query.relationships","graph.query.pathSearch","graph.query.hierarchyStats","graph.query.prefix","graph.query.spatial","graph.query.temporal","graph.query.semantic","graph.query.similar","graph.query.globalSearch","graph.query.summary","graph.query.searchGraph","graph.query.byName","graph.query.localSearch"]}
+semstreams-1          | {"time":"2026-10-01T10:12:12.799946889Z","level":"INFO","msg":"graph-query coordinator started","component":"graph-query"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.800331305Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":1,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:12.800380472Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:12.800391097Z","level":"INFO","msg":"resource available","component":"graph-index","resource":"ENTITY_STATES","attempt":1}
+semstreams-1          | {"time":"2026-10-01T10:12:12.80079918Z","level":"INFO","msg":"query handlers registered","component":"graph-index","subjects":["graph.index.query.outgoing","graph.index.query.incoming","graph.index.query.alias","graph.index.query.predicate","graph.index.query.predicateList","graph.index.query.predicateStats","graph.index.query.predicateCompound","graph.index.query.byName"]}
+semstreams-1          | {"time":"2026-10-01T10:12:12.800810264Z","level":"INFO","msg":"component started","component":"graph-index","component":"graph-index","start_time":"2026-10-01T10:12:12.800808889Z"}
+semstreams-1          | 2026/10/01 10:12:12 INFO Heartbeat service started source=heartbeat interval=30s
+semstreams-1          | 2026/10/01 10:12:12 INFO Metrics service started successfully url=http://localhost:9090/metrics
+semstreams-1          | {"time":"2026-10-01T10:12:12.800874264Z","level":"INFO","msg":"ComponentManager HTTP handlers registered","prefix":"/components/"}
+semstreams-1          | 2026/10/01 10:12:12 INFO Manager HTTP server started service=service-manager-registry port=8090
+semstreams-1          | 2026/10/01 10:12:12 INFO Manager.StartAll: All services started service=service-manager-registry count=3
+semstreams-1          | {"time":"2026-10-01T10:12:12.80106018Z","level":"INFO","msg":"SemConnect graph backend ready","org":"c360","platform":"semconnect"}
+semstreams-1          | {"time":"2026-10-01T10:12:12.801266722Z","level":"INFO","msg":"entity watcher started","component":"graph-index","bucket":"ENTITY_STATES"}
+semstreams-1          | {"time":"2026-10-01T10:12:17.801242335Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":2,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:17.80125421Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:22.803314379Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":3,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:22.803410004Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:27.804639507Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":4,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:27.804707382Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:32.808038676Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:32.809525342Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":5,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:37.809198136Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:37.810699595Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":6,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:42.810903222Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:42.811281389Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":7,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:47.812727668Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":8,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:47.812759335Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:52.814334379Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:52.814334337Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":9,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:57.816622048Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":10,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:12:57.816622132Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:02.817841467Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":11,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:02.817904342Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:07.819584095Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":12,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:07.819604095Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:12.821171139Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":13,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:12.821174555Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:17.822650252Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":14,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:17.822650377Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:22.826136337Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:22.826238796Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":15,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:27.830913965Z","level":"WARN","msg":"COMMUNITY_SUMMARIES unavailable; using statistical summaries","component":"graph-query","error":"framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}
+semstreams-1          | {"time":"2026-10-01T10:13:27.830913257Z","level":"WARN","msg":"community generation unavailable; retrying","component":"graph-query","generation":16,"error":"framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment","retry_interval":5000000000}

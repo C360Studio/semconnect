@@ -1,0 +1,41 @@
+{
+  "baseline": [
+    {
+      "level": "WARN",
+      "message": "COMMUNITY_SUMMARIES unavailable; using statistical summaries",
+      "count": 56
+    },
+    {
+      "level": "WARN",
+      "message": "Failed to check KV config existence",
+      "count": 1
+    },
+    {
+      "level": "WARN",
+      "message": "community generation unavailable; retrying",
+      "count": 56
+    },
+    {
+      "level": "WARN",
+      "message": "persona file loader: directory does not exist, skipping",
+      "count": 3
+    }
+  ],
+  "target": [
+    {
+      "level": "WARN",
+      "message": "COMMUNITY_SUMMARIES unavailable; using statistical summaries",
+      "count": 32
+    },
+    {
+      "level": "WARN",
+      "message": "community generation unavailable; retrying",
+      "count": 32
+    },
+    {
+      "level": "WARN",
+      "message": "composition finding",
+      "count": 27
+    }
+  ]
+}

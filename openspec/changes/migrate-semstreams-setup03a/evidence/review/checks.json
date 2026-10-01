@@ -1,0 +1,29 @@
+[
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-count=1",
+      "./..."
+    ],
+    "start": "2026-10-01T09:59:31.176515+00:00",
+    "finish": "2026-10-01T10:00:04.964958+00:00",
+    "exit_code": 1,
+    "log": "unit-race.log"
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "-tags=integration",
+      "-count=1",
+      "./..."
+    ],
+    "start": "2026-10-01T10:00:04.965235+00:00",
+    "finish": "2026-10-01T10:00:16.788475+00:00",
+    "exit_code": 1,
+    "log": "integration-race.log"
+  }
+]

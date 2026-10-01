@@ -1,0 +1,25 @@
+2026/10/01 04:50:43 INFO Connecting to NATS urls=nats://127.0.0.1:53713
+2026/10/01 04:50:43 INFO Successfully connected to NATS urls=nats://127.0.0.1:53713
+2026/10/01 04:50:43 INFO initialized component=cs-api
+2026/10/01 04:50:43 INFO validated cs-api projection contracts component=cs-api count=11
+2026/10/01 04:50:43 INFO started component=cs-api standalone=true
+2026/10/01 04:50:43 INFO HTTP server listening component=cs-api bind=127.0.0.1:53715
+2026/10/01 04:50:43 INFO stopped component=cs-api
+2026/10/01 04:50:43 INFO Connecting to NATS urls=nats://127.0.0.1:53717
+2026/10/01 04:50:43 INFO Successfully connected to NATS urls=nats://127.0.0.1:53717
+2026/10/01 04:50:43 INFO initialized component=cs-api
+2026/10/01 04:50:43 INFO validated cs-api projection contracts component=cs-api count=11
+2026/10/01 04:50:43 INFO started component=cs-api standalone=true
+2026/10/01 04:50:43 INFO HTTP server listening component=cs-api bind=127.0.0.1:53719
+2026/10/01 04:50:44 INFO stopped component=cs-api
+--- FAIL: TestGatewayRuntimeCancellationReachesAdmittedRequests (1.05s)
+    component_lifecycle_test.go:107: Start runtime cancellation did not reach admitted request
+2026/10/01 04:50:44 INFO Connecting to NATS urls=nats://127.0.0.1:53721
+2026/10/01 04:50:44 INFO Successfully connected to NATS urls=nats://127.0.0.1:53721
+2026/10/01 04:50:44 INFO initialized component=cs-api
+2026/10/01 04:50:44 INFO validated cs-api projection contracts component=cs-api count=11
+2026/10/01 04:50:44 INFO started component=cs-api standalone=true
+2026/10/01 04:50:44 INFO HTTP server listening component=cs-api bind=127.0.0.1:53723
+FAIL
+FAIL	github.com/c360studio/semconnect/gateway/cs-api	1.516s
+FAIL

@@ -6,7 +6,7 @@ services:
     command: ["-c", "/etc/nats/nats.conf"]
     restart: unless-stopped
     volumes:
-      - semconnect-nats-beta160-data:/data
+      - semconnect-nats-setup03a-8b99efe9c66a-data:/data
       - ./nats.conf:/etc/nats/nats.conf:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:8222/healthz >/dev/null || exit 1"]
@@ -16,43 +16,38 @@ services:
       start_period: 5s
     networks: [backend]
 
-  semstreams:
-    image: semconnect-semstreams:v1.0.0-beta.160
+  # Explicit first-start adoption of the public c360.semconnect authority.
+  # Create-only; a differing stored identity is an error, never overwritten.
+  provision-identity:
+    image: semconnect-graph-backend:setup03a-8b99efe9c66a
     build:
-      context: https://github.com/C360Studio/semstreams.git#8403a2218000e45a31c5132fbfe01af42ed04f14
-      dockerfile_inline: |
-        FROM golang:1.26-alpine@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 AS builder
-        RUN apk add --no-cache git ca-certificates tzdata
-        WORKDIR /build
-        COPY go.mod go.sum ./
-        RUN go mod download
-        COPY . .
-        RUN CGO_ENABLED=0 go build \
-            -trimpath \
-            -ldflags="-w -s \
-              -X main.Version=v1.0.0-beta.160 \
-              -X main.GitCommit=8403a2218000e45a31c5132fbfe01af42ed04f14 \
-              -X main.BuildTime=2026-08-12T00:00:00Z" \
-            -o /build/semstreams-bin ./cmd/semstreams
-
-        FROM alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS production
-        RUN apk add --no-cache ca-certificates tzdata wget
-        RUN addgroup -S -g 1000 semstreams && \
-            adduser -S -u 1000 -G semstreams -h /app semstreams
-        WORKDIR /app
-        COPY --from=builder --chown=semstreams:semstreams /build/semstreams-bin /app/semstreams
-        RUN mkdir -p /etc/semstreams /data && chown -R semstreams:semstreams /etc/semstreams /data
-        USER semstreams
-        EXPOSE 8090 9090
-        ENTRYPOINT ["/app/semstreams"]
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
       target: production
-    command: ["-config", "/etc/semstreams/config.json", "-debug-port", "0"]
-    restart: unless-stopped
+    command: ["-config", "/etc/semstreams/config.json", "-provision-identity", "semconnect"]
     depends_on:
       nats:
         condition: service_healthy
     volumes:
       - ./semstreams.json:/etc/semstreams/config.json:ro
+    networks: [backend]
+
+  semstreams:
+    image: semconnect-graph-backend:setup03a-8b99efe9c66a
+    build:
+      context: ..
+      dockerfile: deploy/backend.Dockerfile
+      target: production
+    command: ["-config", "/etc/semstreams/config.json", "-cs-api-config", "/etc/semconnect/config.json"]
+    restart: unless-stopped
+    depends_on:
+      nats:
+        condition: service_healthy
+      provision-identity:
+        condition: service_completed_successfully
+    volumes:
+      - ./semstreams.json:/etc/semstreams/config.json:ro
+      - ./semconnect.json:/etc/semconnect/config.json:ro
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/health"]
       interval: 5s
@@ -62,7 +57,7 @@ services:
     networks: [backend]
 
   semconnect:
-    image: semconnect-cs-api:beta.160
+    image: semconnect-cs-api:setup03a-8b99efe9c66a
     build:
       context: ..
       dockerfile: Dockerfile
@@ -87,7 +82,7 @@ services:
 
   canonical-smoke:
     profiles: ["smoke"]
-    image: semconnect-canonical-smoke:beta.160
+    image: semconnect-canonical-smoke:setup03a-8b99efe9c66a
     build:
       context: ..
       dockerfile: deploy/probe/Dockerfile
@@ -101,7 +96,7 @@ services:
 
   greenfield-preflight:
     profiles: ["smoke"]
-    image: semconnect-canonical-smoke:beta.160
+    image: semconnect-canonical-smoke:setup03a-8b99efe9c66a
     build:
       context: ..
       dockerfile: deploy/probe/Dockerfile
@@ -114,8 +109,8 @@ services:
     networks: [backend]
 
 volumes:
-  semconnect-nats-beta160-data:
-    name: ${SEMCONNECT_NATS_VOLUME:-semconnect-nats-beta160-data}
+  semconnect-nats-setup03a-8b99efe9c66a-data:
+    name: ${SEMCONNECT_NATS_VOLUME:-semconnect-nats-setup03a-8b99efe9c66a-data}
 
 networks:
   backend:

@@ -1,0 +1,6 @@
+{
+  "archived_at": "2026-10-01T10:04:54.500328+00:00",
+  "reason": "Independent reviewer found cs-api-server signal during synchronous Start no longer aborts; final gateway runtime source will add boot-only abort bridge. This successful r2 evidence qualifies only its captured source; all runtime gates will be repeated on fresh r3 storage.",
+  "source_manifest": "runtime-source-inputs.json",
+  "retained_target_volume": "semconnect-03a-8b99efe9-20261001-r2-fresh"
+}

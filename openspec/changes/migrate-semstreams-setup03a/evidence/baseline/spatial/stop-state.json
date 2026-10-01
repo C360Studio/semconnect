@@ -1,0 +1,149 @@
+{
+  "/semconnect-03a-base-persistence-nats-1": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-10-01T09:40:22.881050964Z",
+    "FinishedAt": "2026-10-01T09:43:23.58252334Z",
+    "Health": {
+      "Status": "unhealthy",
+      "FailingStreak": 0,
+      "Log": [
+        {
+          "Start": "2026-10-01T09:42:58.790238259Z",
+          "End": "2026-10-01T09:42:58.824151051Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:03.829102553Z",
+          "End": "2026-10-01T09:43:03.861069761Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:08.864494722Z",
+          "End": "2026-10-01T09:43:08.897548139Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:13.899584168Z",
+          "End": "2026-10-01T09:43:13.933252543Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:18.936983671Z",
+          "End": "2026-10-01T09:43:18.968585171Z",
+          "ExitCode": 0,
+          "Output": ""
+        }
+      ]
+    }
+  },
+  "/semconnect-03a-base-persistence-semconnect-1": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-10-01T09:40:33.536385428Z",
+    "FinishedAt": "2026-10-01T09:43:23.383106881Z",
+    "Health": {
+      "Status": "unhealthy",
+      "FailingStreak": 0,
+      "Log": [
+        {
+          "Start": "2026-10-01T09:42:59.774577301Z",
+          "End": "2026-10-01T09:42:59.823879884Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:04.827521512Z",
+          "End": "2026-10-01T09:43:04.875299553Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:09.881266667Z",
+          "End": "2026-10-01T09:43:09.928948333Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:14.930676836Z",
+          "End": "2026-10-01T09:43:14.982195627Z",
+          "ExitCode": 0,
+          "Output": ""
+        },
+        {
+          "Start": "2026-10-01T09:43:19.985502171Z",
+          "End": "2026-10-01T09:43:20.027299463Z",
+          "ExitCode": 0,
+          "Output": ""
+        }
+      ]
+    }
+  },
+  "/semconnect-03a-base-persistence-semstreams-1": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-10-01T09:40:27.950432175Z",
+    "FinishedAt": "2026-10-01T09:43:23.512997798Z",
+    "Health": {
+      "Status": "unhealthy",
+      "FailingStreak": 0,
+      "Log": [
+        {
+          "Start": "2026-10-01T09:42:58.789996551Z",
+          "End": "2026-10-01T09:42:58.824981259Z",
+          "ExitCode": 0,
+          "Output": "2026-10-01 09:42:58 URL: http://localhost:8090/health 200 OK\n"
+        },
+        {
+          "Start": "2026-10-01T09:43:03.82904472Z",
+          "End": "2026-10-01T09:43:03.86213197Z",
+          "ExitCode": 0,
+          "Output": "2026-10-01 09:43:03 URL: http://localhost:8090/health 200 OK\n"
+        },
+        {
+          "Start": "2026-10-01T09:43:08.86444018Z",
+          "End": "2026-10-01T09:43:08.89925168Z",
+          "ExitCode": 0,
+          "Output": "2026-10-01 09:43:08 URL: http://localhost:8090/health 200 OK\n"
+        },
+        {
+          "Start": "2026-10-01T09:43:13.900824668Z",
+          "End": "2026-10-01T09:43:13.934421752Z",
+          "ExitCode": 0,
+          "Output": "2026-10-01 09:43:13 URL: http://localhost:8090/health 200 OK\n"
+        },
+        {
+          "Start": "2026-10-01T09:43:18.936931171Z",
+          "End": "2026-10-01T09:43:18.969323379Z",
+          "ExitCode": 0,
+          "Output": "2026-10-01 09:43:18 URL: http://localhost:8090/health 200 OK\n"
+        }
+      ]
+    }
+  }
+}

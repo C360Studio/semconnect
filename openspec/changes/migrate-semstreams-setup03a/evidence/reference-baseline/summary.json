@@ -1,0 +1,27 @@
+{
+  "semstreams_version": "v1.0.0-beta.160",
+  "semstreams_commit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+  "command": "go test -json -tags integration ./gateway/cs-api -run '^TestSetup03AReference' -count=1",
+  "result": "PASS",
+  "storage": "Per-test embedded NATS with t.TempDir() fresh JetStream storage",
+  "cases": [
+    "TestSetup03AReferenceSensorML",
+    "TestSetup03AReferenceTypedMutations",
+    "TestSetup03AReferenceImmutableArtifact"
+  ],
+  "authoring_corrections": [
+    {
+      "observation": "Inverse predicate literal was initially isHostedBy; actual consumer vocabulary literal is is-hosted-by.",
+      "attribution": "New fixture authoring correction; production unchanged."
+    },
+    {
+      "observation": "Initial fixture invented a classified commit_unknown reply; typed protocol has no such outcome. Consumer uncertainty is induced by deliberately withholding a received reply until QueryTimeout.",
+      "attribution": "New test responder correction; production unchanged; every mutation still has one attempt."
+    }
+  ],
+  "environment_attempt": {
+    "log": "sandbox-listener-denial.jsonl",
+    "probe": "socket.bind((127.0.0.1, 0)) => PermissionError: [Errno 1] Operation not permitted",
+    "resolution": "Rerun with approved localhost network access; identical test expectations passed."
+  }
+}

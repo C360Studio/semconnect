@@ -2,10 +2,9 @@
   "version": "1.1.1",
   "platform": {
     "org": "c360",
-    "id": "semconnect-production-backend",
+    "id": "semconnect",
     "type": "graph-backend",
     "region": "local",
-    "instance_id": "semconnect-beta160-001",
     "environment": "production"
   },
   "tier": "rules",

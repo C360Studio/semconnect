@@ -137,15 +137,16 @@ fi
 compose config >"$evidence_dir/compose.rendered.yml"
 for image in \
   'nats:2.14.4-alpine@sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66' \
-  'semconnect-semstreams:v1.0.0-beta.160' \
-  'semconnect-cs-api:beta.160' \
-  'semconnect-canonical-smoke:beta.160'; do
+  'semconnect-graph-backend:setup03a-8b99efe9c66a' \
+  'semconnect-cs-api:setup03a-8b99efe9c66a' \
+  'semconnect-canonical-smoke:setup03a-8b99efe9c66a'; do
   docker image inspect --format '{{.RepoTags}} {{.Id}} {{.Architecture}}/{{.Os}}' "$image"
 done >"$evidence_dir/images.txt"
 for input in \
   .dockerignore \
   Dockerfile \
   deploy/compose.yml \
+  deploy/backend.Dockerfile \
   deploy/nats.conf \
   deploy/semconnect.json \
   deploy/semstreams.json \

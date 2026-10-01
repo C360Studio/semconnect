@@ -12,36 +12,43 @@ archives the TestNG XML report plus logs from every service.
 
 ## Current Picture
 
-The beta.160 disposable fresh-volume run `2026-08-12T12-39-21Z` is:
+Final SETUP 03A target r3 and the fresh beta.160 baseline both report:
 
 ```text
 total=137 passed=137 failed=0 skipped=0
 ```
 
-The qualified pins are:
+The migration remains **DRAFT / UNQUALIFIED**. The complete Go integration/race
+suite preserves a separate foreign Datastream create assertion: beta.160 returns
+201, while the frozen target returns 400 `authority_foreign`. ETS success does
+not waive that existing consumer contract. Independent Go review approves the
+scoped implementation and comparison evidence; merge qualification is withheld.
 
-- Botts CS API ETS `0.1-SNAPSHOT` at `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
-- TeamEngine `5.6.1`, bundled by the ETS Dockerfile.
-- SemStreams backend `v1.0.0-beta.160` at commit
-  `8403a2218000e45a31c5132fbfe01af42ed04f14`, source tree
-  `9ed5dd3792bca63ce87ebf449a180add918f59ed`.
-- NATS `2.14.4`, pinned by exact image digest in `compose.yml`.
+The execution pins are:
 
-The seed phase actively polled fresh `GRAPH_STATUS` updates to authoritative
-index readiness before Team Engine. The strict root-only SensorML bake proved
-the posted root readable and its inline child absent. Exact pins, typed graph
-operations, bounded observations, artifact access, and clean-volume persistence
-also pass. Independent review found no ETS, fixture, OpenAPI, declaration,
-filter, skip, parser, or harness weakening. The conformance stack was torn down
-after evidence capture.
+- Botts CS API ETS `0.1-SNAPSHOT` at
+  `d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4`.
+- TeamEngine `5.6.1` and NATS `2.14.4`, with exact image pins in Compose.
+- SemStreams `v1.0.0-beta.162.0.20260930150212-8b99efe9c66a`, commit
+  `8b99efe9c66a4faa4fa509f9f62cc6bad8392128`, tree
+  `605f83cb8492eda3bd347ac30a211b9babf3931f`.
+- Pre-upgrade SemConnect checkpoint `55ea4121aba8658aeac9d70bdfe80f19c15fd4cd`
+  uses beta.160 at `8403a2218000e45a31c5132fbfe01af42ed04f14`.
 
-Beta.141 through beta.159 remain historical evidence and are not rewritten.
-The beta.160 result qualifies the current disposable conformance stack. The
-separate production decision is **GO WITH ACCEPTED RISK** by product-owner
-authorization on 2026-08-12. Rollback isolation is waived, not proven.
+The consumer-owned `cmd/cs-graph-backend` registers all eleven resource types and
+uses the gateway's configuration. The unchanged seed/readiness, root-only bake,
+ETS assertions, fixtures, OAS and declarations remain protected. Independent
+review compares every one of the 137 TestNG method/status tuples, not just totals.
 
-Beta.160 evidence is under
-`openspec/changes/migrate-semstreams-beta160/evidence/conformance-beta160/`.
+Final r3 completed on 2026-10-01 using separate fresh storage. Normal stop/no-write
+restart preserves exact graph, schema and observation proof bytes; bbox/polygon
+responses also match after a second restart. Fresh-storage preflight precedes
+explicit create-only identity provisioning. No baseline volume was opened by
+the target. Earlier target attempts and older migrations remain historical.
+
+See [qualification](../openspec/changes/migrate-semstreams-setup03a/qualification.md),
+[review](../openspec/changes/migrate-semstreams-setup03a/review.md), and
+[final runtime evidence](../openspec/changes/migrate-semstreams-setup03a/evidence/target/README.md).
 
 The run exercises real gateway/framework behavior:
 
@@ -133,14 +140,17 @@ ETS_CODE=ogcapi-connectedsystems10
 TEAMENGINE_VERSION=5.6.1
 
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
-SEMSTREAMS_TAG_OBJECT=8403a2218000e45a31c5132fbfe01af42ed04f14
-SEMSTREAMS_COMMIT=8403a2218000e45a31c5132fbfe01af42ed04f14
-SEMSTREAMS_TREE=9ed5dd3792bca63ce87ebf449a180add918f59ed
-SEMSTREAMS_COMMIT_DATE=2026-08-12
-SEMSTREAMS_VERSION=v1.0.0-beta.160
+SEMSTREAMS_TAG_OBJECT=8b99efe9c66a4faa4fa509f9f62cc6bad8392128
+SEMSTREAMS_COMMIT=8b99efe9c66a4faa4fa509f9f62cc6bad8392128
+SEMSTREAMS_TREE=605f83cb8492eda3bd347ac30a211b9babf3931f
+SEMSTREAMS_COMMIT_DATE=2026-09-30
+SEMSTREAMS_VERSION=v1.0.0-beta.162.0.20260930150212-8b99efe9c66a
 ```
 
-Bumping is intentional, not auto-pulled.
+Bumping is intentional, not auto-pulled. SETUP 03A has already frozen the main
+commit above because beta.163 was unavailable. Its tag-object compatibility field
+contains that commit; it does not claim a release tag. Do not independently select
+a newer revision while closing this migration.
 
 ### ETS Bump Procedure
 
@@ -153,22 +163,20 @@ Bumping is intentional, not auto-pulled.
 
 ### Framework Bump Procedure
 
-Pin order matters: bump the Go module first, then the conformance pin, so the
-gateway's compiled wire expectations match the running backend.
+SETUP 03A uses the already frozen shared pin above. Dependencies, both binaries, deployment and conformance
+pins move together only after the current baseline is archived. The source module for this migration is:
 
-1. Bump `go.mod`: `go get github.com/c360studio/semstreams@v1.0.0-beta.NN`.
-2. Run `go mod tidy`.
-3. Resolve the tag commit SHA and tree. Distinguish annotated tag objects from
-   commits; beta.160 itself is a lightweight tag.
-4. Edit `SEMSTREAMS_TAG_OBJECT`, `SEMSTREAMS_COMMIT`, `SEMSTREAMS_TREE`,
-   `SEMSTREAMS_COMMIT_DATE`, and `SEMSTREAMS_VERSION`.
-5. Run `go test ./...`, `go build ./...`, and `./conformance/run.sh`.
-6. Include the framework delta and conformance result in the PR description.
+```text
+github.com/c360studio/semstreams v1.0.0-beta.162.0.20260930150212-8b99efe9c66a
+```
 
-The beta.147 through beta.159 procedures are historical. Beta.160 may use
-`deploy/compose.yml` only with a newly provisioned NATS volume. The bundle does
-not migrate, delete, translate, or import old state. The accepted-risk decision
-does not relax this fresh-volume-only boundary.
+A later migration must record the shared owner decision, exact version/full commit/tree, affected imports and
+contracts, then run the full Go/race/integration, unchanged ETS and fresh-storage persistence/spatial gates.
+A passing ETS does not waive an active consumer integration failure. See the
+[SETUP 03A qualification](../openspec/changes/migrate-semstreams-setup03a/qualification.md) for current results.
+
+Beta.147 through beta.160 procedures and beta.160 accepted-risk authorization are historical. They do not authorize
+this target. Every revision uses its own fresh NATS storage; never cross-open baseline and target volumes.
 
 ## NATS Config
 
@@ -186,12 +194,15 @@ When the OGC org adopts the ETS into
 2. Update `compose.yml`'s `teamengine` service from `build:` to `image:`.
 3. Drop the `.vendor/ets` clone/build path from `run.sh`.
 
-A symmetric migration applies when semstreams publishes a registry image:
-replace the `semstreams-backend.build:` block with `image:` and drop the
-`.vendor/semstreams` clone/build path.
+The graph backend is now the consumer-owned `cmd/cs-graph-backend`. A future registry image must contain this
+composition and its eleven consumer registrations at the exact shared module pin; a stock framework image does
+not satisfy that host contract.
 
 ## CI
 
 `.github/workflows/conformance.yml` runs this harness on push to `main`, on
 manual dispatch, and on PRs labelled `conformance`. The TestNG XML report is
 uploaded as a workflow artifact for triage.
+
+For this draft PR the existing label trigger skipped the conformance CI job. Local final r3 evidence above
+records the executed suite; all 137 ETS cases ran and none were skipped.

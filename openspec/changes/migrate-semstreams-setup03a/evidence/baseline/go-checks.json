@@ -1,0 +1,57 @@
+{
+  "captured_at": "2026-10-01T09:38:07.464075+00:00",
+  "semconnect_commit": "d0d06e00bf05a545f30ceea798db1c2b1ee47d4f",
+  "go_version": "go version go1.26.4 darwin/arm64",
+  "commands": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "./..."
+      ],
+      "started_at": "2026-10-01T09:38:07.480810+00:00",
+      "completed_at": "2026-10-01T09:38:20.691859+00:00",
+      "exit_code": 0,
+      "log": "go-test-race.log"
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "started_at": "2026-10-01T09:38:20.692172+00:00",
+      "completed_at": "2026-10-01T09:38:26.094967+00:00",
+      "exit_code": 0,
+      "log": "go-vet.log"
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "-tags=integration",
+        "./..."
+      ],
+      "started_at": "2026-10-01T09:38:26.095300+00:00",
+      "completed_at": "2026-10-01T09:38:27.563150+00:00",
+      "exit_code": 0,
+      "log": "go-vet-integration.log"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-tags=integration",
+        "-count=1",
+        "./..."
+      ],
+      "started_at": "2026-10-01T09:38:27.563433+00:00",
+      "completed_at": "2026-10-01T09:38:37.672928+00:00",
+      "exit_code": 0,
+      "log": "go-test-integration-race.log"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+Stages 6+9 conformance harness — 2026-10-01T10-09-16Z
+ETS pin:        https://github.com/Botts-Innovative-Research/ets-ogcapi-connectedsystems10.git @ d9caf33fcd0c4a3c1a582e8ba9b12b753277afd4
+TeamEngine:     5.6.1 (0.1-SNAPSHOT)
+semstreams pin: https://github.com/C360Studio/semstreams.git @ 8b99efe9c66a4faa4fa509f9f62cc6bad8392128 (v1.0.0-beta.162.0.20260930150212-8b99efe9c66a)
+IUT: http://cs-api-server:8080
+
+TestNG: total=137 passed=137 failed=0 skipped=0
+Root-only SensorML bake: PASS — root=c360.semconnect.systems.csapi.system.hosted-platform-bake-01 readable; embedded child=c360.semconnect.systems.csapi.system.hosted-platform-bake-01_thermometer-bake-01 absent
+Report:        /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/testng-report-2026-10-01T10-09-16Z.xml
+TE log:        /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/teamengine-container-2026-10-01T10-09-16Z.log
+cs-api log:    /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/cs-api-server-container-2026-10-01T10-09-16Z.log
+backend log:   /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/semstreams-backend-container-2026-10-01T10-09-16Z.log
+seed log:      /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/seed-2026-10-01T10-09-16Z.log
+index status:  /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/seed-evidence/index-readiness-2026-10-01T10-09-16Z.jsonl
+bake report:   /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/conformance/root-only-bake-2026-10-01T10-09-16Z.txt
+
+Stage 9 note: cs-api-server now runs against a real graph backend
+(semstreams-backend), seeded with conformance/fixtures/system.sml.json
+and a referencing datastream before suite invocation. The Botts
+fixture-loader 503s are eliminated — surviving failures are genuine
+spec assertions or upstream-ETS bugs.
+
+beta.160 note: the root-only bake POSTs system-hosted.sml.json and
+asserts the root is readable while the inline child was not materialized.

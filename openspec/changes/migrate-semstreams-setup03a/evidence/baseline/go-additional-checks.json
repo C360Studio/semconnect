@@ -1,0 +1,26 @@
+{
+  "commands": [
+    {
+      "command": [
+        "go",
+        "build",
+        "./..."
+      ],
+      "started_at": "2026-10-01T09:41:18.545016+00:00",
+      "completed_at": "2026-10-01T09:41:20.584658+00:00",
+      "exit_code": 0,
+      "log": "go-build.log"
+    },
+    {
+      "command": [
+        "go",
+        "mod",
+        "verify"
+      ],
+      "started_at": "2026-10-01T09:41:20.585001+00:00",
+      "completed_at": "2026-10-01T09:41:27.403086+00:00",
+      "exit_code": 0,
+      "log": "go-mod-verify.log"
+    }
+  ]
+}

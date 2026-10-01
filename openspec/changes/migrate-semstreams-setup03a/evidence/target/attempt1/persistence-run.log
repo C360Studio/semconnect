@@ -1,0 +1,374 @@
+ Volume semconnect-03a-8b99efe9-20261001-fresh Creating 
+ Network semconnect-03a-target-persistence_backend Creating 
+ Volume semconnect-03a-8b99efe9-20261001-fresh Creating 
+ Network semconnect-03a-target-persistence_backend Creating 
+ Volume semconnect-03a-8b99efe9-20261001-fresh Created 
+ Volume semconnect-03a-8b99efe9-20261001-fresh Created 
+ Network semconnect-03a-target-persistence_backend Created 
+ Network semconnect-03a-target-persistence_backend Created 
+ Container semconnect-03a-target-persistence-nats-1 Creating 
+ Container semconnect-03a-target-persistence-nats-1 Created 
+ Container semconnect-03a-target-persistence-nats-1 Starting 
+ Container semconnect-03a-target-persistence-nats-1 Started 
+ Image semconnect-canonical-smoke:setup03a-8b99efe9c66a Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.15kB done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.43kB done
+#2 DONE 0.1s
+
+#3 resolve image config for docker-image://docker.io/docker/dockerfile:1.6
+#3 DONE 0.1s
+
+#4 docker-image://docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+#4 resolve docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021 0.0s done
+#4 CACHED
+
+#5 [internal] load metadata for docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#5 DONE 0.0s
+
+#6 [internal] load metadata for gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#6 DONE 0.0s
+
+#7 [internal] load .dockerignore
+#7 transferring context:
+#7 transferring context: 798B done
+#7 DONE 0.1s
+
+#8 [stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#8 resolve gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b 0.0s done
+#8 DONE 0.0s
+
+#9 [builder 1/6] FROM docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#9 resolve docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b 0.0s done
+#9 DONE 0.0s
+
+#10 [builder 2/6] WORKDIR /src
+#10 CACHED
+
+#11 [internal] load build context
+#11 transferring context: 52.97kB 0.0s done
+#11 DONE 0.1s
+
+#12 [builder 3/6] COPY go.mod go.sum ./
+#12 DONE 0.4s
+
+#13 [builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download
+#13 DONE 1.6s
+
+#14 [readiness-builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download
+#14 CACHED
+
+#15 [readiness-builder 3/6] COPY go.mod go.sum ./
+#15 CACHED
+
+#16 [readiness-builder 5/6] COPY conformance/cmd/index-readiness/main.go ./main.go
+#16 DONE 0.0s
+
+#17 [readiness-builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/index-readiness ./main.go
+#17 DONE 1.6s
+
+#18 [builder 3/4] COPY deploy/probe/main.go ./main.go
+#18 CACHED
+
+#19 [builder 4/4] RUN CGO_ENABLED=0 GO111MODULE=off go build -trimpath -ldflags="-s -w" -o /out/canonical-smoke ./main.go
+#19 CACHED
+
+#20 [stage-2 2/6] COPY --from=builder /out/canonical-smoke /usr/local/bin/canonical-smoke
+#20 CACHED
+
+#21 [stage-2 3/6] COPY --from=readiness-builder /out/index-readiness /usr/local/bin/index-readiness
+#21 DONE 0.1s
+
+#22 [stage-2 4/6] COPY deploy/canonical-system.v1.json /fixtures/canonical-system.v1.json
+#22 DONE 0.1s
+
+#23 [stage-2 5/6] COPY deploy/canonical-datastream.v1.json /fixtures/canonical-datastream.v1.json
+#23 DONE 0.1s
+
+#24 [stage-2 6/6] COPY deploy/canonical-observation.v1.json /fixtures/canonical-observation.v1.json
+#24 DONE 0.0s
+
+#25 exporting to image
+#25 exporting layers
+#25 exporting layers 0.3s done
+#25 exporting manifest sha256:70f9b79dab0042ac301f473882788e1b38ff99a953cceac9579b1f2c279e6691 done
+#25 exporting config sha256:982367b9003a2d1cb31dfd94503c748749dce1ffc0965fb1ecb067607bcfcd7d done
+#25 exporting attestation manifest sha256:4295b215c5b9c44207d4bffa89124eb6c822b75f33958cf6bbab7ba328037f05 done
+#25 exporting manifest list sha256:d760df6e2adeb1f8db54b5734438010a14490e0687cd5ee9cb4cfcfa984b92ed done
+#25 naming to docker.io/library/semconnect-canonical-smoke:setup03a-8b99efe9c66a done
+#25 unpacking to docker.io/library/semconnect-canonical-smoke:setup03a-8b99efe9c66a 0.1s done
+#25 DONE 0.4s
+
+#26 resolving provenance for metadata file
+#26 DONE 0.0s
+ Image semconnect-canonical-smoke:setup03a-8b99efe9c66a Built 
+ Container semconnect-03a-target-persistence-nats-1 Running 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-greenfield-preflight-run-760154082742 Creating 
+ Container semconnect-03a-target-persistence-greenfield-preflight-run-760154082742 Created 
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Building 
+ Image semconnect-cs-api:setup03a-8b99efe9c66a Building 
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.69kB done
+#1 DONE 0.0s
+
+#2 [semstreams internal] load build definition from backend.Dockerfile
+#2 transferring dockerfile: 1.58kB done
+#2 DONE 0.0s
+
+#3 [semconnect internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.39kB done
+#3 DONE 0.0s
+
+#4 [semconnect] resolve image config for docker-image://docker.io/docker/dockerfile:1.6
+#4 DONE 0.1s
+
+#5 [semconnect] docker-image://docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021
+#5 resolve docker.io/docker/dockerfile:1.6@sha256:ac85f380a63b13dfcefa89046420e1781752bab202122f8f50032edf31be0021 0.0s done
+#5 CACHED
+
+#6 [semstreams internal] load build definition from backend.Dockerfile
+#6 transferring dockerfile: 1.58kB done
+#6 DONE 0.0s
+
+#7 [provision-identity internal] load build definition from backend.Dockerfile
+#7 transferring dockerfile: 1.58kB done
+#7 DONE 0.0s
+
+#8 [semconnect internal] load metadata for gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#8 DONE 0.0s
+
+#9 [semconnect internal] load .dockerignore
+#9 transferring context: 798B done
+#9 DONE 0.0s
+
+#10 [semstreams internal] load metadata for docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+#10 DONE 0.0s
+
+#11 [provision-identity internal] load metadata for docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#11 DONE 0.0s
+
+#12 [semstreams internal] load .dockerignore
+#12 transferring context: 798B 0.0s done
+#12 DONE 0.0s
+
+#13 [provision-identity internal] load .dockerignore
+#13 transferring context: 798B done
+#13 DONE 0.0s
+
+#14 [semconnect stage-1 1/2] FROM gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b
+#14 resolve gcr.io/distroless/static-debian12:nonroot@sha256:aef9602f8710ec12bde19d593fed1f76c708531bb7aba205110f1029786ead7b 0.0s done
+#14 DONE 0.0s
+
+#15 [semstreams builder 1/6] FROM docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b
+#15 resolve docker.io/library/golang:1.26.3-bookworm@sha256:386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b 0.0s done
+#15 DONE 0.0s
+
+#16 [semstreams production 1/4] FROM docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
+#16 resolve docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b 0.0s done
+#16 DONE 0.0s
+
+#17 [provision-identity internal] load build context
+#17 transferring context: 794.53kB 0.2s done
+#17 DONE 0.3s
+
+#18 [semstreams internal] load build context
+#18 transferring context: 794.53kB 0.2s done
+#18 DONE 0.3s
+
+#19 [semstreams builder 2/6] WORKDIR /src
+#19 CACHED
+
+#20 [semstreams builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w"     -o /out/cs-graph-backend ./cmd/cs-graph-backend
+#20 CACHED
+
+#21 [provision-identity production 2/4] RUN apk add --no-cache ca-certificates tzdata wget &&     addgroup -S -g 1000 semstreams &&     adduser -S -u 1000 -G semstreams -h /app semstreams
+#21 CACHED
+
+#22 [provision-identity production 3/4] WORKDIR /app
+#22 CACHED
+
+#23 [semstreams builder 3/6] COPY go.mod go.sum ./
+#23 CACHED
+
+#24 [semstreams builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download &&     test "$(go list -m -f '{{.Version}}' github.com/c360studio/semstreams)" = "v1.0.0-beta.162.0.20260930150212-8b99efe9c66a"
+#24 CACHED
+
+#25 [semstreams builder 5/6] COPY . .
+#25 CACHED
+
+#26 [provision-identity production 4/4] COPY --from=builder --chown=semstreams:semstreams /out/cs-graph-backend /app/cs-graph-backend
+#26 CACHED
+
+#27 [semstreams] exporting to image
+#27 exporting layers done
+#27 exporting manifest sha256:d230e2ddd9e363e1c3a1143a9d90813f15251da3fa8c00b44db6d68d7ec76d9a
+#27 exporting manifest sha256:d230e2ddd9e363e1c3a1143a9d90813f15251da3fa8c00b44db6d68d7ec76d9a 0.0s done
+#27 exporting config sha256:b9fcf0b0aae0a6c0b56cb465861fbd2cd4469ce31c6a7018c1fa1c6d067cf9dc 0.0s done
+#27 exporting attestation manifest sha256:02b905d7de5e3507d2676988b52440cac8310647967610c0968e39f61c8029bd 0.0s done
+#27 exporting manifest list sha256:c7ee099b0bcecdbef35e6bbace9a6a99f2a9b637b11ffff6dd7977c85ff7d3ac done
+#27 naming to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a done
+#27 unpacking to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a
+#27 unpacking to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a 0.0s done
+#27 DONE 0.1s
+
+#28 [provision-identity] exporting to image
+#28 exporting layers done
+#28 exporting manifest sha256:be48f978f703b4d6270170b0137989688f0779f99b63b86d34ff2bf2238703aa 0.0s done
+#28 exporting config sha256:94237fac3dd3465da40574290a4433c43613f96a5368d540c10c3613e808678e 0.0s done
+#28 exporting attestation manifest sha256:e34eb684571a1568293cf824baf88e1b4e18be5151188f8307092a85a2e2b2b5 0.0s done
+#28 exporting manifest list sha256:8be5af03ab94944d59e14870c81c45b2d7ea7f0683d5baef81f4664c45adb286 0.0s done
+#28 naming to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a done
+#28 unpacking to docker.io/library/semconnect-graph-backend:setup03a-8b99efe9c66a 0.0s done
+#28 DONE 0.2s
+
+#29 [semstreams] resolving provenance for metadata file
+#29 DONE 0.0s
+
+#30 [provision-identity] resolving provenance for metadata file
+#30 DONE 0.0s
+
+#31 [semconnect internal] load build context
+#31 transferring context: 115.43MB 1.3s done
+#31 DONE 1.3s
+
+#32 [semconnect builder 3/6] COPY go.mod go.sum ./
+#32 CACHED
+
+#33 [semconnect builder 4/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     go mod download
+#33 CACHED
+
+#34 [semconnect builder 5/6] COPY . .
+#34 CACHED
+
+#35 [semconnect builder 6/6] RUN --mount=type=cache,target=/root/.cache/go-build     --mount=type=cache,target=/go/pkg/mod     CGO_ENABLED=0 GOOS=linux     go build -trimpath -ldflags="-s -w"         -o /out/cs-api-server ./cmd/cs-api-server
+#35 CACHED
+
+#19 [semconnect builder 2/6] WORKDIR /src
+#19 CACHED
+
+#36 [semconnect stage-1 2/2] COPY --from=builder /out/cs-api-server /usr/local/bin/cs-api-server
+#36 CACHED
+
+#37 [semconnect] exporting to image
+#37 exporting layers done
+#37 exporting manifest sha256:fa7411c89740b764681c358c31e4f7d168d1ef1811759abf2c3ce6120253adb5 0.0s done
+#37 exporting config sha256:5434f89345bcb0c9665f72796f338c4164a04d7c6e27826e423c12d68c0b7c3d
+#37 exporting config sha256:5434f89345bcb0c9665f72796f338c4164a04d7c6e27826e423c12d68c0b7c3d 0.0s done
+#37 exporting attestation manifest sha256:6752f42a8f67994c94e93b03e703019d9bdfa778279ae7a360d35d9d87cf586e 0.0s done
+#37 exporting manifest list sha256:39da6e7bf167eca557b1f6c56ab6cae8ed9841291cff88b27cd8cd787a096c5d 0.0s done
+#37 naming to docker.io/library/semconnect-cs-api:setup03a-8b99efe9c66a done
+#37 unpacking to docker.io/library/semconnect-cs-api:setup03a-8b99efe9c66a done
+#37 DONE 0.1s
+
+#38 [semconnect] resolving provenance for metadata file
+#38 DONE 0.0s
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Built 
+ Image semconnect-graph-backend:setup03a-8b99efe9c66a Built 
+ Image semconnect-cs-api:setup03a-8b99efe9c66a Built 
+ Container semconnect-03a-target-persistence-nats-1 Running 
+ Container semconnect-03a-target-persistence-provision-identity-1 Creating 
+ Network semconnect-03a-target-persistence_public Creating 
+ Network semconnect-03a-target-persistence_public Creating 
+ Network semconnect-03a-target-persistence_public Created 
+ Network semconnect-03a-target-persistence_public Created 
+ Container semconnect-03a-target-persistence-provision-identity-1 Created 
+ Container semconnect-03a-target-persistence-semstreams-1 Creating 
+ Container semconnect-03a-target-persistence-semstreams-1 Created 
+ Container semconnect-03a-target-persistence-semconnect-1 Creating 
+ Container semconnect-03a-target-persistence-semconnect-1 Created 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-provision-identity-1 Starting 
+ Container semconnect-03a-target-persistence-provision-identity-1 Started 
+ Container semconnect-03a-target-persistence-provision-identity-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-provision-identity-1 Exited 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-semstreams-1 Starting 
+ Container semconnect-03a-target-persistence-semstreams-1 Started 
+ Container semconnect-03a-target-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-target-persistence-semconnect-1 Starting 
+ Container semconnect-03a-target-persistence-semconnect-1 Started 
+ Container semconnect-03a-target-persistence-semstreams-1 Running 
+ Container semconnect-03a-target-persistence-semconnect-1 Running 
+ Container semconnect-03a-target-persistence-nats-1 Running 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-provision-identity-1 Starting 
+ Container semconnect-03a-target-persistence-provision-identity-1 Started 
+ Container semconnect-03a-target-persistence-provision-identity-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-provision-identity-1 Exited 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-target-persistence-semconnect-1 Waiting 
+ Container semconnect-03a-target-persistence-semconnect-1 Healthy 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-f2c7e36dcfc5 Creating 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-f2c7e36dcfc5 Created 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-b8d34edf1515 Creating 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-b8d34edf1515 Created 
+2026/10/01 09:55:22 INFO Connecting to NATS urls=nats://nats:4222
+2026/10/01 09:55:22 INFO Successfully connected to NATS urls=nats://nats:4222
+ Container semconnect-03a-target-persistence-semconnect-1 Stopping 
+ Container semconnect-03a-target-persistence-semconnect-1 Stopped 
+ Container semconnect-03a-target-persistence-semstreams-1 Stopping 
+ Container semconnect-03a-target-persistence-semstreams-1 Stopped 
+ Container semconnect-03a-target-persistence-nats-1 Stopping 
+ Container semconnect-03a-target-persistence-nats-1 Stopped 
+ Container semconnect-03a-target-persistence-nats-1 Starting 
+ Container semconnect-03a-target-persistence-nats-1 Started 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-provision-identity-1 Starting 
+ Container semconnect-03a-target-persistence-provision-identity-1 Started 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-provision-identity-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-provision-identity-1 Exited 
+ Container semconnect-03a-target-persistence-semstreams-1 Starting 
+ Container semconnect-03a-target-persistence-semstreams-1 Started 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-target-persistence-semconnect-1 Starting 
+ Container semconnect-03a-target-persistence-semconnect-1 Started 
+ Container semconnect-03a-target-persistence-semstreams-1 Running 
+ Container semconnect-03a-target-persistence-semconnect-1 Running 
+ Container semconnect-03a-target-persistence-nats-1 Running 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-provision-identity-1 Starting 
+ Container semconnect-03a-target-persistence-provision-identity-1 Started 
+ Container semconnect-03a-target-persistence-provision-identity-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-provision-identity-1 Exited 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-nats-1 Waiting 
+ Container semconnect-03a-target-persistence-semstreams-1 Waiting 
+ Container semconnect-03a-target-persistence-nats-1 Healthy 
+ Container semconnect-03a-target-persistence-semstreams-1 Healthy 
+ Container semconnect-03a-target-persistence-semconnect-1 Waiting 
+ Container semconnect-03a-target-persistence-semconnect-1 Healthy 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-b1aa5cb6f7ed Creating 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-b1aa5cb6f7ed Created 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-90182bba1313 Creating 
+ Container semconnect-03a-target-persistence-canonical-smoke-run-90182bba1313 Created 
+2026/10/01 09:55:48 INFO Connecting to NATS urls=nats://nats:4222
+2026/10/01 09:55:48 INFO Successfully connected to NATS urls=nats://nats:4222
+greenfield first-start and restart-persistence proof passed
+evidence: /Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/persistence
+compose sha256: cc3143182eb26f6f579e16d2c32b6388896f568e50fb39ebae69dee119ce8369
+canonical proof sha256: 4544c19899ccf1c9b461146be542c47dd85d4201aad5aeda2c9cf48946b63e32

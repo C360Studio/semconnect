@@ -1,0 +1,12 @@
+{
+  "command": [
+    "./conformance/run.sh"
+  ],
+  "project": "semconnect-03a-baseline-20261001",
+  "semstreams_version": "v1.0.0-beta.160",
+  "semstreams_commit": "8403a2218000e45a31c5132fbfe01af42ed04f14",
+  "started_at": "2026-10-01T09:38:26.587790+00:00",
+  "fresh_project_and_volume_preflight": "No matching containers or semconnect-03a volumes before execution",
+  "exit_code": 0,
+  "completed_at": "2026-10-01T09:41:14.670608+00:00"
+}

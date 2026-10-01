@@ -1,0 +1,1027 @@
+{
+  "report": "openspec/changes/migrate-semstreams-setup03a/evidence/baseline/conformance/testng-report-2026-10-01T09-38-26Z.xml",
+  "counts": {
+    "total": "137",
+    "passed": "137",
+    "failed": "0",
+    "skipped": "0"
+  },
+  "cases": [
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.advancedfiltering.AdvancedFilteringTests",
+      "name": "advancedFilteringConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.advancedfiltering.AdvancedFilteringTests",
+      "name": "advancedFilteringDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.advancedfiltering.AdvancedFilteringTests",
+      "name": "advancedFilteringIdListSchema",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.advancedfiltering.AdvancedFilteringTests",
+      "name": "systemsFilterByGeomSmoke",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.advancedfiltering.AdvancedFilteringTests",
+      "name": "systemsFilterById",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.advancedfiltering.AdvancedFilteringTests",
+      "name": "systemsFilterByKeyword",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.common.CommonTests",
+      "name": "commonCollectionsEndpointReturnsCollectionsArray",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.common.CommonTests",
+      "name": "commonConformanceDeclaresCommonCore",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.common.CommonTests",
+      "name": "commonContentNegotiationHonoursFJsonParameter",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.common.CommonTests",
+      "name": "commonLandingPageConformanceLinkHasJsonType",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.ConformanceTests",
+      "name": "conformancePageDeclaresCsCore",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.ConformanceTests",
+      "name": "conformancePageHasConformsToArray",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.ConformanceTests",
+      "name": "conformancePageReturnsHttp200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.ConformanceTests",
+      "name": "conformancePageReturnsJson",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.LandingPageTests",
+      "name": "landingPageDoesNotRequireSelfRel",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.LandingPageTests",
+      "name": "landingPageHasApiDefinitionLink",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.LandingPageTests",
+      "name": "landingPageHasConformanceLink",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.LandingPageTests",
+      "name": "landingPageHasLinks",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.LandingPageTests",
+      "name": "landingPageReturnsHttp200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.LandingPageTests",
+      "name": "landingPageReturnsJson",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.ResourceShapeTests",
+      "name": "apiDefinitionResourceReturnsContent",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.core.ResourceShapeTests",
+      "name": "conformanceResourceShapeIsObject",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.createreplacedelete.CreateReplaceDeleteTests",
+      "name": "createReplaceDeleteConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.createreplacedelete.CreateReplaceDeleteTests",
+      "name": "createReplaceDeleteDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.createreplacedelete.CreateReplaceDeleteTests",
+      "name": "createReplaceDeleteMutationSafetyGate",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.createreplacedelete.CreateReplaceDeleteTests",
+      "name": "systemResourceOptionsReadinessPrecondition",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.createreplacedelete.CreateReplaceDeleteTests",
+      "name": "systemsCollectionOptionsReadinessPrecondition",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.createreplacedelete.CreateReplaceDeleteTests",
+      "name": "systemsCreateReplaceDeleteLifecycle",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.deployments.DeploymentsTests",
+      "name": "deploymentDeployedSystemEncodingDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.deployments.DeploymentsTests",
+      "name": "deploymentItemHasCanonicalLink",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.deployments.DeploymentsTests",
+      "name": "deploymentItemHasIdTypeLinks",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.deployments.DeploymentsTests",
+      "name": "deploymentsCollectionReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "deploymentFeatureHasGeoJsonSchemaAndMapping",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonDeploymentLinksMemberAssociationRelsUseResourceSpecificNames",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonLinksMemberAssociationRelsUseResourceSpecificNames",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonMediaTypeRead",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonMediaTypeWriteParsesSystemBodyWhenMutationEnabled",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonProcedureLinksMemberAssociationRelsUseResourceSpecificNames",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "geoJsonSamplingFeatureLinksMemberAssociationRelsUseResourceSpecificNames",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "procedureFeatureHasGeoJsonSchemaAndMapping",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "samplingFeatureHasGeoJsonSchemaAndMapping",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "systemFeatureHasGeoJsonShapeAndProperties",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.geojson.GeoJsonTests",
+      "name": "systemsCollectionIsGeoJsonFeatureCollection",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "advancedFilteringPrerequisitesVisibleForFullClosure",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "commandFiltersVerifyReturnedPredicatesWhenEndpointAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "controlStreamControlledPropertyFilterVerifiesReturnedPredicates",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "controlStreamTimeFiltersVerifyReturnedPredicates",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "datastreamObservedPropertyFilterVerifiesReturnedPredicates",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "datastreamTimeFiltersVerifyReturnedPredicates",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "observationTimeFiltersVerifyReturnedPredicates",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "part2AdvancedFilteringConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.advancedfiltering.Part2AdvancedFilteringTests",
+      "name": "systemEventTypeFilterVerifiesReturnedPredicatesWhenEndpointAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.apicommon.Part2ApiCommonTests",
+      "name": "part2ApiCommonConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.apicommon.Part2ApiCommonTests",
+      "name": "part2ApiCommonDependencyRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.apicommon.Part2ApiCommonTests",
+      "name": "part2ApiCommonResourceCollectionsReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.apicommon.Part2ApiCommonTests",
+      "name": "part2ApiCommonResourceTerminology",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "commandsReferenceSelectedControlStreamWhenNestedCollectionPopulated",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamApiCommonPrerequisiteVisibleForFullClosure",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamCanonicalUrlReadableWhenControlsPathAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamResourceReadableViaObservedEndpoint",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamSchemaReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamScopedCommandsReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamsCollectionReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "controlStreamsEndpointExposesControlStreamItems",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "globalCommandsEndpointReadableWhenAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.controlstream.Part2ControlStreamTests",
+      "name": "systemScopedControlStreamsReadableWhenSystemReferencePresent",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "datastreamApiCommonPrerequisiteVisibleForFullClosure",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "datastreamCanonicalResourceReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "datastreamConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "datastreamSchemaReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "datastreamsCanonicalEndpointExposesDatastreamItems",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "datastreamsCollectionReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "observationCanonicalResourceReadableWhenCollectionPopulated",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "observationEndpointsReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "observationsCanonicalEndpointReadable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "observationsReferenceSelectedDatastreamWhenNestedCollectionPopulated",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.datastream.Part2DatastreamTests",
+      "name": "systemScopedDatastreamsReadableWhenSystemReferencePresent",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.feasibility.Part2FeasibilityTests",
+      "name": "controlStreamScopedFeasibilityEndpointUsesNormativeSingularPath",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.feasibility.Part2FeasibilityTests",
+      "name": "feasibilityCanonicalResourceReadableWhenAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.feasibility.Part2FeasibilityTests",
+      "name": "feasibilityCollectionsCheckedWhenAdvertised",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.feasibility.Part2FeasibilityTests",
+      "name": "feasibilityConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.feasibility.Part2FeasibilityTests",
+      "name": "feasibilityControlStreamPrerequisiteVisibleForFullClosure",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.feasibility.Part2FeasibilityTests",
+      "name": "feasibilityResultEndpointReadableWhenResourceAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.feasibility.Part2FeasibilityTests",
+      "name": "feasibilityStatusEndpointReadableWhenResourceAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.systemevent.Part2SystemEventTests",
+      "name": "systemEventCanonicalResourceReadableWhenAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.systemevent.Part2SystemEventTests",
+      "name": "systemEventCollectionsCheckedWhenAdvertised",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.systemevent.Part2SystemEventTests",
+      "name": "systemEventConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.systemevent.Part2SystemEventTests",
+      "name": "systemEventPrerequisitesVisibleForFullClosure",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.systemevent.Part2SystemEventTests",
+      "name": "systemEventsCanonicalEndpointReadableWhenAvailable",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.part2.systemevent.Part2SystemEventTests",
+      "name": "systemScopedEventsEndpointUsesNormativePath",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.procedures.ProceduresTests",
+      "name": "procedureItemHasCanonicalLink",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.procedures.ProceduresTests",
+      "name": "procedureItemHasIdTypeLinks",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.procedures.ProceduresTests",
+      "name": "procedureItemsHaveNoGeometry",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.procedures.ProceduresTests",
+      "name": "proceduresCollectionReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.propertydefinitions.PropertyDefinitionsTests",
+      "name": "propertiesCollectionReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.propertydefinitions.PropertyDefinitionsTests",
+      "name": "propertyCanonicalUrlReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.propertydefinitions.PropertyDefinitionsTests",
+      "name": "propertyDefinitionsDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.propertydefinitions.PropertyDefinitionsTests",
+      "name": "propertyItemHasIdType",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.samplingfeatures.SamplingFeaturesTests",
+      "name": "samplingFeatureCanonicalUrlReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.samplingfeatures.SamplingFeaturesTests",
+      "name": "samplingFeatureItemHasIdType",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.samplingfeatures.SamplingFeaturesTests",
+      "name": "samplingFeaturesCollectionReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.samplingfeatures.SamplingFeaturesTests",
+      "name": "samplingFeaturesDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "deploymentSensorMlHasSchemaAndMapping",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "procedureSensorMlHasSchemaAndMapping",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "propertySensorMlHasSchemaAndMapping",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlDeploymentLinksMemberAssociationRelsUseResourceSpecificNames",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlLinksMemberAssociationRelsUseResourceSpecificNames",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlMediaTypeRead",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlMediaTypeWriteParsesSystemBodyWhenMutationEnabled",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlProcedureLinksMemberAssociationRelsUseResourceSpecificNames",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlRepresentationDiscoveredForSystem",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlSystemHasMinimalShape",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.sensorml.SensorMlTests",
+      "name": "sensorMlSystemPreservesIdentityMapping",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subdeployments.SubdeploymentsTests",
+      "name": "subdeploymentItemHasCanonicalLink",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subdeployments.SubdeploymentsTests",
+      "name": "subdeploymentItemHasIdTypeLinks",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subdeployments.SubdeploymentsTests",
+      "name": "subdeploymentsCollectionReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subdeployments.SubdeploymentsTests",
+      "name": "subdeploymentsDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subsystems.SubsystemsTests",
+      "name": "subsystemHasParentSystemLink",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subsystems.SubsystemsTests",
+      "name": "subsystemItemHasCanonicalLink",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subsystems.SubsystemsTests",
+      "name": "subsystemItemHasIdTypeLinks",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.subsystems.SubsystemsTests",
+      "name": "subsystemsCollectionReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.systemfeatures.SystemFeaturesTests",
+      "name": "systemItemHasGeometryOrValidTime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.systemfeatures.SystemFeaturesTests",
+      "name": "systemItemHasIdTypeLinks",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.systemfeatures.SystemFeaturesTests",
+      "name": "systemsCollectionHasItemsArray",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.systemfeatures.SystemFeaturesTests",
+      "name": "systemsCollectionLinksDiscipline",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.systemfeatures.SystemFeaturesTests",
+      "name": "systemsCollectionReturns200",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.systemfeatures.SystemFeaturesTests",
+      "name": "systemsDiscoverableViaCollectionsOrLandingPage",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.update.UpdateTests",
+      "name": "systemResourceOptionsPatchReadinessPrecondition",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.update.UpdateTests",
+      "name": "systemsPatchLifecycleOptIn",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.update.UpdateTests",
+      "name": "updateConformanceDeclared",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.update.UpdateTests",
+      "name": "updateDependencyCascadeRuntime",
+      "status": "PASS"
+    },
+    {
+      "class": "org.opengis.cite.ogcapiconnectedsystems10.conformance.update.UpdateTests",
+      "name": "updateMutationSafetyGate",
+      "status": "PASS"
+    }
+  ],
+  "contract_sha256": {
+    "conformance/fixtures/system.sml.json": "e2c08a0146abf15c30c186a23980eb5611193a58f827d0bf0a9a2246c74ef018",
+    "conformance/fixtures/system-hosted.sml.json": "03618dba967cddef3cf71dde91e7e6ba0fe0439c530ee08bbbba3b5ad743907e",
+    "conformance/fixtures/observations.om.json": "35dbca3af4be4a3100ebc70f986aafe7ed53ba653d60ac125681c9bdc1874651",
+    "conformance/fixtures/area.geojson.json": "6bc10df690d3bdc5bb985ca6972f537f603e3cd9e67f2fac68aea8f9036a8ba1",
+    "api/upstream/LICENSE-OGC.txt": "b3b9a76d230f057844d004c374406453d92f863caecaa42ccd9c7863e143fed1",
+    "api/upstream/NOTICE-OF-MODIFICATIONS.md": "21e66859f4b3e35e262ced4d9ecd3c5cd3919caf1075b7946159c2448876246d",
+    "api/upstream/README.md": "b43f0ca6981b85cb9919c3bbed2ccdf519a9b4e38b062db56dd51994dada107a",
+    "api/upstream/part2/README.md": "5ec076f5d8236adb92fcde07cb67c23f77faa9ec73d695c54f67a3a7e66d9d3e",
+    "api/upstream/part2/openapi-connectedsystems-2.yaml": "b1708f904711dc6268dcda4ccbeed70b9170ab78b32fa1325e602bdd8992f366",
+    "api/upstream/common/xlink.json": "4f992b13e6a8c19a00423d0871886aa2eaf15cd7b8d1b0b694c2a755a54f239a",
+    "api/upstream/common/README.md": "e68e75d82308d3b3884b71950948c80ee33c53c96e19450c797b9446cc31a844",
+    "api/upstream/common/timePeriod.json": "92715bd7e479b3fd1d0a9c4ccd743d58c39e9b5521db3c5923221090988c20e5",
+    "api/upstream/common/timeInstantOrNow.json": "29111db71007bd1638993a8777704971b9d25f81173688eeb9ab538150309bf8",
+    "api/upstream/common/timeInstant.json": "6ebf86e747c4aafbcd2eb05172193f5c03ad69df7e4ecd467dd3c27b0967e1ac",
+    "api/upstream/common/link.json": "3191268fa550fde1bc8e487457ccc6d795cdeb5e447e452e1220db441fd723ce",
+    "api/upstream/part1/openapi-connectedsystems-1.yaml": "b40a3a86dda90824b204fb9882e4238f533ea2a66f1d0540051c5d386660b546",
+    "api/upstream/part1/README.md": "5ec076f5d8236adb92fcde07cb67c23f77faa9ec73d695c54f67a3a7e66d9d3e",
+    "api/upstream/part1/responses/collections.yaml": "edd3c6cd972aeccc0946f1078d32388d4660cc29ca03ebcf5e853ba9181bca3a",
+    "api/upstream/part1/responses/deployment.yaml": "c4639e266952814de4090a39259391bb818fea0c4bdb465ab59a6364ff7ecadd",
+    "api/upstream/part1/responses/feature.yaml": "976bb4bb2e6ba661b131735c551c3a476bc1264810381b2661d0d2b9dfb271b0",
+    "api/upstream/part1/responses/propertyCollection.yaml": "f318ccda280099bd2208857c09ac07cd3709e09722630038c9cfb1dbd87a1fd5",
+    "api/upstream/part1/responses/featureCollection.yaml": "1f425ded25d088a18855ecb06c1890b7baaea7cf087f3d17a08e03d43c3c02a4",
+    "api/upstream/part1/responses/StandardResponses.yaml": "fcf7806ecd9ef6670803a52a4afbe148f49a74e5e680023460932cd27cddeef8",
+    "api/upstream/part1/responses/procedureCollection.yaml": "c275bbd46da1030d0022838c02b6bb27b65388729d758c19e6b3ff2c96a111b8",
+    "api/upstream/part1/responses/landingPage.yaml": "5d63d84fd79ec6f211fc63e9386abf86b0cf43c0d2eb9438ca94c02463409c77",
+    "api/upstream/part1/responses/samplingFeature.yaml": "e19dc82da9d893ec10b3956a1914541955361c7165900ba28419a34c9f960416",
+    "api/upstream/part1/responses/collection_schema.yaml": "a82b9de1dea28eced2a4c3ea2799491479935d9e065dbf20549a0aa55555df48",
+    "api/upstream/part1/responses/procedure.yaml": "c59104954cdebf3d0d98505bfd0e3a2bf2206fae1b7f063de93c152b17921240",
+    "api/upstream/part1/responses/ServerError.yaml": "6cd67f0b02d5b8f7d55a65f5c14043fa0d10fe7c39982ca7ec65266c8a37e9b0",
+    "api/upstream/part1/responses/deploymentCollection.yaml": "e533dbd3b4fee107a2b943f2d05109b7b8ed90b39fee069d66c3df7b00b1c9c1",
+    "api/upstream/part1/responses/resourceLinks.yaml": "de9316b38d901b71ff730f0d11c8e9dbc9023f30ed15969e337c4bcd09556638",
+    "api/upstream/part1/responses/samplingFeatureCollection.yaml": "9b9fb9d0b57e9deba5fed08172bd26d4b6bece125faa163b8e184b5309c1145c",
+    "api/upstream/part1/responses/system.yaml": "6d7626d5c5f8737b0f62e0a63ba22b4f07f309691d7eeb02c5203f0044af0e2a",
+    "api/upstream/part1/responses/collection.yaml": "685e540ca687531d29bfe3a67eaec2c40bd6d3c8035f7ba989871e23b1ffa4c6",
+    "api/upstream/part1/responses/systemCollection.yaml": "fcf02072bc5c6961c3ac8dff7df61e07ddd2cd315b075c757ee6edce28956e42",
+    "api/upstream/part1/responses/property.yaml": "f49c7e85ea15175a005fe77d9324749f66b5f9411107ff99fbb1c8a30dd2ff55",
+    "api/upstream/part1/responses/conformance.yaml": "4715201b8900194e96c8d73b4cfca48aac147dfd5b5a30150ccfb3ec136f7e97",
+    "api/upstream/part1/paths/collections.yaml": "09496bd76864364794e1b1a86f84ca7ef2079d24399f3f62b2bd0f1b97c4f4ed",
+    "api/upstream/part1/paths/systemDeployments.yaml": "2db03cb1cf16efcf9525c7f9c80027818650763113c73e967c8553f99970a6f8",
+    "api/upstream/part1/paths/deployments.yaml": "cd08bb7f21b303bddb197a4aecea60a37ab68ec82c62d7565e92a5757d009fc0",
+    "api/upstream/part1/paths/subdeployments.yaml": "e456b8af5bd5bc4ca60e37d9e958612030c067d2054bcfe32e78f8b9f3e6c94d",
+    "api/upstream/part1/paths/procedureById.yaml": "bd3444eeb8f8281826e660b68dc40b2d0490e2a3d811d194f7d13263c3c51d97",
+    "api/upstream/part1/paths/propertyById.yaml": "104594477e2f85ee36e8d1cf6ff3416dad55f2f4d7eb2b0b98cff1488682b38a",
+    "api/upstream/part1/paths/collectionById.yaml": "c3e725451b90bfcf189c25780070113260ae98dfd512114d9de46c7453e45e1a",
+    "api/upstream/part1/paths/properties.yaml": "ad3ee6493ba3253bd79cd41aece661a7439182f5f77736b8c4dcf5bdfc3d51d3",
+    "api/upstream/part1/paths/collectionItems.yaml": "532b484f921112c559c02ade9d9a6bae3415724727f903c77c36af37a1ff48b6",
+    "api/upstream/part1/paths/procedures.yaml": "8b131acce11bc463c8c993ffcf51caefbf5be88b4ee53667bde3cc942816f74c",
+    "api/upstream/part1/paths/subsystems.yaml": "cec7fb02504b245b5c516232cb911d1ea3f51bdabec356386b44725a79c99e38",
+    "api/upstream/part1/paths/samplingFeatureById.yaml": "d0cc71526da8c31a58709198c00962f1e4967fe0b9983327ccbfc71959013b79",
+    "api/upstream/part1/paths/systems.yaml": "9df7f2c9baa74a14881ff13d8fd19004d0adb36e450d08950f92bc1c18b15781",
+    "api/upstream/part1/paths/subsystemById.yaml": "11ed415ac1abc88f5c1acb4fa4834a95eae2c347e35f09383db4b4c2922974d0",
+    "api/upstream/part1/paths/samplingFeatures.yaml": "994ed59d652c10f2a80ef676629f97998a9b5d46f24bb66d2f66bc905d289b0f",
+    "api/upstream/part1/paths/systemSamplingFeatures.yaml": "16bd93809eb325eedcab0f0fc37bfac68ffb5dc85b7f959cea880d8488896687",
+    "api/upstream/part1/paths/deploymentById.yaml": "4690a3307044a3765aa69dc5ddb29b5aceaa84939775eaacf36f1c52d65e9525",
+    "api/upstream/part1/paths/collectionItemById.yaml": "ee61942008e646d1d6f806f84fe8d243cb5ec8647b84481f9376da76b2eb28cb",
+    "api/upstream/part1/paths/systemById.yaml": "4145d2f4e23ae2af832beeb4e20576d7e38fa451719c2e32f5b3ad54c15d46c9",
+    "api/upstream/part1/requests/procedureOrArray.yaml": "575ac16f843fcbdc4b9902f786468af20d9914f0f2db400ca6dfc6391d621cf6",
+    "api/upstream/part1/requests/systemOrArrayOrRefs.yaml": "35b2768c863c2f902f95070776c9ee21ae12580dd4e96d90f3913f86bbdda5fb",
+    "api/upstream/part1/requests/deployment.yaml": "3b65f3b9c3a5cba9828dba269ae74333a64c864c4fe01bd5ca71a2dbea152d51",
+    "api/upstream/part1/requests/samplingFeatureOrArray.yaml": "95f7ec2acb8ddcd77b5cdd51ff381a2a858c941d122f25a9c4c7c7ee11bc63ac",
+    "api/upstream/part1/requests/systemOrArray.yaml": "7cd2d70469271b7cc5f3ae777a215719405cecf7cad447faded1e76c8146a655",
+    "api/upstream/part1/requests/samplingFeature.yaml": "c106f0044ab5ed63197db097dde3ab5da7e45510a8ca1c3337bd7115f7e14d26",
+    "api/upstream/part1/requests/procedure.yaml": "af95621139b8a0076991fe454430acfa1ba6c5766ef40201448e1dda900a586a",
+    "api/upstream/part1/requests/system.yaml": "ae7b16b8bba98714f38dc776f7f24039708e2e3f42d93a20d3dc20f0782df69e",
+    "api/upstream/part1/requests/deploymentOrArray.yaml": "66ee6bafb6a20b13c4a22493ac2354a9dec0fb7038b0ba4078b5132ff33f9cff",
+    "api/upstream/part1/requests/propertyOrArray.yaml": "a572c9b11cc43ae0e4c755da89f83a0fe221820a7efdd23d66185a49c9e4fb88",
+    "api/upstream/part1/requests/property.yaml": "b8d37630e995142b352588e155683b306f4f6b0b8c1ed8c77677345d419420bd",
+    "api/upstream/part1/examples/landingPage.json": "7cbeded4f94d60f3f28a226b324b3d6e8055940c30b59585633b7c28448eecf4",
+    "api/upstream/part1/examples/confClasses.json": "24bdaa154c28a362f7a815762db208ad7e8a554d38ec33c3cbd930be676a94a7",
+    "api/upstream/part1/parameters/objectTypeUriList.yaml": "37139973b361e5d763b7f00b4a6ab3f4c5c94a5f694b9ac40447311209e62e15",
+    "api/upstream/part1/parameters/recursive.yaml": "7d77401db9bdbd25d39fa918cfd5a15425a36bd0773d1449b7fabca74ae56180",
+    "api/upstream/part1/parameters/datetime.yaml": "932a2df0440e3cc90315650e06306adfe1fe63736ecb4c2d942433d2a73e9258",
+    "api/upstream/part1/parameters/parentIdList.yaml": "2eaeb8f23d600ad377e21d1adca30e58073455165d7fd6ff1052b568f090e997",
+    "api/upstream/part1/parameters/featureId.yaml": "505cb3cc649370febc4126b5bb3505064b0513ba87a6206cd31ef86f3f9a0f84",
+    "api/upstream/part1/parameters/deploymentId.yaml": "8529a396e16d1f5a958b9420fc3f1631230fa667a9cd88a12a771ebb41d9cfb9",
+    "api/upstream/part1/parameters/propId.yaml": "b4f534d5909377f78794c2094f6c41c207bd6e82e32bd2602a3ee1c076989717",
+    "api/upstream/part1/parameters/cascade.yaml": "cde2e7e6ff1a521ba4703ececbd7464581304d8d097203275811906ef714f9ab",
+    "api/upstream/part1/parameters/keyword.yaml": "b76a46b7b2bca2bfc82345b742c353a2b90e33f08706588cf30ad820c34150ee",
+    "api/upstream/part1/parameters/controlPropIdList.yaml": "460d1d3ffe928881e7135b7d0076517d91b934f21c0463d0bdfd8605dd6d6103",
+    "api/upstream/part1/parameters/systemId.yaml": "b6ca144adca9d45ac50e1d7fbca386f4e009fe688a7ab614cd1da6d2060c8da8",
+    "api/upstream/part1/parameters/obsPropIdList.yaml": "91bf4a7c6ec0acb64e9820f97f9b70120b40cadfe7f3a9012c3e0329539e37da",
+    "api/upstream/part1/parameters/urilist.yaml": "019d8432df78d25a1586eef5704fed5601e82f3b33692ee385b36b8f8575d6ea",
+    "api/upstream/part1/parameters/procedureIdList.yaml": "258086335fdd53d38a9e2caf325fa62bde0e9ef97535fb2eaf6cadabeea9e732",
+    "api/upstream/part1/parameters/resourceId.yaml": "cdf29b4a24bbe06fe6f012a309acfad80eaaffe315f753e53eab7aac3b209010",
+    "api/upstream/part1/parameters/datetimeSchema.yaml": "b38730104e9a63d28fabe03666160d6260ffdabdff71173bb68c3fdd6ea9a5f1",
+    "api/upstream/part1/parameters/geom.yaml": "baecbdc2124a84312b1a57f40575b93bdc2001cf1e7d957c6a4df6d728d228be",
+    "api/upstream/part1/parameters/datetimeExamples.yaml": "733a277207930687a409675accd52a53487798b23c8c910b55b2a23296946450",
+    "api/upstream/part1/parameters/idListSchema.yaml": "5ad76eeb77743ed8ae6460adcc45746fad49689b6b80616d8ad98b2131dc0060",
+    "api/upstream/part1/parameters/limit.yaml": "4f88e7f35e14d5851cd2ccb40ff319d09474702798e554f9f57d5487e760f33a",
+    "api/upstream/part1/parameters/bbox.yaml": "178d4facb88082bea73d441c00477a820eb64683e4184a8d3a39dc9452212f55",
+    "api/upstream/part1/parameters/basePropIdList.yaml": "a80b97b457b7a80cb87d5f8554b44633221d3c4cd7a8936612ee4dc6ea042649",
+    "api/upstream/part1/parameters/procedureId.yaml": "1e81e5dad557f9e987a865a5bba086de955c0c2f47f70a5ce9b6b98b2194159a",
+    "api/upstream/part1/parameters/idList.yaml": "1fc1ac7fe411b96eb3cf1b4b10af99a6488f7180fc0406c719448ba4dd94be01",
+    "api/upstream/part1/parameters/foiIdList.yaml": "0c63ca09ddd406cfd01d9f37b98e295d6692bd5a9f4698bd16720b94ac423070",
+    "api/upstream/part1/parameters/deployedSystemId.yaml": "9075e4ff2ef5cdd5856b0dd6021eb636bcc1848b553d9a40e22bf9519cd45e7d",
+    "api/upstream/part1/parameters/collectionId.yaml": "a4af115c7e7d82c3da8eabd3478c42fe80e566cbf6b33e70fb903679296f4ea5",
+    "api/upstream/part1/parameters/systemIdList.yaml": "0c5122dd17503614e6648b7a14e407b29bc3a9feeed029a9e7457f849fd021c3",
+    "api/upstream/part1/examples/procedures/sensor-datasheet-geojson.json": "2bf7aa07afd83b58957e719fddda9ce715e5b3e0eeb0febb2ddc646e01609c4e",
+    "api/upstream/part1/examples/procedures/sensor-datasheet-sml.json": "6a9690b0d04689af64030341ae9fcdb91c30858df4c21870910da4a4179c4f3e",
+    "api/upstream/part1/examples/procedures/ins-sensor-sml.json": "db900a73732a5fadb7460549be131ce92e2eb952f20ecd238dcb1ad7e7c1c370",
+    "api/upstream/part1/examples/sampling/sampling-point-geojson.json": "67de14e28eb245a68b47c32ce6d805f7c93753d0139c5aa734156e2471cdbed2",
+    "api/upstream/part1/examples/sampling/viewing-frustum-on-platform-geojson.json": "bf8a737841fa6bc0f44d548133529db4a112197e973a3f611c5aba888794fac8",
+    "api/upstream/part1/examples/sampling/sampling-proxy-geojson.json": "64a89e5e3eebb2be87f34535cac8802817fde76c2c2be643a8ca283fd934627d",
+    "api/upstream/part1/examples/sampling/samplingProfile-at-location-geojson.json": "6e7bba9877a57e21ff612bb260a4ef2c63c225c8b0cdd5788225486e57d6f0b3",
+    "api/upstream/part1/examples/sampling/viewing-frustum-at-location-geojson.json": "cfb2bd3212eab56d83077fd61df32a80512dd9bc90578d5fd95fc5bd36e4c491",
+    "api/upstream/part1/examples/sampling/sampling-point-xyz-geojson.json": "541ca9c8ac93d4f480a35a86387bcd77a09091d179f953fad9c080254ff70125",
+    "api/upstream/part1/examples/sampling/sampling-part-geojson.json": "fb19779d3f85869f259ed06e4fb8c00a21d561a999d67872f59f306799226d5b",
+    "api/upstream/part1/examples/sampling/sampling-specimen-geojson.json": "8b39359894a0442e21e4cd22f936dbafe73aba19e670a128b6c3205d7392cea4",
+    "api/upstream/part1/examples/sampling/viewing-sector-at-location-geojson.json": "9febef3d55335425186b60d7bff6a8723d6a939477f89b9bdc615bd80d7f340f",
+    "api/upstream/part1/examples/properties/combustion-chamber-temp.json": "cc9981ab7e3cf694225700f4f84427ca0ac83507c5806ffe241fb4a0628144a5",
+    "api/upstream/part1/examples/properties/daily-avg-air-temp.json": "d28bb5153fac7c48f3b453f3f5e9289b09f74ab25069a0fcd57c0fbcd85760fc",
+    "api/upstream/part1/examples/properties/received-rf-power.json": "38dad6cbc3a5ae339e5037f5f1d7d790d608ad569bca024482585ab92370b61a",
+    "api/upstream/part1/examples/properties/avg-cpu-temp.json": "8709db264fe0bee9cd60fa012b84fd859b29aa72bd800b908bf6e85f76fb48e1",
+    "api/upstream/part1/examples/properties/received-rf-power-xband.json": "c9dcaf6d17b82771d8cdb6648b88a2e9ed6903b8b703ecca26e4a5248603dc9f",
+    "api/upstream/part1/examples/properties/air-temp.json": "fe71473eaa1136e9fe0b74cf627618de6c2a9cea98fe78c127b027f291436922",
+    "api/upstream/part1/examples/properties/engine-temp.json": "1e7cdef07c9be8ed050fc0afe1e2e14d7507a05a5c0e09470ebdc5ba5b4aa239",
+    "api/upstream/part1/examples/properties/water-temp.json": "5306a15f8e2622b98a17848391bb202c5329e0ed1bb80a51238bdb3fb6d9eace",
+    "api/upstream/part1/examples/properties/engine-power.json": "fb32b2236b4d1b79d69681fb1a754d670859b697d4c7b4e88838f1d7592540d4",
+    "api/upstream/part1/examples/systems/uav-platform-sml.json": "e2e91877d0bab7e17fb48d2dfef343628c5f2a2a8fbb8d047169dc8d907fc118",
+    "api/upstream/part1/examples/systems/thermometer-sensor-sml.json": "f27c4b096ad3de331a09cd2f082200bb03232f9560efa00fa911ef3821bfa54e",
+    "api/upstream/part1/examples/systems/thermometer-sensor-geojson.links.json": "8fe4d9e07cc27a49d6b6287caa47a583b8ec8a368bbd1d3781f3cfd3cf432c6b",
+    "api/upstream/part1/examples/systems/uav-platform-geojson.json": "42220a3c2d6e08faee93b723aa58bfb3337319715cc875678e8559d82b9f43ec",
+    "api/upstream/part1/examples/systems/uav-platform-geojson.links.json": "72d1b9a40b2c848dfa79a456c33a30119e929f25635b4a3c3906c576f1ce7172",
+    "api/upstream/part1/examples/systems/thermometer-sensor-geojson.json": "5dc30ceacc24d78093c843cb41d601d62a1f64091bf648b0ddef2d7b6e051831",
+    "api/upstream/part1/examples/collections/collectionItem_deployment.json": "bb124230db7bb543ced55f1b588e1dc1f4d063ce77ff6a3ecbd7894d1458d52f",
+    "api/upstream/part1/examples/collections/collectionItem_system.json": "0d4e4e1f8cf18168a42de3d1f5c54411d483471d2fc52d0111f151e3bee0e82b",
+    "api/upstream/part1/examples/collections/collections1.json": "ef9c120445872330120ddca6d65a36cdd3025ba838ffb0c0acba618148d0f3da",
+    "api/upstream/part1/examples/collections/collections2.json": "b1f0651f1ef19269b7beacec642ef3238613d4d9ee6dc547228da265a4244117",
+    "api/upstream/part1/examples/collections/collectionItems_systems.json": "de7326e6e3198fad089820ba5c93dbd00736bb658b62bbaf655c1d5c79ccaacd",
+    "api/upstream/part1/examples/deployments/deployment-sml.json": "6b63bedf97ca0b9d1b53081dca99530015bc1bdb94df10e88d3f46d2ce0fdafa",
+    "api/upstream/part1/examples/deployments/deployment-geojson.json": "a9f0e1e4ffb13beb57b37fbfcc147cbe999531f65012502453601bc0684ec4d4",
+    "api/upstream/part1/schemas/geojson/feature.json": "e54c8e5f8f4e4f3a1cdf73612ddccf3080aa0db525dfdf8f36c91b3673a0be53",
+    "api/upstream/part1/schemas/geojson/deployedSystemArray.json": "6e05ff3df1629716863b4f1fa0c3e0526c1ec471d0b6e88c1c04adaccb879056",
+    "api/upstream/part1/schemas/geojson/systemArray.json": "d9be0ad895317bd8613ce513e289d25ef7424e496dfbc974888addf79fb1d05c",
+    "api/upstream/part1/schemas/geojson/deployment.json": "7bd87cada71605228047d7334ee50aacf7919e39ba527815a5498fb4aff01a24",
+    "api/upstream/part1/schemas/geojson/procedureCollection.json": "a8063b086e81837bcb3b66af1791b54d4e5f728afe67e21e996f64faa6c695d5",
+    "api/upstream/part1/schemas/geojson/deployedSystem.json": "003d96f3df3b80ba1efc7370049f29e283885251d3201640831cef6f45bde73b",
+    "api/upstream/part1/schemas/geojson/deploymentArray.json": "91142a1a1a7ea1035f80c59feca290f400aee1d6a0099fb686d21c81321b865e",
+    "api/upstream/part1/schemas/geojson/samplingFeatureCollection.json": "be0f10e0dd7c17bbf22b3c8e15899f957ee51c568370419e836e806013888b32",
+    "api/upstream/part1/schemas/geojson/samplingFeatureArray.json": "820397e62c586a9a060e4e58eb3cb1486c4dd30880630c658a916cbfa3988bb5",
+    "api/upstream/part1/schemas/geojson/samplingFeature.json": "eaa13b9aeab243c0bc8741e916dfce394001c419bc780bd740ecf74719750a03",
+    "api/upstream/part1/schemas/geojson/deploymentCollection.json": "f2509acd6bbed268349e1b073a35c9a391200fc45e15f9d060a67a5de3a9d0d5",
+    "api/upstream/part1/schemas/geojson/procedure.json": "b69d7e63a24c99fc8b3e831f1a43d0f9d39a5dfa68b63914e4bdf80b85d27edc",
+    "api/upstream/part1/schemas/geojson/systemCollection.json": "85cbbad930cfb8e9d9369fb7465d02bfb73f37fca96bfa8a9a4c6090c32707c6",
+    "api/upstream/part1/schemas/geojson/procedureArray.json": "401bfde380b61bf360450b6ea0b793c789537be397e56b0e968026e437349c75",
+    "api/upstream/part1/schemas/geojson/system.json": "9c5c56c8c7feb6fc697e685746178aade7e2a1ee3ed3c5e3eb6d203c26be45db",
+    "api/upstream/part1/schemas/geojson/deployedSystemCollection.json": "5d5a6153d0c6748af910be041bf0894e4c1356e85c91eed111275abaa5d094da",
+    "api/upstream/part1/schemas/common/commonDefs.json": "c8e7a05a9f5747f65f0be936dfc91d1f424c5961cabbba16d3bb9cf971d84dd6",
+    "api/upstream/part1/schemas/common/links.json": "b365bc0fc8325f8df468bbfc289d9775b217587849c9278ce4b522f7696da8f9",
+    "api/upstream/part1/schemas/common/batch_response.json": "0f0c8116a94184f17a91c0efe77f2dd3e6f2d6e0cf6702c04fb79bf3dce94307",
+    "api/upstream/part1/schemas/common/uris.json": "f57f7cae0fa5a10072df900cfeed4defaf94d0fa50bcab0ad8f254c6fa4b8d77",
+    "api/upstream/part1/schemas/common/batch_delete.json": "067b92640882d9dd554a42fa72684d18639c31c0283ee9557f0fc3f7ffac5213",
+    "api/upstream/part1/schemas/sensorml/deployedSystemArray.json": "6e05ff3df1629716863b4f1fa0c3e0526c1ec471d0b6e88c1c04adaccb879056",
+    "api/upstream/part1/schemas/sensorml/systemArray.json": "d9be0ad895317bd8613ce513e289d25ef7424e496dfbc974888addf79fb1d05c",
+    "api/upstream/part1/schemas/sensorml/deployment.json": "afbb91652408ab7e96e8f2d52aab14341dd294d29aa2e37c49b1346ca5201b02",
+    "api/upstream/part1/schemas/sensorml/procedureCollection.json": "8bd9131dbccc2be7cf11acd91b8bb6e0c4eb3f910c6dbcec773264d6e1d9bcae",
+    "api/upstream/part1/schemas/sensorml/propertyCollection.json": "3c56cce1802792a8da22def83d78258386ec02553f0c84bbddbf7efee4c435fc",
+    "api/upstream/part1/schemas/sensorml/deployedSystem.json": "be2445e73d5f8a776aef75d0649e4c5804a6be7b518e2c0cdbbcf9af1397fdbc",
+    "api/upstream/part1/schemas/sensorml/deploymentArray.json": "91142a1a1a7ea1035f80c59feca290f400aee1d6a0099fb686d21c81321b865e",
+    "api/upstream/part1/schemas/sensorml/deploymentCollection.json": "bec07a3b294f7e60a69352bc523e3473fe88a69723036e0d2856d3e07f14a756",
+    "api/upstream/part1/schemas/sensorml/procedure.json": "3527a6ccbf3147ccae01aade49fd36e79beb4fdf467484fab393a03777c9eb81",
+    "api/upstream/part1/schemas/sensorml/property.json": "e3d9be2febb441af8ef148de67c41ec9d244b0639507985e52acfafb41ffd071",
+    "api/upstream/part1/schemas/sensorml/systemCollection.json": "4ea9be0cac2fd9c18ce7e74b3b75252101bb7a310651af553bdaf2009d2798e3",
+    "api/upstream/part1/schemas/sensorml/procedureArray.json": "401bfde380b61bf360450b6ea0b793c789537be397e56b0e968026e437349c75",
+    "api/upstream/part1/schemas/sensorml/propertyArray.json": "67e4eb001074821e421564f055027a1914a2fc74af4c0d4d09a1059ce01ae642",
+    "api/upstream/part1/schemas/sensorml/system.json": "033fc020c490e43d8a2049496cbbfac69d3d037862432a4502b40b33d6a7815c",
+    "api/upstream/part1/schemas/sensorml/deployedSystemCollection.json": "72d1d99f39e20cbacc0ba4de4a5bff1b800fb1ca80ecb3008c5c04542210ef70",
+    "api/upstream/part1/schemas/sensorml/sensormlDefs.json": "a9e0b022cd6d326c821409c03ed780259d3181a823bc6eae860fc2cb0b217f8e",
+    "api/upstream/part2/responses/commandResult.yaml": "623c21d6c0b2e0de1dcb5264c8e44d7f390612c418257ff65af0c4d217bc0bd1",
+    "api/upstream/part2/responses/observation.yaml": "5e6d2174bd49f06897c64549768c72428ff14f8d38c0dc5c595b10421b480f39",
+    "api/upstream/part2/responses/observationCollection.yaml": "e139ab28539a533e794a3a6232a724a21f63eff263c402002acfa3635555a705",
+    "api/upstream/part2/responses/systemEvent.yaml": "554222704b1c657e7ec62acd5cbcb9ff758e2da0f4e801b28bb116d45f8239af",
+    "api/upstream/part2/responses/dataStream.yaml": "b20bd01cf96f3cd2071714cc0517a96d62b78a26f15fe787da0c0055229025f3",
+    "api/upstream/part2/responses/controlStream.yaml": "a27dfe8b5ae97021ce7d35032fe9f4bbb4a73d84146d2d0bfe5de4ee20baa0ab",
+    "api/upstream/part2/responses/dataStreamCollection.yaml": "8b6559f451c35cf455771062d1c8979721f55d609068246df2204bb435f96468",
+    "api/upstream/part2/responses/commandSchema.yaml": "40776415caedeeb61b9e8c2a874ce582e6be8198f2988454e579c05be80627c6",
+    "api/upstream/part2/responses/controlStreamCollection.yaml": "c0a6e69cfcf18cacd0855f57463c08bf8d183f2f758ac8fab67ccc2ae36b4050",
+    "api/upstream/part2/responses/observationSchema.yaml": "415e56663bfaf4d2d6ca3f5c85a692de4e0cde21cde409864c1df33a5393e66f",
+    "api/upstream/part2/responses/systemEventCollection.yaml": "1f90a304fa6097538a92ce79af0978d6784a3f93bf39a7ed815ead3b2c6e636a",
+    "api/upstream/part2/responses/command.yaml": "54fa8d3e7c0fe7d006f216140352a7ae9b5d1468348f84197e2bef840061e4ad",
+    "api/upstream/part2/responses/commandStatusCollection.yaml": "334a4a8c609e2932eccd6835a66f7a712c06f4e43f8e4714987e49ccb3d137a1",
+    "api/upstream/part2/responses/commandResultCollection.yaml": "26ad4329bf0d39b8fb3c2c773a13a84c5905c691203e8d9c531be90423890237",
+    "api/upstream/part2/responses/commandStatus.yaml": "ec96e07864957d4e2c83e7b1c1b24cb0b349d81da199847be352cc268a54d1d9",
+    "api/upstream/part2/responses/commandCollection.yaml": "c0283b38f53255e15ecbf05c197d44359830156db2463390e0dfc0fb9012cd6c",
+    "api/upstream/part2/paths/systemEventsAll.yaml": "63d926a210485e178eb86a71614a2e0b4fd6376d756f0f833df59ffdf8165eae",
+    "api/upstream/part2/paths/systemHistory.yaml": "917b5789b0fa88b9b2ada29e7f5e6e68a6067927c9ff8b384e217bb181162ec5",
+    "api/upstream/part2/paths/controlStreamById.yaml": "8d6a3f86dd3305f2140898bb8df38a839984382458b03becf1a4316cffd77db0",
+    "api/upstream/part2/paths/commandById.yaml": "085abf20fa082334dc984f2d6e66d7e5e4e5ccaa761c41aa1a4f9797e748a5c3",
+    "api/upstream/part2/paths/observationById.yaml": "c200350133eb626862ed658c0d2bd43b8957b2668bbf8372ac016d82369cd8ac",
+    "api/upstream/part2/paths/systemEvents.yaml": "3047de2625d8bf2a9b0222e732ad9f16d30c360bd005bb0d74684db423c834c3",
+    "api/upstream/part2/paths/systemHistoryById.yaml": "926040b5cb0e150707d4e95a77f70aed722d9e864f61b07e2eb7a3618e89541a",
+    "api/upstream/part2/paths/systemEventById.yaml": "3c69c3d7b964d528a181b9a593d8836cfa995b711815dda110e0e450848f7bb6",
+    "api/upstream/part2/paths/commandStatuses.yaml": "6398b22fb67d86dea3b042b544780737a798b31863efec7c56b8e5fba5977d63",
+    "api/upstream/part2/paths/dataStreamObservations.yaml": "0c583dbf2fa429973e0243c8062a6ff804994366e45abd3a1e21f4bad14be615",
+    "api/upstream/part2/paths/commands.yaml": "41d5275cf3555c52fa2d9a2fefe8d05ce0e82e79ba64f95a8df43f106074d05c",
+    "api/upstream/part2/paths/controlStreamSchemas.yaml": "853fe1930ea06a7d18cd6dfd3ca41c63b99564ed05d064db650e0b47f2ff6247",
+    "api/upstream/part2/paths/dataStreamSchemas.yaml": "6da24c28d3fa450b758ecfa59ffc3bc549789b34ca4f505ec06f641611ab6b3e",
+    "api/upstream/part2/paths/observations.yaml": "a113d32af5910fad8db4e14c798cde9957b82938fc00fa2bb7ae106243306668",
+    "api/upstream/part2/paths/systemDataStreams.yaml": "2f9e2ed5a4eb779ce43ae1cef9354837bf77573b7e93a8df8d032f3f32973f8e",
+    "api/upstream/part2/paths/systemControlStreams.yaml": "46ade6e78855c3785f8e1cc72374bb58d617534f21093a3a79b9bf993c0ed982",
+    "api/upstream/part2/paths/dataStreams.yaml": "0a7adca4bb7d0cadc2ec5040c6e7583b9e115a82a751ad7c77ccbea0ebe895f4",
+    "api/upstream/part2/paths/commandResultById.yaml": "fb406aded1b78fd3a2cc446bcb65ae4ceadc2e0a7bca88c410f1f154c8894cfd",
+    "api/upstream/part2/paths/controlStreamCommands.yaml": "16f56bae4191832ec112c64ba204b142681463fe5ec26a94f80b3cbccf7ccc65",
+    "api/upstream/part2/paths/controlStreams.yaml": "7c4eecc537fccc7c755433a49427385489011ecbac42ef1ca51f68823d3c36b4",
+    "api/upstream/part2/paths/commandResults.yaml": "b1f8c9856eaecdd15af6fc058cacbd3041486d3cd20fb2e66d41fa7727e6576f",
+    "api/upstream/part2/paths/dataStreamById.yaml": "a3be44a913538fa98b819cde0b6e522d3ed635821c0562a49e147d223c277dc9",
+    "api/upstream/part2/paths/commandStatusById.yaml": "eaa943ea5625c6620ec6be031a505be2ac07ae0cad9dfbe8b256e88a2c116617",
+    "api/upstream/part2/requests/commandResult.yaml": "3348324aa052a75df20ee94c0024132b396b2b72d0dbc666bf57eee2f03e96b6",
+    "api/upstream/part2/requests/systemEventOrArray.yaml": "be512f60eb4f1b1c2046be2756fe733be7e4d9ad9eee151677ba5938ee715e5a",
+    "api/upstream/part2/requests/observation.yaml": "8b952a1f9b6f13295d9376f3570107e800275fe6143a5eddc57825df592cb618",
+    "api/upstream/part2/requests/observationOrArray.yaml": "389f7e3511f50b9e5c51355979120241dfb0594e8a9ff3ed90bfb5c16eb2646f",
+    "api/upstream/part2/requests/systemEvent.yaml": "5376bf89cdd55941f6012b374f651e79f7f8f8ac598115d996034e32a49cf5f2",
+    "api/upstream/part2/requests/dataStream.yaml": "7b8115a9e0b84ed36702a8300a2ac837047ec0713740b2654ec1d7f67bc26618",
+    "api/upstream/part2/requests/controlStream.yaml": "8ace750fc0a5d69afb86a6df33861f77315956099e74d54b77f373723123bf22",
+    "api/upstream/part2/requests/commandSchema.yaml": "6c27b0c0fe72fcb8bce61e9d5b90b450f3b27fac8a63e4c1d7325a98e0a2d81c",
+    "api/upstream/part2/requests/observationSchema.yaml": "d8cca394df2246adc7fb7e14b4321ed216a37c51017750ea6d770f15c7b1c9da",
+    "api/upstream/part2/requests/commandOrArray.yaml": "3a4cfad76fe88a41d79526016a45ac6ae4f04743993a207fc924e6d3b9ee7bb2",
+    "api/upstream/part2/requests/command.yaml": "fed698dd91555486ad6dc314d15a8893e28d705245b1fd3b5b661e223724ced6",
+    "api/upstream/part2/requests/commandStatusOrArray.yaml": "0344706d81a68f141e8162333b978c86414d449c3fff98f7959794d61e121343",
+    "api/upstream/part2/requests/controlStreamOrArray.yaml": "3ee9a6ed877d99f37c9d57c4f5c0ab441f51c4aba5d51256be76dbd1d394f0ac",
+    "api/upstream/part2/requests/commandStatus.yaml": "f1dfe3d5aa716f50bd0ce511da3cfea3faa4b5a28feb1a48f4210d3516e49777",
+    "api/upstream/part2/requests/dataStreamOrArray.yaml": "1e36197062340d243f4060ea5c9c76ff97914cbcf62c0e6de37f11a6bee7e869",
+    "api/upstream/part2/requests/commandResultOrArray.yaml": "55c9e0e8de3c835e27d4e376be528899f906d332d13b154b2189bc8544786b00",
+    "api/upstream/part2/parameters/eventTypeList.yaml": "b5c015d9307ab0ec6cc88af4c94b0a86978ffbc9b079f3efe5fcfc78b4f3fa95",
+    "api/upstream/part2/parameters/dataStreamIdList.yaml": "386c9bd55da2e7525bce062c07989512108bbf73a407592d161c89eb9118974b",
+    "api/upstream/part2/parameters/eventId.yaml": "6baaa06addc8f5c7c53c2fe9f3fa3b50e3945006ab4fb515ee5d46695f3b61f7",
+    "api/upstream/part2/parameters/issueTime.yaml": "102f5482e9b0bffa7c2d81050a18e70f5ed62eed13119e913220e7fa1e27fc7f",
+    "api/upstream/part2/parameters/controlStreamIdList.yaml": "f5cab3ce082864e06b54cb28a68dfe62984ab1d56e7eb3a096153436ce9e34b0",
+    "api/upstream/part2/parameters/senderList.yaml": "da143b8864615fb6db60b5c7643b1c2ae6d3a89d9263c26bd47802ab24dfb651",
+    "api/upstream/part2/parameters/resultId.yaml": "dab7c80156649fe7db12870da807029a26d540bf610c94b268bc7803dabcd3f3",
+    "api/upstream/part2/parameters/phenomenonTime.yaml": "ff485575d8af02fd2db288e6007fa4ff2b561e9cdce7d49a44f79a0bcf8f9d85",
+    "api/upstream/part2/parameters/dataStreamId.yaml": "f50a38bfcf897251c191b051521defa3a94465936d20b53e2d915464ee4bac63",
+    "api/upstream/part2/parameters/controlStreamId.yaml": "b89536d85b05a3c5bcb5a888395c8e2bb0ee92b537957711440a78ee0f839134",
+    "api/upstream/part2/parameters/eventTime.yaml": "71ec56713439cd66f56217007de745eab9618ea6c25abf9a713123322dbad53b",
+    "api/upstream/part2/parameters/reportTime.yaml": "c615dd698456a8686f4b4c5bbf463e0f5cc0ae8be5e7fb5f14723cc83bd6f9f8",
+    "api/upstream/part2/parameters/obsFormat.yaml": "cefc3b97afb79e7364d1591fc5e116352199b0ba5cb6a7ded71bd6c63bd8289d",
+    "api/upstream/part2/parameters/revId.yaml": "bfac95be555d2a15883748c383a12f497147fcb29cf3a9eeb115d84b3e1a3230",
+    "api/upstream/part2/parameters/statusCodeList.yaml": "af6df614b9f5760073dae8a68e55978d4042113205822f9519b426e19035c600",
+    "api/upstream/part2/parameters/statusId.yaml": "c72a2240806c44da760abc0799b89f06c1a5ccbb5016a91ea175922b1a57a6d8",
+    "api/upstream/part2/parameters/obsId.yaml": "f430032c83807df498348f51dbcce6544404f35372ee060106c87ab19b7aec3c",
+    "api/upstream/part2/parameters/executionTime.yaml": "5770edfef87849a13038255c1cc83199300b7e912a3203f6619295bed58dda98",
+    "api/upstream/part2/parameters/validTime.yaml": "420a5d2edc3e731e1457e81431070c081a90719e09e2276d039aec142c69bccc",
+    "api/upstream/part2/parameters/resultTime.yaml": "bf476ccda8f372a25987e63326f75ecc2dba9e2e53626131f2a44cbfea0de34f",
+    "api/upstream/part2/parameters/format.yaml": "db2cd19d4234e30f6113ceda9ee8ee1e9fb03c2ba83b3db5232e23f6dd732302",
+    "api/upstream/part2/parameters/cmdFormat.yaml": "acc7958e5a21cb74bd641bd223573318d125786521e3d8ef6e92ec099c79192f",
+    "api/upstream/part2/parameters/cmdId.yaml": "b61d14d757f461a93dda4cb9fd7bc64368e0960260f174266875a86d06479f5c",
+    "api/upstream/part2/examples/commandResult/command-result-single-obs.json": "178b65ba65d67a6bf9cb49c501dff41e41cf6381b9fc8effc780c9b7a7bdc24a",
+    "api/upstream/part2/examples/commandResult/command-result-datastream.json": "20d2189b44e49c2a9db8ea8574c67b67243be8d2e5faaeb4dd6696d8fc94e0c4",
+    "api/upstream/part2/examples/commandResult/command-result-inline.json": "1785bf8db5a36849fc1522bf477b8b46b81a2a05c0c6c73138bb3bfb7432bb67",
+    "api/upstream/part2/examples/commandStatus/command-status-inline-result-complex.json": "4e7a8f439990c54937596c1b0b601ff4b43581fa449793702a03bb64dabb6df6",
+    "api/upstream/part2/examples/commandStatus/command-status-result-obs-link.json": "851e20b52d856a1d0c16bea61f11f982e8629404d56e5adb2bb35e721df333a5",
+    "api/upstream/part2/examples/commandStatus/command-status-inline-result-simple.json": "4e7a8f439990c54937596c1b0b601ff4b43581fa449793702a03bb64dabb6df6",
+    "api/upstream/part2/examples/commandStatus/command-status-completed.json": "681676a3929dbf7b10f0d035f3eaaf29dea06859f34eb79bab7aac3932fef9a5",
+    "api/upstream/part2/examples/commandStatus/command-status-accepted.json": "48b2708a803a328822458f3a44eea7956a1ee01e0d728e7bc5cbc8c94ae0d395",
+    "api/upstream/part2/examples/schemas/observationSchema-scalar-json-jsonschema.json": "e9decc121f19851c56dca030e0257f57947136c78a6e674dcd0970802b089118",
+    "api/upstream/part2/examples/schemas/observationSchema-scalar.proto": "5f80c09444dd33b1ccce58358d90e0fcdc30b4a92452e2a58a30d2e49c96b25c",
+    "api/upstream/part2/examples/schemas/observationSchema-scalar-swecsv.json": "df4513b99ca37cb60f6a0fb713afff45de03bd361233cdfd3e1999c55f765dfb",
+    "api/upstream/part2/examples/schemas/commandSchema-ptz.proto": "bb9f817e9b5c8e782472e4c9e8ef1c16a09e969e48e74ed78fa51c62023cad75",
+    "api/upstream/part2/examples/schemas/observationSchema-geopose-swejson.json": "3177876a4d3937b775556b7544c5f9e9e0a4cebd40a41798a94d88f31cb60424",
+    "api/upstream/part2/examples/schemas/observationSchema-scalar-swejson.json": "f18ce762b08c88b9c799b9ced89a33fef718f5a4707f74bdf5bd0d5a78a9413c",
+    "api/upstream/part2/examples/schemas/observationSchema-geopose.withrefs.proto": "2293425d2718126b8cb8e0232751e3328d6e86330ea3d12d7e2066846f90d42b",
+    "api/upstream/part2/examples/schemas/observationSchema-geopose-json.json": "2790ba7c44d5305239022f2a6cc46f5b99f97c5a6142548330c8a0afbf834225",
+    "api/upstream/part2/examples/schemas/commandSchema-ptz-swejson.json": "ef7b7505d1de31e80c847d9f9fdaaba3da0840a55a9d82be4e0e2c27917b94a7",
+    "api/upstream/part2/examples/schemas/observationSchema-vector-proto+sweinfo.proto": "85b7d72e106ab062be1d3434e9497035eadbb96c3f614a8dbd82c727bbf62ac9",
+    "api/upstream/part2/examples/schemas/observationSchema-scalar-proto.json": "88e2f6f70d840404ef958c38507bfee1bb0f3d874f421700c925d3dec22aeb1e",
+    "api/upstream/part2/examples/schemas/observationSchema-vector-json.json": "14df5c531bcdd069d2ca22d37ff5749321c4a339d42d6c97dfdca6cb96738d4b",
+    "api/upstream/part2/examples/schemas/observationSchema-scalar-json-jsonschema-byref.json": "158bdf9ea938f9f0107969409aaff0158447582bf1a5fc021b086fde7a9ead4b",
+    "api/upstream/part2/examples/schemas/commandSchema-ptz-jsonschema-byref.json": "b36778b65d257ced9ab4eba7781b6733198bfcc93ab68d411a45fc944e8562e8",
+    "api/upstream/part2/examples/schemas/commandSchema-ptz-swecsv.json": "4b3c31bd0f81edb15146bb00ed1f25e4407843273a524e7b8d58990125d4be6e",
+    "api/upstream/part2/examples/schemas/observationSchema-imagelink-json.json": "71f46ae3871673c973da34f49c78e72c6fd09b42e50463a11504919b756c6e9e",
+    "api/upstream/part2/examples/schemas/observationSchema-geopose.proto": "9a7be53aee9cf16d8992b9cb7965b58d51cb202c4eaece13d9502bc1f46e15fd",
+    "api/upstream/part2/examples/schemas/observationSchema-scalar-json.json": "918c8541367b4b851768e72989314400a7f492aea3df44b4044d5cbf175476bf",
+    "api/upstream/part2/examples/schemas/commandSchema-ptz-json.json": "aad786cd710e6b8902e1cd2b73a9f0c26b9a3994ba00f681a29208c2ba4cbfb5",
+    "api/upstream/part2/examples/commands/command-ptz-create.json": "770b7a3243ab0ec326a414d8b1f59da58f7340f43be153f8e10f0998116bad5a",
+    "api/upstream/part2/examples/commands/uav-mission.json": "8f8fa840fc2812e3450a85ad929ee1202564707d62dc10995b28f713537d843f",
+    "api/upstream/part2/examples/commands/command-ptz.json": "5dc952b4983d018518a413d5cc5c4e9176d78389410ed8e96d7da4eed67f6c5c",
+    "api/upstream/part2/examples/observations/obs-location.json": "c4ef6e952cef725424c5cd614ed04fc91fac1306888ddc9c87853a721f322c6c",
+    "api/upstream/part2/examples/observations/observationSchema-image-link.json": "7aac3da2743d12a3e748758373aa27acd7dfdac83940d17adc06832adb6eb2cb",
+    "api/upstream/part2/examples/observations/obs-simple.json": "57aa8e6b29c4a054ec6bcce4dd6f6a0b16d9bb00263b5b04fe91f8dc65f17fba",
+    "api/upstream/part2/examples/observations/obs-location-create.json": "d31e6570a79cd0cd095aa82e8cc47af145769c63da5aae1fd45779d055cc0951",
+    "api/upstream/part2/examples/observations/obs-link-create.json": "56614b54088a6f1f0243fb7721ed7e67287c1960a72c0bb37e9c3e41904d70e6",
+    "api/upstream/part2/examples/observations/obs-link-inline-image.json": "34dbd2e507fba5dee623a666057b06684c2750c9fdf0bb9c48ac4a0a5ab80bb3",
+    "api/upstream/part2/examples/observations/obs-simple-create.json": "315ab5a62f0217cabaf4d55b5fa93cd2a0f7ef8cdf8d3e9bda9cbb64a4ba8aaa",
+    "api/upstream/part2/examples/observations/obs-link.json": "cf1d86c2f63ea8c7fca02cc80a1240222f51101711003305cb58f0ed84f7a83d",
+    "api/upstream/part2/examples/observations/obs-geopose.json": "dd462605f5c8041a94264dcf1d794ba57dbfbdf4031de5ca703b73d3d8d65285",
+    "api/upstream/part2/examples/observations/obs-profile.json": "a04628955373642897f99f2295b26f895484d1f99d80c9c48fd009ab7f585521",
+    "api/upstream/part2/examples/observations/obs-profile-create.json": "46eb916b26c1a2325d38fb3b567784cf8ae0d6845cd2c7cf1213bdf667b03caf",
+    "api/upstream/part2/examples/controlstreams/controlstream-ptz.json": "7bfc451dc0704ea9a02ac484a2559e0d3a71099a678a8f318cdfb10abc3525df",
+    "api/upstream/part2/examples/controlstreams/controlstream-ptz-create.json": "a1232bd004b3904fdecfd1294be8a91932c4ab04fa9b4963c475b9b0f8a9ede0",
+    "api/upstream/part2/examples/events/systemEvent.json": "b7865d8f35f664034930088b929f4f59edcb4d9f0fe3335ca67e29b866848570",
+    "api/upstream/part2/examples/datastreams/datastream-simple.json": "75e43bcfa85af757f22f5ef3e248e8cdfead1cd44d16ecf896459c4c9b1e2000",
+    "api/upstream/part2/examples/datastreams/datastream.json": "b2de002c17ce11d8e64e4a589dd930fcd41c37f85110db9cc2ecc4d472e2273d",
+    "api/upstream/part2/examples/datastreams/datastream-simple-create.json": "40c38872cd7280cdbddab29293498eda955e3f8cec05e892e254050e5e1e5b2b",
+    "api/upstream/part2/examples/datastreams/datastream-external-link-edr.json": "9973ddc2eb788b6b8d391277b6008670dda9ec97db82b8abc1c8585379ae2dc4",
+    "api/upstream/part2/schemas/common/commonDefs.json": "9602f238c775dd2aadb6632d3af96fca784712fcdd3502d4cc2cb997f027ca71",
+    "api/upstream/part2/schemas/common/sweCommonDefs.json": "87e129241b9ba71610829cfbe57823504ed95b381851e2b1b58de4e96132590c",
+    "api/upstream/part2/schemas/common/sensormlDefs.json": "39dace78df5bbec9a3b267e0d7f77196628c76e6f8ba53157260cf6b0c8c8949",
+    "api/upstream/part2/schemas/json/observationCollection.json": "91b91ace2320c17b7b29e833ee34e24f21dda71034d4d09da9269180ef36c954",
+    "api/upstream/part2/schemas/json/observationSchemaAnyOther.json": "c0f677d6bd92b69e56dd7653eac95413ec78ce4aa8a7f39d484be7c72d40e2ff",
+    "api/upstream/part2/schemas/json/systemEvent.json": "1fada67d93b2128c5755cc06f3b0d44035d2b98f5f31404c3782afd851cba39b",
+    "api/upstream/part2/schemas/json/commandResult.json": "24ca46eadde2ea60865744d5e3d51c433734a549d45c19c031f15d607d339fc6",
+    "api/upstream/part2/schemas/json/observation.json": "f032030d7c77d7a1b100b171525db8b4a1cad444e8dfe61b3e1b65cc2d1e1a9d",
+    "api/upstream/part2/schemas/json/dataStream.json": "925e73e017799970b5f3b9aadabc3295d1de9e8087f0e6602687e12cf35a4731",
+    "api/upstream/part2/schemas/json/dataStream_create.json": "e322bd77d7abd6a3f801647024fc22fd43d4614e13483d86e1f21251a477775e",
+    "api/upstream/part2/schemas/json/commandStatusCode.json": "fa37140a090b4e0711be53819a0e435a5799fec9c4a388f83b249a76afb33ff8",
+    "api/upstream/part2/schemas/json/controlStream.json": "99cadabae77054ce219fff921f2b30e200307aa7467d4592e21a383cc29c2653",
+    "api/upstream/part2/schemas/json/controlStream_create.json": "bcb8e5b990d3a0fb5355ddfad929f4b55f20e933c66cb02344adfdcf89a4c06c",
+    "api/upstream/part2/schemas/json/commandSchemaJson.json": "c74644b2ef5291871b25c41d43fa67508bec6396b785c3cad3b1cc72cdedfe77",
+    "api/upstream/part2/schemas/json/commandSchemaProtobuf.json": "23125dc68742a0ab72a70f0b4b43772f8c41e580d00d13727ce7c35226d09473",
+    "api/upstream/part2/schemas/json/systemEventCollection.json": "20dadaacc652d055971d68fe14bbcf462ad000d76e33ef80ed37ae3625c83ac4",
+    "api/upstream/part2/schemas/json/commandStatusCollection.json": "8973597b348297dd0abb728722af04d4f237c306d788853d40430835a81829fe",
+    "api/upstream/part2/schemas/json/command.json": "d94c9af42b603e9101227184f2e32f197ee069455b5ee53e9e372402686b26ec",
+    "api/upstream/part2/schemas/json/observationSchemaSwe.json": "9cebf284c3bcbae1d53bb7d047df37d4ca56ea01f5139be16ba4b0b2b26bdc00",
+    "api/upstream/part2/schemas/json/dataStreamSchemaDef.json": "3b181493e7e004a48ba640f6fa80b3fa779e73479e4ac2ae91e9d48e374ecb1c",
+    "api/upstream/part2/schemas/json/dataStreamCollection.json": "0f252d057e1e2ef2cf6b97d99358b84559618663f61c1aae65b0cc1adc1c776d",
+    "api/upstream/part2/schemas/json/observationSchemaJson.json": "44ca83fb7fb796f4998d0006026e519d204418eeeb5d901d97f0a46a93bc3bad",
+    "api/upstream/part2/schemas/json/observationSchema.json": "cca786be622a134ae48ef011d19bff2c6ba41078eccdb9714dbfa6367effc5ce",
+    "api/upstream/part2/schemas/json/controlStreamCollection.json": "d3abf4b25bf0d7523cb576c1349ccf8bb0fe00f489d2cd0f8caac59948ee9066",
+    "api/upstream/part2/schemas/json/commandSchemaAnyOther.json": "6446afccb3ee8b01a9f09fb31c860c5c0ed98548d5016d9e9bdb207c352559db",
+    "api/upstream/part2/schemas/json/commandSchema.json": "e067f3dc402bdbeee673d669b31170b5c8bf62890aac7248b8e51891b593ce17",
+    "api/upstream/part2/schemas/json/commandSchemaSwe.json": "93007bd885a604e5c0f39f0ccb519fc9a43a3662b93876c81fefec27d85bf590",
+    "api/upstream/part2/schemas/json/commandStatus.json": "3db0fd0037989319e0c4c6068668ed0a0515704457f79c1c067b95d2132145d9",
+    "api/upstream/part2/schemas/json/observationSchemaProtobuf.json": "ca5449080afdce6bb84ac9b44fcc1a52791f1dc9e5c5dc0c1e8c01cd4ed020dd",
+    "api/upstream/part2/schemas/json/commandResultCollection.json": "65bfb87faa3cec3a6d2439efe2a3b1d518e6d2951f534b496c25ebf3219dc634",
+    "api/upstream/part2/schemas/json/baseStream.json": "9d67f166630fddd703a6fad336f6e8f49af38d1c3a493883f3003d6fe67e96f6",
+    "api/upstream/part2/schemas/json/commandCollection.json": "99a915aad97cc414ff28a6484c4801e6c1c5775a2db25a3a5b06b2d6238e6b48",
+    "gateway/cs-api/openapi.yaml": "e93d7401b2f99b395a9768a457cc4e95b2bdc06c9adac6cd79aee370a5bd6eb5",
+    "gateway/cs-api/conformance.go": "8d4345841e2e232af3fed6bc2fb7b0f1ae8d1b5426be94e0cdd261bdfb3319bd",
+    "conformance/run.sh": "4f5c5601b0abe2596e788400c0f877242376e9a373ad9ba2693cc0771fa51785"
+  }
+}

@@ -3,7 +3,6 @@ package sensorml
 import (
 	"testing"
 
-	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/vocabulary"
 )
 
@@ -28,8 +27,8 @@ func TestEntityRelationshipsAreRegisteredAsIDs(t *testing.T) {
 			t.Errorf("predicate %q is not registered", predicate)
 			continue
 		}
-		if metadata.DataType != message.EntityReferenceDatatype {
-			t.Errorf("predicate %q datatype: got %q want %q", predicate, metadata.DataType, message.EntityReferenceDatatype)
+		if metadata.DataType != vocabulary.DataTypeEntityID {
+			t.Errorf("predicate %q datatype: got %q want %q", predicate, metadata.DataType, vocabulary.DataTypeEntityID)
 		}
 	}
 }

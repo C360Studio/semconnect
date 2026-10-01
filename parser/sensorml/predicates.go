@@ -2,7 +2,6 @@ package sensorml
 
 import (
 	"github.com/c360studio/semconnect/vocabulary/sosa"
-	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/vocabulary"
 )
 
@@ -103,15 +102,15 @@ func init() {
 	// free regardless.)
 	vocabulary.Register(PredHosts,
 		vocabulary.WithIRI(sosa.Hosts),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithInverseOf(PredIsHostedBy))
 	vocabulary.Register(PredIsHostedBy,
 		vocabulary.WithIRI(sosa.IsHostedBy),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithInverseOf(PredHosts))
 	vocabulary.Register(PredHasSubSystem,
 		vocabulary.WithIRI(sosa.SSNHasSubSystem),
-		vocabulary.WithDataType(message.EntityReferenceDatatype))
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID))
 	vocabulary.Register(PredUsedProcedure, vocabulary.WithIRI(sosa.UsedProcedure))
 	vocabulary.Register(PredAttachedTo, vocabulary.WithIRI(sosa.IsHostedBy))
 

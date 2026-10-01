@@ -1,0 +1,2 @@
+ok  	github.com/c360studio/semconnect/cmd/cs-api-server	1.382s	coverage: 21.5% of statements
+ok  	github.com/c360studio/semconnect/cmd/cs-graph-backend	2.007s	coverage: 65.0% of statements

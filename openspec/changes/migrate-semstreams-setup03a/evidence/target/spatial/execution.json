@@ -1,0 +1,100 @@
+[
+  {
+    "command": [
+      "python3",
+      "scripts/setup03a/spatial-probe.py",
+      "--url",
+      "http://127.0.0.1:55609",
+      "--output",
+      "/Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/spatial/before-restart"
+    ],
+    "started_at": "2026-10-01T10:12:06.299842+00:00",
+    "completed_at": "2026-10-01T10:12:06.383162+00:00",
+    "exit_code": 0,
+    "log": "probe-before.log"
+  },
+  {
+    "command": [
+      "docker",
+      "compose",
+      "-p",
+      "semconnect-03a-target-r3-persistence",
+      "-f",
+      "deploy/compose.yml",
+      "stop",
+      "semconnect",
+      "semstreams",
+      "nats"
+    ],
+    "started_at": "2026-10-01T10:12:06.486429+00:00",
+    "completed_at": "2026-10-01T10:12:06.861910+00:00",
+    "exit_code": 0,
+    "log": "stop.log"
+  },
+  {
+    "command": [
+      "docker",
+      "compose",
+      "-p",
+      "semconnect-03a-target-r3-persistence",
+      "-f",
+      "deploy/compose.yml",
+      "start",
+      "nats",
+      "semstreams",
+      "semconnect"
+    ],
+    "started_at": "2026-10-01T10:12:06.905533+00:00",
+    "completed_at": "2026-10-01T10:12:18.337336+00:00",
+    "exit_code": 0,
+    "log": "start.log"
+  },
+  {
+    "command": [
+      "docker",
+      "compose",
+      "-p",
+      "semconnect-03a-target-r3-persistence",
+      "-f",
+      "deploy/compose.yml",
+      "--profile",
+      "smoke",
+      "run",
+      "--rm",
+      "--no-deps",
+      "--user",
+      "501:20",
+      "--entrypoint",
+      "/usr/local/bin/index-readiness",
+      "-v",
+      "/Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/spatial:/evidence",
+      "canonical-smoke",
+      "-nats-url",
+      "nats://nats:4222",
+      "-output",
+      "/evidence/after-restart-index-readiness.jsonl",
+      "-timeout",
+      "60s",
+      "-stable-samples",
+      "2"
+    ],
+    "started_at": "2026-10-01T10:12:23.603911+00:00",
+    "completed_at": "2026-10-01T10:12:32.961647+00:00",
+    "exit_code": 0,
+    "log": "index-readiness-after.log"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/setup03a/spatial-probe.py",
+      "--url",
+      "http://127.0.0.1:55609",
+      "--output",
+      "/Users/coby/Code/c360/semconnect/openspec/changes/migrate-semstreams-setup03a/evidence/target/spatial/after-restart"
+    ],
+    "started_at": "2026-10-01T10:12:32.962527+00:00",
+    "completed_at": "2026-10-01T10:12:33.055810+00:00",
+    "exit_code": 0,
+    "log": "probe-after.log"
+  }
+]

@@ -148,14 +148,19 @@ func TestRealNATSJetStreamAndObjectStoreLifecycle(t *testing.T) {
 	if err := component.Initialize(); err != nil {
 		t.Fatalf("initialize component: %v", err)
 	}
-	startCtx, cancelStart := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelStart()
-	if err := component.Start(startCtx); err != nil {
+	runtimeCtx, cancelRuntime := context.WithCancel(context.Background())
+	if err := component.Start(runtimeCtx); err != nil {
+		cancelRuntime()
 		t.Fatalf("start component with real JetStream: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = component.Stop(5 * time.Second)
+		defer cancelRuntime()
+		stopCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = component.Stop(stopCtx)
 	})
+	startCtx, cancelStart := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelStart()
 
 	js, err := client.JetStream()
 	if err != nil {

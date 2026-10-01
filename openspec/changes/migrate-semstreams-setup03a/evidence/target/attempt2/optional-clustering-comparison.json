@@ -1,0 +1,55 @@
+{
+  "baseline": {
+    "COMMUNITY_SUMMARIES unavailable; using statistical summaries": {
+      "count": 56,
+      "example": {
+        "time": "2026-10-01T09:40:01.909644844Z",
+        "level": "WARN",
+        "msg": "COMMUNITY_SUMMARIES unavailable; using statistical summaries",
+        "component": "graph-query",
+        "error": "framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment",
+        "retry_interval": 5000000000
+      }
+    },
+    "community generation unavailable; retrying": {
+      "count": 56,
+      "example": {
+        "time": "2026-10-01T09:40:01.909850552Z",
+        "level": "WARN",
+        "msg": "community generation unavailable; retrying",
+        "component": "graph-query",
+        "error": "framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment",
+        "retry_interval": 5000000000
+      }
+    }
+  },
+  "target": {
+    "COMMUNITY_SUMMARIES unavailable; using statistical summaries": {
+      "count": 32,
+      "example": {
+        "time": "2026-10-01T09:58:57.685301875Z",
+        "level": "WARN",
+        "msg": "COMMUNITY_SUMMARIES unavailable; using statistical summaries",
+        "component": "graph-query",
+        "error": "framework bucket \"COMMUNITY_SUMMARIES\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment",
+        "retry_interval": 5000000000
+      }
+    },
+    "community generation unavailable; retrying": {
+      "count": 32,
+      "example": {
+        "time": "2026-10-01T09:58:57.6857585Z",
+        "level": "WARN",
+        "msg": "community generation unavailable; retrying",
+        "component": "graph-query",
+        "error": "framework bucket \"COMMUNITY_INDEX\" is not ready: its owner (graph-clustering) has not provisioned it in this deployment",
+        "retry_interval": 5000000000
+      }
+    }
+  },
+  "classification": "Unchanged baseline behavior. Optional graph-clustering is absent in both configurations; queries remain installed while optional readers retry.",
+  "source_references": {
+    "target": "processor/graph-query/component.go:565 and summary_view.go:124",
+    "baseline": "processor/graph-query/component.go:614 and summary_view.go:124"
+  }
+}

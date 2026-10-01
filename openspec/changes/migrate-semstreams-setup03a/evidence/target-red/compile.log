@@ -1,0 +1,12 @@
+# github.com/c360studio/semconnect/gateway/cs-api [github.com/c360studio/semconnect/gateway/cs-api.test]
+gateway/cs-api/component.go:194:35: cannot use (*Component)(nil) (value of type *Component) as component.LifecycleComponent value in variable declaration: *Component does not implement component.LifecycleComponent (wrong type for method Stop)
+		have Stop("time".Duration) error
+		want Stop(context.Context) error
+gateway/cs-api/graph_mutations.go:150:29: invalid operation: contract.MessageType != mt.Key() (mismatched types "github.com/c360studio/semstreams/pkg/types".Type and string)
+gateway/cs-api/projection_contracts.go:45:20: cannot use mt.Key() (value of type string) as "github.com/c360studio/semstreams/pkg/types".Type value in struct literal
+gateway/cs-api/projection_contracts.go:60:20: cannot use mt.Key() (value of type string) as "github.com/c360studio/semstreams/pkg/types".Type value in struct literal
+gateway/cs-api/beta160_structural_integration_test.go:159:28: cannot use 5 * time.Second (constant 5000000000 of int64 type "time".Duration) as context.Context value in argument to lifecycle.Stop: "time".Duration does not implement context.Context (missing method Deadline)
+gateway/cs-api/projection_contracts_test.go:26:30: invalid operation: contract.MessageType == "" (mismatched types "github.com/c360studio/semstreams/pkg/types".Type and untyped string)
+gateway/cs-api/projection_contracts_test.go:26:60: invalid operation: contract.MessageType == ".." (mismatched types "github.com/c360studio/semstreams/pkg/types".Type and untyped string)
+FAIL	github.com/c360studio/semconnect/gateway/cs-api [build failed]
+FAIL

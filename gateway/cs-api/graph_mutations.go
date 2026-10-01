@@ -147,7 +147,7 @@ func (c *Component) createProjectedEntity(
 	if !ok {
 		return errs.WrapInvalid(fmt.Errorf("unknown projection contract %q", contractName), "cs-api", op, "validate projection")
 	}
-	if contract.MessageType != mt.Key() {
+	if contract.MessageType != mt {
 		return errs.WrapInvalid(fmt.Errorf("message type %q does not match contract %q", mt.Key(), contractName), "cs-api", op, "validate projection")
 	}
 	if err := contract.Validate(); err != nil {

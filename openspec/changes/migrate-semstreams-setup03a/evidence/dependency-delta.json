@@ -1,0 +1,107 @@
+{
+  "production": {
+    "before_count": 63,
+    "after_count": 67,
+    "added": [
+      "github.com/c360studio/semstreams/composition",
+      "github.com/c360studio/semstreams/internal/agentterminal",
+      "github.com/c360studio/semstreams/internal/deliverylane",
+      "github.com/c360studio/semstreams/internal/lifecyclecleanup",
+      "github.com/c360studio/semstreams/internal/logforwarderpolicy",
+      "github.com/c360studio/semstreams/internal/looptoken",
+      "github.com/c360studio/semstreams/pkg/projection/contract",
+      "github.com/c360studio/semstreams/vocabulary/builtins",
+      "github.com/c360studio/semstreams/vocabulary/rulepacks"
+    ],
+    "removed": [
+      "github.com/c360studio/semstreams/engine",
+      "github.com/c360studio/semstreams/flowstore",
+      "github.com/c360studio/semstreams/model/wire/responses",
+      "github.com/c360studio/semstreams/processor/agentic-dispatch",
+      "github.com/c360studio/semstreams/processor/agentic-model"
+    ],
+    "before_non_test_lines": 133843,
+    "after_non_test_lines": 123481
+  },
+  "with_retained_tests": {
+    "before_count": 99,
+    "after_count": 113,
+    "added": [
+      "github.com/c360studio/semstreams/componentregistry",
+      "github.com/c360studio/semstreams/composition",
+      "github.com/c360studio/semstreams/frameworkadapters/otel",
+      "github.com/c360studio/semstreams/frameworkcapabilities/graphresearch",
+      "github.com/c360studio/semstreams/gateway/graph-gateway",
+      "github.com/c360studio/semstreams/gateway/http",
+      "github.com/c360studio/semstreams/gateway/lifecycle-gateway",
+      "github.com/c360studio/semstreams/internal/agentterminal",
+      "github.com/c360studio/semstreams/internal/deliverylane",
+      "github.com/c360studio/semstreams/internal/lifecyclecleanup",
+      "github.com/c360studio/semstreams/internal/logforwarderpolicy",
+      "github.com/c360studio/semstreams/internal/looptoken",
+      "github.com/c360studio/semstreams/output/otel",
+      "github.com/c360studio/semstreams/pkg/projection/contract",
+      "github.com/c360studio/semstreams/processor/agentic-loop/internal/loopbucket",
+      "github.com/c360studio/semstreams/processor/agentic-loop/internal/looprequest",
+      "github.com/c360studio/semstreams/vocabulary/builtins",
+      "github.com/c360studio/semstreams/vocabulary/rulepacks"
+    ],
+    "removed": [
+      "github.com/c360studio/semstreams/engine",
+      "github.com/c360studio/semstreams/flowstore",
+      "github.com/c360studio/semstreams/internal/builtinprojection",
+      "github.com/c360studio/semstreams/pkg/logging"
+    ],
+    "before_non_test_lines": 209590,
+    "after_non_test_lines": 231684
+  },
+  "new_production_import_paths_from_host": {
+    "github.com/c360studio/semstreams/composition": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/composition"
+    ],
+    "github.com/c360studio/semstreams/internal/agentterminal": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/service",
+      "github.com/c360studio/semstreams/agentic/agentrun",
+      "github.com/c360studio/semstreams/internal/agentterminal"
+    ],
+    "github.com/c360studio/semstreams/internal/deliverylane": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/service",
+      "github.com/c360studio/semstreams/agentic/agentrun",
+      "github.com/c360studio/semstreams/internal/deliverylane"
+    ],
+    "github.com/c360studio/semstreams/internal/lifecyclecleanup": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/processor/graph-index",
+      "github.com/c360studio/semstreams/internal/lifecyclecleanup"
+    ],
+    "github.com/c360studio/semstreams/internal/logforwarderpolicy": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/service",
+      "github.com/c360studio/semstreams/internal/logforwarderpolicy"
+    ],
+    "github.com/c360studio/semstreams/internal/looptoken": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/component",
+      "github.com/c360studio/semstreams/agentic",
+      "github.com/c360studio/semstreams/internal/looptoken"
+    ],
+    "github.com/c360studio/semstreams/pkg/projection/contract": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semconnect/gateway/cs-api",
+      "github.com/c360studio/semstreams/pkg/projection/contract"
+    ],
+    "github.com/c360studio/semstreams/vocabulary/builtins": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/vocabulary/builtins"
+    ],
+    "github.com/c360studio/semstreams/vocabulary/rulepacks": [
+      "github.com/c360studio/semconnect/cmd/cs-graph-backend",
+      "github.com/c360studio/semstreams/vocabulary/builtins",
+      "github.com/c360studio/semstreams/vocabulary/rulepacks"
+    ]
+  },
+  "scope": "Full union of actual consumer production framework packages and bounded backend roots; retained tests include every transitive production package. Import graph paths from target go-list production metadata; imports are not runtime-use claims."
+}

@@ -8,19 +8,21 @@ import (
 	"strings"
 	"testing"
 
+	"gopkg.in/yaml.v3"
+
 	semconfig "github.com/c360studio/semstreams/config"
 )
 
 const (
 	semstreamsModule     = "github.com/c360studio/semstreams"
 	semstreamsRepository = "https://github.com/C360Studio/semstreams.git"
-	semstreamsVersion    = "v1.0.0-beta.160"
-	semstreamsTagObject  = "8403a2218000e45a31c5132fbfe01af42ed04f14"
-	semstreamsCommit     = "8403a2218000e45a31c5132fbfe01af42ed04f14"
-	semstreamsTree       = "9ed5dd3792bca63ce87ebf449a180add918f59ed"
+	semstreamsVersion    = "v1.0.0-beta.162.0.20260930150212-8b99efe9c66a"
+	semstreamsTagObject  = "8b99efe9c66a4faa4fa509f9f62cc6bad8392128"
+	semstreamsCommit     = "8b99efe9c66a4faa4fa509f9f62cc6bad8392128"
+	semstreamsTree       = "605f83cb8492eda3bd347ac30a211b9babf3931f"
 )
 
-func TestBeta160ConformanceConfigurationValidates(t *testing.T) {
+func TestSetup03AConformanceConfigurationValidates(t *testing.T) {
 	const path = "compose.semstreams.config.json"
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -28,14 +30,53 @@ func TestBeta160ConformanceConfigurationValidates(t *testing.T) {
 	}
 	var direct semconfig.Config
 	if err := json.Unmarshal(data, &direct); err != nil {
-		t.Fatalf("decode beta.160 config: %v", err)
+		t.Fatalf("decode SETUP 03A config: %v", err)
 	}
 	loaded, err := semconfig.NewLoader().LoadFile(path)
 	if err != nil {
-		t.Fatalf("load beta.160 config: %v", err)
+		t.Fatalf("load SETUP 03A config: %v", err)
+	}
+	if loaded.Platform.Org != "c360" || loaded.Platform.ID != "semconnect" {
+		t.Fatalf("graph authority must preserve existing conformance IDs: %+v", loaded.Platform)
 	}
 	if err := loaded.Validate(); err != nil {
-		t.Fatalf("validate beta.160 config: %v", err)
+		t.Fatalf("validate SETUP 03A config: %v", err)
+	}
+}
+
+func TestConformanceUsesConsumerRegisteredGraphHost(t *testing.T) {
+	var compose struct {
+		Services map[string]struct {
+			Command   []string `yaml:"command"`
+			Volumes   []string `yaml:"volumes"`
+			DependsOn map[string]struct {
+				Condition string `yaml:"condition"`
+			} `yaml:"depends_on"`
+			Build struct {
+				Context    string `yaml:"context"`
+				Dockerfile string `yaml:"dockerfile"`
+			} `yaml:"build"`
+		} `yaml:"services"`
+	}
+	if err := yaml.Unmarshal([]byte(readFile(t, "compose.yml")), &compose); err != nil {
+		t.Fatal(err)
+	}
+	backend := compose.Services["semstreams-backend"]
+	if strings.Join(backend.Command, " ") != "-config /etc/semstreams/config.json -cs-api-config /etc/cs-api-server/config.json" {
+		t.Fatalf("conformance host must share CS API resource configuration: %v", backend.Command)
+	}
+	if !strings.Contains(strings.Join(backend.Volumes, "\n"), "./compose.cs-api.config.json:/etc/cs-api-server/config.json:ro") {
+		t.Fatal("conformance graph host lacks shared CS API config mount")
+	}
+	if backend.DependsOn["provision-identity"].Condition != "service_completed_successfully" {
+		t.Fatal("conformance graph startup must wait for explicit identity provisioning")
+	}
+	provision := compose.Services["provision-identity"]
+	if strings.Join(provision.Command, " ") != "-config /etc/semstreams/config.json -provision-identity semconnect" {
+		t.Fatalf("conformance identity provisioning command = %v", provision.Command)
+	}
+	if backend.Build.Context != ".." || backend.Build.Dockerfile != "deploy/backend.Dockerfile" {
+		t.Fatalf("conformance graph host must include consumer payload registrations: %+v", backend.Build)
 	}
 }
 
@@ -83,7 +124,7 @@ func TestSemStreamsPinsAreAligned(t *testing.T) {
 		"SEMSTREAMS_TAG_OBJECT":  semstreamsTagObject,
 		"SEMSTREAMS_COMMIT":      semstreamsCommit,
 		"SEMSTREAMS_TREE":        semstreamsTree,
-		"SEMSTREAMS_COMMIT_DATE": "2026-08-12",
+		"SEMSTREAMS_COMMIT_DATE": "2026-09-30",
 	} {
 		values := assignments[key]
 		if len(values) != 1 || values[0] != want {
@@ -98,14 +139,14 @@ func TestActiveModuleRequirementsRejectTextualFalsePositives(t *testing.T) {
 	contents := `
 // require github.com/c360studio/semstreams v1.0.0-beta.159
 require (
-	github.com/c360studio/semstreams v1.0.0-beta.160
+	github.com/c360studio/semstreams v1.0.0-beta.162.0.20260930150212-8b99efe9c66a
 )
 require github.com/c360studio/semstreams v1.0.0-beta.149 // duplicate active requirement
 `
 
 	got := activeModuleRequirements(contents, semstreamsModule)
 	if len(got) != 2 || got[0] != semstreamsVersion || got[1] != "v1.0.0-beta.149" {
-		t.Fatalf("active requirements = %q, want beta.160 and beta.149 without commented occurrence", got)
+		t.Fatalf("active requirements = %q, want frozen target and beta.149 without commented occurrence", got)
 	}
 }
 
@@ -114,7 +155,7 @@ func TestShellAssignmentsPreserveDuplicateEffectivePins(t *testing.T) {
 
 	assignments := shellAssignments(`
 # SEMSTREAMS_VERSION=v1.0.0-beta.149
-SEMSTREAMS_VERSION=v1.0.0-beta.160
+SEMSTREAMS_VERSION=v1.0.0-beta.162.0.20260930150212-8b99efe9c66a
 SEMSTREAMS_VERSION=v1.0.0-beta.150
 `)
 	got := assignments["SEMSTREAMS_VERSION"]

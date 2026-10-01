@@ -1,0 +1,130 @@
+{
+  "reviewer": "independent go-reviewer agent /root/go_reviewer",
+  "reviewed_at_utc": "2026-10-01T10:14:10.333438+00:00",
+  "base_semconnect_commit": "d0d06e00bf05a545f30ceea798db1c2b1ee47d4f",
+  "baseline_checkpoint": "55ea4121aba8658aeac9d70bdfe80f19c15fd4cd",
+  "semstreams_commit": "8b99efe9c66a4faa4fa509f9f62cc6bad8392128",
+  "semstreams_version": "v1.0.0-beta.162.0.20260930150212-8b99efe9c66a",
+  "source_manifest": "reviewed-source.json",
+  "source_manifest_sha256": "b97173723b28cd43975da7a1fddd31a50b0987bed134afacf5eeb044e56ab4b8",
+  "implementation_review": "APPROVED for bounded SemStreams adaptation",
+  "comparison_evidence_review": "APPROVED final r3 exact-source baseline comparison",
+  "migration_qualification": "BLOCKED",
+  "merge_approval": "WITHHELD",
+  "frontend_review": "N/A: no frontend source, assets or dependencies changed",
+  "open_findings": [
+    {
+      "priority": 1,
+      "title": "Federated Datastream create contract rejected at frozen target",
+      "test": "TestSetup03AFederatedDatastreamCreate",
+      "baseline_http": 201,
+      "target_http": 400,
+      "upstream_reason": "authority_foreign",
+      "attribution": "Intended upstream ADR-102/ADR-104 restriction conflicts with existing consumer contract",
+      "waived": false
+    }
+  ],
+  "resolved_findings": [
+    {
+      "priority": 2,
+      "title": "HTTP gateway bootstrap signal ownership",
+      "resolution": "Startup-only abort callback joined before readiness; bounded cleanup after failed/raced startup; failing-first and independent repeated race checks pass"
+    }
+  ],
+  "independent_full_checks": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "./..."
+      ],
+      "start": "2026-10-01T10:10:39.437118+00:00",
+      "finish": "2026-10-01T10:10:44.433308+00:00",
+      "exit_code": 0,
+      "log": "final-unit-race.log"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-tags=integration",
+        "-count=1",
+        "./..."
+      ],
+      "start": "2026-10-01T10:10:44.433678+00:00",
+      "finish": "2026-10-01T10:10:50.558196+00:00",
+      "exit_code": 1,
+      "log": "final-integration-race.log"
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "-tags=integration",
+        "./..."
+      ],
+      "start": "2026-10-01T10:10:50.558492+00:00",
+      "finish": "2026-10-01T10:10:51.051694+00:00",
+      "exit_code": 0,
+      "log": "final-vet.log"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "./..."
+      ],
+      "start": "2026-10-01T10:10:51.051987+00:00",
+      "finish": "2026-10-01T10:10:53.016648+00:00",
+      "exit_code": 0,
+      "log": "final-build.log"
+    }
+  ],
+  "additional_checks": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=10",
+        "./cmd/cs-api-server"
+      ],
+      "start": "2026-10-01T10:08:24.002075+00:00",
+      "finish": "2026-10-01T10:08:26.199974+00:00",
+      "exit_code": 0,
+      "log": "gateway-startup-repair.log"
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-tags=integration",
+        "-count=1",
+        "-run",
+        "TestSetup03AReference",
+        "./gateway/cs-api"
+      ],
+      "start": "2026-10-01T10:08:26.200357+00:00",
+      "finish": "2026-10-01T10:08:30.785651+00:00",
+      "exit_code": 0,
+      "log": "synchronized-references.log"
+    }
+  ],
+  "conformance": {
+    "same_methods_and_statuses_as_baseline": true,
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "input_weakening_found": false
+  },
+  "persistence_and_spatial": "Exact bytes equal across both pins and before/after same-version restart",
+  "critical_coverage": "All explicitly enumerated critical groups >=80%; individual and package limits disclosed in review.md",
+  "mixed_framework_binary": false,
+  "runtime_source_drift": [],
+  "reviewed_implementation_commit": "2d45b651b3bfac8ad4f96bceab7f5a0b3cf225c1",
+  "commit_verification": "commit-verification.json"
+}

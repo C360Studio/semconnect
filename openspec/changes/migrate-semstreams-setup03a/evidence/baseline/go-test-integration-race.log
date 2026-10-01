@@ -1,0 +1,14 @@
+ok  	github.com/c360studio/semconnect/cmd/cs-api-server	1.617s
+ok  	github.com/c360studio/semconnect/conformance	1.496s
+ok  	github.com/c360studio/semconnect/conformance/cmd/index-readiness	1.754s
+ok  	github.com/c360studio/semconnect/deploy	1.974s
+ok  	github.com/c360studio/semconnect/deploy/probe	2.158s
+ok  	github.com/c360studio/semconnect/gateway/cs-api	5.483s
+ok  	github.com/c360studio/semconnect/message/oms	1.411s
+?   	github.com/c360studio/semconnect/openspec/changes/qualify-semstreams-beta151/evidence/operations/retained-scan	[no test files]
+ok  	github.com/c360studio/semconnect/parser/sensorml	2.276s
+ok  	github.com/c360studio/semconnect/pkg/swecommon	2.465s
+ok  	github.com/c360studio/semconnect/vocabulary/csapi	2.656s
+ok  	github.com/c360studio/semconnect/vocabulary/oms	1.607s
+ok  	github.com/c360studio/semconnect/vocabulary/sosa	2.855s
+ok  	github.com/c360studio/semconnect/vocabulary/swe	3.090s

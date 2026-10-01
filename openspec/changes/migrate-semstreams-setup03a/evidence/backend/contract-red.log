@@ -1,0 +1,7 @@
+# github.com/c360studio/semconnect/cmd/cs-graph-backend [github.com/c360studio/semconnect/cmd/cs-graph-backend.test]
+cmd/cs-graph-backend/main_test.go:18:15: undefined: backendResources
+cmd/cs-graph-backend/main_test.go:40:13: undefined: backendResources
+cmd/cs-graph-backend/main_test.go:45:12: undefined: platformIdentity
+cmd/cs-graph-backend/main_test.go:51:43: undefined: verifyIdentity
+FAIL	github.com/c360studio/semconnect/cmd/cs-graph-backend [build failed]
+FAIL

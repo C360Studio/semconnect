@@ -1,0 +1,38 @@
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53582
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53582
+2026/10/01 04:47:28 INFO validated cs-api projection contracts component=cs-api count=11
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53584
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53584
+2026/10/01 04:47:28 WARN graph mutation audit component=cs-api request_id=06c9b035-0ba6-434f-b72b-e381c6347508 trace_id=d7c84ef89be9d21c3da3b3e56f4fadfd operation=ingestTriples entity_id=c360.semconnect.systems.csapi.system.setup03a-root commit_state=not-committed kv_revision=0 identity_subject="" identity_verified=false forwarded_user="" forwarded_email="" classified_error="cs-api: entity already exists: reference failure"
+2026/10/01 04:47:28 WARN backend error component=cs-api err="cs-api: entity already exists: reference failure" status=409
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53587
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53587
+2026/10/01 04:47:28 WARN graph mutation audit component=cs-api request_id=c23e166e-2ab8-4f5a-a77e-1d6a37712dfe trace_id=49542550ee2740734ece0e1b83f24c98 operation=referenceFailure entity_id=c360.semconnect.systems.csapi.system.setup03a-root commit_state=not-committed kv_revision=42 identity_subject="" identity_verified=false forwarded_user="" forwarded_email="" classified_error="cs-api: entity already exists: reference failure"
+2026/10/01 04:47:28 WARN backend error component=cs-api err="cs-api: entity already exists: reference failure" status=409
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53590
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53590
+2026/10/01 04:47:28 WARN graph mutation audit component=cs-api request_id=f918ff29-3be4-4e7b-990e-17c130fa8f53 trace_id=0d64cb8107e83877b7f65a1e2473e6d7 operation=deleteEntity entity_id=c360.semconnect.systems.csapi.system.setup03a-root commit_state=not-committed kv_revision=42 identity_subject="" identity_verified=false forwarded_user="" forwarded_email="" classified_error="cs-api: entity already exists: reference failure"
+2026/10/01 04:47:28 WARN backend error component=cs-api err="cs-api: entity already exists: reference failure" status=409
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53593
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53593
+2026/10/01 04:47:28 WARN graph mutation audit component=cs-api request_id=7f117259-7381-4afb-9529-67c4b87fd517 trace_id=d2428a80f3fb0c3a60d37cdbd76d9884 operation=ingestTriples entity_id=c360.semconnect.systems.csapi.system.setup03a-root commit_state=unknown kv_revision=0 identity_subject="" identity_verified=false forwarded_user="" forwarded_email="" classified_error="cs-api.ingestTriples: graph mutation commit outcome unknown failed: graph mutation commit outcome unknown (correlation 7f117259-7381-4afb-9529-67c4b87fd517): context deadline exceeded"
+2026/10/01 04:47:28 WARN backend error component=cs-api err="cs-api.ingestTriples: graph mutation commit outcome unknown failed: graph mutation commit outcome unknown (correlation 7f117259-7381-4afb-9529-67c4b87fd517): context deadline exceeded" status=503
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53596
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53596
+2026/10/01 04:47:28 WARN graph mutation audit component=cs-api request_id=db781c27-91ed-4bbb-8cb4-5ea61b8e4090 trace_id=564c7050ff35822b60bfc87dc6255590 operation=referenceFailure entity_id=c360.semconnect.systems.csapi.system.setup03a-root commit_state=unknown kv_revision=42 identity_subject="" identity_verified=false forwarded_user="" forwarded_email="" classified_error="cs-api.referenceFailure: graph mutation commit outcome unknown failed: graph mutation commit outcome unknown (correlation db781c27-91ed-4bbb-8cb4-5ea61b8e4090): context deadline exceeded"
+2026/10/01 04:47:28 WARN backend error component=cs-api err="cs-api.referenceFailure: graph mutation commit outcome unknown failed: graph mutation commit outcome unknown (correlation db781c27-91ed-4bbb-8cb4-5ea61b8e4090): context deadline exceeded" status=503
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53599
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53599
+2026/10/01 04:47:28 WARN graph mutation audit component=cs-api request_id=877b87e7-b4e7-45f0-a871-4c0227e82c30 trace_id=c25e965f6de76ceb081989df26d43883 operation=deleteEntity entity_id=c360.semconnect.systems.csapi.system.setup03a-root commit_state=unknown kv_revision=42 identity_subject="" identity_verified=false forwarded_user="" forwarded_email="" classified_error="cs-api.deleteEntity: graph mutation commit outcome unknown failed: graph mutation commit outcome unknown (correlation 877b87e7-b4e7-45f0-a871-4c0227e82c30): context deadline exceeded"
+2026/10/01 04:47:28 WARN backend error component=cs-api err="cs-api.deleteEntity: graph mutation commit outcome unknown failed: graph mutation commit outcome unknown (correlation 877b87e7-b4e7-45f0-a871-4c0227e82c30): context deadline exceeded" status=503
+--- FAIL: TestSetup03AReferenceTypedMutations (0.42s)
+    --- FAIL: TestSetup03AReferenceTypedMutations/authority_lifecycle (0.03s)
+        setup03a_reference_integration_test.go:45: create beta.160 graph-ingest: CreateGraphIngest.factory: PayloadRegistry required failed: payload registry is required
+2026/10/01 04:47:28 INFO Connecting to NATS urls=nats://127.0.0.1:53602
+2026/10/01 04:47:28 INFO Successfully connected to NATS urls=nats://127.0.0.1:53602
+2026/10/01 04:47:28 INFO validated cs-api projection contracts component=cs-api count=11
+--- FAIL: TestSetup03AReferenceImmutableArtifact (0.03s)
+    setup03a_reference_integration_test.go:161: create beta.160 graph-ingest: CreateGraphIngest.factory: PayloadRegistry required failed: payload registry is required
+FAIL
+FAIL	github.com/c360studio/semconnect/gateway/cs-api	0.880s
+FAIL

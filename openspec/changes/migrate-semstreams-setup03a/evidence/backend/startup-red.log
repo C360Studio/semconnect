@@ -1,0 +1,5 @@
+# github.com/c360studio/semconnect/cmd/cs-graph-backend [github.com/c360studio/semconnect/cmd/cs-graph-backend.test]
+cmd/cs-graph-backend/main_test.go:99:18: undefined: startWithAbort
+cmd/cs-graph-backend/main_test.go:117:10: undefined: startWithAbort
+FAIL	github.com/c360studio/semconnect/cmd/cs-graph-backend [build failed]
+FAIL

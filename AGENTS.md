@@ -4,20 +4,23 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Repository status
 
-**Current dependency migration:** ADR-S003 remains the durable product-boundary
-foundation; beta.147 through beta.159 are historical. ADR-S004 and
-`openspec/changes/migrate-semstreams-beta160/` target SemStreams
-`v1.0.0-beta.160` at commit `8403a2218000e45a31c5132fbfe01af42ed04f14`
-and source tree `9ed5dd3792bca63ce87ebf449a180add918f59ed`. Typed
-mutations, exact-revision concurrency, local projection contracts, root-only
-SensorML, immutable artifacts, full Go/live-NATS gates, full persistence
-restart parity, and unchanged external `137/0/0` pass. Independent Go and frontend N/A review
-found no compatibility path or conformance weakening. NATS is pinned exactly
-to 2.14.4. Production is **GO WITH ACCEPTED RISK** by product-owner
-authorization on 2026-08-12. Rollback isolation task 9.5 is waived, not proven.
-Use fresh beta.160 storage only; never open a beta.159 volume with beta.160 or a
-beta.160 volume with beta.159. The Stage 55
-result below is the beta.141 historical baseline.
+**Current dependency migration: DRAFT / UNQUALIFIED.** ADR-S003 remains the
+product boundary. `openspec/changes/migrate-semstreams-setup03a/` reuses SemEngine's
+frozen SemStreams `v1.0.0-beta.162.0.20260930150212-8b99efe9c66a`, commit
+`8b99efe9c66a4faa4fa509f9f62cc6bad8392128`, tree
+`605f83cb8492eda3bd347ac30a211b9babf3931f`; beta.163 was unavailable at freeze.
+The pre-upgrade beta.160 checkpoint is `55ea4121aba8658aeac9d70bdfe80f19c15fd4cd`.
+Final r3 external `137/0/0`, persistence, second spatial restart and unit/race,
+vet/build gates pass. Full integration/race retains one blocker: foreign
+Datastream create returns 400 `authority_foreign` instead of the required 201.
+Independent Go review approves the scoped implementation and comparison evidence;
+full qualification and merge approval are withheld. No assertion or authority
+bypass is permitted. Both binaries stay on SemStreams; SemEngine adoption needs
+its own contract. NATS remains 2.14.4. Use isolated fresh storage per revision and
+never cross-open volumes. Prior beta.160 production authorization and rollback
+waiver are historical, not target approval. The Stage 55 description below is the
+historical beta.141 endpoint baseline; current migration disposition is recorded
+in `docs/semstreams-setup03a-migration.md`.
 
 **Stages 2 + 3 + 4 + 5 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24 + 25 + 26 + 27 + 28 + 29 + 30 + 31 + 32 + 33 + 34 + 35 + 36 + 37 + 38 + 39 + 40 + 41 + 42 + 43 + 44 + 45 + 46 + 47 + 48 + 49 + 50 + 51 + 52 + 53 + 54 + 55 of the bootstrap playbook are landed; Stage 6 conformance harness is wired.** What works:
 

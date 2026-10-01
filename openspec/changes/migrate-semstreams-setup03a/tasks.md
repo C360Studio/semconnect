@@ -41,4 +41,4 @@ See [qualification](qualification.md) and [independent review](review.md) for th
 
 - [ ] 5.1 Resolve the foreign Datastream contract gap without bypass, weakened assertion or independently newer pin.
 - [ ] 5.2 Pass all required integration assertions and obtain full migration/merge approval.
-- [ ] 5.3 Record the authorized SemEngine issue-8 handoff comment URL.
+- [x] 5.3 Record the authorized SemEngine issue-8 handoff comment URL in the reference-case document.

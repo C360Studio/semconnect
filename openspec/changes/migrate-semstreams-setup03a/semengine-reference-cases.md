@@ -7,7 +7,7 @@ OGC meaning, mapping decisions and qualification. SemEngine implements its own f
 not permission to add it to this SemStreams binary or to move conformance ownership.
 
 Handoff destination: [SemEngine issue 8](https://github.com/C360Studio/semengine/issues/8).
-Posted comment URL: **pending**. This document is ready for the authorized coordination comment.
+Delivered: [consumer reference cases and blocker](https://github.com/C360Studio/semengine/issues/8#issuecomment-5929518484).
 Reviewed SemConnect implementation: `2d45b651b3bfac8ad4f96bceab7f5a0b3cf225c1`.
 Baseline checkpoint: `55ea4121aba8658aeac9d70bdfe80f19c15fd4cd`.
 

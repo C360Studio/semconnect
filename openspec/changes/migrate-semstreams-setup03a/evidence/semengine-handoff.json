@@ -1,0 +1,16 @@
+{
+  "delivered_at_utc": "2026-10-01T10:28:45.415459+00:00",
+  "comment_url": "https://github.com/C360Studio/semengine/issues/8#issuecomment-5929518484",
+  "semconnect_draft_pr": "https://github.com/C360Studio/semconnect/pull/74",
+  "reviewed_implementation_commit": "2d45b651b3bfac8ad4f96bceab7f5a0b3cf225c1",
+  "qualification_evidence_commit": "a297f13680bea3b5e757a535bc51f3973d03a3fc",
+  "shared_semstreams_commit": "8b99efe9c66a4faa4fa509f9f62cc6bad8392128",
+  "delivered": [
+    "SensorML triples and vocabulary mappings",
+    "Exact-revision typed mutations and absent relationship target",
+    "Immutable bytes and graph StorageReference",
+    "Reproduced federation contract blocker",
+    "Combined dependency closure and proposed extraction dispositions",
+    "Scoped independent review and qualification limits"
+  ]
+}

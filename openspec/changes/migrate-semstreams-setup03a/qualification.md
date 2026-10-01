@@ -145,6 +145,6 @@ these acceptance gates; validation does not mean the unresolved federation requi
 
 [Inventory](inventory.md) records combined production/retained-test closure 63/99 to 67/113 and extraction
 obligations. [The SemEngine handoff](semengine-reference-cases.md) supplies the three consumer-owned cases and
-known gap. Posting its link to SemEngine issue 8 remains pending until a comment URL is recorded.
+known gap. The [SemEngine issue-8 handoff](https://github.com/C360Studio/semengine/issues/8#issuecomment-5929518484) is delivered.
 OGC semantics and conformance stay in SemConnect. A later SemEngine switch requires a separate qualified contract
 and separate implementation; no binary may mix SemStreams and SemEngine.

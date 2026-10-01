@@ -3,7 +3,6 @@ package csapi
 import (
 	"fmt"
 
-	"github.com/c360studio/semstreams/message"
 	"github.com/c360studio/semstreams/vocabulary"
 	"github.com/c360studio/semstreams/vocabulary/export"
 )
@@ -31,7 +30,7 @@ func Register() error {
 func registerDatastreamPredicates() {
 	vocabulary.Register(ProducedBy,
 		vocabulary.WithDescription("Datastream → producing System entity ID. CS API §10. Inverse of forthcoming producesDatastream."),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithIRI(ProducedByIRI))
 
 	vocabulary.Register(ResultTimeRange,
@@ -51,7 +50,7 @@ func registerDatastreamPredicates() {
 
 	vocabulary.Register(HasResultSchema,
 		vocabulary.WithDescription("Datastream → SWESchemaDocument artifact entity ID. Reusable across N Datastreams sharing a schema; the artifact entity holds the canonical schema content. gh#171."),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithIRI(HasResultSchemaIRI))
 }
 
@@ -60,12 +59,12 @@ func registerDatastreamPredicates() {
 func registerControlStreamPredicates() {
 	vocabulary.Register(ControlsSystem,
 		vocabulary.WithDescription("ControlStream → target System entity ID (the System receiving Commands). CS API v1.0 Part 2 §14."),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithIRI(ControlsSystemIRI))
 
 	vocabulary.Register(HasCommandSchema,
 		vocabulary.WithDescription("ControlStream → SWESchemaDocument artifact entity ID describing accepted command structure. Same reuse model as HasResultSchema. gh#171."),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithIRI(HasCommandSchemaIRI))
 }
 
@@ -79,11 +78,11 @@ func registerProductPredicates() {
 
 	register(ObservedProperty, ObservedPropertyIRI, "string", "Datastream observable-property boundary IRI.")
 	register(DeploymentDeployedSystems, DeploymentDeployedSystemsIRI, "string", "Deployment association hrefs preserved as literal boundary values.")
-	register(DeploymentParent, DeploymentParentIRI, message.EntityReferenceDatatype, "Deployment parent entity reference.")
+	register(DeploymentParent, DeploymentParentIRI, vocabulary.DataTypeEntityID, "Deployment parent entity reference.")
 	register(SamplingFeatureHostedProcedure, SamplingFeatureHostedProcedureIRI, "string", "SamplingFeature hosted-procedure href preserved as a literal boundary value.")
 
 	register(ControlStreamInputName, ControlStreamInputNameIRI, "string", "ControlStream input name.")
-	register(ControlStreamAsync, ControlStreamAsyncIRI, "boolean", "Whether ControlStream command execution is asynchronous.")
+	register(ControlStreamAsync, ControlStreamAsyncIRI, vocabulary.DataTypeBool, "Whether ControlStream command execution is asynchronous.")
 	register(ControlStreamCommandFormat, ControlStreamCommandFormatIRI, "string", "ControlStream command media type.")
 	register(ControlStreamControlledProperties, ControlStreamControlledPropertiesIRI, "string", "Serialized controlled-property metadata.")
 	register(ControlStreamIssueTime, ControlStreamIssueTimeIRI, "string", "ControlStream issue-time evidence.")
@@ -108,7 +107,7 @@ func registerProductPredicates() {
 	register(SystemEventPayload, SystemEventPayloadIRI, "string", "Serialized SystemEvent payload.")
 	register(SystemEventKeywords, SystemEventKeywordsIRI, "string", "Serialized SystemEvent keywords.")
 
-	register(FeasibilityControlStream, FeasibilityControlStreamIRI, message.EntityReferenceDatatype, "Feasibility owning ControlStream entity reference.")
+	register(FeasibilityControlStream, FeasibilityControlStreamIRI, vocabulary.DataTypeEntityID, "Feasibility owning ControlStream entity reference.")
 	register(FeasibilityStatus, FeasibilityStatusIRI, "string", "Feasibility status.")
 	register(FeasibilityParams, FeasibilityParamsIRI, "string", "Serialized feasibility parameters.")
 	register(FeasibilityResult, FeasibilityResultIRI, "string", "Serialized feasibility result.")
@@ -118,7 +117,7 @@ func registerProductPredicates() {
 func registerCommandPredicates() {
 	vocabulary.Register(PartOfControlStream,
 		vocabulary.WithDescription("Command → owning ControlStream entity ID. CS API v1.0 Part 2 §15."),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithIRI(PartOfControlStreamIRI))
 }
 
@@ -126,7 +125,7 @@ func registerCommandPredicates() {
 func registerSystemEventPredicates() {
 	vocabulary.Register(EventForSystem,
 		vocabulary.WithDescription("SystemEvent → subject System entity ID. CS API v1.0 Part 2 §16."),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithIRI(EventForSystemIRI))
 }
 
@@ -136,7 +135,7 @@ func registerSystemEventPredicates() {
 func registerArtifactPredicates() {
 	vocabulary.Register(HasSource,
 		vocabulary.WithDescription("System or Datastream → SensorMLDocument artifact entity ID. Artifact has its own StorageRef pointing to the SensorML XML/JSON in ObjectStore. gh#171."),
-		vocabulary.WithDataType(message.EntityReferenceDatatype),
+		vocabulary.WithDataType(vocabulary.DataTypeEntityID),
 		vocabulary.WithIRI(HasSourceIRI))
 }
 

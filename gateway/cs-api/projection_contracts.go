@@ -42,7 +42,7 @@ var (
 func representationContract(name string, mt message.Type, pattern string, predicates ...string) projection.Contract {
 	return projection.Contract{
 		Name:            name,
-		MessageType:     mt.Key(),
+		MessageType:     mt,
 		EntityPattern:   pattern,
 		BirthPredicates: []string{sensorml.PredType, vocabulary.EntityIndexingProfile},
 		Groups: []projection.PredicateGroup{{
@@ -57,7 +57,7 @@ func representationContract(name string, mt message.Type, pattern string, predic
 func birthOnlyContract(name string, mt message.Type, pattern string, predicates ...string) projection.Contract {
 	return projection.Contract{
 		Name:            name,
-		MessageType:     mt.Key(),
+		MessageType:     mt,
 		EntityPattern:   pattern,
 		BirthPredicates: append([]string{sensorml.PredType, vocabulary.EntityIndexingProfile}, predicates...),
 		IndexingProfile: "content",
@@ -147,7 +147,7 @@ func registerProjectionVocabulary() {
 		}
 		options := []vocabulary.Option{
 			vocabulary.WithDescription(predicate.description),
-			vocabulary.WithDataType("float64"),
+			vocabulary.WithDataType(vocabulary.DataTypeFloat),
 			vocabulary.WithUnits(predicate.units),
 		}
 		if predicate.valueRange != "" {

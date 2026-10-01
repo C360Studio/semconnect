@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	beta160Version = "v1.0.0-beta.160"
-	beta160Commit  = "8403a2218000e45a31c5132fbfe01af42ed04f14"
+	targetVersion  = "v1.0.0-beta.162.0.20260930150212-8b99efe9c66a"
+	targetCommit   = "8b99efe9c66a4faa4fa509f9f62cc6bad8392128"
+	targetImageTag = "setup03a-8b99efe9c66a"
 	natsDigest     = "sha256:f2123f533c2b0cada0a5c5ec434fb2b8cfe1cf220215ef9d7517e1372917ad66"
 )
 
-func TestBeta160ConfigurationsValidateWithPinnedSemStreams(t *testing.T) {
+func TestSetup03AConfigurationsValidateWithPinnedSemStreams(t *testing.T) {
 	for _, path := range []string{"semstreams.json"} {
 		t.Run(filepath.Base(path), func(t *testing.T) {
 			data, err := os.ReadFile(path)
@@ -29,14 +30,17 @@ func TestBeta160ConfigurationsValidateWithPinnedSemStreams(t *testing.T) {
 			}
 			var direct semconfig.Config
 			if err := json.Unmarshal(data, &direct); err != nil {
-				t.Fatalf("decode beta.160 config: %v", err)
+				t.Fatalf("decode SETUP 03A config: %v", err)
 			}
 			loaded, err := semconfig.NewLoader().LoadFile(path)
 			if err != nil {
-				t.Fatalf("load beta.160 config: %v", err)
+				t.Fatalf("load SETUP 03A config: %v", err)
+			}
+			if loaded.Platform.Org != "c360" || loaded.Platform.ID != "semconnect" {
+				t.Fatalf("graph authority must preserve canonical CS resource IDs: %+v", loaded.Platform)
 			}
 			if err := loaded.Validate(); err != nil {
-				t.Fatalf("validate beta.160 config: %v", err)
+				t.Fatalf("validate SETUP 03A config: %v", err)
 			}
 		})
 	}
@@ -45,7 +49,7 @@ func TestBeta160ConfigurationsValidateWithPinnedSemStreams(t *testing.T) {
 func TestComposeIsGreenfieldProductionTopology(t *testing.T) {
 	compose := readYAML(t, "compose.yml")
 	services := mapping(t, compose, "services")
-	wantServices := []string{"nats", "semstreams", "semconnect", "canonical-smoke", "greenfield-preflight"}
+	wantServices := []string{"nats", "provision-identity", "semstreams", "semconnect", "canonical-smoke", "greenfield-preflight"}
 	if len(services) != len(wantServices) {
 		t.Fatalf("services = %v, want exactly %v", keys(services), wantServices)
 	}
@@ -62,33 +66,56 @@ func TestComposeIsGreenfieldProductionTopology(t *testing.T) {
 	if _, publishesNATS := nats["ports"]; publishesNATS {
 		t.Error("NATS must not publish host ports")
 	}
-	if !containsString(slice(t, nats, "volumes"), "semconnect-nats-beta160-data:/data") {
+	if !containsString(slice(t, nats, "volumes"), "semconnect-nats-setup03a-8b99efe9c66a-data:/data") {
 		t.Error("NATS does not use the explicit persistent volume")
 	}
 
+	volume := mapping(t, mapping(t, compose, "volumes"), "semconnect-nats-setup03a-8b99efe9c66a-data")
+	if volume["name"] != "${SEMCONNECT_NATS_VOLUME:-semconnect-nats-setup03a-8b99efe9c66a-data}" {
+		t.Errorf("target volume must default to its own fresh storage: %v", volume["name"])
+	}
 	semstreams := services["semstreams"].(map[string]any)
-	if got := semstreams["image"]; got != "semconnect-semstreams:"+beta160Version {
-		t.Errorf("SemStreams image = %v, want beta.160 release tag", got)
+	if got := semstreams["image"]; got != "semconnect-graph-backend:"+targetImageTag {
+		t.Errorf("graph backend image = %v, want frozen SETUP 03A tag", got)
+	}
+	if !containsString(slice(t, semstreams, "command"), "-cs-api-config") ||
+		!containsString(slice(t, semstreams, "command"), "/etc/semconnect/config.json") ||
+		!containsString(slice(t, semstreams, "volumes"), "./semconnect.json:/etc/semconnect/config.json:ro") {
+		t.Error("graph host must share the gateway's resource-prefix and artifact configuration")
 	}
 	build := mapping(t, semstreams, "build")
-	wantContext := "https://github.com/C360Studio/semstreams.git#" + beta160Commit
-	if build["context"] != wantContext {
-		t.Errorf("SemStreams build context = %v, want %s", build["context"], wantContext)
+	if build["context"] != ".." || build["dockerfile"] != "deploy/backend.Dockerfile" {
+		t.Errorf("backend must build SemConnect's registered composition root: %v", build)
 	}
-	inline, ok := build["dockerfile_inline"].(string)
-	if !ok || !strings.Contains(inline, "0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2") ||
-		!strings.Contains(inline, "28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b") {
-		t.Error("SemStreams build does not pin both base images by digest")
-	}
-	for _, want := range []string{"-X main.Version=" + beta160Version, "-X main.GitCommit=" + beta160Commit} {
-		if !strings.Contains(inline, want) {
-			t.Errorf("SemStreams build metadata lacks %q", want)
+	backendDockerfile := readFile(t, "backend.Dockerfile")
+	for _, want := range []string{
+		"386d475a660466863d9f8c766fec64d7fdad3edac2c6a05020c09534d71edb4b",
+		"28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b",
+		"ARG SEMSTREAMS_VERSION=" + targetVersion,
+		"ARG SEMSTREAMS_COMMIT=" + targetCommit,
+		"go list -m", "github.com/c360studio/semstreams", "./cmd/cs-graph-backend",
+		"USER semstreams", "ENTRYPOINT [\"/app/cs-graph-backend\"]",
+	} {
+		if !strings.Contains(backendDockerfile, want) {
+			t.Errorf("backend image pin/composition contract lacks %q", want)
 		}
 	}
+	provision := mapping(t, services, "provision-identity")
+	if provision["image"] != semstreams["image"] {
+		t.Error("identity provisioning must use the exact graph host image")
+	}
+	if !containsString(slice(t, provision, "command"), "-provision-identity") ||
+		!containsString(slice(t, provision, "command"), "semconnect") {
+		t.Error("identity provisioning must explicitly adopt the stable semconnect platform")
+	}
+	dependencies := mapping(t, semstreams, "depends_on")
+	if mapping(t, dependencies, "provision-identity")["condition"] != "service_completed_successfully" {
+		t.Error("graph startup must wait for successful create-only identity provisioning")
+	}
 	for service, want := range map[string]string{
-		"semconnect":           "semconnect-cs-api:beta.160",
-		"canonical-smoke":      "semconnect-canonical-smoke:beta.160",
-		"greenfield-preflight": "semconnect-canonical-smoke:beta.160",
+		"semconnect":           "semconnect-cs-api:" + targetImageTag,
+		"canonical-smoke":      "semconnect-canonical-smoke:" + targetImageTag,
+		"greenfield-preflight": "semconnect-canonical-smoke:" + targetImageTag,
 	} {
 		if got := services[service].(map[string]any)["image"]; got != want {
 			t.Errorf("%s image = %v, want %s", service, got, want)
@@ -178,6 +205,11 @@ func TestOperationalScriptsNeverDeleteOrTranslateState(t *testing.T) {
 		if !strings.Contains(script, required) {
 			t.Errorf("persistence verification lacks %q", required)
 		}
+	}
+	preflight := strings.Index(script, "compose --profile smoke run --rm greenfield-preflight")
+	startup := strings.Index(script, "compose up -d --build semstreams semconnect")
+	if preflight < 0 || startup <= preflight {
+		t.Error("empty-storage preflight must run before identity provisioning and graph startup")
 	}
 	probeImage := readFile(t, "probe/Dockerfile")
 	for _, required := range []string{

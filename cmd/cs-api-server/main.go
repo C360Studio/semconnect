@@ -114,14 +114,42 @@ func run() error {
 	if err := comp.Initialize(); err != nil {
 		return fmt.Errorf("initialize cs-api: %w", err)
 	}
-	if err := comp.Start(ctx); err != nil {
+	// Signals request shutdown; the runtime remains authoritative while Stop
+	// drains already admitted HTTP work under its own bounded context.
+	runtimeCtx, cancelRuntime := context.WithCancel(context.Background())
+	defer cancelRuntime()
+	if err := startGatewayWithAbort(runtimeCtx, ctx, cancelRuntime, comp.Start, comp.Stop); err != nil {
 		return fmt.Errorf("start cs-api: %w", err)
 	}
 
 	<-ctx.Done()
 	logger.Info("shutting down", "reason", ctx.Err())
-	if err := comp.Stop(shutdownDeadline); err != nil {
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), shutdownDeadline)
+	defer cancelShutdown()
+	if err := comp.Stop(shutdownCtx); err != nil {
 		return fmt.Errorf("stop cs-api: %w", err)
+	}
+	return nil
+}
+
+func startGatewayWithAbort(runtimeCtx, signalCtx context.Context, abort context.CancelFunc, start, stop func(context.Context) error) error {
+	// Signals abort incomplete startup. Detach and join that callback before
+	// returning readiness, so later signals request drain under live authority.
+	callbackDone := make(chan struct{})
+	stopCallback := context.AfterFunc(signalCtx, func() {
+		abort()
+		close(callbackDone)
+	})
+	err := start(runtimeCtx)
+	if !stopCallback() {
+		<-callbackDone
+	}
+	if startupErr := errors.Join(err, signalCtx.Err()); startupErr != nil {
+		// Start can acquire the listener just as a signal wins. Complete bounded
+		// cleanup of any acquired resources before the caller closes NATS.
+		cleanupCtx, cancelCleanup := context.WithTimeout(context.Background(), shutdownDeadline)
+		defer cancelCleanup()
+		return errors.Join(startupErr, stop(cleanupCtx))
 	}
 	return nil
 }

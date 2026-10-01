@@ -95,6 +95,7 @@ def main():
     parser.add_argument("--output", type=pathlib.Path, required=True)
     parser.add_argument("--raw-output", type=pathlib.Path, required=True)
     parser.add_argument("--label", required=True)
+    parser.add_argument("--source-commit", help="Explicit source commit for an extracted Git archive without .git")
     parser.add_argument("--replay-raw", action="store_true", help="Re-normalize captured output without running Go")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -118,16 +119,19 @@ def main():
         metadata = {
             "label": args.label,
             "captured_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "consumer_commit": run("consumer-commit", ["git", "rev-parse", "HEAD"]).strip(),
-            "consumer_status": run("consumer-status", ["git", "status", "--short"]).splitlines(),
+            "consumer_commit": args.source_commit or run("consumer-commit", ["git", "rev-parse", "HEAD"]).strip(),
+            "consumer_status": (["Git archive; supplemental closure measurement script supplied"] if args.source_commit
+                                else run("consumer-status", ["git", "status", "--short"]).splitlines()),
             "framework_module": {k: module[k] for k in ("Path", "Version", "Sum", "GoModSum") if k in module},
             "environment": environment,
             "method": "Host GOOS/GOARCH. Production package closure; all retained framework packages' tests, union of default, custom tags, and race+custom tags. Lists imports only; does not execute tests. Raw non-test source lines include inactive source files in each retained framework directory.",
         }
         scopes = {}
+        production_by_scope = {}
         for scope, roots in (("consumer", ["./..."]), ("backend_composed", BACKEND_ROOTS)):
             production_records = list(stream_json(run(scope + "-production", ["go", "list", "-mod=readonly", "-deps", "-json", *roots])))
             production = normalized(production_records)
+            production_by_scope[scope] = production
             retained = sorted(name for name in production if name.startswith(FRAMEWORK + "/"))
             tests_roots = roots if scope == "consumer" else retained
             tags, constraints = test_tags(production)
@@ -145,6 +149,28 @@ def main():
                              "custom_test_tags": tags, "build_constraints": constraints,
                              "production": summarize(production), "with_retained_tests": summarize(combined),
                              "test_only_framework_packages": sorted(set(combined).difference(production).intersection(name for name in combined if name.startswith(FRAMEWORK + "/")))}
+
+        # The actual consumer can import framework packages absent from the
+        # stable backend roots. Their transitive tests belong to extraction
+        # planning as well; retaining only backend tests understates closure.
+        production = {**production_by_scope["consumer"], **production_by_scope["backend_composed"]}
+        retained = sorted(name for name in production if name.startswith(FRAMEWORK + "/"))
+        tags, constraints = test_tags(production)
+        combined = dict(production)
+        for variant, selected in [("default", []), ("custom", tags), ("race-custom", ["race", *tags])]:
+            argv = ["go", "list", "-mod=readonly", "-deps", "-test", "-json"]
+            if selected:
+                argv += ["-tags=" + ",".join(selected)]
+            records = stream_json(run("combined-tests-" + variant, [*argv, *retained]))
+            combined.update(normalized(records))
+        scopes["combined"] = {
+            "roots": retained,
+            "note": "Union of actual consumer and stable backend production closures; tests enumerate every retained framework package.",
+            "retained_framework_test_roots": retained,
+            "custom_test_tags": tags, "build_constraints": constraints,
+            "production": summarize(production), "with_retained_tests": summarize(combined),
+            "test_only_framework_packages": sorted(name for name in combined if name.startswith(FRAMEWORK + "/") and name not in production),
+        }
         shipped = normalized(stream_json(run("stock-backend-production", ["go", "list", "-mod=readonly", "-deps", "-json", FRAMEWORK + "/cmd/semstreams"])))
         scopes["stock_backend_binary"] = {"roots": [FRAMEWORK + "/cmd/semstreams"], "production": summarize(shipped), "note": "Actual beta.160 backend is the full upstream binary; this scope is a comparison point, not the bounded retained extraction set. Target uses a consumer-owned backend whose imports are in the consumer scope."}
         metadata["scopes"] = scopes

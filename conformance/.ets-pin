@@ -28,20 +28,21 @@ TE_PASS=ogctest
 # Stage 9 — semstreams framework backend. Powers `graph.mutation.*` +
 # `graph.query.*` + `graph.index.query.*` + `graph.spatial.query.*` so
 # cs-api-server's NATS request/reply calls have responders. Built from
-# the framework's own multi-stage docker/Dockerfile (production target).
+# the consumer-owned deploy/backend.Dockerfile (production target).
 #
 # PIN POLICY: match the Go module pin in semconnect's go.mod
-# (`github.com/c360studio/semstreams v1.0.0-beta.160`) so the wire
+# (`github.com/c360studio/semstreams v1.0.0-beta.162.0.20260930150212-8b99efe9c66a`) so the wire
 # protocol the gateway compiles against and the binary the backend
-# runs share a tag. Bump the module first, conformance pin second.
+# runs share one immutable revision. Reuse the frozen SETUP 03A pin.
 SEMSTREAMS_GIT_URL=https://github.com/C360Studio/semstreams.git
 # Commit SHA (not tag-object SHA). `git rev-parse HEAD` returns the
 # commit a ref points at, so ensure_semstreams_vendor's idempotency
 # check needs the commit SHA, not the annotated-tag object's SHA —
 # otherwise every subsequent run re-clones.
-# beta.160 is a lightweight tag, so the tag object is the commit itself.
-SEMSTREAMS_TAG_OBJECT=8403a2218000e45a31c5132fbfe01af42ed04f14
-SEMSTREAMS_COMMIT=8403a2218000e45a31c5132fbfe01af42ed04f14
-SEMSTREAMS_TREE=9ed5dd3792bca63ce87ebf449a180add918f59ed
-SEMSTREAMS_COMMIT_DATE=2026-08-12
-SEMSTREAMS_VERSION=v1.0.0-beta.160
+# SETUP 03A froze a main commit because beta.163 was unavailable. There is no
+# release tag object; this field records the same exact commit for run.sh.
+SEMSTREAMS_TAG_OBJECT=8b99efe9c66a4faa4fa509f9f62cc6bad8392128
+SEMSTREAMS_COMMIT=8b99efe9c66a4faa4fa509f9f62cc6bad8392128
+SEMSTREAMS_TREE=605f83cb8492eda3bd347ac30a211b9babf3931f
+SEMSTREAMS_COMMIT_DATE=2026-09-30
+SEMSTREAMS_VERSION=v1.0.0-beta.162.0.20260930150212-8b99efe9c66a

@@ -157,9 +157,12 @@ type Component struct {
 	running     bool
 	startTime   time.Time
 
-	httpServer   *http.Server
-	httpMux      *http.ServeMux
-	httpListener net.Listener
+	httpServer    *http.Server
+	httpMux       *http.ServeMux
+	httpListener  net.Listener
+	httpServeDone chan struct{}
+	httpAbortDone chan struct{}
+	stopHTTPAbort func() bool
 
 	// publisher is the JetStream handle used by mutation endpoints
 	// (observations POST). Set once during Start() after EnsureStream
@@ -424,21 +427,31 @@ func (c *Component) Start(ctx context.Context) error {
 		c.RegisterHTTPHandlers("", c.httpMux)
 		c.httpServer = &http.Server{
 			Handler:           c.httpMux,
+			BaseContext:       func(net.Listener) context.Context { return ctx },
 			ReadHeaderTimeout: c.cfg.ReadHeaderTimeout,
 			ReadTimeout:       c.cfg.ReadTimeout,
 			WriteTimeout:      c.cfg.WriteTimeout,
 			IdleTimeout:       c.cfg.IdleTimeout,
 		}
+		c.httpServeDone = make(chan struct{})
+		c.httpAbortDone = make(chan struct{})
+		srv, abortDone := c.httpServer, c.httpAbortDone
+		c.stopHTTPAbort = context.AfterFunc(ctx, func() {
+			defer close(abortDone)
+			_ = srv.Close()
+		})
 	}
 
 	c.running = true
 	c.startTime = time.Now()
 	srv := c.httpServer
 	listener := c.httpListener
+	serveDone := c.httpServeDone
 	c.mu.Unlock()
 
 	if srv != nil {
 		go func() {
+			defer close(serveDone)
 			c.logger.Info("HTTP server listening", "bind", listener.Addr().String())
 			if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
 				c.logger.Error("HTTP server exited", "err", err)
@@ -464,21 +477,39 @@ func observationStreamConfig(cfg Config) jetstream.StreamConfig {
 	}
 }
 
-func (c *Component) Stop(timeout time.Duration) error {
+func (c *Component) Stop(ctx context.Context) error {
+	if ctx == nil {
+		return errors.New("cs-api: Stop: context required")
+	}
 	c.mu.Lock()
 	if !c.running {
 		c.mu.Unlock()
 		return nil
 	}
 	srv := c.httpServer
+	serveDone, abortDone, stopAbort := c.httpServeDone, c.httpAbortDone, c.stopHTTPAbort
 	c.running = false
 	c.mu.Unlock()
 
 	if srv != nil {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		if err := srv.Shutdown(shutdownCtx); err != nil {
+		// The caller keeps Start authority live through native HTTP drain.
+		// Only after admission and handlers finish do we retire the abort hook
+		// and join owned work, all under the exact supplied Stop budget.
+		if err := srv.Shutdown(ctx); err != nil {
 			return fmt.Errorf("cs-api: Stop: %w", err)
+		}
+		if stopAbort != nil && stopAbort() {
+			close(abortDone)
+		}
+		for _, done := range []chan struct{}{serveDone, abortDone} {
+			if done == nil {
+				continue
+			}
+			select {
+			case <-done:
+			case <-ctx.Done():
+				return fmt.Errorf("cs-api: Stop: join HTTP runtime: %w", ctx.Err())
+			}
 		}
 	}
 	c.logger.Info("stopped")

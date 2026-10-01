@@ -107,9 +107,14 @@ func TestSetup03AReferenceTypedMutations(t *testing.T) {
 				}
 				t.Cleanup(responder.Close)
 				var attempts atomic.Int32
+				received := make(chan struct{}, 1)
 				body, header := encodeEntityMutationFailure(t, failure.Code, "reference failure")
 				_, err = responder.Subscribe(mustTestGraphMutationSubject(operation), func(msg *nats.Msg) {
 					attempts.Add(1)
+					select {
+					case received <- struct{}{}:
+					default:
+					}
 					if failure.Injection != "lost_reply" {
 						_ = msg.RespondMsg(&nats.Msg{Data: body, Header: header})
 					}
@@ -124,19 +129,38 @@ func TestSetup03AReferenceTypedMutations(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				c.cfg.QueryTimeout = 50 * time.Millisecond
 				id, triples, err := c.buildSystemTriplesFromSensorML(setup03AFixture(t, "system.json"))
 				if err != nil {
 					t.Fatal(err)
 				}
 				exact := graph.ExactEntity{Entity: &graph.EntityState{ID: id, Triples: triples, MessageType: systemProjectionMessageType}, KVRevision: 42}
-				switch operation {
-				case graphMutationCreateOp:
-					err = c.ingestProjectedTriples(t.Context(), id, triples, systemProjectionMessageType, Identity{})
-				case graphMutationReconcileOp:
-					err = c.reconcileEntity(t.Context(), exact, triples, Identity{}, "referenceFailure")
-				case graphMutationDeleteOp:
-					err = c.deleteExactEntity(t.Context(), exact, Identity{})
+				requestCtx, cancelRequest := context.WithCancel(t.Context())
+				defer cancelRequest()
+				done := make(chan error, 1)
+				go func() {
+					switch operation {
+					case graphMutationCreateOp:
+						done <- c.ingestProjectedTriples(requestCtx, id, triples, systemProjectionMessageType, Identity{})
+					case graphMutationReconcileOp:
+						done <- c.reconcileEntity(requestCtx, exact, triples, Identity{}, "referenceFailure")
+					case graphMutationDeleteOp:
+						done <- c.deleteExactEntity(requestCtx, exact, Identity{})
+					}
+				}()
+				if failure.Injection == "lost_reply" {
+					select {
+					case <-received:
+						cancelRequest()
+					case early := <-done:
+						t.Fatalf("request ended before responder receipt: %v", early)
+					case <-time.After(10 * time.Second):
+						t.Fatal("responder did not receive the request")
+					}
+				}
+				select {
+				case err = <-done:
+				case <-time.After(10 * time.Second):
+					t.Fatal("mutation did not finish within watchdog")
 				}
 				if err == nil {
 					t.Fatal("injected failure was accepted")

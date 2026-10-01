@@ -23,7 +23,7 @@ func TestProjectionContractsValidateAndCoverEveryResourceFamily(t *testing.T) {
 		t.Fatalf("validate projection contracts: %v", err)
 	}
 	for _, contract := range contracts {
-		if contract.MessageType == "" || contract.MessageType == ".." {
+		if !contract.MessageType.IsValid() {
 			t.Errorf("contract %q has invalid message type %q", contract.Name, contract.MessageType)
 		}
 		foundType := false

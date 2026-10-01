@@ -11,8 +11,8 @@
     {"predicate":"sensorml.process.type","iri":"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"},
     {"predicate":"sensorml.process.label","iri":"http://purl.org/dc/terms/title"},
     {"predicate":"sensorml.process.uid","iri":"http://purl.org/dc/terms/identifier"},
-    {"predicate":"sensorml.system.hosts","iri":"http://www.w3.org/ns/sosa/hosts","datatype":"@id","inverse":"sensorml.component.is-hosted-by"},
-    {"predicate":"csapi.datastream.result-schema","iri":"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/hasResultSchema","datatype":"@id"}
+    {"predicate":"sensorml.system.hosts","iri":"http://www.w3.org/ns/sosa/hosts","datatype":"entity_id","inverse":"sensorml.component.is-hosted-by"},
+    {"predicate":"csapi.datastream.result-schema","iri":"http://www.opengis.net/spec/ogcapi-connectedsystems-1/1.0/hasResultSchema","datatype":"entity_id"}
   ],
   "failures": [
     {"code":"revision_mismatch","injection":"classified_reply","http_status":409,"uncertain":false,"attempts":1},

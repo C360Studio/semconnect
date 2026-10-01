@@ -536,7 +536,7 @@ func entityStateFixtureViolations(state graph.EntityState) []string {
 	var violations []string
 	for index, triple := range state.Triples {
 		metadata := vocabulary.GetPredicateMetadata(triple.Predicate)
-		if metadata == nil || metadata.DataType != message.EntityReferenceDatatype {
+		if metadata == nil || metadata.DataType != vocabulary.DataTypeEntityID {
 			continue
 		}
 		if triple.Datatype != message.EntityReferenceDatatype {
